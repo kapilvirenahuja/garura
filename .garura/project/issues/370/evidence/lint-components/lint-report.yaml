@@ -1,0 +1,11 @@
+generated_at: "2026-05-07T00:00:00Z"
+quality_profile_status: DRAFT
+target: core/components/plays
+summary:
+  errors: 0
+  warnings: 0
+  infos: 0
+  blockers: 0
+  informational: 0
+pass: true
+violations: []

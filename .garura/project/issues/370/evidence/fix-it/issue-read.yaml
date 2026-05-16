@@ -1,0 +1,44 @@
+issue:
+  number: 370
+  title: "/define does not surface `surfaced_for_review: true` decisions at its checkpoints — HITL break"
+  state: "OPEN"
+  url: "https://github.com/kapilvirenahuja/garura/issues/370"
+  labels:
+    - "bug"
+  type_hint: "fix"
+  body: |
+    ## What's wrong
+
+    When the `/define` play scopes a feature, the `product-keeper` agent records every inferred decision in a decision manifest. Each decision carries a `surfaced_for_review` flag. High-confidence decisions (direct catalog matches) are `false`; mid- and low-confidence decisions are `true`, which by the decision-surfacing discipline means the play MUST show them to the human before the result is treated as final.
+
+    The play does not do this reliably. It surfaces only some of the flagged decisions at its checkpoints and silently carries the rest forward.
+
+    ## Evidence (issue #369 run)
+
+    `.garura/project/issues/369/evidence/define/decision-manifest-catalog-match.yaml` flagged three decisions with `surfaced_for_review: true`:
+    - D5 — the EE-F011 "Installer" overlap / supersession
+    - D6 — EE-F017 "Sync" kept distinct from the installer, no merge proposed
+    - D7 — proposed initial capability status = `development`
+
+    Only D5 was presented to the user (at the Phase 5 placement checkpoint and in the Phase 2 summary). D6 and D7 were never surfaced. The user only discovered them by manually opening the decision manifest file, after the epic checkpoint had already been reached.
+
+    Checkpoint artifacts confirming the gap:
+    - `.garura/project/issues/369/checkpoint/define/20260515-172805.md` — placement checkpoint, surfaced D5 only
+    - `.garura/project/issues/369/checkpoint/define/20260515-180602.md` — epic checkpoint, records the gap and the late, post-hoc surfacing of D6/D7
+
+    ## Why it matters
+
+    The decision-surfacing discipline (high = batch-confirm, mid = surface for review, low = surface one-by-one) is a core human-in-the-loop guarantee. If the orchestrating play drops flagged decisions, every checkpoint approval is uninformed for those decisions — the human is Tethering things they were never shown. Requiring the user to audit evidence files to find decisions the system already flagged is the exact failure HITL is meant to prevent. Until this is fixed, HITL on `/define` is broken for any mid/low-confidence decision beyond the first.
+
+    ## Expected behaviour
+
+    At every checkpoint, the play should read all decision manifests produced up to that point, collect every entry with `surfaced_for_review: true` that has not yet been shown, and present them to the user batched by confidence tier per the discipline — before asking for Tether/Orbit/Vanish.
+
+    ## Fix direction (to be confirmed during the fix, not assumed here)
+
+    - Likely a change to the `/define` `intent.yaml` followed by `/create-play --rebuild define` (per the project rule that play changes go through intent.yaml, never hand-editing the compiled SKILL.md).
+    - This may also affect other checkpoint-gated plays that emit decision manifests (e.g. `specify`, `design`, `arch`). Whether the fix is define-local or a shared checkpoint mechanism needs investigation — do not assume scope.
+
+    ## Source
+
+    Discovered by the user during the issue #369 `/define` run (Project Installer scoping) on 2026-05-15.

@@ -1,0 +1,202 @@
+based_on_rca: .garura/project/issues/370/evidence/fix-it/rca.yaml
+
+strategy: >
+  Add a new constraint C17 (Decision Surfacing Discipline) to
+  core/components/plays/define/reference/intent.yaml, modelled on the
+  equivalent constraint that already exists in specify (C18), design (C17+C18),
+  and arch (C18). The constraint must require the orchestrator to: (1) at
+  Phase 5, before writing the checkpoint file or presenting the approval prompt,
+  load every decision manifest produced so far (decision-manifest-catalog-match.yaml
+  from Phase 2), collect all entries with surfaced_for_review: true that have not
+  yet been presented, and surface them batched by confidence tier — HIGH as a
+  single batch-confirm, MID as a batch with explicit questions per decision, LOW
+  one-by-one — with user_response written back to the manifest before the
+  Tether/Orbit/Vanish prompt appears; (2) at Phase 9, run the same flow over all
+  manifests produced so far (decision-manifest-catalog-match.yaml from Phase 2,
+  decision-manifest-manage-features.yaml from Phase 6,
+  decision-manifest-generate-intent-epics.yaml from Phase 7) before presenting the
+  epic Tether/Orbit/Vanish gate. A corresponding failure condition F11 is added for
+  silent carry-forward of unsurfaced decisions. After updating intent.yaml, run
+  /create-play --rebuild define to regenerate SKILL.md — never hand-edit SKILL.md.
+
+alternatives_considered:
+  - option: >
+      Hand-edit core/components/plays/define/SKILL.md directly to add
+      decision-surfacing steps at Phase 5 and Phase 9, without touching
+      intent.yaml.
+    rejection_reason: >
+      Violates the Play Pipeline Rule (CLAUDE.md): intent changes must go
+      through intent.yaml → /create-play rebuild. A direct edit to the compiled
+      SKILL.md is clobbered the next time /create-play --rebuild define runs,
+      making the fix non-durable. The issue itself calls this out explicitly.
+      Precedent: the Standard Play Close work (#371) is exactly this pattern —
+      intent change → compiler emits → lint enforces. Direct edits to SKILL.md
+      are only permitted for non-intent surface changes.
+
+  - option: >
+      Extract the Decision Surfacing Discipline to a shared LTM rule file
+      (core/components/memory/standards/rules/decision-surfacing.md) and
+      rebuild all four plays (define, specify, design, arch) to reference it now.
+    rejection_reason: >
+      Blast radius exceeds the bug scope: three plays that currently work correctly
+      would be rebuilt and could diverge under the compiler. The bug is in exactly
+      one missing constraint in one file; the fix should be proportional (Razor 1 —
+      Occam's Razor). Additionally, each play's inline definition is tailored to its
+      own surfaces and skill set — premature abstraction into a shared rule risks
+      flattening nuances incorrectly before a stable shared shape is established
+      (Razor 4 — Abstraction later). Recommended as a separate follow-up issue after
+      define is fixed and the shared shape has stabilised across all four plays.
+
+  - option: >
+      Add a new step-eval SE-13 (C17) to SKILL.md that asserts decision surfacing
+      happened, without adding a constraint to intent.yaml (treat it as a
+      non-intent surface change and direct-edit the compiled artifact).
+    rejection_reason: >
+      A step-eval without the backing constraint has no force: the constraint is what
+      instructs the orchestrator to perform the surfacing; the eval merely verifies it.
+      Without C17 in intent.yaml, the next /create-play --rebuild regenerates SKILL.md
+      without the eval and without the surfacing step, reverting the fix to zero. The
+      guarantee must live in the source-of-truth (intent.yaml), not in a hand-added
+      eval in the compiled artifact.
+
+affected_files:
+  - path: core/components/plays/define/reference/intent.yaml
+    role: >
+      Source of truth for the /define play. Defines all constraints (C1–C16),
+      failure conditions (F1–F10), and scenarios (S1–S6) that the compiler
+      (/create-play) reads when generating SKILL.md.
+    action: modify
+    change: >
+      Add constraint C17 (Decision Surfacing Discipline) after C16. The constraint
+      text must: name Phase 5 and Phase 9 as the two checkpoint gates; require the
+      orchestrator to load all decision manifests produced up to each gate; collect
+      entries with surfaced_for_review: true not yet presented; surface them batched
+      by confidence tier (HIGH batch-confirm, MID batch-with-questions, LOW
+      one-by-one); write user_response back to the manifest for every entry; and only
+      then present the Tether/Orbit/Vanish prompt. Reference the three specific
+      manifest paths: decision-manifest-catalog-match.yaml (Phase 2),
+      decision-manifest-manage-features.yaml (Phase 6),
+      decision-manifest-generate-intent-epics.yaml (Phase 7). Note that Phase 5 only
+      has the Phase-2 manifest available; Phase 9 has all three. Add failure condition
+      F11 to the failure_conditions section: "Any decision-manifest entry with
+      surfaced_for_review: true is carried forward past a checkpoint without being
+      presented to the user — the play silently committed an unsurfaced decision,
+      breaking the HITL guarantee." Also add a new step-eval SE-13 (C17/F11) to be
+      emitted by the compiler into the Phase 5 and Phase 9 sections of SKILL.md.
+    risk: low
+    risk_rationale: >
+      Adding a new constraint to an intent.yaml file that already has 16 constraints
+      is low-risk; the compiler treats additions as append-only and existing phases
+      are unaffected in structure. The only execution risk is if /create-play produces
+      a malformed SKILL.md, which is detectable by the regression test.
+
+  - path: core/components/plays/define/SKILL.md
+    role: >
+      Compiled play artifact generated by /create-play --build (or --rebuild) from
+      intent.yaml. This is the file the orchestrator actually reads at runtime.
+    action: modify
+    change: >
+      Regenerated by running /create-play --rebuild define after intent.yaml gains
+      C17 and F11. The regenerated file must contain two new Decision Surfacing steps:
+      one between Phase 4 and the checkpoint write in Phase 5 (labelled "Decision
+      Surfacing — Phase 5"), and one between Phase 8/Phase 7 and the checkpoint write
+      in Phase 9 (labelled "Decision Surfacing — Phase 9"). Each step must instruct
+      the orchestrator to load the applicable decision manifests, filter for
+      surfaced_for_review: true entries not yet surfaced, and run the tiered flow
+      before the approval prompt appears. NEVER hand-edit this file — it is a compiled
+      artifact and any direct edits are clobbered on the next /create-play run.
+    risk: medium
+    risk_rationale: >
+      The regeneration depends on /create-play correctly interpreting the new C17
+      constraint and emitting the right steps. If the compiler's interpretation is
+      incorrect or incomplete, SKILL.md may not fully enforce the new constraint —
+      which is why the regression test (grep over SKILL.md for the surfacing language)
+      is the verification gate.
+
+execution_plan:
+  - id: step-1
+    description: >
+      Edit core/components/plays/define/reference/intent.yaml. Append constraint C17
+      (Decision Surfacing Discipline) after C16 in the constraints block, and append
+      failure condition F11 after F10 in the failure_conditions block.
+      C17 text must cover: (a) Phase 5 reads decision-manifest-catalog-match.yaml,
+      surfaces all surfaced_for_review: true entries not yet presented, batched HIGH /
+      MID / LOW, writes user_response per entry before the Tether/Orbit/Vanish prompt;
+      (b) Phase 9 reads all three manifests (decision-manifest-catalog-match.yaml,
+      decision-manifest-manage-features.yaml, decision-manifest-generate-intent-epics.yaml),
+      surfaces all unsurfaced surfaced_for_review: true entries batched by tier, writes
+      user_response per entry before the Tether/Orbit/Vanish prompt; (c) a manifest
+      entry with surfaced_for_review: true that is carried forward past a checkpoint
+      without user_response populated is a structural violation (F11). Model the
+      constraint text on specify C18 / design C17 but scope it to define's surfaces
+      (Phase 5 placement gate, Phase 9 epic gate) and define's specific manifest paths.
+    files:
+      - path: core/components/plays/define/reference/intent.yaml
+        action: modify
+        details: >
+          Insert new YAML block for C17 after the C16 block (line ~244 in current file).
+          Insert new YAML block for F11 after the F10 block (line ~320 in current file).
+    expected_outcome: >
+      intent.yaml contains a C17 constraint that mentions surfaced_for_review, tiered
+      Decision Surfacing, Phase 5, Phase 9, and all three manifest paths. F11 is present
+      and references the silent-commit failure condition. The file remains valid YAML.
+    self_test: >
+      grep -c "surfaced_for_review" core/components/plays/define/reference/intent.yaml
+      returns >= 1.
+      grep -c "Decision Surfacing" core/components/plays/define/reference/intent.yaml
+      returns >= 1.
+      grep "C17" core/components/plays/define/reference/intent.yaml returns a match.
+      grep "F11" core/components/plays/define/reference/intent.yaml returns a match.
+      yq e '.' core/components/plays/define/reference/intent.yaml exits 0 (valid YAML).
+
+  - id: step-2
+    description: >
+      Run /create-play --rebuild define to regenerate core/components/plays/define/SKILL.md
+      from the updated intent.yaml. This is the mandatory compiler step per the Play
+      Pipeline Rules. Do NOT skip this step and do NOT hand-edit SKILL.md.
+    files:
+      - path: core/components/plays/define/SKILL.md
+        action: modify
+        details: >
+          Regenerated entirely by the /create-play compiler. The resulting file should
+          contain "Decision Surfacing" steps in both the Phase 5 section (between Phase 4
+          complete and Step 5a checkpoint write) and the Phase 9 section (between Phase 8
+          complete and Step 9a checkpoint write). Each step should reference the tiered
+          flow and the applicable manifest paths.
+    expected_outcome: >
+      SKILL.md is regenerated and contains Decision Surfacing language at Phase 5 and
+      Phase 9. The intent_hash in the Compilation Metadata table is updated to reflect
+      the new intent.yaml checksum.
+    self_test: >
+      grep "Decision Surfacing" core/components/plays/define/SKILL.md returns >= 2 matches
+      (one for Phase 5, one for Phase 9).
+      grep "surfaced_for_review" core/components/plays/define/SKILL.md returns >= 1 match.
+      grep "decision-manifest-catalog-match" core/components/plays/define/SKILL.md
+      returns >= 1 match in a decision-surfacing context (not just the Phase 2 output block).
+
+  - id: step-3
+    description: >
+      Verify the regression test passes (green). Run the assertions from the regression
+      test artifact at .garura/project/issues/370/evidence/fix-it/regression-test.yaml
+      against the freshly regenerated SKILL.md and the updated intent.yaml. All grep /
+      structural assertions should now return matches.
+    files: []
+    expected_outcome: >
+      All regression test assertions pass: intent.yaml contains C17 with
+      surfaced_for_review and Decision Surfacing language; SKILL.md contains
+      Decision Surfacing steps at Phase 5 and Phase 9 referencing the tiered
+      flow and manifest paths.
+    self_test: >
+      Run each assertion from regression-test.yaml manually or via quality-auditor.
+      Every grep returns exit 0 (match found). No assertion returns exit 1.
+
+confidence: high
+confidence_rationale: >
+  The root cause is an absent constraint in a source-of-truth file — not a logic
+  error in existing code. The fix pattern (add constraint to intent.yaml, rebuild)
+  is the same pattern used for every prior play change and has a clear precedent
+  in the Standard Play Close work (#371). The blast radius is exactly two files
+  (intent.yaml modified, SKILL.md regenerated). The regression test provides an
+  unambiguous red-to-green signal.
+
+produced_at: "2026-05-16T00:00:00Z"

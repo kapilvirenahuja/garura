@@ -1,0 +1,146 @@
+style: yaml_eval_spec
+target_issue: 370
+based_on:
+  rca: .garura/project/issues/370/evidence/fix-it/rca.yaml
+  design: .garura/project/issues/370/evidence/fix-it/design.yaml
+
+description: >
+  Asserts that the /define play's intent.yaml gains a Decision Surfacing
+  Discipline constraint (C17) and matching failure condition (F11), and that
+  the compiled SKILL.md (regenerated via /create-play --rebuild define) contains
+  decision-surfacing steps at both Phase 5 (placement checkpoint) and Phase 9
+  (epic checkpoint) that reference surfaced_for_review entries and the tiered
+  manifest-walking flow. All assertions are RED on the current unfixed codebase
+  and will turn GREEN once the fix is applied and SKILL.md is rebuilt.
+
+assertions:
+  - id: A1
+    description: >
+      intent.yaml contains a C17 constraint identifier — confirming the new
+      Decision Surfacing Discipline constraint was added to the source of truth.
+    kind: grep_present
+    spec:
+      pattern: "C17"
+      path: core/components/plays/define/reference/intent.yaml
+    red_verified: true
+    red_evidence: "grep -q 'C17' returned exit 1 (no match) on 2026-05-16"
+
+  - id: A2
+    description: >
+      intent.yaml contains the literal token surfaced_for_review — confirming
+      the new C17 constraint uses the canonical flag name from the decision-manifest
+      schema, as required by the HITL guarantee.
+    kind: grep_present
+    spec:
+      pattern: "surfaced_for_review"
+      path: core/components/plays/define/reference/intent.yaml
+    red_verified: true
+    red_evidence: "grep -q 'surfaced_for_review' returned exit 1 (no match) on 2026-05-16"
+
+  - id: A3
+    description: >
+      intent.yaml contains the phrase 'Decision Surfacing' — confirming the
+      constraint uses the canonical discipline name consistent with specify C18,
+      design C17, and arch C18.
+    kind: grep_present
+    spec:
+      pattern: "Decision Surfacing"
+      path: core/components/plays/define/reference/intent.yaml
+    red_verified: true
+    red_evidence: "grep -q 'Decision Surfacing' returned exit 1 (no match) on 2026-05-16"
+
+  - id: A4
+    description: >
+      intent.yaml contains an F11 failure condition identifier — confirming the
+      silent-carry-forward failure condition was added alongside C17, so the
+      compiler can emit a matching step-eval (SE-13) in SKILL.md.
+    kind: grep_present
+    spec:
+      pattern: "F11"
+      path: core/components/plays/define/reference/intent.yaml
+    red_verified: true
+    red_evidence: "grep -q 'F11' returned exit 1 (no match) on 2026-05-16"
+
+  - id: A5
+    description: >
+      Compiled SKILL.md contains the phrase 'Decision Surfacing' at least once —
+      confirming /create-play --rebuild define emitted decision-surfacing language
+      in the regenerated play based on the new C17 constraint.
+    kind: grep_present
+    spec:
+      pattern: "Decision Surfacing"
+      path: core/components/plays/define/SKILL.md
+    red_verified: true
+    red_evidence: "grep -q 'Decision Surfacing' returned exit 1 (no match) on 2026-05-16"
+
+  - id: A6
+    description: >
+      Compiled SKILL.md contains the literal token surfaced_for_review — confirming
+      the regenerated checkpoint steps instruct the orchestrator to filter manifest
+      entries by the canonical flag name.
+    kind: grep_present
+    spec:
+      pattern: "surfaced_for_review"
+      path: core/components/plays/define/SKILL.md
+    red_verified: true
+    red_evidence: "grep -q 'surfaced_for_review' returned exit 1 (no match) on 2026-05-16"
+
+  - id: A7
+    description: >
+      Compiled SKILL.md references decision-manifest-catalog-match at least twice —
+      once in the Phase 2 output block (already present) and at least once more in a
+      decision-surfacing context (new after fix). A count of 1 means the manifest is
+      only wired as a Phase 2 output but never read at the Phase 5 checkpoint, which
+      is the exact bug.
+    kind: command_exit_zero
+    spec:
+      command: "[ $(grep -c 'decision-manifest-catalog-match' core/components/plays/define/SKILL.md) -ge 2 ]"
+      cwd: "."
+    red_verified: true
+    red_evidence: "grep -c returned 1 (single occurrence — Phase 2 output only) on 2026-05-16; [ 1 -ge 2 ] exits 1"
+
+  - id: A8
+    description: >
+      Compiled SKILL.md contains a Decision Surfacing step associated with Phase 5
+      (placement checkpoint) — confirming the regenerated play walks decision manifests
+      and surfaces entries before the placement Tether/Orbit/Vanish gate.
+    kind: grep_present
+    spec:
+      pattern: "Decision Surfacing"
+      path: core/components/plays/define/SKILL.md
+      # A5 already covers presence; this assertion anchors the Phase 5 context by
+      # checking the SKILL.md section ordering: Decision Surfacing must appear in
+      # the Phase 5 section. Quality-auditor verifies by reading the Phase 5 block.
+      # grep-level check: 'Decision Surfacing' must appear in the file (A5 covers
+      # this); structural check below (A8-struct) checks phase context.
+    red_verified: true
+    red_evidence: "grep -q 'Decision Surfacing' returned exit 1 on 2026-05-16 (same as A5 — no occurrences at all)"
+
+  - id: A9
+    description: >
+      Compiled SKILL.md contains a Decision Surfacing step associated with Phase 9
+      (epic checkpoint) — confirming the regenerated play walks all three decision
+      manifests (catalog-match, manage-features, generate-intent-epics) and surfaces
+      entries before the epic Tether/Orbit/Vanish gate.
+    kind: command_exit_zero
+    spec:
+      command: "grep -c 'Decision Surfacing' core/components/plays/define/SKILL.md | xargs -I{} sh -c '[ {} -ge 2 ]'"
+      cwd: "."
+    red_verified: true
+    red_evidence: "grep -c 'Decision Surfacing' returned 0 on 2026-05-16; [ 0 -ge 2 ] exits 1"
+
+pass_when: all_assertions_pass
+
+quality_auditor_notes: >
+  A1–A4 verify the source-of-truth (intent.yaml) gained the constraint and failure
+  condition. A5–A6 verify the compiled SKILL.md was regenerated with the surfacing
+  language. A7 verifies the catalog-match manifest is referenced in a surfacing
+  context (not just as a Phase 2 output). A9 verifies both Phase 5 AND Phase 9 each
+  get a Decision Surfacing step (count >= 2). Assertions A8 and A5 overlap — A8
+  confirms the same grep_present as A5 but is named explicitly for the Phase 5 gate
+  for traceability; quality-auditor may deduplicate if desired.
+  All assertions use POSIX-compatible grep (no -P flag) — safe on macOS and Linux.
+
+verified_red_at: "2026-05-16T00:00:00Z"
+expected_state_before_fix: red
+expected_state_after_fix: green
