@@ -1,0 +1,17 @@
+issue:
+  number: 373
+  title: "product-keeper agent fails create-play audit P7 + P10 (pre-existing drift)"
+  labels:
+    - bug
+  state: "OPEN"
+  body_summary: >
+    The product-keeper agent fails two create-play audit checks. P7: it invokes the
+    research-domain-context skill in define Phase 4 but does not list that skill in
+    its declared skill inventory. P10: it has no Task Graph / TaskUpdate section,
+    unlike sibling agents. Both are pre-existing, unrelated to #370. product-keeper
+    is shared by define, specify, design, and arch — assess blast radius before fixing.
+  url: "https://github.com/kapilvirenahuja/garura/issues/373"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "fix"

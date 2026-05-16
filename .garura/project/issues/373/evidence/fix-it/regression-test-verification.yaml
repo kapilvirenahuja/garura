@@ -1,0 +1,21 @@
+regression_test_path: ".garura/project/issues/373/evidence/fix-it/regression-test.yaml"
+verified_by: play
+verified_at: "2026-05-16T07:34:00Z"
+failing: true
+assertions:
+  - id: A1
+    pattern: "research-domain-context"
+    path: "core/components/agents/product-keeper.md"
+    state: red
+  - id: A2
+    pattern: "TaskUpdate"
+    path: "core/components/agents/product-keeper.md"
+    state: red
+  - id: A3
+    pattern: "Task Graph"
+    path: "core/components/agents/product-keeper.md"
+    state: red
+note: >
+  All three grep_present assertions return not-found (exit 1) against the current
+  unfixed core/components/agents/product-keeper.md. Red-before-green invariant (C14)
+  satisfied. Safe to proceed to checkpoint and implementation.

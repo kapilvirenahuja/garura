@@ -1,0 +1,149 @@
+analysis:
+  branch: fix/373-product-keeper-audit-drift
+  base: main
+  branch_classification: bugfix
+  platform: github
+  issue_number: 373
+
+  suggested_title: "fix(product-keeper): declare research-domain-context skill and add Task Graph section (#373)"
+
+  context:
+    file_patterns_matched:
+      - "core/components/agents/**"    # product-keeper.md — agent definition changed
+      - "core/components/**"           # triggers sync-claude rule (components changed)
+      - ".garura/**"                   # STM evidence files — chore/artifact files
+    commit_types:
+      - fix      # c3eb5a8 — substantive agent definition fix
+      - chore    # 4ea03ff, 17b699e — STM evidence records
+    branch_pattern: "fix/*"
+    branch_overrides: none  # bugfix branch — standard priorities apply
+
+  checklist:
+    must_have:
+
+      - id: no-conflicts
+        item: "No merge conflicts with main"
+        trigger: "Universal rule — always applies"
+        status: PASS
+        evidence: >
+          git merge-tree --write-tree main fix/373-product-keeper-audit-drift
+          exited 0, returned tree sha ac86579a23033977ec42a3d632fa98a0732eaa39
+          with no conflict markers. Branch is 3 commits ahead, 0 behind main.
+
+      - id: no-secrets
+        item: "No secrets or credentials committed"
+        trigger: "Universal rule — always applies; changed file is agent definition .md"
+        status: PASS
+        evidence: >
+          Scanned core/components/agents/product-keeper.md (the only non-STM changed
+          file). grep for: secret, password, api_key, token, private_key, AWS_SECRET,
+          passwd — returned zero matches. STM evidence files contain only yaml
+          analysis artifacts with no credential-shaped values.
+
+      - id: agent-frontmatter
+        item: "Agent has valid frontmatter (name, domain, role, tools)"
+        trigger: >
+          Rule agent-frontmatter — triggered because core/components/agents/product-keeper.md
+          matches pattern **/agents/**/*.md (agent definition changed)
+        status: PASS
+        evidence: >
+          product-keeper.md lines 2-7 contain:
+            name: product-keeper
+            domain: product-capability
+            role: keeper
+            description: (present)
+            tools: (present, block starts line 7)
+          All four required frontmatter fields present and populated.
+
+      - id: agent-boundaries
+        item: "Agent has NEVER/ALWAYS boundaries section"
+        trigger: >
+          Rule agent-boundaries — triggered because core/components/agents/product-keeper.md
+          matches pattern **/agents/**/*.md (agent definition changed)
+        status: PASS
+        evidence: >
+          grep for "## Boundaries", "### NEVER", "### ALWAYS" in product-keeper.md
+          confirmed all three anchors present (lines 135, 137, 146). The added content
+          (Task Graph section, new Available Skills row) does not touch or remove the
+          Boundaries section.
+
+      - id: sync-claude
+        item: "Components synced to ~/.claude/ via /sync-claude after edit"
+        trigger: >
+          Rule sync-claude — triggered because core/components/agents/product-keeper.md
+          is under core/components/**, which requires a sync after every edit per
+          CLAUDE.md (source of truth is core/components/; canonical deployment is ~/.claude/).
+        status: REVIEW
+        evidence: >
+          The substantive commit (c3eb5a8) edits core/components/agents/product-keeper.md.
+          CLAUDE.md states: "After editing source, run /sync-claude to deploy globally."
+          No evidence in STM that /sync-claude was run during this fix-it cycle.
+          Must be verified or run before merge.
+
+    nice_to_have:
+
+      - id: agent-naming
+        item: "Agent follows {domain}-{role} naming convention"
+        trigger: >
+          Rule agent-naming — triggered because an agent definition file changed.
+          Bugfix branch — standard priority applies (not demoted).
+        status: PASS
+        evidence: >
+          Agent filename: product-keeper.md. Frontmatter: domain=product-capability,
+          role=keeper. Name "product-keeper" follows {domain-segment}-{role} pattern
+          (product from product-capability, keeper as role). Convention satisfied.
+
+      - id: fix-regression-verified
+        item: "Regression test assertions verified green after fix"
+        trigger: >
+          Commit type is fix — regression evidence exists in STM and directly guards
+          the two root causes (RC1/RC2) that this PR addresses. Not a generic item:
+          the test spec at .garura/project/issues/373/evidence/fix-it/regression-test.yaml
+          was written specifically for the grep-present assertions on this file.
+        status: PASS
+        evidence: >
+          regression-test-verdict.yaml at
+          .garura/project/issues/373/evidence/fix-it/regression-test-verdict.yaml:
+            regression_test_verdict: pass
+            per_assertion:
+              A1 (research-domain-context present): pass
+              A2 (TaskUpdate present): pass
+              A3 (Task Graph section heading present): pass
+          All three assertions confirmed green; red-state confirmed before fix.
+
+  blocking_issues:
+    - id: sync-claude-unverified
+      severity: must-have
+      description: >
+        sync-claude (rule id: sync-claude) is status REVIEW — no STM evidence that
+        /sync-claude was run after editing core/components/agents/product-keeper.md.
+        CLAUDE.md mandates this. Until it is run (or confirmed already run), the
+        deployed ~/.claude/agents/product-keeper.md may be stale relative to the
+        fix committed in c3eb5a8.
+
+  ready: false
+  ready_rationale: >
+    One must-have item (sync-claude) is REVIEW-status — cannot auto-submit until
+    this is resolved. All other must-have items pass. Once sync-claude is confirmed
+    or run, all blocking issues clear and the PR is submission-ready.
+
+  target_branch:
+    name: main
+    confidence: high
+    rationale: >
+      Branch name fix/373-* follows fix/* pattern. The fix is a defect correction
+      to a core component (agent definition). There is exactly one main branch in
+      this repository (confirmed via git remote). The CLAUDE.md and config.yaml
+      establish main as the default base branch. No release or staging branches exist.
+      Target branch confidence is high — no user confirmation required per C7.
+
+  eval_results:
+    source: .garura/project/issues/373/evidence/fix-it/regression-test-verdict.yaml
+    verdict: pass
+    assertions_passed: 3
+    assertions_failed: 0
+    include_in_pr_body: true
+
+produced_at: "2026-05-16T00:00:00Z"
+produced_by: analyze-pr
+issue: 373

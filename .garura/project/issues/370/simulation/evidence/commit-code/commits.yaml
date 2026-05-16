@@ -1,0 +1,55 @@
+## SIMULATION ARTIFACT — not a real run
+## Step 5: repo-orchestrator → create-commit (SIMULATED — no actual git commits or push)
+## evidence.record: false → this file would NOT be written in a real run (simulated anyway for inspection)
+
+simulated: true
+git_commits_skipped: true
+push_skipped: true
+
+commits:
+  - group_id: group-a
+    conventional_type: refactor
+    scope: play/commit-code
+    subject: "refactor(play/commit-code): update intent and compiled SKILL.md for improvement #370"
+    issue_ref: "#370"
+    files_staged:
+      - core/components/plays/commit-code/SKILL.md
+      - core/components/plays/commit-code/reference/intent.yaml
+    simulated_sha: "sim-abc1234"
+
+  - group_id: group-b
+    conventional_type: feat
+    scope: skill/analyze-changes
+    subject: "feat(skill/analyze-changes): extend changeset analysis for commit-code improvements (#370)"
+    issue_ref: "#370"
+    files_staged:
+      - core/components/skills/analyze-changes/SKILL.md
+    simulated_sha: "sim-def5678"
+
+  - group_id: group-c
+    conventional_type: docs
+    scope: adr
+    subject: "docs(adr): add ADR-018 documenting commit-code architectural improvements (#370)"
+    issue_ref: "#370"
+    files_staged:
+      - docs/adr/ADR-018-commit-code-improvements.md
+    simulated_sha: "sim-ghi9012"
+
+push:
+  simulated: true
+  skipped: true
+  reason: "Non-revertable — simulation mode"
+
+evals:
+  SE-2:
+    verdict: PASS
+    note: "Each simulated commit stages only files from its own group. No cross-group contamination."
+  SE-3:
+    verdict: PASS
+    note: "Each subject describes the specific change (play update / skill extension / ADR add), not just an issue reference."
+  SE-5:
+    verdict: PASS
+    note: "All 4 simulated files are staged across the 3 commits. None left uncommitted."
+  C7:
+    verdict: N/A
+    note: "Push skipped in simulation. In a real run, push failure would log a warning and not halt."

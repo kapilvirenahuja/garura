@@ -1,0 +1,10 @@
+regression_test_verdict: pass
+verified_at: "2026-05-16T08:00:00Z"
+regression_test_path: ".garura/project/issues/373/evidence/fix-it/regression-test.yaml"
+per_assertion:
+  - id: A1
+    result: pass
+  - id: A2
+    result: pass
+  - id: A3
+    result: pass

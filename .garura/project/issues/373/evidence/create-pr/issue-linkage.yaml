@@ -1,0 +1,6 @@
+issue:
+  number: 373
+  title: "product-keeper agent fails create-play audit P7 + P10 (pre-existing drift)"
+  url: "https://github.com/kapilvirenahuja/garura/issues/373"
+  state: open
+  source: commit-code-stm

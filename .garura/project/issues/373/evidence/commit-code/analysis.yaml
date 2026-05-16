@@ -1,0 +1,118 @@
+branch:
+  name: fix/373-product-keeper-audit-drift
+  issue_from_branch: "373"
+  is_hotfix: false
+
+change_summary:
+  total_files: 17
+  staged: 0
+  unstaged: 2
+  untracked: 15
+  # Note: untracked count covers all files under the two untracked directories:
+  #   .garura/project/issues/373/ (13 files)
+  #   .garura/project/issues/370/simulation/ (5 files)
+
+groups:
+  - id: 1
+    issue: "373"
+    issue_title: "product-keeper agent missing research-domain-context skill and Task Graph section"
+    type: fix
+    scope: product-keeper
+    subject: "add research-domain-context skill row and Task Graph section to product-keeper agent"
+    confidence: high
+    files:
+      - path: core/components/agents/product-keeper.md
+        status: modified
+        description: >
+          Adds research-domain-context skill row to the skill table (Phase 4 / KB/LTM Grounding)
+          and appends a Task Graph section with TaskUpdate lifecycle (on entry, completion, failure).
+          20 lines added, 0 deleted.
+
+  - id: 2
+    issue: "373"
+    issue_title: "STM evidence and status files for issue #373 fix-it run"
+    type: chore
+    scope: stm
+    subject: "record fix-it evidence and status for issue #373"
+    confidence: high
+    files:
+      - path: .garura/project/issues/373/evidence/fix-it/rca.yaml
+        status: untracked
+        description: Root cause analysis artifact
+      - path: .garura/project/issues/373/evidence/fix-it/design.yaml
+        status: untracked
+        description: Fix design artifact
+      - path: .garura/project/issues/373/evidence/fix-it/implementation-report.yaml
+        status: untracked
+        description: Implementation report artifact
+      - path: .garura/project/issues/373/evidence/fix-it/regression-test.yaml
+        status: untracked
+        description: Regression test definition
+      - path: .garura/project/issues/373/evidence/fix-it/regression-test-path.yaml
+        status: untracked
+        description: Regression test path artifact
+      - path: .garura/project/issues/373/evidence/fix-it/regression-test-verification.yaml
+        status: untracked
+        description: Regression test verification results
+      - path: .garura/project/issues/373/evidence/fix-it/regression-test-verdict.yaml
+        status: untracked
+        description: Regression test verdict
+      - path: .garura/project/issues/373/evidence/fix-it/resolution-trace.yaml
+        status: untracked
+        description: Resolution trace artifact
+      - path: .garura/project/issues/373/evidence/fix-it/branch-result.yaml
+        status: untracked
+        description: Branch setup result artifact
+      - path: .garura/project/issues/373/evidence/fix-it/issue-read.yaml
+        status: untracked
+        description: Issue read artifact
+      - path: .garura/project/issues/373/evidence/fix-it/issue-comment-agent.yaml
+        status: untracked
+        description: Issue comment agent artifact
+      - path: .garura/project/issues/373/status/fix-it.json
+        status: untracked
+        description: Fix-it play status tracker
+      - path: .garura/project/issues/373/status/ship.json
+        status: untracked
+        description: Ship play status tracker
+
+  - id: 3
+    issue: "370"
+    issue_title: "Pre-existing issue #370 STM status update and simulation artifacts (unrelated)"
+    type: chore
+    scope: stm
+    subject: "record fix-it completion and simulation evidence for issue #370"
+    confidence: high
+    files:
+      - path: .garura/project/issues/370/status/fix-it.json
+        status: modified
+        description: >
+          Marks evidence-report status as "completed" and records evidence_commit "278ade8".
+          3 lines changed (+2/-1).
+      - path: .garura/project/issues/370/simulation/evidence/commit-code/analysis.yaml
+        status: untracked
+        description: Simulation run analysis artifact for #370 commit-code
+      - path: .garura/project/issues/370/simulation/evidence/commit-code/commits.yaml
+        status: untracked
+        description: Simulation run commits artifact for #370 commit-code
+      - path: .garura/project/issues/370/simulation/evidence/commit-code/issue-mappings.yaml
+        status: untracked
+        description: Simulation run issue mappings artifact for #370 commit-code
+      - path: .garura/project/issues/370/simulation/evidence/commit-code/20260507-120000.md
+        status: untracked
+        description: Simulation run log artifact for #370 commit-code
+      - path: .garura/project/issues/370/simulation/status/commit-code.json
+        status: untracked
+        description: Simulation run status file for #370 commit-code
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+  notes: >
+    No sensitive filename or content patterns detected across any modified or untracked file.
+    No exported function/class removals or signature changes detected in product-keeper.md diff.
+    Group 3 (issue #370) is genuinely unrelated to the branch issue (#373) — it is prior work
+    that was not committed in an earlier play run and is now present in the working tree.
+    Caller must decide how to handle the cross-issue group (commit separately or defer).

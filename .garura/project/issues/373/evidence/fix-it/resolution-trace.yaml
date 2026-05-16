@@ -1,0 +1,64 @@
+resolution_trace:
+  - domain: "quality-standards"
+    query: "What does P7 (Skill Delegation) require of an agent's declared skill inventory?"
+    resolved_from: "llm"
+    rationale: >
+      R3 search of core_base (~/.garura/core/memory/) found an empty directory —
+      no LTM files exist. R4 fallback: resolved from primary-source reading of
+      core/components/plays/create-play/reference/audit-checklist.md (P7 definition
+      at lines 43-48) and cross-referencing product-keeper.md Available Skills table
+      (lines 47-64). The audit-checklist is play-reference material, not LTM; no
+      standards/rules/ file covers agent audit principles.
+    confidence: high
+    primary_sources:
+      - "core/components/plays/create-play/reference/audit-checklist.md (P7)"
+      - "core/components/agents/product-keeper.md (lines 47-64)"
+      - "core/components/plays/define/SKILL.md (line 260)"
+
+  - domain: "architecture"
+    query: "What does P10 (Task Graph Participation) require and what is the established pattern?"
+    resolved_from: "llm"
+    rationale: >
+      R3 search of core_base found no architecture knowledge files. R4 fallback:
+      resolved from primary-source reading of audit-checklist.md P10 definition
+      (lines 61-65) and comparative analysis of sibling agents (scriber.md lines
+      130-146, judge.md lines 189-191, test-engineer.md line 461) which all have
+      explicit TaskUpdate protocols. Pattern is unambiguous from codebase evidence.
+    confidence: high
+    primary_sources:
+      - "core/components/plays/create-play/reference/audit-checklist.md (P10)"
+      - "core/components/agents/scriber.md (lines 130-146)"
+      - "core/components/agents/judge.md (lines 189-191)"
+      - "core/components/agents/test-engineer.md (line 461)"
+
+  - domain: "domain-context"
+    query: "Blast radius — which plays invoke product-keeper and could be affected?"
+    resolved_from: "llm"
+    rationale: >
+      R3 search of core_base found no domain-context files. R4 fallback: resolved
+      by grepping core/components/plays/ for product-keeper references. Found:
+      define/SKILL.md (Phases 2,3,4,6,7,8), design/SKILL.md, arch/SKILL.md,
+      specify/SKILL.md. Fix is additive to product-keeper.md only — no callers
+      need changes. Blast radius is benign.
+    confidence: high
+    primary_sources:
+      - "core/components/plays/define/SKILL.md (line 31)"
+      - "core/components/plays/design/SKILL.md"
+      - "core/components/plays/arch/SKILL.md"
+      - "core/components/plays/specify/SKILL.md"
+
+  - domain: "design-patterns"
+    query: "What is the canonical Task Graph section pattern to add to product-keeper?"
+    resolved_from: "llm"
+    rationale: >
+      R3 search of core_base found no design-pattern files. R4 fallback: resolved
+      from comparative reading of scriber.md (most explicit Task Graph section,
+      lines 130-146) and judge.md (inline bullet style, lines 189-191). Both
+      patterns are valid. Recommend scriber-style explicit section for consistency
+      with agents that have complex execution flows.
+    confidence: high
+    primary_sources:
+      - "core/components/agents/scriber.md (lines 130-146)"
+      - "core/components/agents/judge.md (lines 189-191)"
+
+produced_at: "2026-05-16T00:00:00Z"

@@ -1,0 +1,19 @@
+{
+  "simulation": true,
+  "note": "In a real run, evidence.record=false suppresses this file",
+  "play": "commit-code",
+  "issue": 370,
+  "started_at": "2026-05-07T12:00:00Z",
+  "completed_at": "2026-05-07T12:05:00Z",
+  "tasks": {
+    "pre-flight": { "status": "completed" },
+    "analyze-changes": { "status": "completed" },
+    "resolve-issues": { "status": "skipped", "reason": "auto_issue_resolved=true" },
+    "draft-brief": { "status": "skipped", "reason": "all mappings high confidence, no conflicts" },
+    "human-review": { "status": "skipped", "reason": "checkpoint condition not met" },
+    "create-commits": { "status": "simulated", "note": "no actual git operations" },
+    "push-branch": { "status": "simulated", "note": "skipped — non-revertable" },
+    "scenario-evals": { "status": "completed" },
+    "write-evidence": { "status": "simulated", "note": "evidence.record=false; written to simulation/ only" }
+  }
+}
