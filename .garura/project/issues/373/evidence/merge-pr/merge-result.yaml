@@ -1,0 +1,9 @@
+status: merged
+pr_number: 375
+merge_sha: b49417975eafb01dc1d602f45f3adbbcb79330a1
+base_branch: main
+branch_deleted: true
+notes:
+  local_branch: "fix/373-product-keeper-audit-drift — absent (deleted by gh pr merge --delete-branch)"
+  remote_branch: "fix/373-product-keeper-audit-drift — absent (deleted by gh pr merge --delete-branch)"
+  strategy: default (fast-forward)

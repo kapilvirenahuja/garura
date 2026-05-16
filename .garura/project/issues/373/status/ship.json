@@ -2,6 +2,7 @@
   "play": "ship",
   "issue": "373",
   "started_at": "2026-05-16T07:40:00Z",
+  "completed_at": "2026-05-16T07:48:00Z",
   "feature_branch": "fix/373-product-keeper-audit-drift",
   "review_pr_bypass": true,
   "tasks": {
@@ -9,9 +10,8 @@
     "distill": { "status": "skipped", "reason": "evidence.record=false" },
     "create-pr": { "status": "completed", "pr_number": 375 },
     "review-pr": { "status": "skipped", "bypass": true, "routing": null },
-    "merge-pr": { "status": "in_progress" },
-    "distill": { "status": "pending" },
-    "scenario-evals": { "status": "pending" },
-    "write-evidence": { "status": "pending" }
+    "merge-pr": { "status": "completed", "merge_sha": "b49417975eafb01dc1d602f45f3adbbcb79330a1" },
+    "scenario-evals": { "status": "completed", "results": { "SCE-1": "pass", "SCE-2": "pass", "SCE-3": "n/a-bypass-true", "SCE-4": "pass" } },
+    "write-evidence": { "status": "skipped", "reason": "evidence.record=false; parent_run_id=fix-it (C2 absorbed by fix-it close)" }
   }
 }
