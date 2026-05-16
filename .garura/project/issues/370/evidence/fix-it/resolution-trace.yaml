@@ -1,0 +1,76 @@
+resolution_trace:
+  - decision: >
+      What rule governs how inferred decisions must be surfaced to the user at
+      play checkpoints before the Tether/Orbit/Vanish gate?
+    resolved_from: core
+    source: core/components/memory/standards/rules/product.md
+    section: "Rule 11: Aggressive Questioning on Inference (anti-hallucination)"
+    authority: draft
+    value: >
+      Rule 11 establishes that any decision the pipeline infers rather than
+      reading verbatim from a user-provided artifact must be surfaced at the
+      next checkpoint for user confirmation — it cannot be written as a silent
+      fact. Inferences are tagged with a confidence source (brief_inferred,
+      kb_default, assumption) and routed through the checkpoint protocol:
+      user Tethers with answers, Orbits to defer, or Vanishes to halt. This
+      is the canonical core LTM rule establishing the HITL surfacing obligation.
+
+  - decision: >
+      What rule governs capturing every user-facing question raised by the
+      pipeline as a durable artifact (not transient prompt text)?
+    resolved_from: core
+    source: core/components/memory/standards/rules/product.md
+    section: "Rule 12: User Questions Are First-Class Artifacts"
+    authority: draft
+    value: >
+      Rule 12 requires every inference-question to be written to the
+      grounding-questions.md file with a unique ID, so questions survive
+      across sessions and are not silently lost. This supports the surfacing
+      guarantee — questions that are surfaced at a checkpoint must also
+      be persisted. The rule reinforces Rule 11 at the artifact level.
+
+  - decision: >
+      Is there a shared LTM decision-surfacing rule file that all plays
+      (define, specify, design, arch) must reference, or does each play
+      inline its own constraint?
+    resolved_from: core
+    source: core/components/memory/standards/rules/_index.md
+    section: "Contents — Artifact rules"
+    authority: draft
+    value: >
+      The _index.md lists rules/ contents exhaustively. No
+      decision-surfacing.md file exists. Each play inlines its own
+      equivalent constraint (specify C18, design C17+C18, arch C18).
+      This confirms the scope conclusion: there is no shared mechanism
+      to fix — define-local constraint addition is the correct fix.
+
+  - decision: >
+      Which architectural pattern do sibling plays use to enforce
+      decision-manifest walking before downstream steps consume an artifact?
+    resolved_from: core
+    source: core/components/plays/design/reference/intent.yaml
+    section: "C17 — Decision Surfacing Discipline, C18 — manifest emission contract"
+    authority: draft
+    value: >
+      The design play's C17 defines the tiered surfacing flow: HIGH as
+      batch confirm, MID as batch-with-questions, LOW one-by-one. C18
+      requires every skill that produces inferred decisions to emit a
+      decision-manifest.yaml alongside its primary artifact; the orchestrator
+      walks the manifest after each skill and drives the C17 flow before any
+      downstream skill consumes the artifact. This is the canonical pattern
+      the define fix should model. (Also confirmed at the same structure in
+      specify/intent.yaml C18 and arch/intent.yaml C18.)
+
+  - decision: >
+      What is the correct path for changing a play's behavioral guarantee
+      (the decision-surfacing obligation at checkpoints)?
+    resolved_from: core
+    source: core/CLAUDE.md
+    section: "Play Pipeline Rules — Intent change path"
+    authority: draft
+    value: >
+      A change to what a play decides or guarantees is an intent change.
+      The correct path is: edit core/components/plays/define/reference/intent.yaml
+      → run /create-play --rebuild define. Never hand-edit the compiled
+      SKILL.md for an intent change — that clobbers on the next rebuild.
+      Precedent: Standard Play Close work (issue #371) followed this exact path.

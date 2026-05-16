@@ -1,0 +1,28 @@
+play: define
+rebake_issue: 370
+note: >
+  Classifications C1-C16 carried forward verbatim from the prior define
+  compile (recorded in SKILL.md Compilation Metadata). C17 is the only
+  new constraint (issue #370). It is classified artifact-verifiable so
+  evals-creator emits a step-eval (expected SE-13) bound to C17/F11 — its
+  observable outcome is (a) the compiled SKILL.md contains decision-surfacing
+  steps at Phase 5 and Phase 9, and (b) every surfaced_for_review:true
+  manifest entry carries user_response before the gate proceeds.
+constraint_classifications:
+  - { id: C1,  category: pre-flight }
+  - { id: C2,  category: structural }
+  - { id: C3,  category: artifact-verifiable }
+  - { id: C4,  category: artifact-verifiable }
+  - { id: C5,  category: artifact-verifiable }
+  - { id: C6,  category: structural }
+  - { id: C7,  category: structural }
+  - { id: C8,  category: structural }
+  - { id: C9,  category: artifact-verifiable }
+  - { id: C10, category: artifact-verifiable }
+  - { id: C11, category: structural }
+  - { id: C12, category: structural }
+  - { id: C13, category: structural }
+  - { id: C14, category: structural }
+  - { id: C15, category: pre-flight }
+  - { id: C16, category: structural }
+  - { id: C17, category: artifact-verifiable }

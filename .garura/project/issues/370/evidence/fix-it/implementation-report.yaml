@@ -1,0 +1,63 @@
+produced_at: "2026-05-16T00:00:00Z"
+task_id: implement-fix
+status: success
+
+steps_completed: 1
+steps_total: 2
+
+changes:
+  - step: 1
+    description: >
+      Added constraint C17 (Decision Surfacing Discipline) and failure
+      condition F11 to core/components/plays/define/reference/intent.yaml.
+    files_modified:
+      - path: core/components/plays/define/reference/intent.yaml
+        action: modified
+        summary: >
+          C17 inserted after C16's template_map block, before failure_conditions.
+          F11 inserted after F10, before scenarios.
+    c17_summary: >
+      Requires the orchestrator, at Phase 5 and Phase 9, to load all decision
+      manifests produced up to each gate, collect every entry with
+      surfaced_for_review: true that has no user_response yet, and surface
+      them batched by confidence tier (HIGH batch-confirm, MID batch-with-
+      questions, LOW one-by-one) with user_response written back per entry
+      before the checkpoint file is written or the Tether/Orbit/Vanish prompt
+      is shown. Phase 5 loads decision-manifest-catalog-match.yaml only.
+      Phase 9 loads all three: decision-manifest-catalog-match.yaml (Phase 2),
+      decision-manifest-manage-features.yaml (Phase 6), and
+      decision-manifest-generate-intent-epics.yaml (Phase 7).
+    f11_summary: >
+      Any decision-manifest entry with surfaced_for_review: true carried past
+      a checkpoint (Phase 5 or Phase 9) without user_response populated is a
+      silent unsurfaced-decision commit that breaks the HITL guarantee.
+    verified: true
+    verification_notes: >
+      YAML valid (yq exits 0). grep confirms C17 and F11 IDs present.
+      grep confirms surfaced_for_review appears in both C17 and F11.
+      grep confirms "Decision Surfacing" text is present.
+    deviation: null
+
+  - step: 2
+    description: >
+      /create-play --rebuild define to regenerate core/components/plays/define/SKILL.md
+      from the updated intent.yaml. DEFERRED to orchestrator.
+    files_modified: []
+    verified: false
+    deviation: >
+      Step 2 (SKILL.md rebuild) is explicitly deferred to the orchestrator per
+      task contract. The builder does not have access to the /create-play Skill
+      tool and must not hand-edit the compiled SKILL.md artifact. The
+      orchestrator will run /create-play --rebuild define after this report
+      is written.
+
+files_touched:
+  - path: core/components/plays/define/reference/intent.yaml
+
+issues_encountered: []
+
+notes: >
+  Only step-1 was in scope for this agent invocation. Step-2 (SKILL.md
+  rebuild) is the orchestrator's responsibility and is deferred. No test
+  pass/fail claim is made — verification of the fix's effect on SKILL.md
+  is performed by a separate quality-auditor agent.

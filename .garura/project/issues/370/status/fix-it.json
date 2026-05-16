@@ -1,0 +1,73 @@
+{
+  "play": "fix-it",
+  "issue": "370",
+  "started_at": "2026-05-16T01:15:00+0530",
+  "tasks": {
+    "validate-issue": {
+      "status": "completed"
+    },
+    "create-branch": {
+      "status": "completed",
+      "note": "already on fix/370 branch from start-feature"
+    },
+    "rca-and-design": {
+      "status": "completed",
+      "completed_at": "2026-05-16T01:31:00+0530"
+    },
+    "prepare-checkpoint": {
+      "status": "pending"
+    },
+    "issue-comment-dispatch": {
+      "status": "dispatched",
+      "dispatched_at": "2026-05-15T20:09:28Z"
+    },
+    "approval-gate": {
+      "status": "completed",
+      "tether_received_at": "2026-05-15T20:09:28Z"
+    },
+    "implement-fix": {
+      "status": "completed",
+      "started_at": "2026-05-15T20:13:00Z",
+      "completed_at": "2026-05-16T06:27:00Z"
+    },
+    "verify-fix": {
+      "status": "completed",
+      "completed_at": "2026-05-16T06:30:00Z",
+      "verdict": "pass",
+      "verified_by": "quality-auditor"
+    },
+    "ship": {
+      "status": "in_progress",
+      "started_at": "2026-05-16T06:30:00Z"
+    },
+    "scenario-evals": {
+      "status": "pending"
+    },
+    "evidence-report": {
+      "status": "pending"
+    }
+  },
+  "task_list": [
+    {
+      "id": "task-1",
+      "description": "Edit core/components/plays/define/reference/intent.yaml: add constraint C17 (Decision Surfacing Discipline) after C16 and failure condition F11 after F10, per design.yaml execution_plan step-1.",
+      "status": "completed",
+      "retry_count": 0,
+      "regression_test_path": ".garura/project/issues/370/evidence/fix-it/regression-test.yaml"
+    },
+    {
+      "id": "task-2",
+      "description": "Run /create-play --rebuild define to regenerate core/components/plays/define/SKILL.md from updated intent.yaml. Never hand-edit SKILL.md. Per design.yaml execution_plan step-2.",
+      "status": "completed",
+      "retry_count": 0,
+      "regression_test_path": ".garura/project/issues/370/evidence/fix-it/regression-test.yaml"
+    },
+    {
+      "id": "task-3",
+      "description": "Verify regression test green: all 9 assertions in regression-test.yaml pass against updated intent.yaml and regenerated SKILL.md. Per design.yaml execution_plan step-3.",
+      "status": "completed",
+      "retry_count": 0,
+      "regression_test_path": ".garura/project/issues/370/evidence/fix-it/regression-test.yaml"
+    }
+  ]
+}

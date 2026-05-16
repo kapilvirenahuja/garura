@@ -1,2 +1,2 @@
-input_type: "title"
-value: "Remove the report-issue play"
+input_type: issue_number
+value: "370"

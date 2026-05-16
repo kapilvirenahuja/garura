@@ -1,0 +1,28 @@
+play: "define"
+rebake_issue: 370
+note: >
+  Issue #370 fix (C17 Decision Surfacing Discipline + F11) is a pure
+  play-orchestration change. The decision manifests produced by
+  manage-features / generate-intent-epics / catalog-match already carry
+  empty user_response slots — no skill input/output contract changes.
+  Therefore all skills are status=existing; zero new or modified skills.
+skills:
+  - name: "manage-features"
+    path: "core/components/skills/manage-features/SKILL.md"
+    status: existing
+  - name: "generate-intent-epics"
+    path: "core/components/skills/generate-intent-epics/SKILL.md"
+    status: existing
+  - name: "validate-intent-epics"
+    path: "core/components/skills/validate-intent-epics/SKILL.md"
+    status: existing
+  - name: "research-domain-context"
+    path: "core/components/skills/research-domain-context/SKILL.md"
+    status: existing
+  - name: "manage-issue"
+    path: "core/components/skills/manage-issue/SKILL.md"
+    status: existing
+  - name: "create-commit"
+    path: "core/components/skills/create-commit/SKILL.md"
+    status: existing
+gate: PASS  # all needed skills exist with valid SKILL.md contracts

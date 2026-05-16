@@ -248,6 +248,37 @@ constraints:
         template: "{ltm.project-target}standards/templates/evidence-file.md"
         destination: "{stm_base}{issue}/evidence/define/{YYYYMMDD-HHMMSS}.md"
 
+  - id: C17
+    rule: >
+      Decision Surfacing Discipline. At each of the two human-review
+      checkpoint gates in this play — Phase 5 (placement checkpoint) and
+      Phase 9 (epic checkpoint) — the orchestrator must, BEFORE writing
+      the checkpoint file or presenting the Tether/Orbit/Vanish prompt:
+      (1) load every decision manifest produced up to that gate;
+      (2) collect all entries where surfaced_for_review: true and
+      user_response is not yet populated;
+      (3) surface them to the user batched by confidence tier: HIGH entries
+      as a single batch-confirm (user may Tether all or Orbit any single
+      one to reopen for one-by-one review); MID entries as a batch with
+      explicit questions and recommendations per decision (user may accept
+      the batch or drill one-by-one); LOW entries always one-by-one with
+      no batching;
+      (4) write the user's response back into the originating manifest
+      entry (user_response: accept | override | orbit, plus
+      user_response_detail) before the gate proceeds.
+      Phase 5 loads the single manifest available at that point:
+      decision-manifest-catalog-match.yaml (produced in Phase 2).
+      Phase 9 loads all three manifests produced by then:
+      decision-manifest-catalog-match.yaml (Phase 2),
+      decision-manifest-manage-features.yaml (Phase 6), and
+      decision-manifest-generate-intent-epics.yaml (Phase 7).
+      High confidence is permission to batch — never permission to skip
+      user review. Decisions that merely echo upstream user input (copying
+      a slug, assigning a timestamp, reusing a field the user already
+      provided) are exempt. A manifest entry with surfaced_for_review: true
+      carried past a checkpoint without user_response populated is a
+      structural violation (F11).
+
 failure_conditions:
   - id: F1
     condition: >
@@ -319,6 +350,16 @@ failure_conditions:
       SKILL.md instead of loaded from the template path declared in C16's
       template_map. Violates the house pattern and produces drift across
       plays.
+
+  - id: F11
+    condition: >
+      Any decision-manifest entry with surfaced_for_review: true is carried
+      forward past a checkpoint (Phase 5 or Phase 9) without user_response
+      being populated — the play silently committed an unsurfaced decision,
+      breaking the HITL guarantee. This applies to all three manifest paths:
+      decision-manifest-catalog-match.yaml (Phase 2),
+      decision-manifest-manage-features.yaml (Phase 6), and
+      decision-manifest-generate-intent-epics.yaml (Phase 7).
 
 scenarios:
   - id: S1

@@ -1,0 +1,93 @@
+status: success
+
+groups:
+  - name: fix
+    concern: >
+      Source fix for #370 — adds C17 (Decision Surfacing Discipline constraint)
+      and F11 (structural violation failure condition) to the define play's
+      intent.yaml, plus recompiles SKILL.md with decision-surfacing steps at
+      Phase 5 (Step 5.0) and Phase 9 (Step 9.0) and adds SE-13 eval coverage.
+    commit_type: fix
+    scope: define
+    files:
+      - core/components/plays/define/reference/intent.yaml
+      - core/components/plays/define/SKILL.md
+
+  - name: stm-evidence
+    concern: >
+      STM evidence artifacts produced by the fix-it, create-play, and
+      lint-components skill runs that diagnosed and resolved #370. These are
+      operational run records, not feature source — committed as a chore(stm)
+      separate from the fix.
+    commit_type: chore
+    scope: stm
+    files:
+      - .garura/project/issues/370/evidence/fix-it/design.yaml
+      - .garura/project/issues/370/evidence/fix-it/implementation-report.yaml
+      - .garura/project/issues/370/evidence/fix-it/implementation-step2-orchestrator.yaml
+      - .garura/project/issues/370/evidence/fix-it/issue-comment-agent.yaml
+      - .garura/project/issues/370/evidence/fix-it/issue-read.yaml
+      - .garura/project/issues/370/evidence/fix-it/rca.yaml
+      - .garura/project/issues/370/evidence/fix-it/regression-test-path.yaml
+      - .garura/project/issues/370/evidence/fix-it/regression-test-verdict.yaml
+      - .garura/project/issues/370/evidence/fix-it/regression-test-verification.yaml
+      - .garura/project/issues/370/evidence/fix-it/regression-test.yaml
+      - .garura/project/issues/370/evidence/fix-it/resolution-trace.yaml
+      - .garura/project/issues/370/evidence/create-play/define/agent-audit-decision.md
+      - .garura/project/issues/370/evidence/create-play/define/agent-audit-product-keeper.md
+      - .garura/project/issues/370/evidence/create-play/define/agent-audit-project-orchestrator.md
+      - .garura/project/issues/370/evidence/create-play/define/agent-audit-repo-orchestrator.md
+      - .garura/project/issues/370/evidence/create-play/define/constraint-classifications.yaml
+      - .garura/project/issues/370/evidence/create-play/define/coverage-matrix.md
+      - .garura/project/issues/370/evidence/create-play/define/evals.yaml
+      - .garura/project/issues/370/evidence/create-play/define/play-analysis.md
+      - .garura/project/issues/370/evidence/create-play/define/skill-manifest.yaml
+      - .garura/project/issues/370/evidence/create-play/define/summary.md
+      - .garura/project/issues/370/evidence/create-play/define/workflow-selection.md
+      - .garura/project/issues/370/evidence/lint-components/lint-report.yaml
+      - .garura/project/issues/370/status/fix-it.json
+
+excluded:
+  - path: .garura/project/issues/370/simulation/
+    reason: >
+      Pre-existing untracked content dated May 7 — created before the #370
+      fix-it run. Unrelated to the current fix. Excluded per caller scoping
+      rule (SE-4: must be explicitly listed, not silently dropped).
+  - path: .garura/project/issues/370/status/ship.json
+    reason: >
+      Ship-pipeline status artifact — created and committed by the ship play's
+      own evidence sweep. Out of scope for this commit-code grouping per caller
+      instruction.
+  - path: .garura/project/issues/370/evidence/ship/
+    reason: >
+      Ship-pipeline evidence directory — handled by ship's own sweep. Excluded
+      per caller instruction. (Directory not present in working tree at scan
+      time — listed for completeness per SE-4.)
+  - path: .garura/project/issues/370/evidence/distill/
+    reason: >
+      Ship/distill evidence — handled by ship's own sweep. Not present in
+      working tree at scan time. Listed for completeness per SE-4.
+  - path: .garura/project/issues/370/evidence/commit-code/
+    reason: >
+      Commit-code play's own evidence (analysis.yaml written now and any future
+      commits.yaml). Ship handles committing these as part of its sweep.
+      Excluded per caller instruction.
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+  notes: >
+    Branch name fix/370-define-surfaced-for-review-hitl-break confirms this is
+    a scoped fix branch for issue #370. No sensitive files, no large binaries,
+    no secrets detected. The two modified source files are SKILL.md and
+    intent.yaml — standard play components. The STM evidence files are YAML/MD
+    text, well within size limits. Risk level: LOW.
+
+notes: >
+  Two distinct commit groups identified. Group 1 (fix) carries the semantic
+  value and should reference closes #370. Group 2 (stm-evidence) is a
+  chore(stm) with no closes reference — it is operational run evidence, not
+  deliverable code. Explicit file lists are provided for both groups; no
+  git add -A or glob staging should be used.

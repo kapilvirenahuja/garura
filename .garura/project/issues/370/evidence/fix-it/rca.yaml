@@ -1,0 +1,121 @@
+issue_number: 370
+summary: >
+  The /define play's Phase 5 (placement) and Phase 9 (epic) checkpoints do
+  not read or surface flagged decision-manifest entries before presenting the
+  Tether/Orbit/Vanish gate — because define/reference/intent.yaml contains no
+  Decision Surfacing Discipline constraint (C17/C18 equivalent), so the compiled
+  SKILL.md emits no tiered-surfacing step at either checkpoint.
+
+root_cause:
+  file: core/components/plays/define/reference/intent.yaml
+  logic: >
+    The intent.yaml defines 16 constraints (C1–C16). C8 requires product-keeper
+    to emit a decision manifest for every inferred placement, status assignment,
+    or capability-level creation. However, no constraint requires the orchestrator
+    to read those manifests at any checkpoint and surface entries tagged
+    surfaced_for_review: true to the user before the Tether/Orbit/Vanish prompt.
+    The compiled SKILL.md faithfully reflects this gap — Phase 5 (Placement
+    Checkpoint, steps 5a–5b) and Phase 9 (Epic Checkpoint, steps 9a–9b) each
+    render a checkpoint file and an approval prompt listing artifact paths, but
+    neither step includes a decision-surfacing walk.
+  why_wrong: >
+    C8 mandates that product-keeper emits decision manifests (decision-manifest-
+    catalog-match.yaml from Phase 2, decision-manifest-manage-features.yaml from
+    Phase 6, decision-manifest-generate-intent-epics.yaml from Phase 7), but the
+    play never tells the orchestrator to read those manifests before the human
+    gates. The three sibling plays that have the same artifact pipeline —
+    specify (C18), design (C17+C18), arch (C18) — all carry an explicit tiered
+    Decision Surfacing constraint. define omits it entirely. The constraint
+    omission directly causes the compiled checkpoint steps to lack any surfacing
+    logic, so mid- and low-confidence decisions accumulate in manifest files and
+    are never presented to the user unless they happen to notice them.
+  line_range: "55-170"
+
+trace:
+  - step: >
+      Symptom observed in issue #369 run: only D5 (high-confidence overlap
+      decision) was presented at the Phase 5 placement checkpoint; D6 (kept
+      distinct, mid-confidence) and D7 (proposed status=development, low-
+      confidence) were silently carried forward. User discovered D6/D7 only
+      by manually opening decision-manifest-catalog-match.yaml.
+
+  - step: >
+      Phase 5 (SKILL.md lines 292–368) reads checkpoint and approval-prompt
+      templates, fills slots for bucket/target_milestone/constraint-fit notes,
+      and lists four artifact paths as the review surface. No step loads any
+      decision manifest. No step filters for surfaced_for_review: true entries.
+      No step presents a tiered batch-confirm or one-by-one flow.
+
+  - step: >
+      Phase 9 (SKILL.md lines 476–523) follows the same structure — fills
+      checkpoint and approval-prompt templates, lists features.yaml / epics /
+      validation artifact paths, presents Tether/Orbit/Vanish. No
+      decision-surfacing step exists here either.
+
+  - step: >
+      Root of both gaps is the same: define/reference/intent.yaml has no
+      constraint equivalent to design C17 ("Decision Surfacing Discipline
+      — every inferred decision must be tagged with a confidence tier and
+      surfaced to the user before committed downstream") or design/specify/arch C18
+      ("every skill that produces inferred decisions emits a decision-manifest.yaml;
+      orchestrator walks the manifest before any downstream skill consumes the
+      artifact"). Without these constraints in the source intent, the compiler
+      (/create-play) does not emit tiered-surfacing steps in the compiled SKILL.md.
+
+  - step: >
+      Scope: the fix is define-local. No shared decision-surfacing LTM rule or
+      shared checkpoint mechanism exists today — specify, design, and arch each
+      inline their own C18. The gap in define is the absence of the equivalent
+      constraint, not a broken shared component. See scope_conclusion.
+
+scope_conclusion: define-local
+scope_rationale: >
+  Investigated whether a shared checkpoint or decision-surfacing mechanism exists.
+  Findings: (a) core/components/memory/standards/rules/ contains no
+  decision-surfacing.md file; (b) specify, design, and arch each inline their
+  own equivalent constraint (C18 in specify and arch, C17+C18 in design) —
+  there is no single shared mechanism they all call; (c) the product-keeper
+  agent and the skills it invokes (manage-features, generate-intent-epics) do
+  emit decision manifests per C8 — the manifests exist, the play just never
+  surfaces them. The defect is exclusively define's intent.yaml missing the
+  constraint. The other plays (specify, design, arch) already have the constraint
+  and are not broken. Fix is define-local; a follow-up to extract a shared
+  standards/rules/decision-surfacing.md LTM rule and have all four plays cite it
+  is recommended but separate.
+
+alternative_scope_considered:
+  approach: >
+    Create a shared standards/rules/decision-surfacing.md LTM rule and
+    rebuild all four plays (define, specify, design, arch) to reference it
+    now.
+  reason_rejected: >
+    (a) Blast radius: three plays that are not broken would be rebuilt and
+    could diverge. (b) The bug is in exactly one file; fix should be
+    proportional (Occam's Razor). (c) The other plays' inline definitions
+    differ in minor ways adapted to their surfaces — premature abstraction
+    risks flattening them incorrectly (Razor 4 — Abstraction later).
+    Recommended as a separate follow-up issue after define is fixed.
+
+blast_radius:
+  - path: core/components/plays/define/reference/intent.yaml
+    role: Source of truth for the /define play's constraints, failure conditions, and scenarios
+    change_needed: >
+      Add a new constraint (C17) specifying that at every checkpoint
+      (Phase 5 and Phase 9) the orchestrator must read all decision manifests
+      produced so far, collect every entry with surfaced_for_review: true that
+      has not been presented yet, and surface them batched by confidence tier
+      (HIGH batch-confirm, MID batch-with-questions, LOW one-by-one) before
+      presenting the Tether/Orbit/Vanish prompt. Add a corresponding failure
+      condition (F11) for silent commit of unsurfaced decisions.
+
+  - path: core/components/plays/define/SKILL.md
+    role: Compiled play artifact generated by /create-play from intent.yaml
+    change_needed: >
+      Regenerated by running /create-play --rebuild define after intent.yaml
+      is updated. Do NOT hand-edit this file. The regenerated SKILL.md must
+      contain Decision Surfacing steps (e.g. "Decision Surfacing — Phase 5"
+      and "Decision Surfacing — Phase 9") that walk all manifests produced
+      up to each checkpoint and surface each unsurfaced surfaced_for_review:
+      true entry through the tiered flow.
+
+produced_at: "2026-05-16T00:00:00Z"

@@ -1,0 +1,28 @@
+task_id: implement-fix
+step: 2
+description: >
+  /create-play --rebuild define — regenerate
+  core/components/plays/define/SKILL.md from the updated intent.yaml.
+owner: orchestrator
+reason_not_builder: >
+  code-builder has no Skill tool and must not hand-edit a compiled
+  artifact. The play-compiler invocation (a Garura codegen skill) is an
+  orchestrator-level operation, documented as a deviation in the builder's
+  implementation-report.yaml step-2 entry.
+status: success
+files_modified:
+  - path: core/components/plays/define/SKILL.md
+    summary: >
+      Step 5.0 "Decision Surfacing — Phase 5" inserted before Step 5a
+      (loads decision-manifest-catalog-match.yaml; tiered HIGH/MID/LOW
+      surfacing; writes user_response before the gate). Step 9.0
+      "Decision Surfacing — Phase 9" inserted before Step 9a (loads all
+      three manifests). SE-13 (F11/C17) embedded at Phase 5 and Phase 9.
+      Compilation Metadata updated: intent_hash recomputed
+      (sha256:a1398e860f0c6568269734b1f235dd8f9bd4623456d1b65d8514037c6b0f3e5d),
+      compiled_by /create-play --rebuild define, step_evals 13,
+      constraints_covered C1–C17, failure_conditions_covered F1–F11,
+      artifact_verifiable_constraints add C17.
+full_create_play_pipeline_evidence: .garura/project/issues/370/evidence/create-play/define/
+post_compile_regression_spotcheck: 9/9 GREEN (orchestrator spot-check only; binding verdict is quality-auditor's per C15/C16)
+produced_at: "2026-05-16T06:27:00Z"

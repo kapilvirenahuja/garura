@@ -1,0 +1,19 @@
+regression_test_path: .garura/project/issues/370/evidence/fix-it/regression-test.yaml
+verified_by: play
+verified_at: "2026-05-16T01:31:00+0530"
+failing: true
+assertion_count: 9
+red_results:
+  A1: red  # C17 absent from intent.yaml
+  A2: red  # surfaced_for_review absent from intent.yaml
+  A3: red  # 'Decision Surfacing' absent from intent.yaml
+  A4: red  # F11 absent from intent.yaml
+  A5: red  # 'Decision Surfacing' absent from SKILL.md
+  A6: red  # surfaced_for_review absent from SKILL.md
+  A7: red  # decision-manifest-catalog-match count=1 (Phase 2 output only), need >=2
+  A8: red  # same grep as A5 — no occurrences
+  A9: red  # 'Decision Surfacing' count=0 in SKILL.md, need >=2
+note: >
+  Play independently re-ran the assertion greps against the current codebase
+  (TDD invariant C14 / SE-10). Every assertion fails on the unfixed tree.
+  Test confirmed RED before Step 6 (Implement) is dispatched.

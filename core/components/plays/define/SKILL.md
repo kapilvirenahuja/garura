@@ -298,6 +298,40 @@ Present the proposed placement to the user — bucket, target_milestone, any new
 
 Per C16, this phase emits two user-facing surfaces. BOTH are loaded from LTM templates — never inlined as prose (F10). Resolve `ltm_project_target` from config at pre-flight.
 
+**Step 5.0 — Decision Surfacing — Phase 5 (C17).**
+
+Before writing the checkpoint file (Step 5a) or rendering the approval prompt (Step 5b), the orchestrator MUST surface every flagged decision produced up to this gate. This step is mandatory and runs first — a `surfaced_for_review: true` entry carried past this checkpoint without `user_response` populated is a structural violation (F11).
+
+```bash
+# Phase 5 has exactly one decision manifest available (produced in Phase 2).
+manifest="${stm_base}${issue}/evidence/define/decision-manifest-catalog-match.yaml"
+# 1. Load the manifest. If it is absent, no Phase-2 inferred decisions exist —
+#    skip surfacing and proceed to Step 5a.
+# 2. Collect every entry where surfaced_for_review: true AND user_response is
+#    not yet populated. Decisions that merely echo upstream user input
+#    (copying a slug, reusing a field the user already provided) are exempt
+#    per C17 and are not collected.
+# 3. Partition the collected entries by confidence tier and surface them to
+#    the user IN THIS ORDER, before any Tether/Orbit/Vanish prompt:
+#      - HIGH: present as a single batch-confirm. The user may Tether the
+#        whole batch, or Orbit any single entry to reopen it for one-by-one
+#        review.
+#      - MID: present as a batch with an explicit question and the system's
+#        recommendation per decision. The user may accept the batch or drill
+#        any entry one-by-one.
+#      - LOW: always one-by-one, never batched.
+#    HIGH confidence is permission to batch — never permission to skip review.
+# 4. For every surfaced entry, write the user's response back into the
+#    originating manifest entry: user_response: accept | override | orbit,
+#    plus a user_response_detail string capturing what the user said. Do NOT
+#    use AskUserQuestion — output the surfacing prose and wait for the typed
+#    response, consistent with the Tether/Orbit/Vanish convention.
+# 5. Only after every collected entry has user_response populated does the
+#    play proceed to Step 5a.
+```
+
+The decision-surfacing prose is rendered inline by the orchestrator from the manifest entries — it is decision content, not a templated user-facing surface, so C16/F10 do not apply to it (the checkpoint file and approval prompt that follow ARE templated, per Steps 5a/5b).
+
 **Step 5a — Write checkpoint file (C16 phase-5-placement-checkpoint).**
 
 ```bash
@@ -363,6 +397,7 @@ Invocation on Vanish:
 
 - **SE-8 (F8):** When the user responds Vanish at the Phase 5 placement checkpoint, the GH issue opened in Phase 0 is closed before the play exits. Pass: on a Phase-5 Vanish outcome, `delivery-record.yaml` records a `manage-issue` close action against the Phase-0 issue number and the resulting `issue.state == "closed"`. Fail: Phase-5 Vanish occurred and the GH issue from Phase 0 is still open — an orphaned issue is left in the tracker.
 - **SE-12 (F10) — partial coverage, Phase 5 surfaces:** Every user-facing surface declared in C16's template_map (placement checkpoint file, placement approval prompt, epic checkpoint file, epic approval prompt, delivery report, evidence file) is loaded from its declared template path under `{ltm.project-target}standards/templates/` rather than emitted as inline prose. Pass: the compiled SKILL.md references each declared template path at least once at the phase that emits the corresponding surface (phase-5 placement checkpoint → `checkpoint.md`, phase-5 approval prompt → `approval-prompt.md`, phase-9 epic checkpoint → `checkpoint.md`, phase-9 approval prompt → `approval-prompt.md`, phase-10 delivery report → `delivery-report.md`, phase-10 evidence file → `evidence-file.md`), and the emitted artifact files at the declared destinations are produced by filling slots in those templates. Fail: any user-facing surface (checkpoint file, approval prompt, delivery report, evidence file) is emitted as inline prose in the compiled SKILL.md instead of loaded from the template path declared in C16's template_map. (This eval is structurally verified by greeping the compiled SKILL.md for each template path; it also re-evaluates in Phase 9 and Phase 10 against the emitted artifact files.)
+- **SE-13 (F11 / C17) — Phase 5 surfaces:** At the Phase 5 placement checkpoint gate, before the checkpoint file is written or the Tether/Orbit/Vanish prompt is presented, every decision-manifest entry with surfaced_for_review: true is surfaced to the user batched by confidence tier (HIGH as a single batch-confirm, MID as a batch with explicit per-decision questions, LOW one-by-one) and the user's response is written back into the originating manifest entry. No decision-manifest entry with surfaced_for_review: true is carried forward past the checkpoint without user_response populated. Pass: for Phase 5, every surfaced_for_review: true entry in decision-manifest-catalog-match.yaml has user_response populated (accept | override | orbit) with user_response_detail before the Phase 5 gate proceeds, and the compiled SKILL.md contains a decision-surfacing step at Phase 5 (Step 5.0) that performs the tiered surfacing before the gate. Fail: any decision-manifest entry with surfaced_for_review: true is carried forward past Phase 5 with user_response unpopulated, or the compiled SKILL.md has no decision-surfacing step before the Phase 5 gate — the play silently committed an unsurfaced decision, breaking the HITL guarantee. (This eval re-evaluates in Phase 9 against all three decision manifests produced by then.)
 
 TaskUpdate T6 → in_progress → completed.
 
@@ -478,6 +513,43 @@ The epic checkpoint is ALWAYS presented (C11), regardless of generation confiden
 
 Per C16, this phase emits two user-facing surfaces. BOTH are loaded from LTM templates — never inlined as prose (F10).
 
+**Step 9.0 — Decision Surfacing — Phase 9 (C17).**
+
+Before writing the checkpoint file (Step 9a) or rendering the approval prompt (Step 9b), the orchestrator MUST surface every flagged decision produced up to this gate, across ALL manifests that exist by Phase 9. This step is mandatory and runs first — a `surfaced_for_review: true` entry carried past this checkpoint without `user_response` populated is a structural violation (F11).
+
+```bash
+# Phase 9 has all three decision manifests available.
+manifests=(
+  "${stm_base}${issue}/evidence/define/decision-manifest-catalog-match.yaml"      # Phase 2
+  "${stm_base}${issue}/evidence/define/decision-manifest-manage-features.yaml"     # Phase 6
+  "${stm_base}${issue}/evidence/define/decision-manifest-generate-intent-epics.yaml" # Phase 7
+)
+# 1. Load every manifest above that exists. An absent manifest means that
+#    phase produced no inferred decisions — skip it, do not halt.
+# 2. Across all loaded manifests, collect every entry where
+#    surfaced_for_review: true AND user_response is not yet populated. This
+#    INCLUDES any entry already surfaced and answered at Phase 5 ONLY if its
+#    user_response is still unpopulated; entries answered at Phase 5 (Step
+#    5.0) are already populated and are NOT re-surfaced. Decisions that
+#    merely echo upstream user input are exempt per C17.
+# 3. Partition the collected entries by confidence tier and surface them to
+#    the user IN THIS ORDER, before any Tether/Orbit/Vanish prompt:
+#      - HIGH: single batch-confirm (Tether all, or Orbit any one to reopen
+#        one-by-one).
+#      - MID: batch with explicit question + recommendation per decision
+#        (accept the batch or drill one-by-one).
+#      - LOW: always one-by-one, never batched.
+#    HIGH confidence is permission to batch — never permission to skip review.
+# 4. For every surfaced entry, write the user's response back into the
+#    originating manifest entry: user_response: accept | override | orbit,
+#    plus user_response_detail. Do NOT use AskUserQuestion — output the
+#    surfacing prose and wait for the typed response.
+# 5. Only after every collected entry across all three manifests has
+#    user_response populated does the play proceed to Step 9a.
+```
+
+The decision-surfacing prose is rendered inline by the orchestrator from the manifest entries — it is decision content, not a templated user-facing surface, so C16/F10 do not apply to it (the checkpoint file and approval prompt that follow ARE templated, per Steps 9a/9b).
+
 **Step 9a — Write checkpoint file (C16 phase-9-epic-checkpoint).**
 
 ```bash
@@ -519,6 +591,10 @@ Parse response:
 - Tether → proceed to Phase 10.
 - Orbit → cycle back to Phase 6 with captured objection as context.
 - Vanish → halt; do NOT close the issue (C11 — user iterates); write `delivery-record.yaml` recording the Vanish reason.
+
+**Step Evals:**
+
+- **SE-13 (F11 / C17) — Phase 9 surfaces:** At the Phase 9 epic checkpoint gate, before the checkpoint file is written or the Tether/Orbit/Vanish prompt is presented, every decision-manifest entry with surfaced_for_review: true across all three manifests produced by then is surfaced to the user batched by confidence tier (HIGH as a single batch-confirm, MID as a batch with explicit per-decision questions, LOW one-by-one) and the user's response is written back into the originating manifest entry. No decision-manifest entry with surfaced_for_review: true is carried forward past the checkpoint without user_response populated. Pass: for Phase 9, every surfaced_for_review: true entry across decision-manifest-catalog-match.yaml, decision-manifest-manage-features.yaml, and decision-manifest-generate-intent-epics.yaml has user_response populated (accept | override | orbit) with user_response_detail before the Phase 9 gate proceeds, and the compiled SKILL.md contains a decision-surfacing step at Phase 9 (Step 9.0) that performs the tiered surfacing before the gate. Fail: any decision-manifest entry with surfaced_for_review: true is carried forward past Phase 9 with user_response unpopulated, or the compiled SKILL.md has no decision-surfacing step before the Phase 9 gate — the play silently committed an unsurfaced decision, breaking the HITL guarantee.
 
 TaskUpdate T10 → in_progress → completed.
 
@@ -612,7 +688,7 @@ evidence_dest="${stm_base}${issue}/evidence/define/${ts}.md"
 #       {product_base}{product.scope}epics/{epic-id}.yaml
 #       {product_base}{product.scope}validation-intent-epics.yaml
 #       all STM evidence under {stm_base}{issue}/evidence/define/
-#   - step eval results (SE-1..SE-12)
+#   - step eval results (SE-1..SE-13)
 #   - scenario eval results (SCE-1..SCE-6)
 #   - placement-checkpoint + epic-checkpoint dispositions (Tether/Orbit/Vanish + reason)
 #   - decision-manifest summary from every manifest produced in the run
@@ -686,20 +762,20 @@ Phase 0 is idempotent — on resume with a completed status, the issue number is
 
 | Field | Value |
 |-------|-------|
-| intent_hash | `sha256:2cf062a27587b806d0c12385d55a5bbe1e3b21c9dc74709e0d5f89053555e312` |
-| compiled_by | `/create-play --build define` |
-| compiled_at | `2026-04-19T00:00:00Z` |
-| workflow_structure | A (full checkpoint flow — 11 numbered phases Phase 0–Phase 10, two human Tether/Vanish/Orbit gates at Phase 5 and Phase 9) |
+| intent_hash | `sha256:a1398e860f0c6568269734b1f235dd8f9bd4623456d1b65d8514037c6b0f3e5d` |
+| compiled_by | `/create-play --rebuild define` |
+| compiled_at | `2026-05-16T06:26:53Z` |
+| workflow_structure | A (full checkpoint flow — 11 numbered phases Phase 0–Phase 10, two human Tether/Vanish/Orbit gates at Phase 5 and Phase 9, each preceded by a C17 decision-surfacing step) |
 | domain_agents | 2 (`project-orchestrator`, `product-keeper`) |
 | utility_agents | 1 (`repo-orchestrator` — exempt from domain-agent budget) |
-| step_evals | 12 (SE-1 through SE-12) |
+| step_evals | 13 (SE-1 through SE-13) |
 | scenario_evals | 6 (SCE-1 through SCE-6) |
-| constraints_covered | C1–C16 |
-| failure_conditions_covered | F1–F10 |
+| constraints_covered | C1–C17 |
+| failure_conditions_covered | F1–F11 |
 | scenarios_covered | S1–S6 |
 | pre-flight_constraints | C1 (partial — full coverage via SE-1), C15 |
 | structural_constraints | C2, C6, C7, C8, C11, C12, C13, C14, C16 |
-| artifact_verifiable_constraints | C3, C4, C5, C9, C10 |
+| artifact_verifiable_constraints | C3, C4, C5, C9, C10, C17 |
 | rule_sources | `standards/rules/feature-catalog.md`, `standards/rules/epics.md`, `standards/rules/features.md`, `standards/rules/scenarios.md`, `standards/schemas/intent-epic.yaml` |
 | templates_loaded | `standards/templates/checkpoint.md` (phase 5 + phase 9), `standards/templates/approval-prompt.md` (phase 5 + phase 9), `standards/templates/delivery-report.md` (phase 10), `standards/templates/evidence-file.md` (phase 10), plus `standards/templates/github-issue.md` via `manage-issue` in phase 0 |
 
