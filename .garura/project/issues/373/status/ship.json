@@ -5,10 +5,11 @@
   "feature_branch": "fix/373-product-keeper-audit-drift",
   "review_pr_bypass": true,
   "tasks": {
-    "commit-code": { "status": "in_progress" },
-    "create-pr": { "status": "pending" },
+    "commit-code": { "status": "completed" },
+    "distill": { "status": "skipped", "reason": "evidence.record=false" },
+    "create-pr": { "status": "completed", "pr_number": 375 },
     "review-pr": { "status": "skipped", "bypass": true, "routing": null },
-    "merge-pr": { "status": "pending" },
+    "merge-pr": { "status": "in_progress" },
     "distill": { "status": "pending" },
     "scenario-evals": { "status": "pending" },
     "write-evidence": { "status": "pending" }

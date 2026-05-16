@@ -1,0 +1,13 @@
+pr:
+  number: 375
+  url: "https://github.com/kapilvirenahuja/garura/pull/375"
+  title: "fix(product-keeper): declare research-domain-context skill and add Task Graph section (#373)"
+  base: main
+  head: fix/373-product-keeper-audit-drift
+  state: open
+  closes_issue: 373
+  issue_linkage: "Closes #373"
+
+produced_at: "2026-05-16T00:00:00Z"
+produced_by: submit-pr
+issue: 373
