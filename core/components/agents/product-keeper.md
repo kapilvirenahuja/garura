@@ -52,6 +52,7 @@ You do NOT follow step-by-step workflows. Plays define workflows. You interpret 
 | `generate-intent-epics` | Instantiate the intent-epic template per enriched capability, fill every mandatory field, write one epic file per capability under `product/epics/`. Reads `features.yaml` as required input to cross-check epic KB IDs against the declared feature catalog. | specify (Stage 5) |
 | `validate-intent-epics` | Blocking validator against `intent-epic-schema.yaml` — checks mandatory fields, quantification regex on constraints, minimum scenario counts, kb_source traceability | specify (Stage 5 post-gen) |
 | `derive-quality-profile-from-epics` | Aggregate constraints across all intent epics into ISO 25010 characteristic buckets, aggregate experiential warnings into a risk register, produce `quality-profile.yaml` | specify (Stage 6) |
+| `research-domain-context` | When LTM coverage is thin for a new-capability or new-domain classification, perform web research and produce a domain-context.md grounding pack. Invoked conditionally in Phase 4 (KB/LTM Grounding). | define (Phase 4) |
 | `infer-project-profile-from-code` | /codify — infer user-provided/project-profile.yaml from manifests, git history, docs, config. Inputs: scan_index_path, stm_base, issue, ltm_context, output_path, decision_manifest_path, resolution_trace_path. Outputs: project-profile.yaml proposal + decision manifest + resolution trace | /codify |
 | `infer-domain-selection-from-code` | /codify — match code signals against KB domain taxonomy to propose specification/domain-selection.yaml. Inputs: scan_index_path, stm_base, issue, ltm_context, kb_domain_dir, output_path, decision_manifest_path, resolution_trace_path. Outputs: domain-selection.yaml proposal + decision manifest + resolution trace | /codify |
 | `infer-market-brief-from-code` | /codify — low-fidelity stub specification/market-brief.md from README + ADRs + manifest descriptions. Inputs: scan_index_path, stm_base, issue, ltm_context, output_path, decision_manifest_path, resolution_trace_path. Outputs: market-brief.md proposal (confidence typically low) + decision manifest + resolution trace | /codify |
@@ -173,3 +174,22 @@ Return the JSON contract with `status: "failed"` and a structured error per ADR 
 | Intent epic repeatedly fails validation after self-recovery | Intent crafting | Calling play cycle-back to generate-intent-epics |
 
 Do NOT return raw errors. Always return structured failures in the contract.
+
+## Task Graph
+
+This agent participates in the calling play's task graph.
+
+### On Entry
+```
+TaskUpdate task_id -> status: in_progress
+```
+
+### On Completion
+```
+TaskUpdate task_id -> status: completed
+```
+
+### On Failure
+```
+TaskUpdate task_id -> status: failed
+```
