@@ -1,0 +1,22 @@
+pr:
+  number: 374
+  url: "https://github.com/kapilvirenahuja/garura/pull/374"
+  title: "fix(define): surface flagged decisions at Phase 5/9 checkpoints (#370)"
+  state: open
+  base_branch: main
+  head_branch: fix/370-define-surfaced-for-review-hitl-break
+  closes_issue: 370
+  created_at: "2026-05-16T06:40:00Z"
+  checklist_status:
+    must_have_count: 11
+    nice_to_have_count: 2
+    blocking_issues: 0
+  eval_results:
+    verdict: pass
+    assertions_passed: 9
+    assertions_total: 9
+  links_issue_370: true
+  notes: >
+    PR created from branch fix/370-define-surfaced-for-review-hitl-break targeting main.
+    sync-claude is a post-merge step per project convention — not a PR gate.
+    Pre-existing product-keeper drift captured as issue #373 (out of scope).

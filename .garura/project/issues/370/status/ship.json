@@ -1,0 +1,46 @@
+{
+  "play": "ship",
+  "issue": "370",
+  "started_at": "2026-05-16T06:32:00Z",
+  "feature_branch": "fix/370-define-surfaced-for-review-hitl-break",
+  "review_pr_bypass": true,
+  "tasks": {
+    "commit-code": {
+      "status": "completed",
+      "commits": [
+        "3e51291",
+        "1635132"
+      ],
+      "pushed": true
+    },
+    "create-pr": {
+      "status": "completed",
+      "pr_number": 374,
+      "pr_url": "https://github.com/kapilvirenahuja/garura/pull/374"
+    },
+    "review-pr": {
+      "status": "skipped",
+      "bypass": true
+    },
+    "merge-pr": {
+      "status": "completed",
+      "merge_sha": "6c419c79a48d0875ec6415d09ce9b43bcfa43edb",
+      "pr": 374
+    },
+    "distill": {
+      "status": "skipped",
+      "reason": "evidence.record=false (distill pre-flight gate); non-blocking"
+    },
+    "scenario-evals": {
+      "status": "completed",
+      "SCE-1": "pass",
+      "SCE-2": "pass",
+      "SCE-3": "skipped(bypass=true)",
+      "SCE-4": "pass"
+    },
+    "write-evidence": {
+      "status": "skipped",
+      "reason": "evidence.record=false: ship evidence file + C9 sweep + self-commit skipped per #346 gate"
+    }
+  }
+}

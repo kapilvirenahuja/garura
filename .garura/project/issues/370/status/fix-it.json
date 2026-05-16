@@ -15,11 +15,11 @@
       "completed_at": "2026-05-16T01:31:00+0530"
     },
     "prepare-checkpoint": {
-      "status": "pending"
+      "status": "completed"
     },
     "issue-comment-dispatch": {
-      "status": "dispatched",
-      "dispatched_at": "2026-05-15T20:09:28Z"
+      "status": "completed",
+      "comment_url": "https://github.com/kapilvirenahuja/garura/issues/370#issuecomment-4463160176"
     },
     "approval-gate": {
       "status": "completed",
@@ -37,14 +37,19 @@
       "verified_by": "quality-auditor"
     },
     "ship": {
-      "status": "in_progress",
-      "started_at": "2026-05-16T06:30:00Z"
+      "status": "completed",
+      "pr": 374,
+      "merge_sha": "6c419c79a48d0875ec6415d09ce9b43bcfa43edb"
     },
     "scenario-evals": {
-      "status": "pending"
+      "status": "completed",
+      "SCE-1": "pass",
+      "SCE-2": "pass",
+      "SCE-3": "pass",
+      "SCE-4": "pass"
     },
     "evidence-report": {
-      "status": "pending"
+      "status": "in_progress"
     }
   },
   "task_list": [

@@ -1,0 +1,56 @@
+status: success
+
+commits:
+  - group: fix
+    sha: 3e51291
+    subject: "fix(define): add C17 Decision Surfacing Discipline and recompile with Step 5.0/9.0 + SE-13"
+    files_count: 2
+    files:
+      - core/components/plays/define/reference/intent.yaml
+      - core/components/plays/define/SKILL.md
+    issue: 370
+    closes: true
+
+  - group: stm-evidence
+    sha: 1635132
+    subject: "chore(stm): record fix-it + create-play run evidence for #370"
+    files_count: 26
+    files:
+      - .garura/project/issues/370/evidence/commit-code/analysis.yaml
+      - .garura/project/issues/370/evidence/commit-code/issue-mappings.yaml
+      - .garura/project/issues/370/evidence/create-play/define/agent-audit-decision.md
+      - .garura/project/issues/370/evidence/create-play/define/agent-audit-product-keeper.md
+      - .garura/project/issues/370/evidence/create-play/define/agent-audit-project-orchestrator.md
+      - .garura/project/issues/370/evidence/create-play/define/agent-audit-repo-orchestrator.md
+      - .garura/project/issues/370/evidence/create-play/define/constraint-classifications.yaml
+      - .garura/project/issues/370/evidence/create-play/define/coverage-matrix.md
+      - .garura/project/issues/370/evidence/create-play/define/evals.yaml
+      - .garura/project/issues/370/evidence/create-play/define/play-analysis.md
+      - .garura/project/issues/370/evidence/create-play/define/skill-manifest.yaml
+      - .garura/project/issues/370/evidence/create-play/define/summary.md
+      - .garura/project/issues/370/evidence/create-play/define/workflow-selection.md
+      - .garura/project/issues/370/evidence/fix-it/design.yaml
+      - .garura/project/issues/370/evidence/fix-it/implementation-report.yaml
+      - .garura/project/issues/370/evidence/fix-it/implementation-step2-orchestrator.yaml
+      - .garura/project/issues/370/evidence/fix-it/issue-comment-agent.yaml
+      - .garura/project/issues/370/evidence/fix-it/issue-read.yaml
+      - .garura/project/issues/370/evidence/fix-it/rca.yaml
+      - .garura/project/issues/370/evidence/fix-it/regression-test-path.yaml
+      - .garura/project/issues/370/evidence/fix-it/regression-test-verdict.yaml
+      - .garura/project/issues/370/evidence/fix-it/regression-test-verification.yaml
+      - .garura/project/issues/370/evidence/fix-it/regression-test.yaml
+      - .garura/project/issues/370/evidence/fix-it/resolution-trace.yaml
+      - .garura/project/issues/370/evidence/lint-components/lint-report.yaml
+      - .garura/project/issues/370/status/fix-it.json
+    issue: 370
+    closes: false
+
+push:
+  branch: fix/370-define-surfaced-for-review-hitl-break
+  pushed: true
+  tracking: origin/fix/370-define-surfaced-for-review-hitl-break
+  note: pushed successfully, branch ahead by 2 commits from main (3974952..1635132)
+
+excluded:
+  - .garura/project/issues/370/simulation/
+  - .garura/project/issues/370/status/ship.json

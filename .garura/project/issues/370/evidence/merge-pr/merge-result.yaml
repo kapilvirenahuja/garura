@@ -1,0 +1,18 @@
+result:
+  status: merged
+  pr_number: 374
+  merge_sha: 6c419c79a48d0875ec6415d09ce9b43bcfa43edb
+  base_branch: main
+  branch_deleted: true
+  on_main_up_to_date: true
+
+evals:
+  SE-1: PASS  # No merge attempted past conflict state — pre-flight verified mergeable
+  SE-2: PASS  # Feature branch deleted — absent locally and on remote
+  SE-3: PASS  # Local checkout on main, up to date (fast-forward merge, matches origin/main)
+  SE-4: PASS  # Pre-merge tree was clean — verified by caller pre-flight
+  SE-5: PASS  # PR merged on platform — state MERGED, pr_number 374
+
+scenarios:
+  SCE-1: PASS  # Local HEAD on main, git pull up to date, feature branch absent
+  SCE-2: PASS  # PR #374 state=MERGED, merge_sha 6c419c7 present in git log on main

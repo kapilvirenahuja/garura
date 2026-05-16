@@ -1,0 +1,5 @@
+issue:
+  number: 370
+  title: "/define does not surface `surfaced_for_review: true` decisions at its checkpoints — HITL break"
+  url: "https://github.com/kapilvirenahuja/garura/issues/370"
+  source: commit-code-stm
