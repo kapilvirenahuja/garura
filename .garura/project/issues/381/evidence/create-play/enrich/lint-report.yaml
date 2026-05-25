@@ -1,0 +1,21 @@
+generated_at: "2026-05-25"
+scope: enrich play (#381 rebuild)
+enrich_play:
+  file: core/components/plays/enrich/SKILL.md
+  violations: 0
+  pass: true
+global_context:
+  errors: 65
+  warnings: 0
+  infos: 0
+  note: >
+    65 pre-existing errors across the component tree (35 missing-section,
+    20 missing-frontmatter-field, 6 skill-not-found, 2 frontmatter-parse-error,
+    1 allowed-tools, 1 agent-not-found). NONE attributable to the enrich play or
+    the #381 change. The only match on the string "enrich" is the unrelated
+    `enrich-capabilities` skill (missing ## Output) — a different component,
+    pre-existing.
+pass: true
+verdict: >
+  enrich play rebuild for #381 introduces zero lint violations. Pre-existing
+  tree-wide errors are out of scope.
