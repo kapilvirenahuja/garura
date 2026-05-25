@@ -79,6 +79,14 @@ constraints:
       Evidence of the play's actions is recorded in the issue's
       evidence area before archival, and the evidence commit is
       non-blocking with respect to the play's success.
+  - id: C11
+    rule: >
+      An issue's STM directory is archived only when every approved
+      proposal has a confirmed successful write to product LTM,
+      including completion of any approved Tier 1 ADR promotion; if any
+      approved proposal's write reaches a terminal non-success state,
+      the issue is not archived and the failure is surfaced to the
+      reviewer.
 
 failure_conditions:
   - id: F1
@@ -108,7 +116,8 @@ failure_conditions:
   - id: F7
     condition: >
       An issue's STM directory was archived while one or more of its
-      proposals were neither applied nor explicitly rejected.
+      proposals lacked a confirmed successful write to product LTM and
+      was not explicitly rejected.
   - id: F8
     condition: >
       A malformed source proposal resulted in a partial product LTM
@@ -118,4 +127,4 @@ failure_conditions:
       A sweep-mode invocation processed a directory under the archived
       or pending subtrees of the issues area.
 
-version: 1.0.0
+version: 1.1.0
