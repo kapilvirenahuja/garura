@@ -572,7 +572,7 @@ Newer plays use a JSON contract as the entire agent prompt. This is the current 
 }
 ```
 
-The JSON contract IS the entire agent prompt — no instructions, field definitions, or prose are appended. Agents read `reference/intent.yaml` at `intent_path` to understand goal, constraints, failure conditions, and scenarios. See `plan-roadmap` as the reference implementation and [Four Crafts Architecture](./architecture.md#four-crafts-architecture) for the full pattern.
+The JSON contract IS the entire agent prompt — no instructions, field definitions, or prose are appended. Agents read `reference/intent.yaml` at `intent_path` to understand goal, constraints, and failure conditions (success scenarios and recovery live in the Expectation artifact, not intent.yaml). See `plan-roadmap` as the reference implementation and [Four Crafts Architecture](./architecture.md#four-crafts-architecture) for the full pattern.
 
 **YAML context bundle pattern (earlier plays):**
 
@@ -621,9 +621,9 @@ The agent reads the intent file and runs all pre-flight checks. The orchestrator
 
 ---
 
-## Recovery Protocol
+## Recovery (Autonomous-Fix Branch)
 
-When an agent returns a structured failure during play execution, IDSD applies a defined recovery loop before surfacing the failure to the human.
+Recovery is one concept — the Expectation layer's directional answer to "how do we continue toward the intent when blocked" (see ICE in `intent-driven-development.md`). This section describes its **autonomous-fix branch**: when an agent returns a structured failure during play execution, IDSD applies this recovery loop before surfacing the failure to the human.
 
 ### Structured Failure Protocol
 
@@ -669,7 +669,7 @@ Plays invoke ≤2 distinct agents. **Recovery calls are exempt from this limit.*
 
 Recovery reasoning is loaded from: `docs/framework/intent-driven-recovery.md`
 
-This file contains the recovery reasoning loop and domain-routing logic. Keeping this centralized — rather than embedding it in each play — allows recovery behavior to be updated without modifying individual plays. The structured failure protocol is at `docs/framework/structured-failure-protocol.md`.
+That file defines recovery as one unified concept (the Expectation layer) plus this autonomous-branch loop and its domain-routing logic. Keeping it centralized — rather than embedding it in each play — allows recovery behavior to be updated without modifying individual plays. The structured failure protocol is at `docs/framework/structured-failure-protocol.md`.
 
 ---
 
