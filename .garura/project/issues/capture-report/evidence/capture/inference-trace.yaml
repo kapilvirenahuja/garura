@@ -1,9 +1,10 @@
+type_resolution:
+  source: explicit          # caller provided type=bug
+  resolved_type: bug
+  ambiguous_text: false
+repo_slug: kapilvirenahuja/garura   # resolved from github.repo URL (config has no owner/name keys)
+label: bug
 events:
-  - event: human-confirmation-prompt
-    ambiguous_text: true
-    keywords_matched: []
-    candidates: [bug, enhancement, feature]
-    timestamp: "2026-05-07T00:00:00Z"
-  - event: human-confirmed
+  - event: explicit-type
     type: bug
-    timestamp: "2026-05-07T00:00:01Z"
+    timestamp: "2026-05-25T00:00:00Z"

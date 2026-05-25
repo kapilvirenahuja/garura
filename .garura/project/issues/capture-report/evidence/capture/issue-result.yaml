@@ -1,6 +1,8 @@
 status: completed
 type: bug
-title: "[BUG] Duplicate distill component — play and skill share the same name"
-url: "https://github.com/kapilvirenahuja/garura/issues/366"
-labels: [bug]
-completed_at: "2026-05-07T00:00:00Z"
+title: "[BUG] repo-orchestrator drops bundled multi-commit dispatches (commits one, then stops)"
+url: "https://github.com/kapilvirenahuja/garura/issues/377"
+number: 377
+labels:
+  - bug
+completed_at: "2026-05-25T00:00:00Z"

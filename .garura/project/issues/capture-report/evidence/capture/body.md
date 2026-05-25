@@ -1,8 +1,24 @@
 | Field | Value |
 |-------|-------|
 | **Type** | bug |
-| **Date** | 2026-05-07 |
+| **Severity** | medium |
+| **Reported From** | issue #376 (ICE migration pilot) |
+| **Date** | 2026-05-25 |
 
 ### Problem
 
-There are two `distill` components in the framework — one as a play (`core/components/plays/distill/`) and one as a skill (`core/components/skills/distill/`). They share the same directory name, causing the sync-claude script to overwrite the skill with the play on every sync (plays are copied after skills into `~/.claude/skills/`). The investigation needs to determine: (1) why both exist, (2) which one should be kept, and (3) what is calling each — the play vs the skill — so the correct one survives and the other is removed.
+When `repo-orchestrator` is dispatched with a single contract asking it to create several commits (one per change group) and then push, it creates only the FIRST commit and returns — the remaining commits and the push never happen. The orchestrator then has to notice the partial result and re-dispatch the agent once per remaining commit.
+
+Observed twice during issue #376, on two separate `/commit-code` runs: each time the agent reported a single commit and stopped, despite the dispatch instructing all commits plus the push. Driving it one commit per dispatch works reliably every time.
+
+### Root Cause
+
+Likely in how `repo-orchestrator` iterates over change groups when invoking the `create-commit` skill — it appears to return after the first `create-commit` instead of looping through all groups in the contract.
+
+### Expected Behavior
+
+A single dispatch instructing N commits + push should produce all N commits (each staging only its group's files) and then push the branch, in that one dispatch.
+
+### Impact
+
+The `commit-code` play's Step 5 (`create-commits-and-push`) assumes `repo-orchestrator` creates all per-group commits and pushes in one dispatch. Because it doesn't, the play either leaves the commit sequence incomplete or forces the orchestrator to micro-manage each commit — which defeats the single-dispatch design and risks an incomplete, unpushed sequence if the partial return isn't caught. Workaround in use: dispatch one commit per call, verify git state between each, then a separate push dispatch. Medium severity — the commits themselves are correct, but the agent needs manual driving and can silently leave work undone.
