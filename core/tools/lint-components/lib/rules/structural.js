@@ -299,7 +299,7 @@ function checkIntent(component) {
     return violations;
   }
 
-  const requiredKeys = ['intent', 'constraints', 'failure_conditions', 'scenarios'];
+  const requiredKeys = ['intent', 'constraints', 'failure_conditions'];
   for (const key of requiredKeys) {
     if (parsed[key] === undefined || parsed[key] === null) {
       violations.push({
@@ -307,6 +307,111 @@ function checkIntent(component) {
         rule: 'structural/missing-intent-key',
         severity: 'error',
         message: `Missing required intent.yaml key: ${key}`,
+        line: 1,
+      });
+    }
+  }
+
+  // ICE: scenarios live in the play's expectation.yaml (migrated plays).
+  // - Migrated (expectation.yaml present): the intent is the clean triple; validate the expectation.
+  // - Legacy (no expectation.yaml): scenarios are still required in intent.yaml until the play is migrated.
+  if (component.expectationFile) {
+    violations.push(...checkExpectation(component, parsed));
+  } else if (parsed.scenarios === undefined || parsed.scenarios === null) {
+    violations.push({
+      file: component.file,
+      rule: 'structural/missing-intent-key',
+      severity: 'error',
+      message:
+        'Missing required intent.yaml key: scenarios (or migrate to ICE by adding reference/expectation.yaml)',
+      line: 1,
+    });
+  }
+
+  return violations;
+}
+
+/**
+ * Check a play's expectation.yaml (ICE). Validates success_scenarios + recovery,
+ * and that recovery covers every failure condition in the intent exactly once.
+ */
+function checkExpectation(component, intentParsed) {
+  const violations = [];
+  const expFile = component.expectationFile;
+
+  let exp;
+  try {
+    exp = yaml.load(fs.readFileSync(expFile, 'utf8'));
+  } catch (err) {
+    violations.push({
+      file: expFile,
+      rule: 'structural/yaml-parse-error',
+      severity: 'error',
+      message: 'YAML parse error: ' + err.message,
+      line: 1,
+    });
+    return violations;
+  }
+
+  if (!exp || typeof exp !== 'object') {
+    violations.push({
+      file: expFile,
+      rule: 'structural/invalid-structure',
+      severity: 'error',
+      message: 'expectation.yaml must be a YAML object',
+      line: 1,
+    });
+    return violations;
+  }
+
+  for (const key of ['success_scenarios', 'recovery']) {
+    if (!Array.isArray(exp[key]) || exp[key].length === 0) {
+      violations.push({
+        file: expFile,
+        rule: 'structural/missing-expectation-key',
+        severity: 'error',
+        message: `expectation.yaml must have a non-empty ${key} array`,
+        line: 1,
+      });
+    }
+  }
+
+  // Recovery coverage: exactly one recovery entry per failure condition in the intent.
+  const fcIds = (Array.isArray(intentParsed.failure_conditions) ? intentParsed.failure_conditions : [])
+    .map((f) => f && f.id)
+    .filter(Boolean);
+  const recoveryFor = (Array.isArray(exp.recovery) ? exp.recovery : [])
+    .map((r) => r && r.for_failure)
+    .filter(Boolean);
+
+  for (const fc of fcIds) {
+    const count = recoveryFor.filter((x) => x === fc).length;
+    if (count === 0) {
+      violations.push({
+        file: expFile,
+        rule: 'structural/recovery-coverage',
+        severity: 'error',
+        message: `Failure condition ${fc} has no recovery entry in expectation.yaml`,
+        line: 1,
+      });
+    } else if (count > 1) {
+      violations.push({
+        file: expFile,
+        rule: 'structural/recovery-coverage',
+        severity: 'error',
+        message: `Failure condition ${fc} has ${count} recovery entries in expectation.yaml (expected exactly one)`,
+        line: 1,
+      });
+    }
+  }
+
+  for (const rf of recoveryFor) {
+    if (!fcIds.includes(rf)) {
+      violations.push({
+        file: expFile,
+        rule: 'structural/recovery-dangling',
+        severity: 'error',
+        message: `Recovery entry references unknown failure condition ${rf}`,
         line: 1,
       });
     }

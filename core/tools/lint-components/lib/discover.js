@@ -74,7 +74,15 @@ function discover(targetDir) {
         // intent.yaml: {target}/plays/*/reference/intent.yaml
         const intentFile = path.join(playsDir, entry.name, 'reference', 'intent.yaml');
         if (fs.existsSync(intentFile)) {
-          intents.push({ file: intentFile, name: entry.name, type: 'intent' });
+          // expectation.yaml (ICE): {target}/plays/*/reference/expectation.yaml
+          // Present = play is ICE-migrated (scenarios + recovery live here, not in intent).
+          const expectationFile = path.join(playsDir, entry.name, 'reference', 'expectation.yaml');
+          intents.push({
+            file: intentFile,
+            name: entry.name,
+            type: 'intent',
+            expectationFile: fs.existsSync(expectationFile) ? expectationFile : null,
+          });
         }
       }
     }
