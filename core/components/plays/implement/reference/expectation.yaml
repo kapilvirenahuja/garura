@@ -1,0 +1,464 @@
+# Expectation for the implement play (ICE refactor, #376).
+# Generated from reference/intent.yaml by draft-play-expectation.
+# Two parts only: success_scenarios and recovery.
+
+name: implement
+
+generated_from:
+  intent: core/components/plays/implement/reference/intent.yaml
+
+vetted:
+  status: approved
+  approved_by: autonomous-migration (#376, user-authorized non-stop self-approval)
+  approved_at: "2026-05-25"
+
+# Success scenarios — acceptance AND the checkable definition of done (one bucket).
+# Lifted verbatim from the legacy intent scenarios; only `measure` was added.
+success_scenarios:
+  - id: S1
+    persona: "Engineer"
+    given: >
+      A locked plan.yaml milestone entry, a fully-defined feature phase in features.yaml, and a passing project build
+    then: >
+      Can trigger the implementation process for the specified milestone_id and receive committed,
+      deployed code that passes all evaluations on the first judge run with no fix loop required
+    measure: >
+      For the named milestone_id, the milestone status-report.yaml shows status COMPLETE with
+      judge_eval_review.iterations == 0 (no fix loop), judge pass rate 100%, and the build/type-check
+      pass — checkable without human opinion.
+
+  - id: S2
+    persona: "Engineer"
+    given: >
+      A judge report showing evaluation failures after the first implementation attempt for a milestone
+    then: >
+      Can observe the fix loop execute up to 3 iterations, with each iteration producing
+      fresh evaluations and a fresh judge run, until all evaluations pass
+    measure: >
+      When the first judge run failed, each fix iteration (≤ 3) has a distinct fresh eval manifest
+      (manifest checksum differs from the prior iteration) and a fresh judge-report; the final judge
+      run shows 100% pass or a structured failure report exists after iteration 3.
+
+  - id: S3
+    persona: "QA Engineer"
+    given: >
+      The scenarios.yaml verification scenarios and the deployed implementation
+    then: >
+      Can execute each verification scenario against the deployed environment and verify
+      that expected user-facing behaviors match actual behavior, without reading the
+      codebase or referencing encrypted evals
+    measure: >
+      Every verification scenario in scenarios.yaml for this milestone is executable against the
+      deployed environment and its observed behavior matches the scenario's expected outcome, with no
+      codebase read and no encrypted-eval reference required to run it.
+
+  - id: S4
+    persona: "Security Auditor"
+    given: >
+      The input contexts of all agents (builder, evaluation generator, judge, quality-auditor)
+      and the project's security quality vision gates
+    then: >
+      Can verify that no agent received information outside its designated scope —
+      builder has zero evaluation content, judge has zero builder prompts, evaluation
+      generator has zero implementation code, quality-auditor has zero eval content —
+      and that security standards defined in the quality vision gates are met
+    measure: >
+      The builder contract carries only context_path + architecture_context_path (zero eval/test
+      content), the judge contract carries zero builder prompts, the evals-engineer contract carries
+      zero implementation code, the quality-auditor contract carries zero eval content, and the
+      quality-report security dimension shows PASS against the quality vision gates.
+
+  - id: S5
+    persona: "Engineering Lead"
+    given: >
+      A structured failure report produced after 3 exhausted fix iterations
+    then: >
+      Can identify which evaluations persistently failed, what remediation was attempted
+      in each iteration, and decide whether to restructure the feature scope or escalate
+    measure: >
+      The failure report names each persistently failing evaluation, carries a per-iteration
+      remediation table (iterations 1–3 with quality status and judge result), and surfaces a
+      restructure-or-escalate decision point — all without inspecting source.
+
+  - id: S6
+    persona: "Performance Auditor"
+    given: >
+      The deployed preview environment and the project's quality vision gates defining
+      performance thresholds (bundle size, lighthouse scores, runtime performance)
+    then: >
+      Can verify that bundle size, lighthouse scores, and runtime performance metrics
+      meet or exceed the thresholds defined in the quality vision gates
+    measure: >
+      The quality-report.yaml records measured bundle size, lighthouse score, and runtime metrics,
+      and each measured value meets or exceeds its threshold from quality-vision.yaml.
+
+  - id: S7
+    persona: "Evals Engineer"
+    given: >
+      The judge report, eval execution results, and the features.yaml behaviors list
+    then: >
+      Can verify that every eval was executed, every feature behavior has eval
+      coverage, and the overall pass rate meets the defined threshold
+    measure: >
+      The judge-report shows every eval in the manifest executed (executed count == manifest count),
+      every features.yaml behavior maps to at least one eval, and the overall pass rate meets or
+      exceeds the defined threshold.
+
+  - id: S8
+    persona: "Quality Lead"
+    given: >
+      An epic implementation has completed with quality-vision.yaml declaring QP levels
+      >= 2 for testing, code quality, and security dimensions
+    when: >
+      The quality lead reviews the quality-auditor QP certification report
+    then: >
+      Every QP dimension with level >= 2 has a concrete threshold in quality-vision-gates.yaml
+      (not null). The quality-report.yaml qp_certification section shows per-dimension
+      PASS/FAIL with actual measurements. No QP dimension was skipped.
+    measure: >
+      For every QP dimension with level >= 2, quality-gates.yaml carries a non-null threshold and the
+      quality-report.yaml qp_certification section shows that dimension with PASS/FAIL and an
+      actual_value; no dimension with level >= 2 is absent from the section.
+
+  - id: S9
+    persona: "Testing Architect"
+    given: >
+      An epic implementation used the test-writer / code-builder separation for a milestone
+    when: >
+      The testing architect audits test authorship and agent isolation
+    then: >
+      Test files were authored by the test-writer agent from TEST-CONTEXT.md (behavioral specs
+      only). The code-builder NEVER received test files, test code, or assertion text — its only
+      inputs were CONTEXT.md (derived from tech.yaml contracts) and architecture-context.yaml.
+      All test results flowed to the builder exclusively via spec-referenced status reports
+      mapping failures to tech.yaml contract IDs. Tests assert behavioral outcomes, not structural
+      implementation details.
+    measure: >
+      The test-writer contract input is only test_context_path, the code-builder contract input is
+      only context_path + architecture_context_path (zero test files/code/assertions), and every
+      status report routed to the builder references only tech.yaml contract IDs (zero test source
+      or assertion text).
+
+  - id: S10
+    persona: "Build Engineer"
+    given: >
+      The quality-auditor reports overall FAIL or qp_certification.overall BLOCKED
+    when: >
+      The build engineer checks pipeline behavior
+    then: >
+      The judge did NOT execute while quality-auditor reported FAIL or BLOCKED. One gate
+      controls judge access — quality-auditor PASS with CERTIFIED required. The fix loop
+      addressed tooling and QP failures alongside behavioral failures. After fix iteration,
+      quality-auditor reports PASS with CERTIFIED before the judge runs.
+    measure: >
+      Whenever a quality-report.yaml shows overall FAIL or qp_certification.overall BLOCKED, no
+      judge-report.yaml carries a later timestamp for that iteration; a judge-report exists only
+      after a quality-report showing PASS with CERTIFIED.
+
+  - id: S11
+    persona: "Eval Auditor"
+    given: >
+      Fresh evals were generated during a fix iteration with a different eval count than
+      the original
+    when: >
+      The eval auditor reviews the eval audit trail
+    then: >
+      An eval-audit artifact exists documenting the count delta. If evals were removed, each
+      has a consolidation_rationale. No evals silently disappeared between iterations.
+    measure: >
+      An eval-audit artifact records the per-iteration count delta, and when the delta is negative
+      every removed eval ID carries a consolidation_rationale; no eval ID is absent across iterations
+      without a recorded rationale.
+
+  - id: S12
+    persona: "Developer"
+    given: >
+      tech.yaml contains mock_strategy with external service mocks and test doubles
+    then: >
+      Mock infrastructure is set up before test-writer runs. Test-writer authors tests against
+      defined mock shapes from TEST-CONTEXT.md. Code-builder implements against the same mocked
+      dependencies described as service contracts in CONTEXT.md (derived from tech.yaml). The
+      orchestrator runs tests against mock infrastructure and produces spec-referenced status
+      reports — mock details never appear in status reports or builder context.
+    measure: >
+      A mock-setup report exists and is dated before the test-writer dispatch; every external_service
+      and test_double in tech.yaml mock_strategy has a functioning mock; and no status report or
+      builder context contains mock data patterns.
+
+  - id: S13
+    persona: "Engineer"
+    given: >
+      A locked plan.yaml with milestones T-001, T-002, T-003 where T-002 depends_on T-001
+      and T-003 depends_on T-002
+    when: >
+      The engineer triggers milestone-based implementation
+    then: >
+      implement is invoked with milestone_id: T-001. Pre-flight confirms T-001's depends_on
+      list is empty (or all satisfied). T-001 scope items are implemented, tested, and verified.
+      validate runs for T-001 and passes. implement is then invoked with milestone_id:
+      T-002 — pre-flight confirms T-001 is COMPLETE. T-002 scope items are implemented. This
+      pattern continues for each milestone. A milestone cannot begin until its predecessor has
+      both completed implement AND passed validate. Attempting to invoke implement
+      for T-002 before T-001 is COMPLETE halts with F24.
+    measure: >
+      Pre-flight resolves the milestone to a LOCKED plan.yaml entry and verifies every depends_on
+      milestone shows status COMPLETE before execution; invoking implement for a milestone whose
+      predecessor is not COMPLETE produces a structured F24 halt with no scope item executed.
+
+# Recovery — one entry per failure condition in intent.yaml. The validator turns a
+# tripped failure into a recovery handoff plan and routes it: `autonomous` loops the
+# fix back to the builder; `human` escalates for a manual call.
+recovery:
+  - id: REC1
+    for_failure: F1                 # build/type-check errors after implementation
+    trigger: >
+      After implementation completes, the project build or type check produces errors.
+    direction: >
+      The build and type check must pass cleanly after implementation; route the compile/type
+      errors back to the builder to correct the code until both pass.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC2
+    for_failure: F2                 # >50% eval failure on first judge run
+    trigger: >
+      The first judge run reports a greater-than-50% evaluation failure rate.
+    direction: >
+      A first judge run must pass the majority of evaluations; a majority failure signals the
+      feature scope or spec needs rethinking — a restructuring call the builder cannot make.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC3
+    for_failure: F3                 # 3 iterations exhausted, still failing
+    trigger: >
+      Three fix iterations are exhausted and the judge report still contains at least one
+      failing evaluation.
+    direction: >
+      All evaluations must pass within the iteration budget; once exhausted, escalate with the
+      structured failure report — restructure-vs-escalate is a judgment the builder lacks.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC4
+    for_failure: F4                 # plaintext evals on disk / eval content in repo
+    trigger: >
+      Plaintext evaluation files exist on disk after encryption, or evaluation content exists
+      inside the project repository tree.
+    direction: >
+      Evaluations must live encrypted and entirely outside the repo; re-encrypt and relocate the
+      eval content outside the tree and delete the plaintext.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC5
+    for_failure: F5                 # builder context carries test/eval content
+    trigger: >
+      The builder's input context contains test source code, assertion text, mock data patterns
+      from test files, evaluation IDs/text/pass criteria, or raw judge report content.
+    direction: >
+      The builder context must carry only the spec (CONTEXT.md + architecture-context.yaml plus a
+      bare scope-directory path); rebuild the contract stripping every forbidden input before dispatch.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC6
+    for_failure: F6                 # judge context carries builder prompts/reasoning
+    trigger: >
+      The judge's input context contains a builder prompt, builder reasoning, or implementation
+      rationale.
+    direction: >
+      The judge context must carry only the encrypted evals plus implementation artifacts; rebuild
+      the judge contract stripping every builder prompt and reasoning artifact before dispatch.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC7
+    for_failure: F7                 # eval generator context carries impl code / prior evals
+    trigger: >
+      The evaluation generator's input context contains implementation code, builder output, or
+      prior evaluation results.
+    direction: >
+      The eval generator context must carry only the listed spec inputs; rebuild the contract
+      stripping all implementation code, builder output, and prior evals before dispatch.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC8
+    for_failure: F8                 # milestone not LOCKED
+    trigger: >
+      The plan.yaml execution_order entry for the milestone_id has a status other than LOCKED
+      when implementation begins.
+    direction: >
+      Implementation may only begin on a LOCKED milestone; hold until the milestone is moved out
+      of DRAFT and locked upstream — a state the builder cannot grant.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC9
+    for_failure: F9                 # no exit gate / no success scenarios or failure conditions
+    trigger: >
+      The milestone has no exit_gate in plan.yaml, or the feature has no success scenarios or
+      failure conditions to generate evaluations from.
+    direction: >
+      A milestone must carry an exit gate and the feature must define success scenarios and failure
+      conditions; hold until the upstream spec supplies them — the builder cannot author missing spec.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC10
+    for_failure: F10                # judge ran against reused evals
+    trigger: >
+      After a fix iteration, the judge ran against the same evaluations used in the previous
+      iteration rather than freshly generated ones.
+    direction: >
+      Each fix iteration must run the judge against freshly generated evals; discard the prior set
+      and regenerate from the original specs before the judge runs.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC11
+    for_failure: F11                # unit tests fail or absent for a scope item
+    trigger: >
+      Unit tests fail or are absent for any implemented scope item.
+    direction: >
+      Every scope item must have passing unit tests that exercise its behavior; author or fix the
+      tests via the test-writer and re-run until each scope item is covered and green.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC12
+    for_failure: F12                # lint violations
+    trigger: >
+      Linting violations exist in the implemented code after implementation completes.
+    direction: >
+      The implemented code must be lint-clean; route the lint findings back to the builder to
+      correct until the linter passes.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC13
+    for_failure: F13                # quality vision gates not met
+    trigger: >
+      A code-quality metric falls below the threshold defined in the project's quality vision gates.
+    direction: >
+      Every quality-vision gate threshold must be met; enter the fix loop to raise the failing
+      metric to its threshold via builder fixes.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC14
+    for_failure: F14                # test-writer context carries impl info
+    trigger: >
+      The test-writer's input context contains file paths from "Files You Own", arch artifact
+      references, tech.yaml references, or any implementation-specific information.
+    direction: >
+      The test-writer context must carry only behavioral TEST-CONTEXT.md (no file paths, no tech
+      decisions); rebuild the contract stripping every implementation-specific input before dispatch.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC15
+    for_failure: F15                # status report carries test code
+    trigger: >
+      The spec-referenced status report contains test source code, assertion text, test file paths,
+      mock data patterns, or implementation code.
+    direction: >
+      The status report must describe failures only via tech.yaml contract IDs and expected behavior;
+      regenerate the report stripping all test source, assertion text, and implementation code.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC16
+    for_failure: F16                # QP gate thresholds null for QP level >= 2
+    trigger: >
+      quality-vision.yaml exists but the quality gate thresholds carry null entries for dimensions
+      with QP levels >= 2.
+    direction: >
+      Every QP dimension with level >= 2 must have a concrete threshold; re-run the QP translation
+      table to derive the missing thresholds from quality-vision.yaml.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC17
+    for_failure: F17                # judge executed while quality FAIL
+    trigger: >
+      The judge executed while quality-report.yaml showed overall FAIL — gates were not blocking.
+    direction: >
+      The judge must run only after a quality-auditor PASS with CERTIFIED; enforce the single gate
+      so the judge cannot run while quality reports FAIL or BLOCKED.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC18
+    for_failure: F18                # failing source omitted from remediation
+    trigger: >
+      quality-report.yaml or the spec-referenced status reports contain failures, but remediation
+      instructions have zero entries from that source.
+    direction: >
+      Remediation must draw from every failing source; rebuild the remediation to include entries
+      from each source that reported a failure.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC19
+    for_failure: F19                # fresh eval count down without rationale
+    trigger: >
+      The fresh eval count is less than the original count and no consolidation_rationale artifact
+      exists explaining which eval IDs were removed and why.
+    direction: >
+      A reduced eval count must be justified; require a consolidation_rationale for each removed eval
+      ID or re-invoke the evals-engineer to produce the full set.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC20
+    for_failure: F20                # mock setup failed
+    trigger: >
+      Mock infrastructure setup failed — tech.yaml mock_strategy references services or test doubles
+      that could not be instantiated.
+    direction: >
+      Mock infrastructure must stand up before the test-writer runs; the failing mock_strategy needs
+      a correction in the upstream tech.yaml that the builder cannot author.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC21
+    for_failure: F21                # integration test fail
+    trigger: >
+      The full test suite (unit + integration with mocks) fails after individual scope items passed
+      — cross-scope-item behavior is broken.
+    direction: >
+      The integration suite must pass once scope items are individually green; enter the fix loop to
+      correct the cross-scope-item behavior via builder fixes.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC22
+    for_failure: F22                # qp_certification section missing
+    trigger: >
+      The quality-auditor report is missing the qp_certification section while quality-vision.yaml
+      exists.
+    direction: >
+      The quality-auditor report must include qp_certification when quality-vision.yaml exists;
+      re-invoke the quality-auditor to emit the section.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC23
+    for_failure: F23                # agent reads KB/LTM
+    trigger: >
+      An agent contract contains an ltm_context field, a product_base reference, or a path outside
+      {stm_base}/{issue}/.
+    direction: >
+      Every agent must read only from STM; strip all ltm_context fields, product_base references, and
+      core/memory paths from the agent contracts before dispatch.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC24
+    for_failure: F24                # depends_on milestone not COMPLETE
+    trigger: >
+      One or more depends_on milestones for the target milestone_id do not have status COMPLETE in
+      plan.yaml when implement begins.
+    direction: >
+      Every depends_on milestone must be COMPLETE before this one begins; hold until the prior
+      milestones complete implement and validate — an upstream state the builder cannot grant.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC25
+    for_failure: F25                # arbiter invoked on first failure
+    trigger: >
+      Judge-as-arbiter was invoked after only one failed implementation cycle for a given contract.
+    direction: >
+      Arbiter escalation is valid only after the same contract fails two consecutive cycles; enforce
+      the two-cycle gate so the arbiter is not invoked on a first failure.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC26
+    for_failure: F26                # dispatch missing one of the four labeled sections
+    trigger: >
+      A dispatch to code-builder or test-writer is missing one of the required four sections
+      (Description, Preconditions, Expected Behavior, Verification Steps), or a section is unlabeled.
+    direction: >
+      Every dispatch must carry all four labeled sections in order; rebuild the dispatch with the
+      missing or unlabeled section restored before invocation.
+    handoff: autonomous
+    derivable_at_l4: true
