@@ -86,18 +86,6 @@ failure_conditions:
       less than high confidence, and no human approval was obtained for
       that mapping.
 
-scenarios:
-  - id: S1
-    persona: Code reviewer
-    given: >
-      The git log of commits produced by this play on a feature branch
-    then: >
-      Can understand the scope and nature of each change without reading the diff,
-      and can trace every commit to its originating issue.
-  - id: S2
-    persona: Team lead
-    given: >
-      The git log of commits produced by this play across multiple branches
-    then: >
-      Can report on progress per issue and use commit history as a mentoring
-      reference for conventional commit practices.
+# Scenarios moved to reference/expectation.yaml (ICE refactor, #376).
+# Intent is now the clean triple: intent + constraints + failure_conditions.
+# Expectation carries success_scenarios (S1-S2) + recovery (REC1-REC6).
