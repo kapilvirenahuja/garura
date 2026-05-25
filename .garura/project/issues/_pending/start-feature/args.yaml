@@ -1,2 +1,9 @@
-input_type: issue_number
-value: "370"
+input_type: title
+value: "Streamline IDSD modelling and definitions"
+raw_input: "working on stream-lining the IDSD modelling and definitions. this is core prep-work before we can fix other stuff"
+type_hint_suggested: refactor
+notes: >
+  Core prep-work to streamline the IDSD/IDD model and its definitions before
+  downstream fixes. Encompasses the in-progress ICE refactor (Intent / Context /
+  Expectation) — philosophy spine already edited; schemas, compiler, and play
+  migration still pending.

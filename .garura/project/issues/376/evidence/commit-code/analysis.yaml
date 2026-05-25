@@ -1,0 +1,72 @@
+branch:
+  name: refactor/376-streamline-idsd-modelling
+  issue: "376"
+  is_hotfix: false
+
+change_summary:
+  total_files: 11
+  staged: 0
+  unstaged: 8
+  untracked: 3
+
+groups:
+  - id: A
+    issue: "376"
+    type: docs
+    scope: idsd
+    subject: "introduce ICE model and reframe intent as clean triple"
+    confidence: high
+    files:
+      - path: core/grounding/glossary.md
+        description: "Updated Intent definition to clean triple (goal+constraints+failure_conditions); removed scenarios from intent; updated ICE framing"
+      - path: docs/framework/intent-driven-recovery.md
+        description: "Reframed recovery as unified concept (Expectation layer) plus autonomous-fix branch; added recovery handoff plan description"
+      - path: docs/philosophy/architecture.md
+        description: "Updated Four Crafts table description; removed scenarios block from intent.yaml template; renamed Recovery Protocol section to Recovery (Autonomous-Fix Branch)"
+      - path: docs/philosophy/idsd.md
+        description: "Updated JSON contract description to reflect ICE (success scenarios in Expectation, not intent.yaml); renamed Recovery Protocol section"
+      - path: docs/philosophy/intent-driven-development.md
+        description: "Added full ICE model section; restated decision space for ICE; added Level 4 autonomy; updated routing table to ICE columns; rewrote success-in-intent rationale"
+
+  - id: B
+    issue: "376"
+    type: chore
+    scope: specs
+    subject: "add working specs for ICE refactor and codify-enrich cold-start writes"
+    confidence: high
+    files:
+      - path: .claude/specs/ice-refactor/schema-stub.md
+        description: "Schema stub for the ICE refactor — untracked new file"
+      - path: .claude/specs/codify-enrich-cold-start-writes/spec.md
+        description: "Working spec for codify-enrich cold-start writes — untracked new file"
+
+  - id: C
+    issue: "376"
+    type: chore
+    scope: stm
+    subject: "record STM artifacts for #376 start-feature"
+    confidence: high
+    files:
+      - path: .garura/project/issues/376/
+        description: "STM directory for issue 376 — evidence and status subdirectories created by start-feature; untracked"
+      - path: .garura/project/issues/_pending/start-feature/args.yaml
+        description: "start-feature scratch: updated to reflect issue #376 (title, type_hint, notes)"
+      - path: .garura/project/issues/_pending/start-feature/changed-files.txt
+        description: "start-feature scratch: populated with files changed at feature-start time"
+
+excluded:
+  - path: .garura/project/issues/373/status/fix-it.json
+    reason: "Belongs to issue #373 (evidence-report step — self_commit_sha set to 45bb7cd). This branch is #376. Staging this would mix concerns across issues. Must NOT be staged."
+    issue: "373"
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+
+notes:
+  - "Group A is the core work — five philosophy/docs files all coherently describe the ICE model introduction. Type is docs (not refactor) because no code changed, only documentation."
+  - "Group B spec files are in .claude/specs/ (not .garura/) — they fall outside the garura folder whitelist, so they are author working notes rather than tracked STM artifacts. Safe to commit but low operational value."
+  - "Group C _pending files are ephemeral start-feature scratch. Their commit value is low but they document the feature context at branch creation time."
+  - "The 373/fix-it.json exclusion is the key safety call: a stale modification from a prior session that completed #373 work. It must stay unstaged to avoid a misleading commit on a #376 branch."

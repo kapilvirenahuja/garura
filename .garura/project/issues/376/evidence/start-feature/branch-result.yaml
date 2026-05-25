@@ -1,0 +1,12 @@
+branch:
+  name: "refactor/376-streamline-idsd-modelling"
+  action: "created+switched"
+  pushed: true
+  changes_preserved: true
+worktree:
+  used: false
+  collapsed: true
+  note: "setup-branch initially used a worktree (>5 dirty files); per user direction the worktree was removed and the primary working dir was switched onto the branch, carrying all uncommitted changes. No worktree remains for this issue."
+tracking:
+  remote: "origin"
+  merge: "refs/heads/refactor/376-streamline-idsd-modelling"

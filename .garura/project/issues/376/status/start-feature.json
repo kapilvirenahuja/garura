@@ -1,0 +1,15 @@
+{
+  "play": "start-feature",
+  "issue": 376,
+  "started_at": "2026-05-25T00:00:00Z",
+  "tasks": {
+    "write-input": { "status": "completed" },
+    "resolve-issue": { "status": "completed" },
+    "relocate-stm": { "status": "completed" },
+    "create-branch": { "status": "completed" },
+    "init-stm-dir": { "status": "completed" },
+    "scenario-evals": { "status": "completed" },
+    "write-evidence": { "status": "completed" }
+  },
+  "deviation": "Branch step: setup-branch used a worktree for the dirty tree; per user direction the worktree was dropped and the primary dir switched onto the branch (direct git, user-authorized override of the play's agent-delegation for this remediation)."
+}
