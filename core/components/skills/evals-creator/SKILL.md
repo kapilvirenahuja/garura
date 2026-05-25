@@ -1,6 +1,6 @@
 ---
 name: evals-creator
-description: Generate step evals and scenario evals from intent.yaml and skill contracts, including constraint-driven evals for artifact-verifiable constraints. Use when building a new play or updating evals after intent changes.
+description: Generate step evals and scenario evals from intent.yaml (plus expectation.yaml for migrated ICE plays) and skill contracts, including constraint-driven evals for artifact-verifiable constraints. Step evals come from failure conditions and constraints; scenario evals come from expectation success_scenarios (legacy fallback is intent scenarios). Use when building a new play or updating evals after intent or expectation changes.
 user-invocable: false
 model: opus
 allowed-tools: Read, Write
@@ -24,6 +24,7 @@ Receive from agent:
 - `intent_path` — (required) Full path to intent.yaml
 - `skill_contracts` — (required) List of objects: `[{ "skill_name": "<name>", "contract_path": "<path to SKILL.md or output contract>" }]`
 - `output_path` — (required) Path where evals YAML should be written (STM path)
+- `expectation_path` — (optional) Full path to expectation.yaml (migrated ICE plays). When provided, scenario evals are generated from its `success_scenarios` (each carrying a `measure` — the binary definition of done). When absent, scenario evals fall back to a `scenarios:` block in intent.yaml (legacy plays).
 - `constraint_classifications` — (optional) List of objects: `[{ "id": "C1", "category": "pre-flight|artifact-verifiable|structural" }]`. When provided, evals are generated for constraints classified as `artifact-verifiable`. Constraints classified as `pre-flight` or `structural` are ignored (those are enforced by the play's structure, not by evals).
 
 ## Pre-conditions
@@ -39,9 +40,9 @@ Receive from agent:
 
 ## Process
 
-1. **Parse intent.yaml** — extract `constraints` (each with an ID like C1, C2), `failure_conditions` (each with an ID like F1, F2), and `scenarios` (each with an ID like S1, S2). If `failure_conditions` or `scenarios` is missing or empty, return structured failure:
+1. **Parse intent.yaml** — extract `constraints` (each with an ID like C1, C2) and `failure_conditions` (each with an ID like F1, F2). Then resolve the scenarios: when `expectation_path` is provided, extract `success_scenarios` (each with id, persona, given, then, measure) from expectation.yaml; otherwise extract a legacy `scenarios:` block (id, persona, given, then) from intent.yaml. If `failure_conditions` is missing/empty, OR no scenarios are found in either place, return structured failure:
    ```json
-   { "error": "incomplete_intent", "message": "intent.yaml missing failure_conditions or scenarios" }
+   { "error": "incomplete_intent", "message": "intent.yaml missing failure_conditions, or no scenarios found in expectation.yaml or intent.yaml" }
    ```
 
 2. **Parse each skill contract** — extract the output format, artifact patterns, and what each skill produces. Build a map of skill name to output shape.
@@ -61,10 +62,11 @@ Receive from agent:
    - A constraint eval may overlap with a failure condition eval if they test the same thing — set `source_type: "both"` and reference both IDs.
    - Assign IDs continuing from the step eval sequence (after failure condition evals).
 
-5. **Generate scenario evals** — for each scenario in intent.yaml:
+5. **Generate scenario evals** — for each success scenario (from expectation.yaml `success_scenarios`, or legacy intent.yaml `scenarios`):
    - Determine what final artifact the persona receives based on the scenario's "then" clause.
    - Write the eval with: artifact path pattern, persona, what to verify, pass/fail criteria.
-   - Every check MUST map directly to the scenario's "then" — do not invent additional checks.
+   - When a `measure` is present (migrated plays), the eval's `check` and `pass_criteria` MUST be derived from the `measure` — it is the binary, observable definition of done. Do not invent checks beyond the "then" + measure.
+   - When no `measure` is present (legacy), the check MUST map directly to the scenario's "then".
    - Assign IDs sequentially: SCE-1, SCE-2, etc.
 
 6. **Validate coverage** — verify that every failure condition has at least one step eval, every artifact-verifiable constraint has at least one step eval, and every scenario has at least one scenario eval. If any are unmapped, add the missing evals before writing. Produce a coverage summary for the output (see Output section).

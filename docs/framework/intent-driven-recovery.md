@@ -1,22 +1,44 @@
 # Intent-Driven Recovery
 
-When a failure condition is triggered during play execution, DO NOT halt immediately. Follow the recovery reasoning loop.
+**Recovery is one concept: how to continue, directionally, toward the intent's end state when something blocks the way.** Intent declares the constrained end state; recovery is the directional answer to "how do we keep going to reach it." It applies at every level — an agent that can't complete a step, an output that fails its evals, a constraint that's been hit — but the core question is always the same: *how does an agent recover to meet the intent?*
 
-## Recovery Reasoning Loop
+Recovery is one of the two parts of the **Expectation** layer (the other is success scenarios). For every failure condition in the Intent, recovery says how to get back to a good state. Recovery conditions are **generated** from Intent + Context and **vetted at a human checkpoint** alongside the rest of Expectation — they are not hand-authored into Intent, and they are not invented from scratch at runtime.
+
+At runtime, recovery is the **validator's** instrument. When the evals surface a failure, the validator reads the matching recovery condition and the eval results and produces a *recovery handoff plan*: directional guidance toward a better state — not an implementation. "Unit tests are at 50%; here are the failing ones; raise them to green." The plan also carries the routing call the recovery condition declared: loop the fix back to the builder autonomously, or escalate to a human for manual review.
+
+## What is declared vs. derived
+
+| Declared (generated into Expectation, vetted) | Derived at runtime (by the validator) |
+|-----------------------------------------------|----------------------------------------|
+| Per failure condition: the recovery policy — the direction to push toward, and the handoff target (autonomous fix vs. human review) | The concrete recovery handoff plan for this run — which evals failed, the specific directional guidance, whether this instance loops or escalates |
+| Whether a path is `derivable_at_l4` (safe for autonomous execution) | The actual plan `intent-resolver` executes at Level 4 |
+
+Goal, constraints, and failure conditions still come from Intent. What changed from the earlier model: recovery is no longer purely derived ad hoc — its policy is authored (generated + vetted) up front, so the validator's runtime plan is bounded by a reviewed contract.
+
+## The recovery loop
 
 ```
-Failure condition triggered
+Eval fails (a failure condition is observable in the output)
     │
-    ├── Read intent: "What am I trying to achieve?"
-    ├── Read constraint violated: "What boundary was hit?"
-    ├── Assess: "Can I satisfy this constraint through another path?"
+    ├── Validator reads the matching recovery condition + eval results
+    ├── Validator builds a recovery handoff plan (directional, not code)
     │
-    ├── YES → Propose recovery (with checkpoint approval)
-    │         User approves (Tether) → Execute recovery → Continue workflow
-    │         User rejects (Vanish) → HALT
+    ├── handoff = autonomous → plan goes back to the BUILDER as direction;
+    │                          builder fixes; re-run evals; loop until success
     │
-    └── NO → HALT (intent is unreachable)
+    └── handoff = human → plan goes to a human for manual review / decision
 ```
+
+At **Level 4 autonomy**, the autonomous branch runs without a human in the loop — `intent-resolver` consumes the recovery conditions and drives the fix loop directly. At lower autonomy, even the autonomous branch may pause at a checkpoint.
+
+### The autonomous-fix branch (execution mechanics)
+
+When a recovery condition routes to `autonomous`, the fix loop runs on the mechanism that already exists:
+- The blocked agent returns a **structured failure** (`what_failed`, `why`, `domain_assessment.responsible_domain`, `suggested_fix`) — see `structured-failure-protocol.md`.
+- The play routes the recovery handoff to the **responsible domain agent** named in that failure.
+- Retry is bounded: **max 2 attempts** per obstacle. Recovery calls are exempt from a play's agent-count limit. If still failing after 2, the branch escalates to `human`.
+
+This is the same loop the older "Recovery Protocol" described — it is now the execution arm of recovery's autonomous branch, not a separate concept.
 
 ## Principles
 
@@ -24,42 +46,27 @@ Failure condition triggered
 |-----------|------|
 | **Intent-first** | Recovery serves the declared intent, not a prescribed procedure |
 | **Constraint-respecting** | Recovery must satisfy ALL constraints — never bypass them |
-| **Agent-reasoned** | Recovery paths are derived at runtime, not hardcoded in plays |
-| **Checkpoint-gated** | Recovery always requires user approval before execution |
+| **Generated then vetted** | Recovery conditions are generated into Expectation and approved at a human checkpoint before they govern anything |
+| **Validator-built** | The runtime recovery handoff plan is built by the validator from recovery conditions + eval results — directional, not implementation |
+| **Routed** | Each recovery condition declares its handoff: autonomous fix back to the builder, or human manual review |
 | **Skill-delegated** | Recovery actions delegate to existing skills and agents |
 
-## How to Reason
+## Recovery handoff plan format
 
-The Three Elements of Intent are your inputs:
-
-- **Intent** → WHAT to achieve. The goal doesn't change because of an obstacle.
-- **Constraints** → WHERE the boundaries are. Recovery must find a path within them.
-- **Failure conditions** → WHEN to start recovery reasoning. They are triggers, not stop signs.
-
-## What You Declare vs. What You Derive
-
-| Play declares (static) | You derive (dynamic) |
-|--------------------------|----------------------|
-| Intent — the outcome | Whether the intent is still achievable |
-| Constraints — the boundaries | Which constraint is blocking and how to satisfy it |
-| Failure conditions — the triggers | Whether recovery is possible and what it looks like |
-
-## Recovery Checkpoint Format
-
-When proposing recovery, present it as:
+When the validator emits a recovery handoff plan, it carries:
 
 ```markdown
-## Recovery: {what you're doing}
+## Recovery handoff — {failure, in symptom terms}
 
-**Failure detected:** {which failure condition triggered}
-**Intent preserved:** {the declared intent}
-**Recovery path:** {what you propose to do}
-
-| Attribute | Value |
-|-----------|-------|
-| {relevant context} | {value} |
+**Symptom:** {what the output does wrong — e.g. "unit tests at 50%, 12 failing"}
+**Direction:** {how to get to a better state — not the implementation}
+**Detail:** {the specifics — e.g. the failing-test list}
+**Handoff:** autonomous (back to builder) | human (manual review)
 
 ---
 
-Type **Tether** to proceed with recovery or **Vanish** to cancel.
+(autonomous) → builder fixes and re-runs; loop until success scenarios pass.
+(human) → Type Tether to take the manual path, or Vanish to halt.
 ```
+
+The plan describes symptoms and direction, never failure-condition IDs or eval internals — preserving the barrier (P4) when it is on.

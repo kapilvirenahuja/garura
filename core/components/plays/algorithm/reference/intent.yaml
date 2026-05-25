@@ -146,24 +146,3 @@ failure_conditions:
     condition: >
       Prepare context package is incomplete (plan.yaml or scenarios.yaml missing
       alongside tech.yaml) → Warn and continue (play only requires tech.yaml).
-
-scenarios:
-  - id: S1
-    persona: "Lead developer"
-    given: "An issue whose tech.yaml contains only CRUD `internal_interfaces` (no indicator terms, no `algorithm_spec_required: true`)"
-    then: "When `/algorithm` is invoked, pre-flight exits 0 with skip notice; no tech-architect dispatch; no `reference-algorithms.md` created."
-
-  - id: S2
-    persona: "Lead developer"
-    given: "An issue whose tech.yaml has an `internal_interfaces` entry whose `behavior_contracts` contains 'state machine transitions'"
-    then: "When `/algorithm` is invoked, pre-flight identifies the qualifying interface, tech-architect is dispatched with `interface_ids` containing that interface, and `reference-algorithms.md` is written to `context/design/` with a `## {interface_id}` section."
-
-  - id: S3
-    persona: "Lead developer"
-    given: "An issue whose tech.yaml has an `internal_interfaces` entry with `algorithm_spec_required: true` but no indicator terms in `behavior_contracts`"
-    then: "When `/algorithm` is invoked, pre-flight treats the entry as qualifying (C4 unconditional trigger) and tech-architect is dispatched."
-
-  - id: S4
-    persona: "Lead developer"
-    given: "An issue where `reference-algorithms.md` exists in `context/design/`"
-    then: "When `/implement` is invoked, implement runs normally with the unchanged tech-designer input contract; `reference-algorithms.md` is NOT passed to tech-designer; implement behavior is identical with or without the file."

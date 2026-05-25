@@ -33,7 +33,7 @@ checksum: <string>                     # sha256 hash of the normalized content z
                                        # stale and must be rebuilt.
 
 # ──────────────────────────────────────────────────────────────────────────
-# CONTENT ZONE — the four canonical fields
+# CONTENT ZONE — the three canonical fields (the ICE Intent layer)
 # ──────────────────────────────────────────────────────────────────────────
 
 intent: <string>                       # What the user wants — goal + expected outputs.
@@ -50,21 +50,19 @@ failure_conditions:                    # Observable states in the output that
     condition: <string>                # A state observable in artifacts — not an
                                        # event
 
-scenarios:                             # E2E acceptance — what personas can DO with
-                                       # the output
-  - id: <string>                       # Unique ID (S1, S2, ...)
-    persona: <string>                  # A human role who consumes the output
-    given: <string>                    # An artifact they receive
-    then: <string>                     # What they can do with it — an outcome, not
-                                       # a process
+# Scenarios, success, and recovery are NOT here. They live in the generated
+# Expectation layer — see standards/schemas/expectation.yaml. Intent is the clean
+# triple; Expectation is generated from it and human-vetted at the create-play
+# checkpoint.
 
 # ──────────────────────────────────────────────────────────────────────────
 # Crafting Principles (quality gate for authoring)
 # ──────────────────────────────────────────────────────────────────────────
 #
 # Top-level fields:
-#   - EXACTLY these 8 fields permitted: name, description, version, checksum,
-#     intent, constraints, failure_conditions, scenarios. No others.
+#   - EXACTLY these 7 fields permitted: name, description, version, checksum,
+#     intent, constraints, failure_conditions. No others. (scenarios moved to the
+#     Expectation layer — see expectation.yaml.)
 #   - Implementation details (triggers, inputs, outputs, agent names, brief format,
 #     defect handlers) are forbidden anywhere in intent.yaml. Those belong in the
 #     compiled play artifact, not in intent.
@@ -82,11 +80,11 @@ scenarios:                             # E2E acceptance — what personas can DO
 #   - Severity-agnostic — resolver decides halt vs warn
 #   - Traceable to the intent
 #
-# Scenarios:
-#   - Has a persona who consumes output — human role, not a system actor
-#   - Describes an outcome, not a process
-#   - given = artifact they receive, then = what they can do with it
-#   - End-to-end acceptance — validates whole workflow output, not a single step
+# Scenarios / Success / Recovery:
+#   - NOT authored in intent. Generated into the Expectation layer
+#     (standards/schemas/expectation.yaml) and human-vetted at the create-play
+#     checkpoint. Success scenarios carry a measure; recovery has one entry per
+#     failure condition with an autonomous|human handoff.
 #
 # ──────────────────────────────────────────────────────────────────────────
 # Checksum rule (for the `checksum` metadata field)
@@ -96,8 +94,8 @@ scenarios:                             # E2E acceptance — what personas can DO
 #
 # Normalization steps (the `/create-play --build` step performs these):
 #   1. Load the intent.yaml into an ordered mapping.
-#   2. Extract ONLY the content-zone keys: intent, constraints, failure_conditions,
-#      scenarios. The metadata keys (name, description, version, checksum) are
+#   2. Extract ONLY the content-zone keys: intent, constraints, failure_conditions.
+#      The metadata keys (name, description, version, checksum) are
 #      EXCLUDED from the hash — otherwise the checksum would be recursive.
 #   3. Re-serialize the content zone to YAML with deterministic rules:
 #      - Keys sorted alphabetically at every nesting level

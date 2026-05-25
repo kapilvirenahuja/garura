@@ -1,0 +1,37 @@
+# Evals for the ship play (ICE refactor, #376).
+# step_evals mirror the SKILL.md SE surface: ship is a Structure C chained play —
+# all step-level enforcement is delegated to its sub-plays (commit-code, create-pr,
+# review-pr, merge-pr, distill), each running its own step evals. ship itself
+# declares zero step_evals. The failure conditions F1-F8 are covered by sub-play
+# step evals plus the C7/F7 gate and C9/F8 sweep enforced in the ship workflow.
+step_evals: []
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/ship/{ts}.md + git state"
+    check: After completion, local HEAD is on main, main is level with its remote, the feature branch is gone everywhere, and feature commits are in main's history.
+    pass_criteria: local HEAD is on main, the local main branch is 0 commits behind origin, the feature branch is absent from both `git branch` and `git branch -r`, and the feature commits are reachable from main's tip.
+    fail_criteria: HEAD is not on main, local main is behind origin, the feature branch still appears in `git branch` or `git branch -r`, or the feature commits are not reachable from main's tip.
+  - id: SCE-2
+    scenario_id: S2
+    persona: Code Reviewer
+    artifact_pattern: "platform PR state + PR body + main history"
+    check: The PR is merged on the platform, links its originating issue, carries the quality checklist, and its merge commit is on main.
+    pass_criteria: the platform reports the PR state as merged, the PR body links the originating issue and carries the quality checklist, and the merge commit for that PR is reachable from main's tip.
+    fail_criteria: the PR is not merged on the platform, the PR body does not link the originating issue or lacks the quality checklist, or the merge commit is not reachable from main's tip.
+  - id: SCE-3
+    scenario_id: S3
+    persona: Code Reviewer
+    artifact_pattern: "platform PR review-pr comment (when review-pr.bypass == false)"
+    check: When the run executed with review-pr.bypass == false, the PR carries a review-pr structured comment with P1/P2/P3 sections, a confidence score, and the selected reviewers.
+    pass_criteria: review-pr.bypass was false and the PR carries a review-pr structured comment containing P1/P2/P3 finding sections, a numeric confidence score, and the selected reviewers.
+    fail_criteria: review-pr.bypass was false but the PR has no review-pr comment, or the comment is missing P1/P2/P3 sections, the confidence score, or the selected reviewers. Not applicable (skipped) when bypass was true.
+  - id: SCE-4
+    scenario_id: S4
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/ship/{ts}.md + {stm_base}/{issue}/evidence/distill/proposals.yaml + {product_base} tree"
+    check: The ship evidence file records the distill outcome, proposals are staged when the PR was non-trivial with STM evidence, and product LTM is unchanged.
+    pass_criteria: the ship evidence file records a distill outcome (completed with proposals_path, completed with no_learnings, or skipped with reason); when the PR was non-trivial with STM evidence available, proposals_path is non-null; and no file under {product_base} was created or modified during the ship run.
+    fail_criteria: the ship evidence file records no distill outcome, a non-trivial PR with STM evidence produced no proposals_path, or any file under {product_base} was created or modified during the ship run.

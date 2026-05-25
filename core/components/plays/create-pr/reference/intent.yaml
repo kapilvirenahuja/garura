@@ -59,20 +59,3 @@ failure_conditions:
     condition: >
       The PR targets a branch that was selected with less than high
       confidence and the user was not asked to confirm.
-
-scenarios:
-  - id: S1
-    persona: Code Reviewer
-    given: A pull request on the git platform
-    then: >
-      Can assess whether the changes are safe to merge, understand the
-      rationale via the checklist and evidence, and trace the work back
-      to the originating issue — sufficient to approve, reject, or
-      comment without needing external context.
-  - id: S2
-    persona: Author (Developer)
-    given: A pull request on the git platform with eval results
-    then: >
-      Can verify that all changes are accounted for in the checklist,
-      that evidence supports each item, and that the PR is linked to
-      the correct issue — confident the PR is submission-ready.

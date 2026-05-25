@@ -255,7 +255,7 @@ The Four Crafts Architecture describes the four distinct authoring concerns that
 
 | Craft | Owner | Artifact | Purpose |
 |-------|-------|----------|---------|
-| **Intent Crafting** | User / Framework Author | `reference/intent.yaml` | Defines the goal, constraints, failure conditions, and validation scenarios |
+| **Intent Crafting** | User / Framework Author | `reference/intent.yaml` | Defines the goal, constraints, and failure conditions (the Intent triple; scenarios/success/recovery are generated into Expectation) |
 | **Prompt Crafting** | Play | JSON contract | Play passes ONLY the JSON contract to agents — no inline instructions |
 | **Context Crafting** | Agent | Skill inputs | Agent discovers LTM paths, reads STM artifacts, assembles what the skill needs |
 | **Spec Crafting** | Skill | STM artifacts | Skill reads templates from LTM, fills them, writes output artifacts to STM |
@@ -273,10 +273,9 @@ constraints:
 failure_conditions:
   - id: FC-<ID>
     description: "<what constitutes failure>"
-scenarios:
-  - id: S-<ID>
-    description: "<testable validation scenario>"
-    passing_criteria: "<what pass looks like>"
+# Intent is the clean triple. Success scenarios and recovery are NOT authored
+# here — they are generated into the separate Expectation artifact (see ICE)
+# and vetted at a checkpoint.
 ```
 
 Intent Crafting is done once per play by the framework author. The `intent.yaml` file is stable — agents read it; they never modify it.
@@ -446,9 +445,9 @@ Garura uses a **dual memory system**:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Recovery Protocol
+## Recovery (Autonomous-Fix Branch)
 
-When an agent returns a structured failure, plays apply a defined recovery loop rather than propagating the failure immediately.
+Recovery is one concept — the Expectation layer's answer to "how do we continue toward the intent when blocked" (see ICE). This section describes its **autonomous-fix branch**: the runtime loop the validator's recovery handoff plan triggers when it routes a fix back to an agent. When an agent returns a structured failure, plays apply this loop rather than propagating the failure immediately.
 
 **Recovery mechanics:**
 1. Agent returns a failure with `domain_assessment.responsible_domain` indicating which agent can address it

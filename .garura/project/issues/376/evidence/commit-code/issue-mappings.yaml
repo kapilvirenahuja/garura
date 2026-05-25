@@ -1,0 +1,6 @@
+auto_resolved: true
+source: branch-name
+issue: 376
+confidence: high
+mappings: []  # all four change groups map to #376
+excluded: []  # stale #373 file was discarded earlier; not in this changeset

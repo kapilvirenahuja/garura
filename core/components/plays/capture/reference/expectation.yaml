@@ -1,0 +1,203 @@
+# Expectation for the capture play (ICE refactor, #376).
+# Generated from reference/intent.yaml by draft-play-expectation.
+# Two parts only: success_scenarios and recovery.
+
+name: capture
+
+generated_from:
+  intent: core/components/plays/capture/reference/intent.yaml
+
+vetted:
+  status: approved
+  approved_by: autonomous-migration (#376, user-authorized non-stop self-approval)
+  approved_at: "2026-05-25"
+
+# Success scenarios — acceptance AND the checkable definition of done (one bucket).
+success_scenarios:
+  - id: S1
+    persona: Agent in another play
+    given: >
+      An agent in the fix-it play wants to file a feature request: title
+      "Add telemetry to capture-learning play", problem "Capture-learning
+      produces no structured output agents can consume downstream." Type is
+      not provided.
+    then: >
+      The play infers type "feature" from keyword "Add", prepends [FEAT] to
+      the title, applies label "enhancement", dispatches gh filing as a
+      background task, and immediately returns the single-line confirmation
+      "garura:capture dispatched → {stm_tracking_path}". The caller is not
+      blocked.
+    measure: >
+      issue-result.yaml records type=feature, the title begins with [FEAT], the
+      labels list contains "enhancement", and the caller confirmation was
+      returned before issue-comment-agent.yaml completed_at.
+  - id: S2
+    persona: Human developer
+    given: >
+      A developer files a defect: title "Sync script fails on macOS 14",
+      problem "sync.sh exits with code 1 on macOS 14 due to missing realpath.",
+      severity "High". Type is explicitly "defect".
+    then: >
+      The play prefixes title with [DEF][High], applies label "defect",
+      dispatches gh filing as a background task, and returns single-line
+      dispatched confirmation. The developer is not blocked waiting for GH.
+    measure: >
+      issue-result.yaml records type=defect and severity=High, the title begins
+      with [DEF][High], the labels list contains "defect", and the caller
+      confirmation was returned before issue-comment-agent.yaml completed_at.
+  - id: S3
+    persona: Human developer
+    given: >
+      A developer files an epic: title "Unified telemetry pipeline",
+      problem "No structured observability across Garura plays." Type
+      is explicitly "epic". No severity provided.
+    then: >
+      The play prefixes title with [EPIC], applies label "epic", dispatches
+      gh filing as a background task, and returns single-line dispatched
+      confirmation. Severity is not required for epic type and no error is
+      raised.
+    measure: >
+      issue-result.yaml records type=epic, the title begins with [EPIC], the
+      labels list contains "epic", and no severity-missing rejection artifact
+      exists under the capture evidence directory.
+  - id: S4
+    persona: Agent in another play
+    given: >
+      An agent dispatches a capture request and immediately needs to proceed
+      with the next step in its workflow (cannot block on GH round-trip).
+    then: >
+      The play returns the dispatched confirmation before the background gh
+      task completes. The agent reads stm_tracking_path to poll for the
+      issued GitHub issue number after the fact. The caller's workflow is
+      never blocked.
+    measure: >
+      The timestamp of the caller confirmation return is strictly earlier than
+      issue-comment-agent.yaml completed_at, and the stm_tracking_path in the
+      confirmation is a valid path under the capture evidence directory.
+  - id: S5
+    persona: Human developer
+    given: >
+      The developer's gh CLI is not authenticated or the network is down
+      when they attempt to file a capture request with valid fields.
+    then: >
+      The play creates a local markdown fallback file with the full issue
+      content, tells the caller exactly what failed (auth/network), and
+      provides the file path with instructions to share it manually
+      (email, paste into GitHub issue, Slack).
+    measure: >
+      A fallback-{date}.md file exists under the capture evidence directory with
+      the full issue content, and the caller response names the specific failure
+      (auth or network), includes the fallback file path, and lists sharing
+      options including email, paste into a GitHub issue, and Slack.
+  - id: S6
+    persona: Human developer
+    given: >
+      A developer files a capture without specifying type: title "Revisit
+      onboarding", problem "Onboarding needs attention." The problem text
+      matches no C2 keyword (no bug/feature/epic/enhancement cue).
+    then: >
+      Before dispatching, the play surfaces the ambiguity to the developer
+      and asks them to confirm the type. Only after the developer confirms
+      a type does the play prefix the title, apply the label, dispatch the
+      background gh filing, and return the single-line confirmation. No
+      issue is filed with a silently guessed non-bug type.
+    measure: >
+      inference-trace.yaml contains a human-confirmation-prompt event with
+      ambiguous_text: true, followed by a human-confirmed type event, followed
+      by the dispatch event; the filed issue type matches the human-confirmed
+      value; and no dispatch occurred before the confirmation.
+
+# Recovery — one entry per failure condition in intent.yaml. The validator turns a
+# tripped failure into a recovery handoff plan and routes it: `autonomous` loops the
+# fix back to the builder; `human` escalates for a manual call.
+recovery:
+  - id: REC1
+    for_failure: F1                 # title or problem missing
+    trigger: >
+      A capture request reached filing with a missing title or missing problem,
+      instead of being rejected before any filing occurred.
+    direction: >
+      A capture must carry both a title and a problem before anything is filed;
+      the missing required field has to be supplied by the caller before the
+      request can proceed — the builder cannot invent it.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC2
+    for_failure: F2                 # defect without severity
+    trigger: >
+      A capture request of type "defect" reached filing with severity omitted,
+      instead of being rejected before any filing occurred.
+    direction: >
+      A defect must carry a severity before it is filed; the missing severity
+      has to be supplied by the caller before the request can proceed — the
+      builder cannot choose it.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC3
+    for_failure: F3                 # invalid type, not inferable
+    trigger: >
+      A capture request carried a type value outside the allowed set
+      (feature / bug / defect / epic / enhancement) that could not be inferred
+      from the problem text, instead of being rejected before filing.
+    direction: >
+      The type must resolve to one of the allowed values before filing; an
+      unrecognised, non-inferable type needs a valid choice from the caller —
+      the builder cannot pick it deterministically.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC4
+    for_failure: F4                 # gh fails, no output produced
+    trigger: >
+      GitHub access failed and the run produced neither a dispatched background
+      task nor a local fallback file.
+    direction: >
+      A gh failure must never end in silence; produce the portable local
+      fallback markdown file from the issue content the builder already holds.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC5
+    for_failure: F5                 # gh fails, caller not told how to share
+    trigger: >
+      GitHub access failed and the caller-facing response did not name what went
+      wrong or how to share the fallback file.
+    direction: >
+      A gh failure must tell the caller what failed and how to share the
+      fallback; append the specific failure reason, the fallback file path, and
+      the manual sharing instructions to the response.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC6
+    for_failure: F6                 # caller blocked on gh round-trip
+    trigger: >
+      The caller was blocked waiting for the GitHub round-trip to complete
+      instead of receiving control back immediately.
+    direction: >
+      The gh filing must run as a background task with control returning to the
+      caller first; re-dispatch the filing asynchronously and return the
+      confirmation before the round-trip completes.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC7
+    for_failure: F7                 # confirmation malformed
+    trigger: >
+      The confirmation returned to the caller contained more than one line or
+      omitted the stm_tracking_path.
+    direction: >
+      The confirmation must be exactly one line carrying the stm_tracking_path;
+      reformat it to the single canonical
+      "garura:capture dispatched → {stm_tracking_path}" line.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC8
+    for_failure: F8                 # ambiguous type silently resolved
+    trigger: >
+      The caller gave no type and the problem text matched no C2 keyword, yet
+      the issue was labelled/prefixed as a non-bug type for an agent caller, or
+      dispatched without a human-confirmed type for a human caller.
+    direction: >
+      An ambiguous type must never be silently resolved against the fallback;
+      an agent caller defaults to "bug" and a human caller must be asked to
+      confirm the type before any dispatch — the human confirmation is a call
+      the builder cannot make for them.
+    handoff: human
+    derivable_at_l4: false

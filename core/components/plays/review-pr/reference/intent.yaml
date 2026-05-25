@@ -121,33 +121,3 @@ failure_conditions:
     condition: >
       The play dispatches more than 5 domain agents (utility
       agents exempt).
-
-scenarios:
-  - id: S1
-    persona: Reviewer
-    scenario: >
-      Opens the PR after review-pr completes and sees a single
-      structured comment with a confidence score, P1/P2/P3 sections,
-      every finding cited to a standard ID, and the names of the
-      selected reviewers.
-
-  - id: S2
-    persona: PR Author
-    scenario: >
-      For each finding in the comment, can click through to the
-      cited standard ID and see the exact match line in the diff
-      that triggered it. No finding is "vibes-based".
-
-  - id: S3
-    persona: Ship Pipeline
-    scenario: >
-      When review-pr.bypass is false and review-pr returns a P1
-      finding or sub-threshold confidence, the ship play halts
-      before merge-pr and surfaces the routing decision.
-
-  - id: S4
-    persona: QA / Determinism Auditor
-    scenario: >
-      Runs review-pr twice on the same PR with no intervening commits
-      and gets byte-identical findings.yaml (modulo timestamps) and
-      identical P1..P4 buckets.

@@ -1,0 +1,337 @@
+step_evals:
+  - id: SE-1
+    source_type: constraint
+    constraint_id: C1
+    failure_condition_id: F24
+    skill: prepare
+    check: Every upstream locked artifact (specify epic/scope/quality-profile, design design-spec, arch 5 artifacts) is confirmed present before context resolution.
+    artifact_pattern: "pre-flight + {stm_base}/{issue}/context/understanding/context-assembly.yaml"
+    pass_criteria: All upstream artifact paths checked and present; statuses "locked"; play halts only when one is missing.
+    fail_criteria: Any upstream locked artifact not found at its expected path, or play proceeds to context resolution with a missing upstream artifact.
+  - id: SE-2
+    source_type: constraint
+    constraint_id: C23
+    failure_condition_id: F18
+    skill: prepare
+    check: tech.yaml contains all interface-level sections — api_contracts, internal_interfaces, service_contracts, frontend_spec, backend_spec, data_spec, communication_channels, mock_strategy — with contract-level design for MODIFY, interface specs for CREATE, justification for DELETE.
+    artifact_pattern: "{stm_base}/{issue}/context/design/tech.yaml"
+    pass_criteria: All required sections present with the per-action detail.
+    fail_criteria: A required section is absent, or a MODIFY/CREATE/DELETE entry lacks its required detail.
+  - id: SE-3
+    source_type: constraint
+    constraint_id: C33
+    failure_condition_id: F26
+    skill: prepare
+    check: mock_strategy is non-empty when external dependencies exist in the change surface.
+    artifact_pattern: "{stm_base}/{issue}/context/design/tech.yaml"
+    pass_criteria: mock_strategy defines mock shapes and test doubles for each external dependency in the change surface.
+    fail_criteria: External dependencies exist in the change surface but mock_strategy is empty or missing.
+  - id: SE-4
+    source_type: constraint
+    constraint_id: C35
+    failure_condition_id: F25
+    skill: prepare
+    check: Every API endpoint and module interface in the change surface has a corresponding tech.yaml definition.
+    artifact_pattern: "{stm_base}/{issue}/context/design/tech.yaml + {stm_base}/{issue}/context/blast-radius/change-surface.yaml"
+    pass_criteria: Zero interfaces in the change surface lack a tech.yaml api_contracts/internal_interfaces definition.
+    fail_criteria: An interface in the change surface has no corresponding tech.yaml definition.
+  - id: SE-5
+    source_type: constraint
+    constraint_id: C7
+    failure_condition_id: F6
+    skill: prepare
+    check: Every scenario has description, expected_behavior, pass_criteria, and an automation classification.
+    artifact_pattern: "{stm_base}/{issue}/context/design/scenarios.yaml"
+    pass_criteria: Every scenario across all tiers carries all four fields.
+    fail_criteria: Any scenario is missing description, expected_behavior, pass_criteria, or automation.
+  - id: SE-6
+    source_type: constraint
+    constraint_id: C7
+    failure_condition_id: null
+    skill: prepare
+    check: Hybrid scenarios include a manual_element field documenting what requires human judgment.
+    artifact_pattern: "{stm_base}/{issue}/context/design/scenarios.yaml"
+    pass_criteria: Every automation=hybrid scenario has a non-empty manual_element field.
+    fail_criteria: A hybrid scenario lacks manual_element.
+  - id: SE-7
+    source_type: constraint
+    constraint_id: C8
+    failure_condition_id: F7
+    skill: prepare
+    check: Every product behavior in the locked epic is covered by at least one verification scenario.
+    artifact_pattern: "{stm_base}/{issue}/context/design/scenarios.yaml + {product_base}/scope/epics/{epic_id}.yaml"
+    pass_criteria: Each epic behavior maps to at least one scenario via feature_ref/behavior_ref.
+    fail_criteria: An epic behavior has no corresponding scenario.
+  - id: SE-8
+    source_type: constraint
+    constraint_id: C11
+    failure_condition_id: null
+    skill: prepare
+    check: Scenario audience is validators only — scenarios.yaml carries no implementation detail.
+    artifact_pattern: "{stm_base}/{issue}/context/design/scenarios.yaml"
+    pass_criteria: No implementation/code-level content appears in scenarios.yaml.
+    fail_criteria: scenarios.yaml contains content belonging to the implementer audience.
+  - id: SE-9
+    source_type: constraint
+    constraint_id: C24
+    failure_condition_id: null
+    skill: prepare
+    check: Three tiers present — baseline, new, regression — and feature gates reference all three.
+    artifact_pattern: "{stm_base}/{issue}/context/design/scenarios.yaml"
+    pass_criteria: baseline_scenarios, new_scenarios, and regression_scenarios all present; feature_gates reference IDs from all three tiers.
+    fail_criteria: A tier is missing, or feature_gates omit a tier.
+  - id: SE-10
+    source_type: constraint
+    constraint_id: C5
+    failure_condition_id: F4
+    skill: prepare
+    check: Every task has file_changes[] with at least one entry — except GATE tasks.
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml"
+    pass_criteria: Every non-GATE task has file_changes with path and action.
+    fail_criteria: A non-GATE task has an empty or missing file_changes list.
+  - id: SE-11
+    source_type: constraint
+    constraint_id: C6
+    failure_condition_id: F3
+    skill: prepare
+    check: Every feature slice delivers an end-to-end working capability — except Phase 0.
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml"
+    pass_criteria: Each feature phase delivers a testable user-facing path through the stack.
+    fail_criteria: A feature slice delivers only one layer with no testable end-to-end path.
+  - id: SE-12
+    source_type: constraint
+    constraint_id: C9
+    failure_condition_id: F8
+    skill: prepare
+    check: plan.yaml contains zero scenario descriptions/content — only IDs in scenario_gate.
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml"
+    pass_criteria: scenario_gate fields carry IDs and counts only.
+    fail_criteria: plan.yaml contains scenario descriptions, expected_behavior, or pass_criteria.
+  - id: SE-13
+    source_type: constraint
+    constraint_id: C12
+    failure_condition_id: F28
+    skill: prepare
+    check: Summary has per-milestone rows with milestone_id, feature_ref, delivers, scope_items; scenario_count as integer; cumulative_scenarios as an explicit running-union ID list.
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml"
+    pass_criteria: Each summary row has all required fields and cumulative_scenarios is an explicit ID list.
+    fail_criteria: A row omits a required field, or cumulative_scenarios is an integer count instead of an ID list.
+  - id: SE-14
+    source_type: constraint
+    constraint_id: C13
+    failure_condition_id: F5
+    skill: prepare
+    check: Every task has a non-null exit_gate stating observable outcomes, not process steps.
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml"
+    pass_criteria: Every task carries an exit_gate naming an observable outcome.
+    fail_criteria: A task has no exit_gate, or its exit_gate references process steps.
+  - id: SE-15
+    source_type: failure_condition
+    failure_condition_id: F9
+    constraint_id: null
+    skill: prepare
+    check: At least 2 feature slices exist beyond Phase 0.
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml"
+    pass_criteria: task_dag contains two or more feature phases beyond prerequisites.
+    fail_criteria: Fewer than two feature slices beyond Phase 0.
+  - id: SE-16
+    source_type: constraint
+    constraint_id: C22
+    failure_condition_id: F17
+    skill: prepare
+    check: Task DAG has explicit depends_on chains, is acyclic, and tasks reference tech.yaml spec IDs.
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml"
+    pass_criteria: Valid DAG with depends_on chains and spec_ref to tech.yaml interface IDs.
+    fail_criteria: Missing depends_on, a cycle, or tasks without tech.yaml spec references.
+  - id: SE-17
+    source_type: constraint
+    constraint_id: C2
+    failure_condition_id: null
+    skill: prepare
+    check: All cross-validation checks execute with PASS/FAIL; ready_for_lock is false if any check fails; issues array has one entry per violation.
+    artifact_pattern: "{stm_base}/{issue}/evidence/prepare/validation-report.yaml"
+    pass_criteria: All checks ran; ready_for_lock reflects results; violations enumerated.
+    fail_criteria: A check was skipped, or ready_for_lock is true while a check failed.
+  - id: SE-18
+    source_type: constraint
+    constraint_id: C18
+    failure_condition_id: F14
+    skill: prepare
+    check: pre-lock-resolutions.yaml exists before lock and all items have status RESOLVED.
+    artifact_pattern: "{stm_base}/{issue}/evidence/prepare/pre-lock-resolutions.yaml"
+    pass_criteria: Every open question and high-severity risk has a RESOLVED entry, or the file records "none found".
+    fail_criteria: Auto-lock executed while any item remained unresolved.
+  - id: SE-19
+    source_type: constraint
+    constraint_id: C32
+    failure_condition_id: null
+    skill: prepare
+    check: All 3 design artifacts contain status LOCKED at {context_base}/design/; the DRAFT→LOCKED diff is the status field only.
+    artifact_pattern: "{stm_base}/{issue}/context/design/{tech,scenarios,plan}.yaml"
+    pass_criteria: tech.yaml, scenarios.yaml, plan.yaml all status LOCKED; no content changed beyond status.
+    fail_criteria: An artifact is not LOCKED, resides outside context/design/, or content changed during lock.
+  - id: SE-20
+    source_type: constraint
+    constraint_id: C14
+    failure_condition_id: F11
+    skill: prepare
+    check: Context assembly documents how the epic maps onto the locked architecture, all upstream sources, LTM findings and gaps, and git co-change patterns.
+    artifact_pattern: "{stm_base}/{issue}/context/understanding/context-assembly.yaml"
+    pass_criteria: Every upstream artifact documented with path and confidence; issue-scoped entries present; LTM findings and gaps both documented; git co-change included.
+    fail_criteria: A source is undocumented, LTM gaps are missing, or co-change patterns are absent.
+  - id: SE-21
+    source_type: constraint
+    constraint_id: C20
+    failure_condition_id: F16
+    skill: prepare
+    check: Blast radius is fully characterized — every coverage gap with baseline_test_needed=true has a corresponding baseline test describing current behavior.
+    artifact_pattern: "{stm_base}/{issue}/context/blast-radius/baseline-tests.yaml + blast-radius.yaml"
+    pass_criteria: Each coverage gap needing a baseline has a BT-* whose assert describes current behavior.
+    fail_criteria: A coverage gap with baseline_test_needed=true has no BT-*, or a BT asserts future behavior.
+  - id: SE-22
+    source_type: constraint
+    constraint_id: C10
+    failure_condition_id: F10
+    skill: prepare
+    check: User typed Tether at the LLD checkpoint before scenarios/plan generation; LLD is interface-level, not code-level diffs.
+    artifact_pattern: "Checkpoint 2 approval + {stm_base}/{issue}/context/design/tech.yaml"
+    pass_criteria: Scenarios/plan generation began only after Tether at Checkpoint 2.
+    fail_criteria: Scenarios or plan generation began without Tether at Checkpoint 2.
+  - id: SE-23
+    source_type: constraint
+    constraint_id: C10
+    failure_condition_id: F10
+    skill: prepare
+    check: User typed Tether at the scenarios + plan checkpoint before validation begins.
+    artifact_pattern: "Checkpoint 3 approval"
+    pass_criteria: Validation began only after Tether at Checkpoint 3.
+    fail_criteria: Validation began without approval at Checkpoint 3.
+  - id: SE-24
+    source_type: constraint
+    constraint_id: C40
+    failure_condition_id: F29
+    skill: prepare
+    check: tech.yaml api_contracts, internal_interfaces, and service_contracts are thorough enough for independent authorship — request/response shapes, error conditions with error shapes, behavior contracts, and edge cases.
+    artifact_pattern: "{stm_base}/{issue}/context/design/tech.yaml"
+    pass_criteria: Every contract entry carries field shapes, error responses, behavior contracts, and edge cases; a test-writer and code-builder can each work from contracts alone.
+    fail_criteria: A contract entry omits field shapes, error responses, behavior contracts, or edge cases.
+  - id: SE-25
+    source_type: constraint
+    constraint_id: C37
+    failure_condition_id: F27
+    skill: prepare
+    check: Every feature phase includes milestone_id, scenario_gate.ids[] (actual IDs), depends_on (empty/absent for first; prior milestone ID for subsequent), and delivers.
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml"
+    pass_criteria: Each feature phase carries all four milestone fields.
+    fail_criteria: A feature phase is missing any of the four milestone fields.
+  - id: SE-26
+    source_type: constraint
+    constraint_id: C38
+    failure_condition_id: F28
+    skill: prepare
+    check: Summary cumulative_scenarios is an explicit ID list per milestone row; the final milestone's list contains all baseline + new + regression IDs with no omissions.
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml"
+    pass_criteria: Each row's cumulative_scenarios is the running union ID list; final row equals the full scenario set.
+    fail_criteria: A row gives an integer count, or the final cumulative list omits scenario IDs.
+  - id: SE-27
+    source_type: constraint
+    constraint_id: C39
+    failure_condition_id: null
+    skill: prepare
+    check: Feature phase depends_on enforces acceptance-based sequencing — T-002+ references the prior milestone ID; T-001 has empty/absent depends_on; readable from plan-milestone-summary.yaml.
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml + plan-milestone-summary.yaml"
+    pass_criteria: Subsequent milestones depend on the prior milestone ID (acceptance-based); first milestone has no phase-level depends_on.
+    fail_criteria: A depends_on references only implementation tasks, or the chain is not readable from plan-milestone-summary.yaml.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Product Owner
+    artifact_pattern: "{stm_base}/{issue}/context/design/scenarios.yaml + {product_base}/scope/epics/{epic_id}.yaml"
+    check: Every behavior in the locked epic resolves to at least one back-linked new_scenarios entry with non-empty pass_criteria.
+    pass_criteria: Each epic behavior maps to an NS-* via feature_ref/behavior_ref with pass_criteria; zero behaviors left unlinked.
+    fail_criteria: An epic behavior has no back-linked scenario, or a linked scenario lacks pass_criteria.
+  - id: SCE-2
+    scenario_id: S2
+    persona: Technical Architect
+    artifact_pattern: "{stm_base}/{issue}/context/design/tech.yaml + {product_base}/architecture/*.yaml"
+    check: tech.yaml technology and pattern choices each trace to the arch output with no contradiction, and every epic behavior maps to a realizing tech.yaml interface.
+    pass_criteria: No tech.yaml technology is absent from or contradicts the locked architecture; each behavior has a realizing interface.
+    fail_criteria: A tech.yaml choice contradicts or is absent from the locked architecture.
+  - id: SCE-3
+    scenario_id: S3
+    persona: Engineering Lead
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml + tech.yaml"
+    check: Any single plan.yaml task carries file_changes with path/action, a spec_ref to tech.yaml, and an observable exit_gate — implementable from that task plus tech.yaml alone.
+    pass_criteria: A task is self-contained using only plan.yaml + tech.yaml; no reference to other tasks, the full epic, or scenario content.
+    fail_criteria: A task requires other tasks, the full epic, or scenario content to implement.
+  - id: SCE-4
+    scenario_id: S4
+    persona: Quality Lead
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml + scenarios.yaml"
+    check: Each feature slice scenario_gate lists scenario IDs only, and every ID resolves to scenarios.yaml feature_gates.
+    pass_criteria: A feature-gated validation plan is buildable from IDs alone; zero scenario content in plan.yaml.
+    fail_criteria: scenario_gate contains descriptions, or an ID does not resolve to feature_gates.
+  - id: SCE-5
+    scenario_id: S5
+    persona: Technical Architect
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml + plan-milestone-summary.yaml"
+    check: Summary rows give a readable execution order with a delivers sentence per milestone, and the final milestone cumulative_scenarios is an explicit ID list equal to the union of all scenario IDs.
+    pass_criteria: Final cumulative_scenarios equals all baseline + new + regression IDs with no omissions; per-milestone lists are running unions.
+    fail_criteria: The final cumulative list omits scenario IDs, or a row gives an integer instead of an ID list.
+  - id: SCE-6
+    scenario_id: S6
+    persona: Engineering Lead
+    artifact_pattern: "{stm_base}/{issue}/context/understanding/context-assembly.yaml + blast-radius/blast-radius.yaml"
+    check: context-assembly.yaml documents architecture, dependencies, test surface, and git history with sources; blast-radius.yaml shows every needed coverage gap has a baseline test.
+    pass_criteria: All sources documented and no uncharacterized code path remains in the impact zone.
+    fail_criteria: A source is undocumented, or a coverage gap lacks a baseline test.
+  - id: SCE-7
+    scenario_id: S7
+    persona: Implementation Agent
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml + tech.yaml"
+    check: For any task, file paths, change types, tech.yaml interface specs, and exit gates are all explicit — no field points to the codebase or an external lookup.
+    pass_criteria: Implementation needs no codebase scan, LTM read, or dependency resolution for any task.
+    fail_criteria: A field references "see codebase", "follow existing patterns", or any external lookup.
+  - id: SCE-8
+    scenario_id: S8
+    persona: Technical Architect
+    artifact_pattern: "{stm_base}/{issue}/evidence/prepare/pre-lock-resolutions.yaml"
+    check: Every open_questions[] entry and every high-severity risk across the three design artifacts has a RESOLVED entry, or the audit records "none found".
+    pass_criteria: No unresolved open question or high-severity risk exists at lock time.
+    fail_criteria: An open question or high-severity risk lacks a RESOLVED entry at lock time.
+  - id: SCE-9
+    scenario_id: S9
+    persona: Engineer
+    artifact_pattern: "{stm_base}/{issue}/context/blast-radius/blast-radius.yaml + baseline-tests.yaml"
+    check: blast-radius.yaml lists directly/transitively impacted, coverage gaps, and regression surface; every gap needing a baseline has one; co-change inputs reflected.
+    pass_criteria: No uncharacterized code path remains in the impact zone; co-change patterns considered.
+    fail_criteria: An impacted test or coverage gap is uncharacterized, or co-change inputs were ignored.
+  - id: SCE-10
+    scenario_id: S10
+    persona: Implementation Agent
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml + tech.yaml"
+    check: depends_on chains form a valid acyclic order and every task specifies exact files, change types, a tech.yaml spec_ref, and an exit_gate.
+    pass_criteria: Tasks execute in dependency order with no design decision required at build time.
+    fail_criteria: A cycle exists, or a task lacks files, change type, spec_ref, or exit_gate.
+  - id: SCE-11
+    scenario_id: S11
+    persona: Quality Lead
+    artifact_pattern: "{stm_base}/{issue}/context/design/scenarios.yaml"
+    check: scenarios.yaml contains baseline, new, and regression tiers, and feature_gates reference IDs from all three.
+    pass_criteria: All three tiers present and mapped to features via feature_gates.
+    fail_criteria: A tier is missing, or feature_gates omit a tier.
+  - id: SCE-12
+    scenario_id: S12
+    persona: Technical Architect
+    artifact_pattern: "{stm_base}/{issue}/context/understanding/architecture-inference.md + design/tech.md"
+    check: architecture-inference.md and tech.md each contain at least one diagram plus narrative on logical architecture, patterns, conventions, and low-level design.
+    pass_criteria: Both files carry diagrams and narrative beyond what YAML fields express.
+    fail_criteria: A file lacks a diagram or adds no narrative beyond the YAML.
+  - id: SCE-13
+    scenario_id: S13
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/context/design/{tech,scenarios,plan}.yaml + branch/issue/STM state"
+    check: Starting with no issue, branch, or STM, the run ends with a resolved issue, a feature branch, an initialized STM, and all three design artifacts LOCKED under context/design/.
+    pass_criteria: Issue resolved, branch checked out, STM initialized, and tech/scenarios/plan all LOCKED — no separate start-feature run needed.
+    fail_criteria: The run requires a separate start-feature run, or any of issue/branch/STM/locked artifacts is absent at completion.

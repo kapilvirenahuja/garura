@@ -1,1 +1,1 @@
-[BUG] Duplicate distill component — play and skill share the same name
+[BUG] repo-orchestrator drops bundled multi-commit dispatches (commits one, then stops)

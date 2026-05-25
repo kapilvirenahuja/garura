@@ -47,18 +47,3 @@ failure_conditions:
     condition: >
       After completion, a merge was performed but no corresponding merged PR exists
       on the platform for the feature branch.
-
-scenarios:
-  - id: S1
-    persona: Developer
-    given: >
-      The terminal state after merge-pr completes — local repository and platform PR status.
-    then: >
-      Can immediately begin a new feature branch from an up-to-date base branch,
-      with no stale feature branch lingering locally or on the remote.
-  - id: S2
-    persona: Code Reviewer
-    given: >
-      The platform pull request page and the base branch commit history.
-    then: >
-      Can confirm the PR is reflected as merged on the platform and the merge commit is present on the base branch.

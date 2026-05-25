@@ -1,0 +1,343 @@
+# Expectation for the design play (ICE refactor, #376).
+# Generated from reference/intent.yaml by draft-play-expectation.
+# Two parts only: success_scenarios and recovery.
+
+name: design
+
+generated_from:
+  intent: core/components/plays/design/reference/intent.yaml
+
+vetted:
+  status: approved
+  approved_by: autonomous-migration (#376, user-authorized non-stop self-approval)
+  approved_at: "2026-05-25"
+
+# Success scenarios — acceptance AND the checkable definition of done (one bucket).
+# Lifted verbatim from the legacy intent scenarios block; only `measure` is added.
+success_scenarios:
+  - id: S1
+    persona: Developer
+    given: >
+      The screen inventory with all state entries and the wireframe for a
+      specific screen
+    then: >
+      Can build the screen layout directly from the specification —
+      components, data fields, layout pattern, and actions are all explicit
+      — without asking the designer for clarification.
+    measure: >
+      For the screen's `## Wireframe` + `## Layout Spec`, every enumerated state
+      has a layout pattern, a named component inventory, per-state data fields,
+      and an action list — with no vague placeholder ("a form", "the dashboard")
+      and no TODO/clarification marker.
+  - id: S2
+    persona: Designer (external, receiving the spec)
+    given: >
+      The personas.md file with JTBD persona profiles and capability
+      mapping
+    then: >
+      Can validate that every target user type is represented, and can add
+      visual design (colors, type, spacing) on top without re-deriving the
+      interaction structure.
+    measure: >
+      Every persona in personas.md is in JTBD "When … I want … so I can …"
+      format and maps to >=1 capability from scope.selected_capabilities, and
+      every selected user-surface capability is represented by at least one
+      persona.
+  - id: S3
+    persona: Product Manager
+    given: >
+      The user flow diagrams for both success and recovery paths
+    then: >
+      Can trace each persona's journey through the product and verify that
+      every edge case raised in the intent epics has a corresponding flow.
+    measure: >
+      Every intent-epic success_scenario has >=1 flow file referencing it and
+      every failure_scenario has >=1 recovery flow referencing it (via
+      frontmatter source_scenario); zero scenarios are without a flow.
+  - id: S4
+    persona: Technical Architect
+    given: >
+      The screen inventory with state counts, data requirements, and
+      action lists
+    then: >
+      Can estimate frontend complexity (state management needs, API
+      surface, routing depth) without needing to see visual mockups.
+    measure: >
+      Every screen file discloses a state count (>=3 states), per-state data
+      requirements, per-state action lists, and navigation points — all
+      machine-readable from `## States` + `## Layout Spec` without a visual mockup.
+  - id: S5
+    persona: Accessibility Lead
+    given: >
+      The wireframes and accessibility requirements per screen
+    then: >
+      Can verify WCAG conformance plans for every interactive screen and
+      flag any screen whose requirements fall below the product's
+      accessibility quality target.
+    measure: >
+      Every interactive screen's `## Accessibility` section names a specific
+      WCAG level that meets or exceeds the product quality-profile interaction
+      target; no interactive screen omits its accessibility requirements.
+  - id: S6
+    persona: Developer
+    given: >
+      The interaction pattern specifications
+    then: >
+      Can implement form validation, loading indicators, error messaging,
+      and empty states consistently across the product without re-inventing
+      patterns per screen.
+    measure: >
+      design-spec.md carries a single product-wide decision for each
+      interaction pattern (validation, loading, error placement, empty states,
+      transitions), so each pattern resolves to exactly one specification.
+  - id: S7
+    persona: Product Manager (at final review)
+    given: >
+      The consolidated design-spec.md linking personas, screens, flows,
+      wireframes, and interaction patterns
+    then: >
+      Can approve the full design package in one Tether decision, or Orbit
+      with feedback to a specific stage without losing the context of the
+      unchanged stages.
+    measure: >
+      design-spec.md contains the full consolidated section set (personas,
+      screens, flows, wireframes, interaction patterns, handoff notes) and the
+      Checkpoint 3 artifact records exactly one Tether/Orbit/Vanish response.
+  - id: S8
+    persona: Product owner scoping a single epic for design
+    given: >
+      The product has many epics but the PO wants design artifacts for just
+      one — e.g., EPIC-WI-intent-driven-verification-001. They invoke
+      /design --epic EPIC-WI-intent-driven-verification-001.
+    then: >
+      Pre-flight resolves scope to that single epic file. Personas, screens,
+      flows, wireframes, DS, and design-spec are produced scoped to the
+      capabilities in that epic only. The play does not touch other epics'
+      design artifacts. If {product_base}experience/ already has design
+      artifacts for other epics, those are left untouched — only the artifacts
+      for the scoped epic's capabilities are created/updated.
+    measure: >
+      With `--epic <id>`, the resolved epics set is the single named epic file;
+      produced/updated artifacts cover only that epic's capabilities, and no
+      design artifact belonging to another epic's capabilities is modified.
+  - id: S9
+    persona: Designer re-entering an in-progress product
+    given: >
+      {product_base}experience/ already contains LOCKED personas.md and
+      screens/ from a prior /design run, but design-spec.md and
+      design-system.md are absent. The designer invokes /design.
+    then: >
+      Pre-flight detects brownfield mode. Personas and screens stages are
+      skipped (LOCKED). The play proceeds directly to Step 5b (DS
+      authoring), Step 6 (flows), Step 8 (wireframes), Step 9 (compile
+      spec). The delivery record notes the stages that were skipped due to
+      LOCKED predecessors.
+    measure: >
+      Pre-flight sets mode=gap-only; the persona and screen stages are recorded
+      as skipped-locked; the run executes DS → flows → wireframes → compile-spec;
+      and the delivery record lists the LOCKED-skipped stages.
+
+# Recovery — one entry per failure condition in intent.yaml. The validator turns a
+# tripped failure into a recovery handoff plan and routes it: `autonomous` loops the
+# fix back to the builder; `human` escalates for a manual call.
+recovery:
+  - id: REC1
+    for_failure: F1                 # zero personas, screens, or flows
+    trigger: >
+      The play completed with zero personas, zero screens, or zero flows.
+    direction: >
+      A complete design carries at least one persona, at least one screen, and
+      at least one flow; re-run the empty stage so the missing artifact set is
+      produced before the play closes.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC2
+    for_failure: F2                 # persona not in JTBD format
+    trigger: >
+      A persona in personas.md is demographic-driven, narrative-only, or
+      missing the "When … I want … so I can …" structure.
+    direction: >
+      Every persona must be in JTBD format; rewrite the offending persona into
+      the "When [situation], I want to [motivation], so I can [outcome]" shape.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC3
+    for_failure: F3                 # persona unmapped to a capability
+    trigger: >
+      A persona is not mapped to at least one capability from the specify scope.
+    direction: >
+      Every persona must map to >=1 selected capability; attach the missing
+      capability mapping from scope.selected_capabilities to the offending persona.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC4
+    for_failure: F4                 # capability with zero screens
+    trigger: >
+      A capability from specify's selected_capabilities has zero screens in
+      the inventory.
+    direction: >
+      Every selected capability needs >=1 screen; generate the missing screen(s)
+      for the uncovered capability.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC5
+    for_failure: F5                 # screen with fewer than three states
+    trigger: >
+      A screen has fewer than three distinct states.
+    direction: >
+      Every screen must enumerate >=3 distinct states (default + loading + error
+      minimum); add the missing states to the under-stated screen.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC6
+    for_failure: F6                 # success_scenario with zero flows
+    trigger: >
+      A success_scenario from an intent epic has zero user flows referencing it.
+    direction: >
+      Every success_scenario needs >=1 flow; author the missing flow referencing
+      the uncovered success_scenario.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC7
+    for_failure: F7                 # failure_scenario with zero recovery flows
+    trigger: >
+      A failure_scenario from an intent epic has zero recovery flows referencing it.
+    direction: >
+      Every failure_scenario needs >=1 recovery flow; author the missing recovery
+      flow referencing the uncovered failure_scenario.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC8
+    for_failure: F8                 # vague wireframe
+    trigger: >
+      A wireframe contains vague descriptions ("a form", "the dashboard")
+      without named components and a specific layout pattern.
+    direction: >
+      Every wireframe must name concrete components and a specific layout
+      pattern; replace the vague description with named components and a pattern.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC9
+    for_failure: F9                 # interactive screen missing accessibility
+    trigger: >
+      An interactive screen is missing accessibility requirements.
+    direction: >
+      Every interactive screen must carry WCAG-level accessibility requirements;
+      add the missing accessibility section to the offending interactive screen.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC10
+    for_failure: F10                # checkpoint missing / skipped without response
+    trigger: >
+      One of the three mandatory checkpoint artifacts is missing, or a checkpoint
+      was skipped without a recorded Tether/Vanish/Orbit response.
+    direction: >
+      Each mandatory checkpoint must capture a recorded human Tether/Vanish/Orbit;
+      re-present the checkpoint and obtain the missing human response before
+      the play closes.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC11
+    for_failure: F11                # artifact outside whitelist / bypassed scriber
+    trigger: >
+      An artifact is written to a path outside the ADR 017 whitelist, or an
+      evidence / checkpoint / status file is written without going through the
+      scriber agent.
+    direction: >
+      All artifacts must land inside the ADR 017 whitelist and all
+      evidence/checkpoint/status writes must go through scriber; re-route the
+      misplaced write to its whitelisted path via the scriber agent.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC12
+    for_failure: F12                # visual tokens inside wireframe ASCII
+    trigger: >
+      The play generated visual design elements (colors, typography, spacing
+      pixel values) INSIDE wireframe ASCII blocks.
+    direction: >
+      Wireframe ASCII must stay structural; strip the visual-design elements out
+      of the wireframe blocks (they belong only in the Design System artifact).
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC13
+    for_failure: F13                # ltm_domain_taxonomy_path / direct KB read
+    trigger: >
+      A stage passed `ltm_domain_taxonomy_path` as a skill input, or a skill
+      read domain content directly from `core/components/memory/knowledge/domain/`
+      instead of from `{product_base}research/`.
+    direction: >
+      Domain content must be read only from `{product_base}research/`; repoint
+      the skill input to the product research path and drop the
+      ltm_domain_taxonomy_path / direct-KB reference.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC14
+    for_failure: F14                # MVP-focus violation
+    trigger: >
+      A persona was generated for a use case absent from mvp-recommendation.md
+      primary_use_cases, OR a user-surface screen was created for a
+      deferred-only capability, OR a flow was authored for a
+      deferred-use-case-only epic scenario.
+    direction: >
+      Design output must be narrowed to the primary use cases in
+      mvp-recommendation.md; drop the deferred-only persona/screen/flow and
+      re-narrow generation to the primary use cases.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC15
+    for_failure: F15                # visual-first section order / wireframe shape
+    trigger: >
+      A screen file violates the visual-first section order (`## Wireframe` not
+      first, `## Layout Spec` missing or not last), a declared state lacks a
+      wireframe block, or a wireframe block carries visual-design elements.
+    direction: >
+      Screen files must follow the visual-first order with `## Wireframe` first
+      and `## Layout Spec` last, a wireframe block per declared state, and no
+      visual tokens in the blocks; re-emit the screen file in the correct shape.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC16
+    for_failure: F16                # silent commit of inferred decision
+    trigger: >
+      A skill committed an inferred decision to a downstream artifact without
+      first surfacing it to the user via the tier-appropriate flow.
+    direction: >
+      Every inferred decision must be surfaced to the user before it is committed
+      downstream; re-present the un-surfaced decision and obtain the user's
+      accept/override/orbit before proceeding.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC17
+    for_failure: F17                # missing / malformed / un-written-back manifest
+    trigger: >
+      A decision-producing skill completed without writing a
+      decision-manifest.yaml, wrote a manifest omitting a required field, or
+      failed to update user_response after the surfacing flow ran.
+    direction: >
+      Every decision-producing skill must emit a complete manifest with all
+      required fields and user_response populated; re-emit the manifest with the
+      missing fields filled and the surfacing-flow responses written back.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC18
+    for_failure: F18                # gap-only overwrite of LOCKED artifact w/o Tether
+    trigger: >
+      In gap-only mode a stage overwrote a LOCKED artifact without the user
+      having Tethered the delta at a delta checkpoint.
+    direction: >
+      A LOCKED artifact may only be re-written through explicit --force-stage or
+      an explicit delta-checkpoint Tether; present the overwrite delta and obtain
+      the user's delta Tether before any LOCKED artifact is replaced.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC19
+    for_failure: F19                # implementation-level specs in design-system.md
+    trigger: >
+      The Design System artifact at design-system.md contains pixel-level or
+      implementation-level specs (specific CSS variable names, rem values, or
+      hex codes outside the Inspirations section).
+    direction: >
+      The Design System must carry token ranges + inspiration references only;
+      strip the implementation-level specs out of design-system.md.
+    handoff: autonomous
+    derivable_at_l4: true

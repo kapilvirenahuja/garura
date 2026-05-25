@@ -155,47 +155,4 @@ failure_conditions:
       Tether is received but no issue-comment tracking artifact is written
       to STM before Step 6 begins.
 
-scenarios:
-  - id: S1
-    persona: Developer
-    given: >
-      A developer runs fix-it against an open bug issue. The play
-      completes all phases: RCA, design, checkpoint approval, implementation,
-      and shipping.
-    then: >
-      The fix is merged to main, the PR links to the originating issue, the
-      feature branch is deleted, the evidence artifact contains the full
-      RCA trace, design rationale, implementation record, and merge SHA, and
-      issue-comment-agent.yaml exists in evidence tracking background dispatch
-      status.
-  - id: S2
-    persona: Tech Lead
-    given: >
-      A tech lead reviews the checkpoint brief during the single approval
-      gate.
-    then: >
-      The checkpoint shows inline markdown sections rendered directly from STM
-      artifacts: root cause traced to specific code (not just symptoms), blast
-      radius of affected files, proposed fix strategy, at least one alternative
-      considered with rejection reason, and confidence assessment. Enough
-      information to make an informed Tether or Vanish decision.
-  - id: S3
-    persona: QA Engineer
-    given: >
-      A QA engineer examines the PR and evidence after the fix is shipped.
-    then: >
-      The PR body and evidence artifact allow tracing: what was changed, why
-      (root cause), what the blast radius was, and that the design was
-      approved before implementation. The fix is auditable end-to-end.
-  - id: S4
-    persona: QA Engineer reviewing audit trail
-    given: >
-      fix-it runs to completion: RCA and fix design produced, checkpoint
-      approved via Tether, implementation and shipping complete.
-    then: >
-      The GitHub issue carries a timestamped RCA-approved comment with root
-      cause, fix strategy, and Approved-by header posted at the Tether event
-      — before the PR is opened. The comment is traceable to the STM evidence
-      via the issue-comment-agent.yaml tracking artifact.
-
 version: 1.2.0

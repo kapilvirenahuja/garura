@@ -1,0 +1,148 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: draft-reference-algorithms
+    check: stm_base is resolved from .garura/core/config.yaml and the skill receives a non-empty stm_base value.
+    artifact_pattern: "{stm_base}/{issue}/context/design/reference-algorithms.md"
+    pass_criteria: stm_base resolved from config and passed non-empty into the skill input contract; no reference-algorithms.md exists at an unresolvable path.
+    fail_criteria: stm_base could not be resolved from config, or the skill was dispatched with an empty stm_base.
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: draft-reference-algorithms
+    check: tech.yaml is present and non-empty at the expected path before skill dispatch.
+    artifact_pattern: "{stm_base}/{issue}/context/design/tech.yaml"
+    pass_criteria: tech.yaml exists and is non-empty at {stm_base}/{issue}/context/design/tech.yaml before dispatch.
+    fail_criteria: tech.yaml is absent and the play did not halt with "prepare must run before algorithm"; or the skill was invoked anyway.
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: draft-reference-algorithms
+    check: tech.yaml is parseable as valid YAML and the skill receives a non-empty interface_ids list derived from it.
+    artifact_pattern: "{stm_base}/{issue}/context/design/tech.yaml"
+    pass_criteria: tech.yaml parses as valid YAML and a non-empty interface_ids list is derived and passed to the skill.
+    fail_criteria: tech.yaml is empty or unparseable and the play did not hard-halt with a structured failure.
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: draft-reference-algorithms
+    check: No reference-algorithms.md is created when no complexity indicators were found; the play output includes a skip notice and no agent dispatch occurred.
+    artifact_pattern: "{stm_base}/{issue}/context/design/reference-algorithms.md"
+    pass_criteria: no reference-algorithms.md exists at the output path, the play output includes a skip notice, and no tech-architect dispatch is recorded.
+    fail_criteria: reference-algorithms.md was created, or a dispatch occurred, when no indicators and no algorithm_spec_required flag were present.
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: null
+    skill: draft-reference-algorithms
+    check: The play halts with a structured failure that lists the interface_ids the skill failed to process after 2 attempts.
+    artifact_pattern: "{stm_base}/{issue}/status/algorithm.json"
+    pass_criteria: after 2 failed recovery attempts the play halts and the failure message includes the failing interface_ids.
+    fail_criteria: the play continues past 2 skill failures, or halts without listing the failing interface_ids.
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: null
+    skill: draft-reference-algorithms
+    check: reference-algorithms.md exists and is non-empty at the output path after skill execution.
+    artifact_pattern: "{stm_base}/{issue}/context/design/reference-algorithms.md"
+    pass_criteria: reference-algorithms.md exists and is non-empty at {stm_base}/{issue}/context/design/reference-algorithms.md after skill execution.
+    fail_criteria: reference-algorithms.md is missing or empty after the skill reported execution (evidence integrity violation).
+  - id: SE-7
+    source_type: failure_condition
+    failure_condition_id: F7
+    constraint_id: null
+    skill: draft-reference-algorithms
+    check: On an incomplete context package the play warns but continues, dispatching using only tech.yaml, and writes reference-algorithms.md.
+    artifact_pattern: "{stm_base}/{issue}/context/design/reference-algorithms.md"
+    pass_criteria: a warning about the incomplete package is issued, the play continues using only tech.yaml, and reference-algorithms.md is written.
+    fail_criteria: the play halts on a missing plan.yaml/scenarios.yaml instead of warning and continuing.
+  - id: SE-8
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C5
+    skill: draft-reference-algorithms
+    check: tech.yaml content and last-modified timestamp are identical before and after skill execution; no other prepare artifact modified.
+    artifact_pattern: "{stm_base}/{issue}/context/design/tech.yaml"
+    pass_criteria: tech.yaml is byte-identical with unchanged mtime after execution and no other prepare artifact was modified.
+    fail_criteria: tech.yaml content or mtime changed, or any other prepare artifact was modified.
+  - id: SE-9
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C6
+    skill: draft-reference-algorithms
+    check: reference-algorithms.md is written only to {stm_base}/{issue}/context/design/ and no output file is written outside that path.
+    artifact_pattern: "{stm_base}/{issue}/context/design/reference-algorithms.md"
+    pass_criteria: reference-algorithms.md exists at the specified path and no output was written outside context/design/.
+    fail_criteria: the artifact is written to a different path, or any output file lands outside context/design/.
+  - id: SE-10
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C9
+    skill: draft-reference-algorithms
+    check: For every input interface_id, reference-algorithms.md has a "## {interface_id}" section with complexity classification, an uppercase-keyword pseudocode code fence, an Invariants sub-section (>=1 entry), and an Edge Cases sub-section (>=1 entry).
+    artifact_pattern: "{stm_base}/{issue}/context/design/reference-algorithms.md"
+    pass_criteria: every input interface_id has a matching "## {interface_id}" section containing all four required parts.
+    fail_criteria: any interface_id is missing its section or any required part (classification, pseudocode fence, invariants, edge cases).
+  - id: SE-11
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C14
+    skill: draft-reference-algorithms
+    check: evidence.record gating is honored — when true, evidence file, status file, and self-commit all exist; when false, none of the three exist.
+    artifact_pattern: "{stm_base}/{issue}/evidence/algorithm/"
+    pass_criteria: with evidence.record true an evidence file, a status file, and a recorded self-commit exist; with evidence.record false none of the three exist.
+    fail_criteria: evidence artifacts exist when evidence.record is false, or are missing when evidence.record is true.
+  - id: SE-12
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C16
+    skill: draft-reference-algorithms
+    check: reference-algorithms.md carries status DRAFT in its header and no status LOCKED marker is present before user approval.
+    artifact_pattern: "{stm_base}/{issue}/context/design/reference-algorithms.md"
+    pass_criteria: the file header contains status DRAFT and no status LOCKED appears before the approval gate.
+    fail_criteria: the approval gate was bypassed, or a status LOCKED marker is present before user approval.
+  - id: SE-13
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C17
+    skill: draft-reference-algorithms
+    check: All status fields in plan.yaml and milestone status files are identical before and after play execution; no new status field written.
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml"
+    pass_criteria: every status field in plan.yaml and milestone status files is unchanged and no new status field was written by the play or skill.
+    fail_criteria: any plan.yaml or milestone status field was altered, or a new status field was written.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: "Lead developer"
+    artifact_pattern: "{stm_base}/{issue}/context/design/reference-algorithms.md + run log"
+    check: On a CRUD-only tech.yaml, no reference-algorithms.md exists, the output has a skip notice, exit code is 0, and no tech-architect dispatch occurred.
+    pass_criteria: no reference-algorithms.md at the output path, a skip notice in the output, exit code 0, and no tech-architect dispatch in the run log.
+    fail_criteria: reference-algorithms.md was created, no skip notice was emitted, or a tech-architect dispatch is recorded.
+  - id: SCE-2
+    scenario_id: S2
+    persona: "Lead developer"
+    artifact_pattern: "{stm_base}/{issue}/context/design/reference-algorithms.md + dispatch contract"
+    check: For a tech.yaml whose behavior_contracts contain "state machine transitions", reference-algorithms.md exists, the dispatch carried the qualifying interface_id, and a "## {interface_id}" heading is present.
+    pass_criteria: reference-algorithms.md exists at the output path, the tech-architect dispatch input interface_ids contained the qualifying interface, and a "## {interface_id}" heading for it is present.
+    fail_criteria: the file is missing, the dispatch did not carry the qualifying interface_id, or the matching heading is absent.
+  - id: SCE-3
+    scenario_id: S3
+    persona: "Lead developer"
+    artifact_pattern: "{stm_base}/{issue}/context/design/reference-algorithms.md + run log"
+    check: For an interface with algorithm_spec_required true but no indicator terms, reference-algorithms.md exists with a section for that interface and the play did not emit a skip notice.
+    pass_criteria: reference-algorithms.md exists with a section for the algorithm_spec_required interface, the play did not emit a skip notice, and a dispatch is recorded for that interface.
+    fail_criteria: the play emitted a skip notice, or no section was produced for the algorithm_spec_required interface.
+  - id: SCE-4
+    scenario_id: S4
+    persona: "Lead developer"
+    artifact_pattern: "{stm_base}/{issue}/context/design/reference-algorithms.md + tech-designer input contract"
+    check: After implement runs, reference-algorithms.md is byte-for-byte unchanged and the tech-designer input contract contains no reference to reference-algorithms.md.
+    pass_criteria: reference-algorithms.md is unmodified in context/design/ after implement, and the tech-designer input contract written during implement does not reference reference-algorithms.md.
+    fail_criteria: reference-algorithms.md was modified by implement, or the tech-designer input contract references reference-algorithms.md.

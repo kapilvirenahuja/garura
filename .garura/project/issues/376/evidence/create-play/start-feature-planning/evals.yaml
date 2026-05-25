@@ -1,0 +1,85 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: start-feature-planning
+    check: The three planning artifacts are non-empty and contain domain-specific, actionable design derived from the intent.
+    artifact_pattern: "{stm_base}/{issue}/planning/spec.md + verify.md + tasks.md"
+    pass_criteria: spec.md, verify.md, and tasks.md are each non-empty and carry domain-specific content (not template stubs) tied to the issue intent.
+    fail_criteria: any of the three planning artifacts is empty or contains no actionable design — the planning sub-agent produced no meaningful output for the given intent.
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: start-feature-planning
+    check: The planning output contains all three required sections — SPEC, VERIFY, and TASKS.
+    artifact_pattern: "{stm_base}/{issue}/planning/spec.md + verify.md + tasks.md"
+    pass_criteria: the planning output produced all three sections (## SPEC, ## VERIFY, ## TASKS) and each is materialized as its planning artifact.
+    fail_criteria: the planning output is missing one or more of the three required sections (SPEC, VERIFY, or TASKS).
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: start-feature-planning
+    check: After the branch-creation step completes, the feature branch exists on origin.
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature-planning/branch-result.yaml"
+    pass_criteria: branch-result.yaml shows branch.pushed is true and the feature branch exists on origin.
+    fail_criteria: the feature branch does not exist on origin after the branch-creation step completes — the repository is not in a ready-to-execute state.
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: start-feature-planning
+    check: After a Vanish rejection, the remote feature branch no longer exists on origin.
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature-planning/branch-result.yaml + git remote state"
+    pass_criteria: on a Vanish rejection, the vanish-cleanup step removed the feature branch and it is absent from origin.
+    fail_criteria: the plan was rejected at the approval gate (Vanish) and the remote feature branch still exists on origin — cleanup was incomplete.
+  - id: SE-5
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C5
+    skill: start-feature-planning
+    check: Each planning section is IDD-aware — it carries its own Intent, Constraints, and Failure Conditions.
+    artifact_pattern: "{stm_base}/{issue}/planning/spec.md + verify.md + tasks.md"
+    pass_criteria: each section (SPEC, VERIFY, TASKS) carries the IDD headers (Intent, plus Constraints / Failure Conditions where applicable).
+    fail_criteria: one or more planning sections lacks its IDD headers.
+  - id: SE-6
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C7
+    skill: start-feature-planning
+    check: Tasks are granular enough for direct implementation and include a dependency graph.
+    artifact_pattern: "{stm_base}/{issue}/planning/tasks.md"
+    pass_criteria: tasks.md contains a dependency graph plus a granular task breakdown (files, details, depends-on, expected outcome per task).
+    fail_criteria: tasks are coarse or missing a dependency graph — not directly implementable.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/planning/tasks.md"
+    check: tasks.md contains a dependency graph and a task breakdown in which the first unblocked task carries enough detail to begin implementation with no further planning.
+    pass_criteria: tasks.md has a dependency graph and the first unblocked task (Depends on: none) carries files, details, and an expected outcome.
+    fail_criteria: no first unblocked task can be identified, or the first unblocked task lacks files/details/expected-outcome needed to begin.
+  - id: SCE-2
+    scenario_id: S2
+    persona: Tech Lead
+    artifact_pattern: "{stm_base}/{issue}/planning/spec.md"
+    check: spec.md carries IDD headers plus a technical approach with chosen strategy, alternatives considered, and risks — enough for an informed Tether/Vanish call.
+    pass_criteria: spec.md contains Intent/Constraints/Failure Conditions headers and a technical approach section with strategy, alternatives considered, and risks.
+    fail_criteria: spec.md lacks the IDD headers or omits strategy, alternatives, or risks.
+  - id: SCE-3
+    scenario_id: S3
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/planning/verify.md"
+    check: verify.md lists specific acceptance criteria, verification steps with expected outcomes, and edge cases — completion judgeable without re-interpreting the intent.
+    pass_criteria: verify.md contains concrete acceptance criteria, verification steps with expected outcomes, and edge cases.
+    fail_criteria: verify.md is vague — acceptance criteria, verification steps, or edge cases are missing or non-specific.
+  - id: SCE-4
+    scenario_id: S4
+    persona: Project Manager
+    artifact_pattern: "{stm_base}/{issue}/planning/tasks.md"
+    check: tasks.md contains an explicit dependency graph over the granular tasks from which the critical path and scope are readable without opening spec.md.
+    pass_criteria: tasks.md contains a dependency graph (task -> task edges) over the tasks, making the critical path and overall scope readable on its own.
+    fail_criteria: tasks.md has no dependency graph, or the graph is too sparse to read scope or critical path.

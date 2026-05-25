@@ -123,8 +123,20 @@ function check(components) {
       });
     }
 
-    // Check scenario ID uniqueness
-    const scenarioIds = extractIds(parsed.scenarios);
+    // Check scenario ID uniqueness. For ICE-migrated plays, scenarios live in
+    // expectation.yaml `success_scenarios`; for legacy plays, in intent.yaml `scenarios`.
+    let scenarioSource = parsed.scenarios;
+    if (intent.expectationFile) {
+      try {
+        const expParsed = yaml.load(fs.readFileSync(intent.expectationFile, 'utf8'));
+        if (expParsed && typeof expParsed === 'object') {
+          scenarioSource = expParsed.success_scenarios;
+        }
+      } catch (err) {
+        // expectation YAML parse error is reported by structural.js — skip here
+      }
+    }
+    const scenarioIds = extractIds(scenarioSource);
     const dupScenarios = findDuplicates(scenarioIds);
     for (const dup of dupScenarios) {
       violations.push({

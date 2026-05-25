@@ -1,0 +1,157 @@
+branch: refactor/376-streamline-idsd-modelling
+issue: 376
+is_hotfix: false
+analysis_pass: 3
+
+change_summary:
+  total_in_scope: 12
+  excluded: 0
+  staged: 0
+  unstaged_tracked: 9
+  untracked_new: 3
+
+groups:
+  - id: A
+    issue: 376
+    type: refactor
+    scope: ice
+    subject: "strip scenarios from intent layer; introduce expectation schema"
+    confidence: high
+    files:
+      - path: core/components/agents/intent-crafter.md
+        status: modified
+        description: >
+          Interview flow drops Category 4 scenario authoring; Category 4 rewritten
+          to sharpen the goal only; Quality Gate strips scenario rules; skill pool
+          input contract removes scenarios[]; output contract drops scenario_count;
+          NEVER list updated to forbid scenario authoring in intent.
+      - path: core/components/skills/author-intent-yaml/SKILL.md
+        status: modified
+        description: >
+          Description updated to "clean triple"; scenarios removed from input
+          contract and validation; emit step removes scenarios: block; output
+          contract drops scenario count and max_id.
+      - path: core/components/memory/standards/schemas/intent.yaml
+        status: modified
+        description: >
+          Content zone renamed from four canonical fields to three (the ICE Intent
+          layer); scenarios: block replaced with comment pointing to expectation.yaml;
+          field count in crafting principles updated from 8 to 7; checksum
+          normalization updated to exclude scenarios.
+      - path: core/components/memory/standards/schemas/expectation.yaml
+        status: new
+        description: >
+          New file defining the ICE Expectation layer — metadata (name,
+          generated_from, vetted) + content (success_scenarios with measure,
+          recovery with one-per-failure-condition rule).
+    type_rationale: >
+      No net-new capability — scenarios moved out of intent.yaml into a
+      separate layer. Authoring path and canonical schemas restructured.
+      refactor is correct.
+
+  - id: B
+    issue: 376
+    type: refactor
+    scope: refactor
+    subject: "migrate refactor play to ICE triple + expectation"
+    confidence: high
+    files:
+      - path: core/components/plays/refactor/reference/intent.yaml
+        status: modified
+        description: >
+          S1-S6 scenarios block removed; replaced with comment pointing to
+          expectation.yaml; intent is now the clean triple.
+      - path: core/components/plays/refactor/reference/expectation.yaml
+        status: new
+        description: >
+          New file — S1-S6 moved here as success_scenarios with new measure
+          fields; recovery REC1-REC12 added (one per failure condition;
+          9 autonomous, 3 human).
+      - path: core/components/plays/refactor/SKILL.md
+        status: modified
+        description: >
+          Compiled From header updated to reference both source files; hash guard
+          extended with expectation hash; Recovery section added with REC1-REC12
+          table; metadata table updated with expectation_hash, new compiled_at,
+          and recovery_entries count.
+    type_rationale: >
+      First concrete play migrated to the ICE structure from Group A.
+      No behavior change — structural migration only. refactor is correct.
+
+  - id: C
+    issue: 376
+    type: chore
+    scope: config
+    subject: "add github owner and name fields to config"
+    confidence: high
+    files:
+      - path: .garura/core/config.yaml
+        status: modified
+        description: >
+          Added owner: kapilvirenahuja and name: garura under the github: key.
+          Values extracted from the existing repo URL. No other keys changed.
+    type_rationale: >
+      Config maintenance — no code or schema change. chore is correct.
+
+  - id: D
+    issue: 376
+    type: chore
+    scope: stm
+    subject: "record capture evidence for #377 (repo-orchestrator multi-commit bug)"
+    confidence: high
+    files:
+      - path: .garura/project/issues/capture-report/evidence/capture/body.md
+        status: modified
+        description: >
+          Overwritten with body for bug #377 — repo-orchestrator drops bundled
+          multi-commit dispatches. Severity, reported_from, date, problem,
+          root_cause, expected_behavior, and impact all updated.
+      - path: .garura/project/issues/capture-report/evidence/capture/inference-trace.yaml
+        status: modified
+        description: >
+          Updated to reflect explicit type resolution (no ambiguity); repo_slug
+          now resolved; also records that config had no owner/name keys (now
+          fixed in Group C).
+      - path: .garura/project/issues/capture-report/evidence/capture/issue-comment-agent.yaml
+        status: modified
+        description: >
+          Date, type, issue_number, and issue_url updated to reflect #377.
+      - path: .garura/project/issues/capture-report/evidence/capture/issue-result.yaml
+        status: modified
+        description: >
+          Title, URL, number, labels, and completed_at updated to reflect #377.
+      - path: .garura/project/issues/capture-report/evidence/capture/title.txt
+        status: modified
+        description: >
+          Updated to: [BUG] repo-orchestrator drops bundled multi-commit
+          dispatches (commits one, then stops)
+    type_rationale: >
+      Operational STM artifacts produced during #376 session. Bug #377 was
+      discovered and filed as a side-effect of #376 commit-code runs.
+      chore(stm) is correct.
+
+exclusions: []
+
+risks:
+  sensitive_files: []
+  breaking_changes:
+    - group: A
+      file: core/components/memory/standards/schemas/intent.yaml
+      description: >
+        intent.yaml schema now forbids the scenarios: block. Any intent.yaml
+        still carrying scenarios will fail lint-components validation once the
+        linter enforces the triple. Existing plays that have not yet been
+        migrated remain valid as legacy until migrated. Backward-compat is
+        preserved by the linter's existing else-branch (from Group B of
+        analysis_pass: 2).
+      severity: low
+  ambiguous_types: []
+  hotfix_branch: false
+
+summary:
+  total_groups: 4
+  total_files_tracked: 9
+  total_files_untracked: 3
+  all_issues: [376]
+  approval_required: false
+  reason: all four groups map to #376 at high confidence

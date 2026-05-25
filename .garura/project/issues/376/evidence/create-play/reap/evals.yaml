@@ -1,0 +1,130 @@
+# Evals for the reap play (ICE migration, #376).
+# step_evals match the SE surface compiled in SKILL.md (SE-1..SE-9).
+# scenario_evals are one per expectation success_scenario, derived from each `measure`.
+
+step_evals:
+  - id: SE-1
+    source_type: constraint
+    failure_condition_id: F2
+    constraint_id: C7
+    skill: knowledge-extractor
+    check: Every proposal carries a non-empty learning_category whose value is canonical or flagged proposed.
+    artifact_pattern: "{stm_base}/{issue}/evidence/reap/proposals.yaml"
+    pass_criteria: Every proposal in proposals.yaml has a non-empty learning_category that is one of arch | domain | product | quality | standards, OR learning_category_proposed is true.
+    fail_criteria: A proposal has no learning_category, an empty learning_category, or a non-canonical value without learning_category_proposed set.
+  - id: SE-2
+    source_type: constraint
+    failure_condition_id: F7
+    constraint_id: C7
+    skill: knowledge-extractor
+    check: sub_category presence matches the parent's hierarchy — present for hierarchical parents, null for flat parents.
+    artifact_pattern: "{stm_base}/{issue}/evidence/reap/proposals.yaml"
+    pass_criteria: For learning_category in {arch, quality, standards}, sub_category is non-null and non-empty; for learning_category in {domain, product}, sub_category is null or empty.
+    fail_criteria: A flat-parent proposal carries a non-null sub_category, or a hierarchical-parent proposal has a null/empty sub_category without sub_category_proposed.
+  - id: SE-3
+    source_type: constraint
+    failure_condition_id: F3
+    constraint_id: C7a
+    skill: knowledge-extractor
+    check: Any proposed-new taxonomy value carries a complete taxonomy_justification block.
+    artifact_pattern: "{stm_base}/{issue}/evidence/reap/proposals.yaml"
+    pass_criteria: For any proposal with learning_category_proposed true or sub_category_proposed true, taxonomy_justification is present with non-empty evidence_path, excerpt, and reasoning.
+    fail_criteria: A proposed-new value lacks a taxonomy_justification block, or the block is missing evidence_path, excerpt, or reasoning, or holds a placeholder.
+  - id: SE-4
+    source_type: constraint
+    failure_condition_id: F4
+    constraint_id: C4
+    skill: knowledge-extractor
+    check: All proposal output is staged under the STM reap evidence path; no product or global core LTM path appears.
+    artifact_pattern: "{stm_base}/{issue}/evidence/reap/proposals.yaml"
+    pass_criteria: proposals.yaml is written under {stm_base}/{issue}/evidence/reap/ and no path under {product_base} or ~/.garura/core/memory/ appears as an output.
+    fail_criteria: A proposal targets, or the run writes to, a path under {product_base} or ~/.garura/core/memory/.
+  - id: SE-5
+    source_type: constraint
+    failure_condition_id: F5
+    constraint_id: C6
+    skill: knowledge-extractor
+    check: Every Tier 1 proposal carries an ADR draft and an impact assessment.
+    artifact_pattern: "{stm_base}/{issue}/evidence/reap/proposals.yaml"
+    pass_criteria: Every proposal with tier 1 carries an adr_draft_path and an impact block with at least risk and downstream_artifacts.
+    fail_criteria: A tier 1 proposal lacks an adr_draft_path or an impact block.
+  - id: SE-6
+    source_type: constraint
+    failure_condition_id: F6
+    constraint_id: C8
+    skill: knowledge-extractor
+    check: When a check-drift manifest is present, its findings are consumed (marked source check-drift), not re-derived.
+    artifact_pattern: "{stm_base}/{issue}/evidence/reap/proposals.yaml"
+    pass_criteria: When spec-correction-manifest.yaml was present at input, proposals sourced from check-drift carry source check-drift and are not independently re-derived.
+    fail_criteria: Findings already present in the spec-correction-manifest appear as re-derived proposals instead of consumed-as-is.
+  - id: SE-7
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C11
+    skill: knowledge-extractor
+    check: A zero-finding run still writes a valid proposals.yaml and is not treated as an error.
+    artifact_pattern: "{stm_base}/{issue}/evidence/reap/proposals.yaml"
+    pass_criteria: When no findings are detected, proposals.yaml is written with total_proposals 0 and an empty proposals list, and the play does not raise an error.
+    fail_criteria: A zero-finding run fails to write proposals.yaml, omits total_proposals 0, or is treated as an error.
+  - id: SE-8
+    source_type: constraint
+    failure_condition_id: F10
+    constraint_id: C10
+    skill: reap
+    check: The human review checkpoint runs before any evidence commit, regardless of proposal count.
+    artifact_pattern: "{stm_base}/{issue}/status/reap.json"
+    pass_criteria: proposals.yaml was staged and presented for Tether/Vanish before evidence was committed, including on zero-proposal runs.
+    fail_criteria: Evidence was committed without the human checkpoint having been presented first.
+  - id: SE-9
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: C13
+    skill: reap
+    check: proposals.yaml and the evidence file persist regardless of whether the self-commit succeeded.
+    artifact_pattern: "{stm_base}/{issue}/evidence/reap/proposals.yaml"
+    pass_criteria: proposals.yaml exists at {stm_base}/{issue}/evidence/reap/proposals.yaml and evidence.yaml exists at {stm_base}/{issue}/evidence/reap/evidence.yaml even if the self-commit failed.
+    fail_criteria: proposals.yaml or evidence.yaml is absent after a Tethered run.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: "Tech lead reviewing post-epic learnings"
+    artifact_pattern: "{stm_base}/{issue}/evidence/reap/proposals.yaml"
+    check: Each proposal carries the classification and context a reviewer needs to decide without reading raw evidence.
+    pass_criteria: Every proposal carries a non-empty learning_category and a sub_category per the taxonomy rules; every Tier 1 proposal carries an adr_draft_path and an impact block; no proposal lacks tier, target_path, and change context.
+    fail_criteria: A proposal is missing its taxonomy classification, a Tier 1 proposal lacks an ADR draft or impact block, or a proposal omits the tier/target_path/change context a reviewer needs.
+  - id: SCE-2
+    scenario_id: S2
+    persona: "Developer invoking reap on an open issue post-validate"
+    artifact_pattern: "{stm_base}/{issue}/status/reap.json + {stm_base}/{issue}/evidence/reap/proposals.yaml"
+    check: Pre-flight gated only on validate evidence — never on GitHub issue state — and proposals.yaml was produced.
+    pass_criteria: Pre-flight passed without any GitHub issue-state check; the sole gate was at least one milestone-verdict.yaml under evidence/validate/; and proposals.yaml was produced at the expected path.
+    fail_criteria: Pre-flight checked or gated on issue open/closed state, or proposals.yaml was not produced.
+  - id: SCE-3
+    scenario_id: S3
+    persona: "Tech lead reviewing proposals for a domain that had no prior LTM"
+    artifact_pattern: "{stm_base}/{issue}/evidence/reap/proposals.yaml"
+    check: A proposed-new taxonomy value is backed by a readable justification block.
+    pass_criteria: Any proposal with learning_category_proposed true or sub_category_proposed true has a taxonomy_justification block with non-empty evidence_path, excerpt, and reasoning, and the _proposed flag is visible in proposals.yaml.
+    fail_criteria: A proposed-new value lacks a complete taxonomy_justification block or the _proposed flag is absent.
+  - id: SCE-4
+    scenario_id: S4
+    persona: "Developer preparing the next epic in the same domain"
+    artifact_pattern: "{stm_base}/{issue}/evidence/reap/proposals.yaml"
+    check: proposals.yaml is staged at the whitelist evidence path and no product LTM was written.
+    pass_criteria: proposals.yaml exists at {stm_base}/{issue}/evidence/reap/proposals.yaml and no artifact under {product_base} or ~/.garura/core/memory/ was written by the run.
+    fail_criteria: proposals.yaml is not at the expected evidence path, or the run wrote to product or global core LTM.
+  - id: SCE-5
+    scenario_id: S5
+    persona: "Operator running reap on a trivial epic with no meaningful delta"
+    artifact_pattern: "{stm_base}/{issue}/evidence/reap/proposals.yaml + {stm_base}/{issue}/evidence/reap/evidence.yaml"
+    check: A zero-proposal run completes cleanly and records the outcome.
+    pass_criteria: proposals.yaml shows total_proposals 0 with an empty proposals list, the run exited without error, and the evidence file records the zero-proposal outcome.
+    fail_criteria: The zero-proposal run errored, generated spurious proposals, or failed to record the zero-proposal outcome in evidence.
+  - id: SCE-6
+    scenario_id: S6
+    persona: "Tech lead with check-drift output from a prior drift detection run"
+    artifact_pattern: "{stm_base}/{issue}/evidence/reap/proposals.yaml"
+    check: check-drift findings are consumed and marked, not re-derived.
+    pass_criteria: When a spec-correction-manifest.yaml was present at input, every proposal derived from check-drift carries source check-drift, and no finding already in the manifest appears as an independently re-derived proposal.
+    fail_criteria: check-drift findings were re-derived rather than consumed, or consumed findings lack the source check-drift marker.

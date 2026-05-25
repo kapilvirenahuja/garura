@@ -1,0 +1,301 @@
+step_evals:
+  - id: SE-1
+    source_type: constraint
+    failure_condition_id: F8
+    constraint_id: C1
+    skill: implement
+    check: milestone_id resolves to a plan.yaml execution_order entry with status LOCKED.
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml"
+    pass_criteria: the milestone_id matches an execution_order entry and that entry shows status LOCKED.
+    fail_criteria: the milestone_id resolves to no entry, or the entry status is DRAFT or any value other than LOCKED (C28, F8).
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F24
+    constraint_id: C3
+    skill: implement
+    check: every depends_on milestone for the target milestone has status COMPLETE.
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml"
+    pass_criteria: each milestone in the target's depends_on[] shows status COMPLETE in plan.yaml.
+    fail_criteria: one or more depends_on milestones are not COMPLETE (F24).
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F9
+    constraint_id: C2
+    skill: implement
+    check: the feature has success scenarios, failure conditions, and an exit gate.
+    artifact_pattern: "{stm_base}/{issue}/context/design/epic-spec.yaml"
+    pass_criteria: epic-spec.yaml shows success_scenarios[] and failure_conditions[] non-empty and the plan.yaml entry has an exit_gate.
+    fail_criteria: success scenarios or failure conditions are empty, or no exit_gate is defined (F9).
+  - id: SE-4
+    source_type: constraint
+    failure_condition_id: F23
+    constraint_id: C13
+    skill: implement
+    check: CONTEXT.md exists with contract sections and zero behavioral or KB/LTM content.
+    artifact_pattern: "{stm_base}/{issue}/CONTEXT-{milestone_id}.md"
+    pass_criteria: CONTEXT.md contains api_contracts, internal_interfaces, and service_contracts sections, zero behavioral descriptions from features.yaml, and zero KB/LTM references.
+    fail_criteria: CONTEXT.md is missing, omits a contract section, carries behavioral descriptions, or references KB/LTM (C13, C27, F23).
+  - id: SE-5
+    source_type: constraint
+    failure_condition_id: F16
+    constraint_id: C15
+    skill: implement
+    check: quality gates file exists in STM with required entries and no product_base/KB references.
+    artifact_pattern: "{stm_base}/{issue}/context/design/quality-gates.yaml"
+    pass_criteria: the quality-gates file exists in STM with build, typecheck, lint, and unit_tests entries and no product_base or KB paths.
+    fail_criteria: the file is missing, lacks a required entry, or references product_base/KB (C15, C19, C27).
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F14
+    constraint_id: C17
+    skill: implement
+    check: TEST-CONTEXT.md exists with behavioral content only — zero file paths, architecture, or tech decisions.
+    artifact_pattern: "{stm_base}/{issue}/TEST-CONTEXT-{milestone_id}.md"
+    pass_criteria: TEST-CONTEXT.md contains behavioral descriptions, acceptance criteria, failure conditions, and the test framework name, with zero file paths and zero architecture/technology references.
+    fail_criteria: TEST-CONTEXT.md carries file paths, architecture references, or technology decisions (C17, F14).
+  - id: SE-7
+    source_type: failure_condition
+    failure_condition_id: F20
+    constraint_id: C24
+    skill: implement
+    check: mock infrastructure is set up before the test-writer runs.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/mock-setup-report.yaml"
+    pass_criteria: a mock-setup report exists, every external_service in mock_strategy has a functioning mock, and every test_double is available.
+    fail_criteria: a mock could not be instantiated and the process did not halt before test-writer (C24, F20).
+  - id: SE-8
+    source_type: constraint
+    failure_condition_id: F4
+    constraint_id: C8
+    skill: implement
+    check: evals are generated outside the repo, encrypted, with plaintext deleted and zero implementation code in the generator prompt.
+    artifact_pattern: "{eval_dir}/manifest.json"
+    pass_criteria: the eval file lives outside the repo tree, the manifest count is greater than zero, no implementation code reached the generator prompt, and plaintext was deleted.
+    fail_criteria: eval content exists inside the repo tree or as plaintext after encryption, or the generator prompt contained implementation code (C4, C7, C8, F4, F7).
+  - id: SE-9
+    source_type: failure_condition
+    failure_condition_id: F14
+    constraint_id: C17
+    skill: implement
+    check: the test-writer contract carries only test_context_path with behavioral tests.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/test-files-manifest.yaml"
+    pass_criteria: the test-writer dispatch input is only test_context_path, with no context_path, no "Files You Own" paths, and no architecture references; tests are behavioral.
+    fail_criteria: the test-writer contract carries CONTEXT.md, file paths, or architecture references (C16, C17, F14).
+  - id: SE-10
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: C5
+    skill: implement
+    check: the code-builder dispatch carries only spec inputs and zero test/eval content.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/build-report-{scope_item_id}.yaml"
+    pass_criteria: the builder dispatch contains zero test source code, assertion text, mock data patterns from test files, eval IDs/text, or pass criteria; stm.input carries only context_path and architecture_context_path (a bare scope-directory path in Verification Steps is permitted).
+    fail_criteria: the builder dispatch contains any prohibited test or eval content beyond a bare scope-directory path (C5, C29, F5).
+  - id: SE-11
+    source_type: failure_condition
+    failure_condition_id: F15
+    constraint_id: C18
+    skill: implement
+    check: the spec-referenced status report uses tech.yaml contract IDs and carries zero test code.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/status-report-{scope_item_id}-cycle-{N}.yaml"
+    pass_criteria: the status report references contract_ref IDs from tech.yaml and contains zero test source code, assertion text, test file paths, or mock data patterns.
+    fail_criteria: the status report contains test source, assertion text, test file paths, mock data, or implementation code (C18, F15).
+  - id: SE-12
+    source_type: failure_condition
+    failure_condition_id: F25
+    constraint_id: C30
+    skill: implement
+    check: arbiter verdict exists only after the same contract fails two consecutive cycles and carries no impl/test code.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/arbiter-verdict-{scope_item_id}-{contract_ref}.yaml"
+    pass_criteria: an arbiter verdict exists only when the same contract_ref appears in two consecutive status reports, the verdict is one of implementation_wrong / implementation_correct_per_spec / spec_ambiguous, and the prompt carries zero implementation or test code.
+    fail_criteria: an arbiter was invoked on a first failure, or its prompt carried implementation/test code (C30, F25).
+  - id: SE-13
+    source_type: failure_condition
+    failure_condition_id: F21
+    constraint_id: C25
+    skill: implement
+    check: the integration test suite ran covering this milestone plus regression from prior milestones.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/integration-results.yaml"
+    pass_criteria: the full suite (unit + integration with mocks) ran for this milestone's scope items plus prior-milestone regression, and on failure the fix loop was entered.
+    fail_criteria: integration was not run with regression, or a failure did not enter the fix loop (C25, F21).
+  - id: SE-14
+    source_type: failure_condition
+    failure_condition_id: F17
+    constraint_id: C20
+    skill: implement
+    check: the quality report carries all gate categories and the judge did not run while FAIL/BLOCKED.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/quality-report-{milestone_id}.yaml"
+    pass_criteria: the quality report has all gate categories, includes qp_certification when quality-vision.yaml exists, and no judge ran while overall FAIL or qp_certification BLOCKED.
+    fail_criteria: a gate category is missing, qp_certification is absent when required, or the judge executed while quality reported FAIL/BLOCKED (C14, C20, C26, F1, F12, F13, F17, F22).
+  - id: SE-15
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: C12
+    skill: implement
+    check: the project build and type check both pass after implementation.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/quality-report-{milestone_id}.yaml"
+    pass_criteria: the quality report shows the build passing and the type check passing without errors.
+    fail_criteria: the build or type check produces errors (C12, F1).
+  - id: SE-16
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: C6
+    skill: implement
+    check: the judge ran in EVAL-REVIEW mode with zero builder/evals-engineer/quality content.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/judge-report-{milestone_id}.yaml"
+    pass_criteria: a judge report exists, the judge operated in EVAL-REVIEW mode, and its prompt carried zero builder prompts, evals-engineer prompts, and quality-auditor results.
+    fail_criteria: the judge prompt contained builder prompts, evals-engineer prompts, or quality results (C6, F6).
+  - id: SE-17
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: implement
+    check: the first judge run pass rate is greater than 50%.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/judge-report-{milestone_id}.yaml"
+    pass_criteria: the first judge run shows a pass rate above 50%.
+    fail_criteria: the first judge run shows a failure rate above 50% and the process did not halt for restructuring (F2).
+  - id: SE-18
+    source_type: failure_condition
+    failure_condition_id: F18
+    constraint_id: C21
+    skill: implement
+    check: the remediation file carries entries from every failing source and zero eval content.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/remediation-{milestone_id}-{iteration}.md"
+    pass_criteria: the remediation file exists with entries from every source that reported a failure and contains zero eval IDs and zero raw judge report content.
+    fail_criteria: a failing source was omitted from remediation, or remediation carried eval IDs/raw judge content (C21, F18).
+  - id: SE-19
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: C29
+    skill: implement
+    check: the outer-fix-loop builder dispatch carries zero test/eval content.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/fix-report-{milestone_id}-{iteration}.yaml"
+    pass_criteria: the fix-loop builder dispatch contains zero test source, test code, assertions, mock data patterns, eval IDs/text, pass criteria, or raw judge content (a bare scope-directory path is permitted).
+    fail_criteria: the fix-loop builder dispatch contains any prohibited test or eval content beyond a bare scope-directory path (C5, C10, C29, F5).
+  - id: SE-20
+    source_type: failure_condition
+    failure_condition_id: F19
+    constraint_id: C22
+    skill: implement
+    check: an eval-audit exists and any negative count delta has per-removed-ID consolidation rationale.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/eval-audit-{iteration}.yaml"
+    pass_criteria: an eval-audit artifact records the count delta, and when the delta is negative each removed eval ID has a consolidation_rationale.
+    fail_criteria: the fresh eval count decreased and one or more removed eval IDs lack a consolidation_rationale (C22, F19).
+  - id: SE-21
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: C11
+    skill: implement
+    check: each fix iteration uses fresh evals, the loop is bounded to 3, and an exhausted loop yields a failure report.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/"
+    pass_criteria: every fix iteration generated fresh evals (not reused), the loop ran at most 3 iterations, and if exhausted a structured failure report exists.
+    fail_criteria: the judge ran against reused evals, the loop exceeded 3 iterations, or an exhausted loop produced no failure report (C9, C11, F3, F10).
+  - id: SE-22
+    source_type: constraint
+    failure_condition_id: F26
+    constraint_id: C33
+    skill: implement
+    check: every code-builder and test-writer dispatch carries the four labeled sections in order.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/"
+    pass_criteria: each dispatch (Steps 6a, 6b, 6d, 10, 10b) contains Description, Preconditions, Expected Behavior, and Verification Steps, labeled and in order, each non-empty.
+    fail_criteria: any dispatch is missing a section, has an unlabeled section, or reorders them (C33, F26).
+  - id: SE-23
+    source_type: failure_condition
+    failure_condition_id: F26
+    constraint_id: C33
+    skill: implement
+    check: the orchestrator halts before invocation when a dispatch section is missing or unlabeled.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/"
+    pass_criteria: when a dispatch lacked a labeled section, the orchestrator halted with F26 before invoking the agent.
+    fail_criteria: an agent was invoked despite a missing or unlabeled dispatch section (C33, F26).
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Engineer
+    artifact_pattern: "{stm_base}/{issue}/milestones/{milestone_id}/status-report.yaml"
+    check: For the named milestone_id, the status report shows COMPLETE with no fix loop, judge pass rate 100%, and the build/type-check pass.
+    pass_criteria: status-report.yaml shows status COMPLETE, judge_eval_review.iterations == 0, judge pass rate 100%, and the build/type-check pass.
+    fail_criteria: the milestone did not complete, a fix loop ran, the judge pass rate is below 100%, or the build/type-check failed.
+  - id: SCE-2
+    scenario_id: S2
+    persona: Engineer
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/judge-report-{milestone_id}.yaml"
+    check: When the first judge run failed, each fix iteration produced fresh evals and a fresh judge run until all evals pass or the budget exhausts.
+    pass_criteria: each fix iteration (≤ 3) has a fresh eval manifest (checksum differs from the prior iteration) and a fresh judge-report, and the final judge run shows 100% pass or a structured failure report exists after iteration 3.
+    fail_criteria: an iteration reused the prior evals, the loop exceeded 3 iterations, or neither a passing final run nor a failure report exists.
+  - id: SCE-3
+    scenario_id: S3
+    persona: QA Engineer
+    artifact_pattern: "{stm_base}/{issue}/context/design/scenarios.yaml + deployed environment"
+    check: Every verification scenario for this milestone is executable against the deployed environment and its behavior matches the expected outcome.
+    pass_criteria: each scenarios.yaml scenario for the milestone runs against the deployed environment and its observed behavior matches the expected outcome, with no codebase read or encrypted-eval reference required.
+    fail_criteria: a scenario cannot be executed against the deployed environment, or observed behavior diverges from the expected outcome.
+  - id: SCE-4
+    scenario_id: S4
+    persona: Security Auditor
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/"
+    check: No agent received content outside its scope and the quality-vision security gates are met.
+    pass_criteria: the builder contract carries only context_path + architecture_context_path, the judge contract carries zero builder prompts, the evals-engineer contract carries zero implementation code, the quality-auditor carries zero eval content, and the security dimension shows PASS.
+    fail_criteria: any agent contract carries out-of-scope content, or the quality-report security dimension fails its gate.
+  - id: SCE-5
+    scenario_id: S5
+    persona: Engineering Lead
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/"
+    check: After 3 exhausted iterations the failure report names persistent failures, a per-iteration remediation table, and a restructure-or-escalate decision point.
+    pass_criteria: the failure report names each persistently failing evaluation, carries an iterations 1–3 remediation table with quality status and judge result, and surfaces a restructure-or-escalate decision point — without inspecting source.
+    fail_criteria: the failure report omits persistent failures, the per-iteration history, or the decision point.
+  - id: SCE-6
+    scenario_id: S6
+    persona: Performance Auditor
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/quality-report-{milestone_id}.yaml"
+    check: Bundle size, lighthouse score, and runtime metrics meet or exceed the quality-vision thresholds.
+    pass_criteria: the quality-report records measured bundle size, lighthouse score, and runtime metrics, and each measured value meets or exceeds its quality-vision.yaml threshold.
+    fail_criteria: a measured performance metric falls below its quality-vision threshold, or a metric is unmeasured.
+  - id: SCE-7
+    scenario_id: S7
+    persona: Evals Engineer
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/judge-report-{milestone_id}.yaml"
+    check: Every eval was executed, every behavior has coverage, and the pass rate meets the threshold.
+    pass_criteria: the judge-report shows executed count == manifest count, every features.yaml behavior maps to at least one eval, and the overall pass rate meets or exceeds the threshold.
+    fail_criteria: an eval was not executed, a behavior lacks eval coverage, or the pass rate is below threshold.
+  - id: SCE-8
+    scenario_id: S8
+    persona: Quality Lead
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/quality-report-{milestone_id}.yaml"
+    check: Every QP dimension with level >= 2 has a non-null threshold and a per-dimension PASS/FAIL with actual measurement; none skipped.
+    pass_criteria: for every QP dimension level >= 2, quality-gates.yaml carries a non-null threshold and the qp_certification section shows that dimension with PASS/FAIL and an actual_value; no level >= 2 dimension is absent.
+    fail_criteria: a QP dimension level >= 2 has a null threshold, is missing from qp_certification, or lacks an actual measurement.
+  - id: SCE-9
+    scenario_id: S9
+    persona: Testing Architect
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/test-files-manifest.yaml"
+    check: Test files were authored by the test-writer from TEST-CONTEXT.md only; the code-builder never received test files; results flowed via spec-referenced status reports.
+    pass_criteria: the test-writer contract input is only test_context_path, the code-builder contract input is only context_path + architecture_context_path (zero test files/code/assertions), and every status report references only tech.yaml contract IDs; tests assert behavioral outcomes.
+    fail_criteria: the code-builder received test files/code/assertions, the test-writer received implementation context, or a status report carried test source.
+  - id: SCE-10
+    scenario_id: S10
+    persona: Build Engineer
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/"
+    check: The judge did not execute while quality-auditor reported FAIL or BLOCKED; a judge-report follows only a PASS with CERTIFIED.
+    pass_criteria: whenever a quality-report shows overall FAIL or qp_certification BLOCKED, no judge-report carries a later timestamp for that iteration; a judge-report exists only after a quality-report showing PASS with CERTIFIED.
+    fail_criteria: a judge-report exists for an iteration whose quality-report showed FAIL or BLOCKED.
+  - id: SCE-11
+    scenario_id: S11
+    persona: Eval Auditor
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/eval-audit-{iteration}.yaml"
+    check: An eval-audit records the per-iteration count delta and every removed eval ID carries a consolidation_rationale.
+    pass_criteria: an eval-audit artifact records the per-iteration count delta, and when the delta is negative every removed eval ID carries a consolidation_rationale; no eval ID disappears without a recorded rationale.
+    fail_criteria: an eval-audit is missing, or a removed eval ID lacks a consolidation_rationale.
+  - id: SCE-12
+    scenario_id: S12
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/{milestone_id}/mock-setup-report.yaml"
+    check: Mock infrastructure was set up before the test-writer ran and mock details never appear in status reports or builder context.
+    pass_criteria: a mock-setup report exists dated before the test-writer dispatch, every external_service and test_double in mock_strategy has a functioning mock, and no status report or builder context contains mock data patterns.
+    fail_criteria: mock setup ran after the test-writer, a mock is missing, or mock data patterns appear in a status report or builder context.
+  - id: SCE-13
+    scenario_id: S13
+    persona: Engineer
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan.yaml"
+    check: Pre-flight resolves the milestone to a LOCKED entry and verifies every depends_on is COMPLETE; invoking a milestone before its predecessor is COMPLETE halts with F24.
+    pass_criteria: pre-flight resolves the milestone to a LOCKED plan.yaml entry and confirms every depends_on milestone is COMPLETE before execution; invoking implement for a milestone whose predecessor is not COMPLETE produces a structured F24 halt with no scope item executed.
+    fail_criteria: a milestone executes while not LOCKED or while a depends_on is not COMPLETE, or an out-of-order invocation does not halt with F24.

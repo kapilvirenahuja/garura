@@ -1,0 +1,377 @@
+# Expectation for the arch play (ICE refactor, #376).
+# Generated from reference/intent.yaml by draft-play-expectation.
+# Two parts only: success_scenarios and recovery.
+
+name: garura:arch
+
+generated_from:
+  intent: core/components/plays/arch/reference/intent.yaml
+
+vetted:
+  status: approved
+  approved_by: autonomous-migration (#376, user-authorized non-stop self-approval)
+  approved_at: "2026-05-25"
+
+# Success scenarios — acceptance AND the checkable definition of done (one bucket).
+success_scenarios:
+  - id: S1
+    persona: Technical Architect
+    given: >
+      The locked five-artifact package with logical, physical, nfr,
+      quality-vision, and design-patterns
+    then: >
+      Can present the architectural direction to stakeholders with every
+      decision traced to a business driver — no "we picked X because we
+      like it" — and can walk through the design-patterns file to show
+      exactly what discipline will govern the build.
+    measure: >
+      Every architectural decision across the five artifacts carries a
+      rationale citing at least one upstream driver (epic constraint,
+      quality-profile target, screen/flow hint, compliance mandate, or
+      design-patterns rationale), and design-patterns.yaml carries at least
+      one entry with name, applicability_scope, and driver at each applicable
+      layer.
+
+  - id: S2
+    persona: Engineering Manager
+    given: >
+      quality-vision.yaml with per-characteristic vision, design linkage,
+      named tooling, thresholds, and lifecycle gates
+    then: >
+      Can set up CI/CD gates and code-review standards without re-deriving
+      the thresholds from scratch, and can explain the "why" of each gate
+      to the team from the vision section.
+    measure: >
+      Every relevant ISO 25010 characteristic entry in quality-vision.yaml
+      populates vision narrative, named tooling, quantified thresholds, and
+      lifecycle gates — no entry uses vague language without a named tool,
+      a number, or a concrete practice.
+
+  - id: S3
+    persona: Implementation Lead
+    given: >
+      logical-architecture.yaml components mapped to an epic's capability,
+      physical-architecture.yaml stack for those components, and
+      design-patterns.yaml patterns applicable at the component's layer
+    then: >
+      Can scope the implementation plan knowing which components are
+      touched, which products implement them, and which patterns govern
+      the code structure.
+    measure: >
+      Every selected capability from scope.yaml maps to at least one
+      logical-architecture component, every such component has a named
+      physical stack pick, and design-patterns.yaml carries a
+      component-level entry for each declared runtime tier.
+
+  - id: S4
+    persona: Security Architect
+    given: >
+      nfr-spec.yaml security entries + security-related ADRs + auth
+      section of physical-architecture.yaml
+    then: >
+      Can verify that every security constraint from the upstream epics
+      has a named delivery mechanism and a verification method.
+    measure: >
+      Every security-related NFR in nfr-spec.yaml carries a named delivery
+      mechanism (a product in physical-architecture.yaml or a pattern in
+      design-patterns.yaml) and a verification method, and the auth section
+      of physical-architecture.yaml names a specific auth product.
+
+  - id: S5
+    persona: Product Manager
+    given: >
+      The five-artifact package at final review
+    then: >
+      Can assess whether the chosen architecture fits the appetite and
+      team skillset, read the quality-vision narrative in plain English,
+      and push back on over-engineering at the design-patterns checkpoint.
+    measure: >
+      The design-patterns checkpoint artifact presents the system-level,
+      layer-level, and component-level pattern selections with their drivers,
+      and quality-vision.yaml carries a plain-English vision narrative per
+      characteristic readable without architecture context.
+
+  - id: S6
+    persona: DevOps / Platform Engineer
+    given: >
+      physical-architecture.yaml deployment section + quality-vision.yaml
+      operational standards + cross-cutting patterns from
+      design-patterns.yaml
+    then: >
+      Can plan infrastructure-as-code, observability, on-call procedures,
+      and resilience patterns without needing the architect to clarify
+      intent.
+    measure: >
+      physical-architecture.yaml populates the deployment topology and a
+      named observability stack, and design-patterns.yaml carries a
+      cross-cutting pattern entry whenever any NFR names resilience,
+      idempotency, or consistency as a driver.
+
+  - id: S7
+    persona: Senior Developer (onboarding)
+    given: >
+      design-patterns.yaml with system-level, layer-level, and component-
+      level patterns plus rationale
+    then: >
+      Can understand the codebase's structural rules before reading a
+      single file — knows whether to expect MVC controllers, hexagonal
+      ports, repository adapters, or event handlers, and why each
+      choice was made.
+    measure: >
+      design-patterns.yaml carries a named system-level pattern, a named
+      layer-level pattern (when the product has a backend), and a
+      component-level pattern per runtime tier, each with a driver and
+      alternatives_considered populated.
+
+# Recovery — one entry per failure condition in intent.yaml. The validator turns a
+# tripped failure into a recovery handoff plan and routes it: `autonomous` loops the
+# fix back to the builder; `human` escalates for a manual call.
+recovery:
+  - id: REC1
+    for_failure: F1                 # canonical artifact missing/empty/zero entries
+    trigger: >
+      The play completes with any of the five canonical artifacts missing,
+      empty, or carrying zero entries in its primary section (zero components
+      in logical, zero stack picks in physical, zero NFRs in nfr-spec, zero
+      ISO 25010 entries in quality-vision, zero patterns in design-patterns).
+    direction: >
+      Every one of the five artifacts must exist with a non-empty primary
+      section; re-run the derive stage that owns the missing or empty artifact
+      so its primary section carries at least one entry.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC2
+    for_failure: F2                 # category term instead of specific product
+    trigger: >
+      A technology choice in physical-architecture.yaml uses a category term
+      ("a relational database", "a message queue") rather than a specific
+      product name.
+    direction: >
+      Every physical-architecture technology choice must name a specific
+      product or library; re-derive the offending slot so it carries a
+      concrete product name in place of the category term.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC3
+    for_failure: F3                 # implementation token leaked into logical
+    trigger: >
+      logical-architecture.yaml contains a product name, protocol, wire
+      format, schema column definition, or programming-language identifier.
+    direction: >
+      logical-architecture.yaml must stay technology-agnostic; re-author the
+      offending entries with pure structural vocabulary so no implementation
+      token remains.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC4
+    for_failure: F4                 # decision lacks a cited driver
+    trigger: >
+      An architectural decision across the five artifacts lacks a cited
+      driver from the upstream specify/design artifacts.
+    direction: >
+      Every architectural decision must cite at least one upstream driver
+      (epic constraint, quality-profile target, screen/flow hint, compliance
+      mandate, or design-patterns rationale); re-derive the decision so it
+      carries the citation.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC5
+    for_failure: F5                 # capability with zero component mappings
+    trigger: >
+      A capability from scope.yaml has zero mappings to components in
+      logical-architecture.yaml.
+    direction: >
+      Every selected capability must map to at least one logical component;
+      re-derive the logical architecture so the orphan capability gains a
+      component mapping.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC6
+    for_failure: F6                 # NFR with no named delivery mechanism
+    trigger: >
+      An NFR in nfr-spec.yaml has no named delivery mechanism in
+      physical-architecture.yaml or design-patterns.yaml.
+    direction: >
+      Every NFR must name a specific delivery mechanism (a product from
+      physical-architecture.yaml or a pattern from design-patterns.yaml);
+      re-derive the NFR so its delivery mechanism is named.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC7
+    for_failure: F7                 # relevant ISO 25010 char missing/incomplete
+    trigger: >
+      A relevant ISO 25010 characteristic from the upstream quality-profile
+      has no entry in quality-vision.yaml, or an entry lacks vision narrative,
+      design_linkage, tooling, thresholds, or lifecycle gates.
+    direction: >
+      Every relevant ISO 25010 characteristic must have a complete
+      quality-vision entry; re-derive the quality vision so every relevant
+      characteristic carries narrative, design_linkage, tooling, thresholds,
+      and lifecycle gates.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC8
+    for_failure: F8                 # vague quality-vision language, no named tooling
+    trigger: >
+      A quality-vision entry uses vague language ("use a linter", "test
+      thoroughly") without named tooling, thresholds, or concrete practices.
+    direction: >
+      Every quality-vision entry must name concrete tooling and quantified
+      thresholds; re-author the offending entry with a specific tool, a
+      number, and a concrete practice in place of the vague language.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC9
+    for_failure: F9                 # design-patterns missing a required layer
+    trigger: >
+      design-patterns.yaml is missing a system-level pattern, a layer-level
+      pattern when the product has a backend, a component-level pattern for a
+      declared runtime tier, or a cross-cutting pattern when an NFR names
+      resilience, idempotency, or consistency.
+    direction: >
+      design-patterns.yaml must cover every applicable layer; re-derive the
+      design patterns so the missing layer gains at least one pattern entry.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC10
+    for_failure: F10                # non-obvious decision shipped without an ADR
+    trigger: >
+      A non-obvious architectural decision (two viable alternatives existed
+      AND the choice narrows a future path) ships without an ADR in the
+      adr_log.
+    direction: >
+      Every non-obvious decision must carry an ADR recording decision,
+      alternatives, chosen option, and upstream driver; re-derive so the
+      missing ADR is added to logical-architecture.yaml's adr_log.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC11
+    for_failure: F11                # a mandatory checkpoint artifact is missing
+    trigger: >
+      One of the five mandatory checkpoint artifacts (logical, physical, nfr,
+      quality-vision, design-patterns) is missing.
+    direction: >
+      Every one of the five checkpoints must produce its artifact and capture
+      an explicit human Tether/Vanish/Orbit before its gate opens; the missing
+      gate cannot be self-granted — pause at the checkpoint and obtain the
+      human response.
+    handoff: human
+    derivable_at_l4: false
+
+  - id: REC12
+    for_failure: F12                # write outside whitelist / bypassed scriber
+    trigger: >
+      An artifact was written outside the ADR 017 whitelist, or an evidence /
+      checkpoint / status file was written without going through the scriber
+      agent.
+    direction: >
+      Every artifact must land under the ADR 017 whitelist and every
+      evidence/checkpoint/status write must go through scriber; re-route the
+      offending write to a whitelisted path via scriber dispatch.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC13
+    for_failure: F13                # play produced code / tests / implementation
+    trigger: >
+      The play produced code, test suites, or implementation-level work
+      products.
+    direction: >
+      arch produces only the five handoff artifacts and never code or tests;
+      remove the offending implementation work product so the architecture
+      output stays specification-only.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC14
+    for_failure: F14                # multi-candidate committed without asking user
+    trigger: >
+      A decision was committed to a single product or pattern name when the KB
+      catalog offered more than one legitimate candidate for the slot AND
+      grounded_tools did not pin the choice AND the user was not asked via
+      grounding-questions.md or a checkpoint.
+    direction: >
+      A multi-candidate slot may not be committed unilaterally; the choice
+      among legitimate candidates is a user pick the builder cannot make —
+      surface the candidate set via grounding-questions.md or a checkpoint and
+      obtain the user's selection before committing.
+    handoff: human
+    derivable_at_l4: false
+
+  - id: REC15
+    for_failure: F15                # source_type = agent_default_unilateral
+    trigger: >
+      A decision in physical-architecture.yaml or design-patterns.yaml carries
+      source_type = agent_default_unilateral.
+    direction: >
+      No decision may ship as a unilateral agent default; legitimizing it
+      requires either a grounded_tools pin or explicit user approval — neither
+      of which the builder can self-grant — so surface the decision for the
+      user to approve or override before it stands.
+    handoff: human
+    derivable_at_l4: false
+
+  - id: REC16
+    for_failure: F16                # decision conflicts with grounded_tools pin
+    trigger: >
+      A decision conflicts with the corresponding project-profile
+      grounded_tools pin.
+    direction: >
+      grounded_tools pins are authoritative; re-derive the offending slot so
+      it uses the pinned value exactly and tags the decision source_type =
+      grounded_tools_pin.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC17
+    for_failure: F17                # mistagged single-candidate; KB had several
+    trigger: >
+      A decision is tagged source_type = kb_catalog_single_candidate but the
+      KB actually offered more than one legitimate candidate for the slot
+      given the project-profile.
+    direction: >
+      A multi-candidate slot is mis-labelled as single; the real choice among
+      candidates is a user pick the builder cannot make — surface the true
+      candidate set for the user to select from and re-tag the decision per
+      that selection.
+    handoff: human
+    derivable_at_l4: false
+
+  - id: REC18
+    for_failure: F18                # inferred decision committed without surfacing
+    trigger: >
+      A skill committed an inferred decision into one of the five artifacts
+      without first surfacing it to the user via the tier-appropriate flow
+      defined in C18.
+    direction: >
+      No inferred decision may be committed before it is surfaced and a user
+      response is recorded; the surfacing flow needs a human
+      Tether/Orbit/Vanish the builder cannot self-grant — run the
+      tier-appropriate surfacing flow for the unsurfaced decision before it
+      influences downstream artifacts.
+    handoff: human
+    derivable_at_l4: false
+
+  - id: REC19
+    for_failure: F19                # missing or malformed decision manifest
+    trigger: >
+      A decision-producing skill completed without writing a
+      decision-manifest-{skill}.yaml, or wrote a manifest that omits tier,
+      grounding_source, recommendation, or alternatives_considered for any
+      decision, or failed to update user_response after the surfacing flow.
+    direction: >
+      Every decision-producing skill must emit a complete decision-manifest
+      with all required fields and updated user_response; re-run the skill so
+      a well-formed manifest is written alongside its primary artifact.
+    handoff: autonomous
+    derivable_at_l4: true

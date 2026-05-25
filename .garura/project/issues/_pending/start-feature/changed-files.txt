@@ -1,0 +1,4 @@
+ M .garura/project/issues/373/status/fix-it.json
+ M docs/philosophy/intent-driven-development.md
+?? .claude/specs/codify-enrich-cold-start-writes/
+?? .claude/specs/ice-refactor/

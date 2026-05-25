@@ -143,59 +143,8 @@ failure_conditions:
       explicit statement of what did not change, deferred follow-ups, and
       the self-check results.
 
-scenarios:
-  - id: S1
-    persona: Developer
-    given: >
-      The git history of a refactor session targeting a specified module,
-      with a clean working tree and a green test suite at the start.
-    then: >
-      Can review a sequence of small `refactor:` (and possibly `test:`)
-      commits, each of which can be checked out independently and runs
-      green, and can confidently revert any single commit without
-      breaking the build.
-  - id: S2
-    persona: Tech Lead
-    given: >
-      The final report produced by the refactor play.
-    then: >
-      Can verify behaviour preservation at a glance — baseline vs final
-      test counts and runtime, a public-API diff that is empty or matches
-      the authorised list, and an explicit list of what did NOT change —
-      without having to re-derive any of it from the diff.
-  - id: S3
-    persona: Reviewer of the resulting pull request
-    given: >
-      The diff and commit log produced by the play.
-    then: >
-      Can confirm that every commit is a single refactor move with a
-      conventional prefix, no test was deleted or weakened, no new
-      dependency was added, and any deferred work appears in FOLLOWUPS.md
-      rather than being smuggled into the diff.
-  - id: S4
-    persona: Developer
-    given: >
-      A target scope where the existing test suite was already failing
-      before the play was invoked.
-    then: >
-      Receives an immediate halt with a clear report that refactoring on
-      red is forbidden, and no commits have been made to the branch.
-  - id: S5
-    persona: Developer
-    given: >
-      A target scope with thin test coverage and a stated refactor goal.
-    then: >
-      Receives, before any structural change, a `test:` commit (or
-      commits) introducing characterization tests that pin the current
-      behaviour, so the subsequent refactor commits are protected by an
-      explicit safety net.
-  - id: S6
-    persona: Product Owner
-    given: >
-      The deployed application after the refactor branch has been merged.
-    then: >
-      Observes no change in features, no change in API contracts, no
-      change in user-facing behaviour, and no change in upstream/
-      downstream integrations.
+# Scenarios moved to reference/expectation.yaml (ICE refactor, #376).
+# Intent is now the clean triple. Expectation carries success_scenarios (S1-S6)
+# and recovery (REC1-REC12, one per failure condition).
 
 version: 1.0.0

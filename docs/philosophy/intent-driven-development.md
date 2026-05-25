@@ -68,6 +68,44 @@ VIBE CODING                          SPEC-DRIVEN DEVELOPMENT
 
 ---
 
+## The ICE Structure: Intent, Context, Expectation
+
+The eight elements describe the *machinery*. ICE describes the three *artifacts* that machinery moves — the documents every piece of work is built from. ICE sits across the eight elements: **Intent** is Element 1, **Context** is Elements 5 and 7, and **Expectation** is the generated spec layer the Specifier produces and Element 8 verifies.
+
+| Layer | What it holds | Authored or generated |
+|-------|---------------|-----------------------|
+| **Intent** | goal, constraints, failure conditions | Human-authored, stable |
+| **Context** | the tech, design, standards, and the pathway to build — in a Garura system, the plays, skills, and sub-agents the work runs inside | Assembled from memory (LTM + STM) |
+| **Expectation** | success scenarios, recovery | Generated from Intent + Context, then vetted at a human checkpoint |
+
+**Intent — the clean triple.** Goal, constraints, failure conditions. Nothing else lives here. Success scenarios and recovery are *not* authored into Intent; they are generated one layer down, in Expectation. Keeping Intent to the triple is what keeps it stable across implementation change (Element 1).
+
+**Context — the surround.** The technology, design patterns, standards, and the build pathway the work travels. This is Memory (Element 5) made concrete for the task through context-aware assembly (Element 7). The builder receives all of it.
+
+**Expectation — the generated spec.** Two parts:
+- **Success scenarios** — what a consumer can do with the output (persona / given / then), which is *also* the checkable definition of done. Acceptance and done-target are one thing, not two — the target the builder marches toward and the signal that decides stop-or-go: while a success scenario is unmet, keep going; when all are met, stop. Evals are built from these.
+- **Recovery** — for each failure condition, the policy for getting back to a good state. Recovery goes to the **validator**, which uses it (with the eval results) to build a *recovery handoff plan* — directional, not implementation ("unit tests are at 50%; here are the failing ones; raise them to green") — and to decide who acts: route the plan back to the builder for an autonomous fix, or escalate to a human for manual review. Recovery's *generation rules* are what `intent-resolver` leans on, and they become the backbone of Level 4 autonomy, where the recovery plan executes without a human in the loop.
+
+Expectation is **generated, never hand-authored, and never trusted until vetted** — a human approves it at a checkpoint before it governs anything. This is Element 8 applied to the spec layer itself.
+
+### How ICE routes under the barrier (P4)
+
+The barrier is **applied proportionally, not always** — it earns its keep on judgment-heavy work (the heavy lifting of coding, where many valid outputs exist) and is skipped for mechanical, single-output tasks, which just run the validator as a plain regression check (see "When Compartmented Evaluation Applies" under Principle 4). When it is on:
+
+Evals are the verification instrument, built by a **separate agent** that reads all of ICE and compiles them from **failure conditions + success scenarios**. Those evals are then **encrypted** — locked away from the builder, so it cannot optimize to the test.
+
+| Who | Receives | Never receives |
+|-----|----------|----------------|
+| **Builder** | goal, constraints, all of Context, success scenarios; and the validator's recovery handoff plan when a fix is routed back to it | failure conditions, recovery conditions, the evals |
+| **Eval author** (separate agent) | all of ICE | builder output |
+| **Validator** | the implementation, the decrypted evals, Context, the recovery conditions | — |
+
+The builder marches toward the goal, follows the constraints it knows, uses all the context it was handed, invents no context of its own, and keeps working until it has succeeded. The validator sees the implementation and validates it against the evals — evals written so that every success scenario is met and no failure condition occurs. Everything that must be tested has to live within the validator's context.
+
+The success scenarios are the part of the spec the builder *does* see — it needs the target to know when to stop. When the barrier is on, it holds anyway, because the evals themselves and the failure conditions stay hidden and encrypted. The builder knows where the finish line is; it does not get to see the judges' scorecards.
+
+---
+
 ## The Eight Elements of IDD
 
 IDD consists of eight core elements spanning three domains: human, AI, and the handshake between them.
@@ -128,13 +166,13 @@ When compartmented evaluation applies, the three elements are routed to differen
 
 This routing is the operational mechanism of P4. The orchestration layer (plays in IDSD) is responsible for splitting the intent and routing each element to the correct agent.
 
-**Why not Success Criteria?** In IDD, the intent itself defines success — achieving the stated outcome IS success. Success criteria are an **operationalized decomposition** of intent (e.g., "registration completes in < 2s, works on mobile, sends confirmation email"). That operationalization is the Specifier agent's job, informed by organizational memory and context. Success criteria belong in the **generated spec layer**, not the human-authored intent layer. Adding them to intent does the Specifier's work for it — which is exactly the SDD pattern IDD rejects.
+**Why success is not in Intent — and where it lives instead.** Success is not hand-authored into Intent. Intent's job is to state the outcome; *operationalizing* success ("registration completes in < 2s, works on mobile, sends a confirmation email") is the Specifier's job, informed by Context and memory. But success is not merely *implicit* either — that was the old framing, and it left agents with no concrete signal for when to stop. Success is generated, explicitly, into the **Expectation** layer as success scenarios, then vetted at a human checkpoint. It is the target the builder marches toward and the source the evals are built from. Putting it in Expectation rather than Intent keeps Intent stable while still giving the system a checkable finish line. Authoring it directly into Intent would do the Specifier's work for it — the SDD pattern IDD rejects.
 
-**The three elements create a complete decision space for agents:**
-- Am I moving toward the intent? → continue *(builder evaluates)*
-- Am I within constraints? → continue *(builder evaluates)*
-- Have I hit a failure condition? → halt *(validator evaluates)*
-- Have I achieved the intent? → done — success is implicit in intent *(builder evaluates)*
+**The decision space, restated for ICE:**
+- Am I moving toward the goal? → continue *(builder, from Intent)*
+- Am I within constraints? → continue *(builder, from Intent)*
+- Have I reached success? → the builder aims at the success target it can see; the authoritative stop is the success evals, run against the output — which the builder never sees
+- Did the implementation trip a failure condition? → the validator catches it against the evals *(builder never sees these)*
 
 **Intent quality rule**: An intent must be clear enough that success is self-evident from its statement. If you cannot tell whether the intent has been achieved, the intent is poorly formed — the fix is upstream (sharpen the intent), not downstream (bolt on success criteria).
 
@@ -169,7 +207,7 @@ Failure Conditions: Registration fails silently. PII is logged to stdout. User d
 - Intent is authored in business language accessible to non-technical stakeholders
 - Intent remains stable across implementation changes
 - Every intent must have all three elements: intent, constraints, failure conditions
-- Success criteria are generated intermediates — they belong in specs, not intents
+- Success scenarios and recovery are generated into the Expectation layer and vetted at a checkpoint — never hand-authored into Intent
 - An intent that requires success criteria to be understood is a poorly formed intent
 - Orchestration translates intent into structured goals with high-level steps
 - Agents are responsible for translating intent into specifications (including derived success criteria)
@@ -237,8 +275,9 @@ Orchestration ──► Agent ──► Skill(s) ──► Execute
 | **Level 1** | One-Shot Flows | Simple, single-task executions | Direct input → output | Generate a unit test, commit code |
 | **Level 2** | Composed Workflows | Multi-task workflows combining several steps | Human-in-the-loop | Implement a story with review checkpoints |
 | **Level 3** | Autonomous Execution | Goal-driven, runs to completion | Approval gates only | End-to-end bug fix → PR → deploy |
+| **Level 4** | Autonomous Recovery | Self-heals: derives and executes recovery from failure conditions without per-step human approval | Recovery checkpoints only | Failure detected → recovery generated and applied |
 
-> **Current State**: Level 1 and Level 2 are implemented. Level 3 (Autonomous Execution) is planned.
+> **Current State**: Level 1 and Level 2 are implemented. Level 3 (Autonomous Execution) is planned. Level 4 (Autonomous Recovery) is the trajectory — it depends on recovery conditions being generated as specs in the Expectation layer so `intent-resolver` can act on them without a human in the loop.
 
 **Rules**:
 - All system interactions start with orchestration
@@ -743,16 +782,24 @@ The fix is an **information barrier**: the builder and validator operate with de
 
 #### The Routing Table
 
-| Intent Element | Builder Agent Receives | Validator Agent Receives |
-|----------------|----------------------|------------------------|
-| **Goal** | ✓ Yes | ✗ No |
-| **Constraints** | ✓ Yes | ✗ No |
-| **Failure Conditions** | ✗ No | ✓ Yes |
-| **Builder Output** | — (produces it) | ✓ Yes |
+Evals are compiled by a separate agent from failure conditions + scenarios + success, then encrypted. The builder never sees them.
 
-The builder works from **goal + constraints** — it knows what to achieve and what boundaries to respect, but not what specific checks will be applied.
+| ICE element | Builder | Eval author | Validator |
+|-------------|---------|-------------|-----------|
+| **Goal** (Intent) | ✓ | ✓ | ✗ |
+| **Constraints** (Intent) | ✓ | ✓ | ✗ |
+| **Failure conditions** (Intent) | ✗ | ✓ | via evals |
+| **Context** | ✓ (all) | ✓ | ✓ |
+| **Success scenarios** (Expectation) | ✓ | ✓ | via evals |
+| **Recovery** (Expectation) | only the resulting handoff plan | — | ✓ (builds the recovery handoff plan) |
+| **Encrypted evals** | ✗ never | produces | ✓ (decrypts) |
+| **Implementation** | produces | ✗ | ✓ |
 
-The validator works from **failure conditions + builder output** — it knows what bad looks like and can evaluate the output, but doesn't know the original goal or constraints that shaped the builder's choices.
+The builder works from **goal + constraints + all of Context + success scenarios** — it knows what to achieve, the boundaries, the surround, and the finish line, but not the evals or the failure conditions.
+
+The validator works from **the implementation + the decrypted evals + Context + the recovery conditions** — the evals encode every scenario, success, and failure condition, so it checks against them without needing the raw Intent, and the recovery conditions let it turn failures into a directional recovery handoff plan that either loops back to the builder for an autonomous fix or escalates to a human. Everything that must be tested has to live within the validator's context.
+
+When the barrier is on, it holds because the **evals are encrypted and the failure conditions stay hidden from the builder** — the builder cannot teach to a test it cannot see, even though it knows the success target it is aiming at.
 
 #### The Constraint-Failure Classification Rule
 

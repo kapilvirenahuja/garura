@@ -1,0 +1,71 @@
+# Expectation Schema — Canonical Contract (ICE)
+# The generated, human-vetted spec layer that pairs with intent.yaml.
+# Produced by draft-play-expectation (via the expectation-crafter agent) inside
+# /create-play, then approved by a human at the create-play checkpoint.
+# Consumed by /create-play (evals from success_scenarios; Recovery section from
+# recovery) and validated by lint-components.
+#
+# Expectation has TWO zones: metadata and content. Both are required.
+
+# ──────────────────────────────────────────────────────────────────────────
+# METADATA ZONE
+# ──────────────────────────────────────────────────────────────────────────
+
+name: <string>                 # Matches the play/intent name (kebab-case).
+
+generated_from:
+  intent: <path>               # The intent.yaml this was generated from.
+  context_digest: <string>     # Optional — what Context was in scope at generation.
+
+vetted:
+  status: pending | approved   # NEVER governs anything while `pending`.
+                               # Only a human sets `approved`, at the
+                               # create-play checkpoint.
+  approved_by: <string>        # Optional — who approved.
+  approved_at: <ISO-8601>      # Optional.
+
+# ──────────────────────────────────────────────────────────────────────────
+# CONTENT ZONE — the two canonical fields
+# ──────────────────────────────────────────────────────────────────────────
+
+success_scenarios:             # Acceptance AND the checkable definition of done —
+                               # one bucket, never split. The stop/go target and
+                               # the source the scenario evals are compiled from.
+  - id: <string>               # Unique ID (S1, S2, ...)
+    persona: <string>          # A human role who consumes the output
+    given: <string>            # An artifact they receive
+    then: <string>             # What they can do with it = the done-target
+    measure: <string>          # Observable, binary — how "met" is decided.
+                               # The eval is built from this.
+
+recovery:                      # One entry per failure condition in the intent.
+                               # The validator turns a tripped failure into a
+                               # recovery handoff plan and routes it.
+  - id: <string>               # Unique ID (REC1, REC2, ...)
+    for_failure: <string>      # The intent failure condition this recovers from (F-id)
+    trigger: <string>          # The failure state the validator observes
+    direction: <string>        # Directional handoff toward a better state —
+                               # NOT implementation, NOT code.
+    handoff: autonomous | human  # autonomous = loop the fix back to the builder;
+                                 # human = escalate for a manual call.
+    derivable_at_l4: <bool>    # May intent-resolver execute the autonomous path
+                               # without a human (Level 4 autonomy).
+
+# ──────────────────────────────────────────────────────────────────────────
+# Generation rules
+# ──────────────────────────────────────────────────────────────────────────
+#
+# How success_scenarios and recovery are derived from the intent triple lives in
+# standards/rules/expectation-generation.md (the autonomous-vs-human handoff rule,
+# the one-recovery-per-failure-condition rule, the measure derivation). That file
+# is the source of truth for draft-play-expectation.
+#
+# ──────────────────────────────────────────────────────────────────────────
+# Validation (enforced by lint-components)
+# ──────────────────────────────────────────────────────────────────────────
+#
+#   - success_scenarios: non-empty; each entry has persona, given, then, measure.
+#   - recovery: non-empty; exactly one entry per intent failure condition; every
+#     for_failure resolves to a real failure condition; no dangling entries.
+#   - A migrated play (intent is the triple) MUST have an expectation.yaml; a
+#     legacy play (scenarios still in intent.yaml) does not yet.

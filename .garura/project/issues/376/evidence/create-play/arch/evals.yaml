@@ -1,0 +1,247 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: validate-architecture-spec
+    check: All five canonical artifacts exist and each carries a non-empty primary section (>=1 component in logical, >=1 stack pick in physical, >=1 NFR in nfr-spec, >=1 ISO 25010 entry in quality-vision, >=1 pattern in design-patterns) — validation V1/V2 pass.
+    artifact_pattern: "{product_base}architecture/validation-result.yaml"
+    pass_criteria: V1 and V2 pass; every artifact present with a non-empty primary section.
+    fail_criteria: Any artifact missing, empty, or with zero entries in its primary section.
+
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: validate-architecture-spec
+    check: Every technology choice in physical-architecture.yaml names a specific product — V5 (named-product) passes with zero category-term violations.
+    artifact_pattern: "{product_base}architecture/validation-result.yaml"
+    pass_criteria: V5 passes; no physical-architecture choice uses a category term.
+    fail_criteria: Any physical-architecture technology choice uses a category term rather than a product name.
+
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: validate-architecture-spec
+    check: logical-architecture.yaml is technology-agnostic — V3 (logical-purity) passes with zero product/protocol/wire-format/schema-column/language-identifier tokens.
+    artifact_pattern: "{product_base}architecture/validation-result.yaml"
+    pass_criteria: V3 passes; logical-architecture.yaml carries no implementation token.
+    fail_criteria: logical-architecture.yaml contains a product name, protocol, wire format, schema column definition, or language identifier.
+
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: validate-architecture-spec
+    check: Every architectural decision across the five artifacts carries a cited upstream driver — V19 (driver-citation) passes with zero uncited decisions.
+    artifact_pattern: "{product_base}architecture/validation-result.yaml"
+    pass_criteria: V19 passes; every decision cites at least one upstream driver.
+    fail_criteria: Any architectural decision lacks a cited driver.
+
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: null
+    skill: validate-architecture-spec
+    check: Every selected capability from scope.yaml maps to at least one component in logical-architecture.yaml — V4 (capability-coverage) passes with zero orphan capabilities.
+    artifact_pattern: "{product_base}architecture/validation-result.yaml"
+    pass_criteria: V4 passes; every selected capability maps to >=1 logical component.
+    fail_criteria: Any selected capability has zero component mappings.
+
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: null
+    skill: validate-architecture-spec
+    check: Every NFR in nfr-spec.yaml names a delivery mechanism in physical-architecture.yaml or design-patterns.yaml — V9 and V20 (NFR-mechanism, forward-ref resolution) pass.
+    artifact_pattern: "{product_base}architecture/validation-result.yaml"
+    pass_criteria: V9 and V20 pass; every NFR has a named delivery mechanism and all forward refs are resolved.
+    fail_criteria: Any NFR has no named delivery mechanism, or a forward ref remains unresolved at close.
+
+  - id: SE-7
+    source_type: failure_condition
+    failure_condition_id: F7
+    constraint_id: null
+    skill: validate-architecture-spec
+    check: Every relevant ISO 25010 characteristic has a complete quality-vision.yaml entry (vision, design_linkage, tooling, thresholds, lifecycle gates) — V10 and V11 pass.
+    artifact_pattern: "{product_base}architecture/validation-result.yaml"
+    pass_criteria: V10 and V11 pass; every relevant characteristic has a complete entry.
+    fail_criteria: A relevant ISO 25010 characteristic has no entry, or an entry lacks a required sub-field.
+
+  - id: SE-8
+    source_type: failure_condition
+    failure_condition_id: F8
+    constraint_id: null
+    skill: validate-architecture-spec
+    check: No quality-vision.yaml entry uses vague language without named tooling, thresholds, or concrete practices — V12 (concreteness) passes.
+    artifact_pattern: "{product_base}architecture/validation-result.yaml"
+    pass_criteria: V12 passes; every entry names concrete tooling and quantified thresholds.
+    fail_criteria: Any quality-vision entry uses vague language without a named tool, number, or concrete practice.
+
+  - id: SE-9
+    source_type: failure_condition
+    failure_condition_id: F9
+    constraint_id: null
+    skill: validate-architecture-spec
+    check: design-patterns.yaml covers every applicable layer — system-level, layer-level (when backend), component-level per runtime tier, cross-cutting (when an NFR names resilience/idempotency/consistency) — V13 passes.
+    artifact_pattern: "{product_base}architecture/validation-result.yaml"
+    pass_criteria: V13 passes; no applicable layer is empty.
+    fail_criteria: A required system/layer/component/cross-cutting pattern is missing.
+
+  - id: SE-10
+    source_type: failure_condition
+    failure_condition_id: F10
+    constraint_id: null
+    skill: validate-architecture-spec
+    check: Every non-obvious architectural decision carries an ADR in the adr_log — V17 and V18 (ADR presence/completeness) pass.
+    artifact_pattern: "{product_base}architecture/validation-result.yaml"
+    pass_criteria: V17 and V18 pass; every non-obvious decision has an ADR with decision, alternatives, chosen option, and driver.
+    fail_criteria: A non-obvious decision ships without an ADR, or an ADR is incomplete.
+
+  - id: SE-11
+    source_type: failure_condition
+    failure_condition_id: F11
+    constraint_id: null
+    skill: scriber
+    check: All five mandatory checkpoint artifacts (logical, physical, nfr, quality-vision, design-patterns) exist under the checkpoint directory and each carries a recorded Tether/Vanish/Orbit response.
+    artifact_pattern: "{product_base}_checkpoints/arch/"
+    pass_criteria: All five checkpoint artifacts exist with a recorded human response.
+    fail_criteria: Any of the five checkpoint artifacts is missing or proceeded without a recorded response.
+
+  - id: SE-12
+    source_type: failure_condition
+    failure_condition_id: F12
+    constraint_id: null
+    skill: play
+    check: Every artifact produced lands under the ADR 017 whitelist and every evidence/checkpoint/status/manifest write went through the scriber agent.
+    artifact_pattern: "{product_base}_evidence/arch/, {product_base}architecture/"
+    pass_criteria: All produced files are within the ADR 017 whitelist and all evidence/checkpoint/status writes went through scriber.
+    fail_criteria: A file is written outside the whitelist, or an evidence/checkpoint/status file bypassed scriber.
+
+  - id: SE-13
+    source_type: failure_condition
+    failure_condition_id: F13
+    constraint_id: null
+    skill: play
+    check: The architecture/ directory contains only specification artifacts — no code files, no test suites, no implementation-level work products.
+    artifact_pattern: "{product_base}architecture/"
+    pass_criteria: The output is specification-only — no code or test suites produced.
+    fail_criteria: The play produced code, test suites, or implementation-level work products.
+
+  - id: SE-14
+    source_type: failure_condition
+    failure_condition_id: F14
+    constraint_id: null
+    skill: derive-physical-architecture
+    check: No decision is committed to a single product or pattern name where the KB catalog offered more than one legitimate candidate AND grounded_tools did not pin AND the user was not asked via grounding-questions.md or a checkpoint — physical decision manifest shows no silent multi-candidate commit.
+    artifact_pattern: "{product_base}architecture/decision-manifest-derive-physical-architecture.yaml"
+    pass_criteria: Every multi-candidate slot was pinned, asked via grounding-questions.md, or surfaced at a checkpoint before commit.
+    fail_criteria: A multi-candidate slot was committed to a single name without a pin, grounding question, or checkpoint approval.
+
+  - id: SE-15
+    source_type: failure_condition
+    failure_condition_id: F15
+    constraint_id: null
+    skill: validate-architecture-spec
+    check: No decision in physical-architecture.yaml or design-patterns.yaml carries source_type = agent_default_unilateral — V6 and V14 pass.
+    artifact_pattern: "{product_base}architecture/validation-result.yaml"
+    pass_criteria: V6 and V14 pass; no decision is tagged agent_default_unilateral.
+    fail_criteria: Any decision carries source_type = agent_default_unilateral.
+
+  - id: SE-16
+    source_type: failure_condition
+    failure_condition_id: F16
+    constraint_id: null
+    skill: validate-architecture-spec
+    check: No decision conflicts with the corresponding project-profile grounded_tools pin — V7 (grounded-tools-honouring) passes.
+    artifact_pattern: "{product_base}architecture/validation-result.yaml"
+    pass_criteria: V7 passes; every grounded_tools pin is honoured exactly.
+    fail_criteria: A decision conflicts with a grounded_tools pin.
+
+  - id: SE-17
+    source_type: failure_condition
+    failure_condition_id: F17
+    constraint_id: null
+    skill: validate-architecture-spec
+    check: No decision tagged source_type = kb_catalog_single_candidate where the KB actually offered more than one legitimate candidate for the slot — V8 (single-candidate-truth) passes.
+    artifact_pattern: "{product_base}architecture/validation-result.yaml"
+    pass_criteria: V8 passes; every kb_catalog_single_candidate tag reflects a genuine single-candidate slot.
+    fail_criteria: A decision is tagged kb_catalog_single_candidate but the KB offered more than one candidate.
+
+  - id: SE-18
+    source_type: failure_condition
+    failure_condition_id: F18
+    constraint_id: null
+    skill: play
+    check: Before each checkpoint closes, the decision-surfacing flow has run for that stage's manifest — every entry carries a non-null user_response and low-tier entries were presented one-by-one — V15 and V16 pass.
+    artifact_pattern: "{product_base}architecture/validation-result.yaml"
+    pass_criteria: V15 and V16 pass; every manifest entry has a non-null user_response before its downstream artifact is consumed.
+    fail_criteria: An inferred decision was committed without being surfaced via the tier-appropriate flow.
+
+  - id: SE-19
+    source_type: failure_condition
+    failure_condition_id: F19
+    constraint_id: null
+    skill: validate-architecture-spec
+    check: Every decision-producing skill emitted a decision-manifest-{skill}.yaml populating tier, grounding_source, recommendation, alternatives_considered, and updated user_response after surfacing — V15 plus manifest existence pass.
+    artifact_pattern: "{product_base}architecture/decision-manifest-*.yaml"
+    pass_criteria: Every decision-producing skill wrote a complete manifest with all required fields and updated user_response.
+    fail_criteria: A manifest is absent, omits a required field, or has a stale user_response after the surfacing flow.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Technical Architect
+    artifact_pattern: "{product_base}architecture/"
+    check: Every architectural decision across the five artifacts carries a rationale citing at least one upstream driver, and design-patterns.yaml carries at least one entry with name, applicability_scope, and driver at each applicable layer.
+    pass_criteria: Every decision cites an upstream driver and design-patterns.yaml has a driver-bearing entry at each applicable layer.
+    fail_criteria: A decision lacks a cited driver, or an applicable design-patterns layer has no driver-bearing entry.
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: Engineering Manager
+    artifact_pattern: "{product_base}architecture/quality-vision.yaml"
+    check: Every relevant ISO 25010 characteristic entry in quality-vision.yaml populates vision narrative, named tooling, quantified thresholds, and lifecycle gates — no entry uses vague language without a named tool, a number, or a concrete practice.
+    pass_criteria: Every relevant entry carries narrative, named tooling, quantified thresholds, and lifecycle gates with no vague language.
+    fail_criteria: Any relevant entry lacks named tooling, a threshold, or a lifecycle gate, or uses vague language.
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: Implementation Lead
+    artifact_pattern: "{product_base}architecture/logical-architecture.yaml + physical-architecture.yaml + design-patterns.yaml"
+    check: Every selected capability from scope.yaml maps to at least one logical-architecture component, every such component has a named physical stack pick, and design-patterns.yaml carries a component-level entry for each declared runtime tier.
+    pass_criteria: Every capability maps to a component, every component has a named physical stack, and each runtime tier has a component-level pattern.
+    fail_criteria: A capability is unmapped, a component lacks a named physical stack, or a runtime tier has no component-level pattern.
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: Security Architect
+    artifact_pattern: "{product_base}architecture/nfr-spec.yaml + physical-architecture.yaml"
+    check: Every security-related NFR in nfr-spec.yaml carries a named delivery mechanism (a product in physical-architecture.yaml or a pattern in design-patterns.yaml) and a verification method, and the auth section of physical-architecture.yaml names a specific auth product.
+    pass_criteria: Every security NFR names a delivery mechanism and a verification method; the auth section names a specific product.
+    fail_criteria: A security NFR lacks a delivery mechanism or verification method, or the auth section uses a category term.
+
+  - id: SCE-5
+    scenario_id: S5
+    persona: Product Manager
+    artifact_pattern: "{product_base}_checkpoints/arch/stage-5-design-patterns-*.md + {product_base}architecture/quality-vision.yaml"
+    check: The design-patterns checkpoint artifact presents the system-level, layer-level, and component-level pattern selections with their drivers, and quality-vision.yaml carries a plain-English vision narrative per characteristic readable without architecture context.
+    pass_criteria: The checkpoint presents pattern selections with drivers, and quality-vision narratives read in plain English without architecture context.
+    fail_criteria: The checkpoint omits pattern drivers, or quality-vision narratives require architecture context to read.
+
+  - id: SCE-6
+    scenario_id: S6
+    persona: DevOps / Platform Engineer
+    artifact_pattern: "{product_base}architecture/physical-architecture.yaml + design-patterns.yaml"
+    check: physical-architecture.yaml populates the deployment topology and a named observability stack, and design-patterns.yaml carries a cross-cutting pattern entry whenever any NFR names resilience, idempotency, or consistency as a driver.
+    pass_criteria: Deployment topology and a named observability stack are present, and required cross-cutting patterns exist.
+    fail_criteria: Deployment topology or observability stack is missing, or a required cross-cutting pattern is absent.
+
+  - id: SCE-7
+    scenario_id: S7
+    persona: Senior Developer (onboarding)
+    artifact_pattern: "{product_base}architecture/design-patterns.yaml"
+    check: design-patterns.yaml carries a named system-level pattern, a named layer-level pattern (when the product has a backend), and a component-level pattern per runtime tier, each with a driver and alternatives_considered populated.
+    pass_criteria: System-level, layer-level (when backend), and per-tier component-level patterns are named, each with a driver and alternatives_considered.
+    fail_criteria: A required pattern layer is missing, or an entry lacks a driver or alternatives_considered.

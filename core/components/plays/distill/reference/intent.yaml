@@ -53,27 +53,3 @@ failure_conditions:
       Proposals written directly to product LTM. The only valid output path
       for proposals.yaml is under {stm_base}/{issue}/evidence/distill/.
       Any write to a path under {product_base} is a structural failure.
-
-scenarios:
-  - id: S1
-    persona: Developer
-    given: >
-      ship completes on a non-trivial PR for an issue that had a prior enhance or
-      fix-it run, with STM evidence available in {stm_base}/{issue}/evidence/
-    then: >
-      Learning proposals are staged at
-      {stm_base}/{issue}/evidence/distill/proposals.yaml.
-      The proposals reference specific diff evidence and STM artifacts.
-      The ship evidence file records Mode 1 outcome as "completed" with proposals_path.
-      Product LTM is unchanged.
-
-  - id: S2
-    persona: Developer
-    given: >
-      ship completes on a trivial PR (documentation-only changes, version bump,
-      or formatting fix) with no STM evidence of non-trivial design work
-    then: >
-      No proposals.yaml is written. distill returns
-      { status: "completed", no_learnings: true, proposals_path: null }.
-      Ship evidence file records Mode 1 outcome as "completed — no learnings detected".
-      Product LTM is unchanged.

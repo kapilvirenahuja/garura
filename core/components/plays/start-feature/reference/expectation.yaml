@@ -1,0 +1,172 @@
+# Expectation for the start-feature play (ICE refactor, #376).
+# Generated from reference/intent.yaml by draft-play-expectation.
+# Two parts only: success_scenarios and recovery.
+
+name: start-feature
+
+generated_from:
+  intent: core/components/plays/start-feature/reference/intent.yaml
+
+vetted:
+  status: approved
+  approved_by: autonomous-migration (#376, user-authorized non-stop self-approval)
+  approved_at: "2026-05-25"
+
+# Success scenarios — acceptance AND the checkable definition of done (one bucket).
+success_scenarios:
+  - id: S1
+    persona: Developer
+    given: >
+      A repository with uncommitted changes and no arguments provided
+      to the play
+    then: >
+      Can immediately begin focused development — the correct issue
+      is tracked on GitHub, the feature branch is checked out with
+      all prior changes intact, and the STM directory is ready for
+      evidence and artifacts.
+    measure: >
+      After completion, an open GitHub issue is associated with the work, the
+      checked-out branch follows {type}/{issue_number}-{slug}, every file from
+      the pre-play `git status --porcelain` snapshot is still present in the
+      working tree, and the STM directory exists at {stm_base}/{issue}/.
+  - id: S2
+    persona: Developer
+    given: >
+      A specific issue number provided as argument to the play
+    then: >
+      Can begin work on that exact issue — branch exists and is
+      checked out following naming convention, STM directory is
+      initialized, and any uncommitted changes are preserved.
+    measure: >
+      After completion, the checked-out branch name contains exactly the issue
+      number passed as the argument, the branch follows
+      {type}/{issue_number}-{slug}, the STM directory exists at
+      {stm_base}/{issue}/, and the pre-play uncommitted changes are still present.
+  - id: S3
+    persona: Developer
+    given: >
+      A descriptive title string provided as argument to the play
+    then: >
+      Can begin work on a newly created GitHub issue matching that
+      title — branch checked out, STM directory initialized, and
+      the issue is visible on GitHub for tracking.
+    measure: >
+      After completion, a new open GitHub issue exists whose title matches the
+      provided string and whose body summary is ~25-60 words, a feature branch
+      named for that issue is checked out, and the STM directory exists at
+      {stm_base}/{issue}/.
+  - id: S4
+    persona: Developer
+    given: >
+      A repository where the target feature branch already exists
+      from prior work
+    then: >
+      Can resume work seamlessly — the existing branch is checked
+      out with uncommitted changes preserved, STM directory is
+      confirmed present, and no duplicate branches or issues were
+      created.
+    measure: >
+      After completion, branch-result.yaml records action "switched" (not
+      "created"), no new issue was created, the pre-play uncommitted changes are
+      still present, and the STM directory exists at {stm_base}/{issue}/.
+  - id: S5
+    persona: Team Lead
+    given: >
+      The GitHub issues list after a developer ran the play
+    then: >
+      Can see that every active piece of work has a corresponding
+      open issue with a clear title and summary body, traceable
+      to a feature branch.
+    measure: >
+      The resolved issue appears OPEN on GitHub with a non-empty title and a
+      summary body, and its number matches the {issue_number} in the
+      checked-out feature branch name pushed to origin.
+
+# Recovery — one entry per failure condition in intent.yaml. The validator turns a
+# tripped failure into a recovery handoff plan and routes it: `autonomous` loops the
+# fix back to the builder; `human` escalates for a manual call.
+recovery:
+  - id: REC1
+    for_failure: F1                 # no issue associated with the work
+    trigger: >
+      After completion, the work has a feature branch but no associated GitHub
+      issue — no issue number is recorded in issue-resolution.yaml.
+    direction: >
+      An open GitHub issue must track the work before the play completes; re-run
+      issue resolution against the current input so an issue is resolved or
+      created and recorded.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC2
+    for_failure: F2                 # branch off the naming convention
+    trigger: >
+      After completion, the checked-out branch does not follow the
+      {type}/{issue_number}-{slug} naming convention.
+    direction: >
+      The branch must follow {type}/{issue_number}-{slug}; rename the branch to
+      the convention using the resolved issue's type, number, and slug.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC3
+    for_failure: F3                 # STM directory missing
+    trigger: >
+      After completion, no STM directory exists at {stm_base}/{issue}/.
+    direction: >
+      The STM directory must exist at {stm_base}/{issue}/ on completion; create
+      the missing directory.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC4
+    for_failure: F4                 # uncommitted changes lost
+    trigger: >
+      After completion, files present in the pre-play `git status --porcelain`
+      snapshot are no longer present in the working tree.
+    direction: >
+      Pre-play uncommitted changes must be carried forward intact; this is lost
+      working-tree state that the builder cannot regenerate — a user must decide
+      how to recover (restore from reflog/stash or re-author) before proceeding.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC5
+    for_failure: F5                 # acted on a low-confidence inference
+    trigger: >
+      A branch and issue were produced from a low-confidence issue inference
+      without the play halting.
+    direction: >
+      A low-confidence inference must halt rather than act; the weak signal needs
+      a user to confirm or pick the correct issue before any branch or issue is
+      created.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC6
+    for_failure: F6                 # created a new issue when an open one matched
+    trigger: >
+      A new issue was created even though an existing open issue already matched
+      the inferred work.
+    direction: >
+      An existing open match must be reused rather than duplicated; reconciling a
+      duplicate against the real matching issue is an external-entity judgment a
+      user must make — confirm the correct issue and discard the duplicate.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC7
+    for_failure: F7                 # acted on a closed issue without confirmation
+    trigger: >
+      The play matched or created against a closed issue without obtaining user
+      confirmation to reopen it.
+    direction: >
+      A closed issue must not be used without user confirmation to reopen;
+      reopening is an authority the builder lacks — escalate for the user's
+      go-ahead before proceeding.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC8
+    for_failure: F8                 # multiple candidates, proceeded without asking
+    trigger: >
+      Multiple candidate issues existed with no clear winner and the play
+      proceeded without asking the user to pick.
+    direction: >
+      Genuinely ambiguous candidate sets must be resolved by the user; present
+      the candidates and let the user pick the correct issue before proceeding.
+    handoff: human
+    derivable_at_l4: false
