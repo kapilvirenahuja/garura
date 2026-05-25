@@ -12,14 +12,15 @@ The play compiler. Takes an intent.yaml (existing or newly crafted) and produces
 
 **BEFORE doing anything, determine if the requested play has enough structure to compile.**
 
-A play is compilable when its intent defines — at minimum — constraints, failure conditions, and acceptance scenarios. Structureless intents (no constraints, no evals, no scenarios) are rejected with a prompt to define them first. Ideas that describe runtime DAGs, dynamic intent resolution, or self-assembling workflows are deferred — the compiler produces deterministic, compiled plays only. In every case, the answer is the same: go back to intent.yaml, pin down what the play guarantees, and re-run this skill.
+A play is compilable when its intent defines — at minimum — constraints and failure conditions, AND it has an **Expectation** (`reference/expectation.yaml`: success_scenarios + recovery). Under ICE the intent is the clean triple (intent, constraints, failure conditions); success scenarios and recovery live in expectation.yaml. **Backward compatibility:** a legacy play whose intent still carries a `scenarios:` block and has no expectation.yaml still compiles — its scenarios are used directly until it is migrated. A play with no failure conditions and no scenarios anywhere is structureless and rejected with a prompt to define them first. Ideas that describe runtime DAGs, dynamic intent resolution, or self-assembling workflows are deferred — the compiler produces deterministic, compiled plays only. In every case, the answer is the same: go back to intent.yaml, pin down what the play guarantees, and re-run this skill.
 
 ## Role
 
 You are the **play compiler** and **architectural gatekeeper**. You own the pipeline. You delegate domain tasks to specialized tools — never execute their work directly.
 
 **Build-time tools:**
-- `intent-crafter` agent — interviews user, produces intent.yaml
+- `intent-crafter` agent — interviews user, produces intent.yaml (the clean triple)
+- `expectation-crafter` agent — generates expectation.yaml (success_scenarios + recovery) from the intent, for human validation
 - `evals-creator` skill — generates step and scenario evals
 - `/skill-creator` — builds new skills, modifies existing skills
 
@@ -63,8 +64,9 @@ Review is diagnostic only — it reads everything, finds gaps, and reports. It N
 Read the entire play graph:
 
 1. **Play:** Read `SKILL.md` — understand compiled structure, phases, steps, agent contracts, evals, pre-flight checks.
-2. **Intent:** Read `reference/intent.yaml` — constraints, failure conditions, scenarios.
-3. **Reference files:** Read everything in `reference/` — templates, examples, audit checklists.
+2. **Intent:** Read `reference/intent.yaml` — constraints, failure conditions (and, for un-migrated legacy plays, scenarios).
+3. **Expectation:** Read `reference/expectation.yaml` if present — `success_scenarios`, `recovery`. Migrated plays have this file; legacy plays do not yet (their scenarios still live in intent.yaml).
+4. **Reference files:** Read everything in `reference/` — templates, examples, audit checklists.
 4. **Agents:** For every agent the play declares, read its definition from `core/components/agents/{name}.md`.
 5. **Skills:** For every skill each agent invokes, read its contract from `core/components/skills/{name}/SKILL.md`.
 6. **Workflow:** Identify the workflow structure (A/B/C) the play uses.
@@ -79,14 +81,15 @@ Run these checks against the semantic map. Each check produces a PASS or GAP res
 |-------|-------------------|---------------|
 | **G1 — Constraint Coverage** | Every constraint ID is classified (pre-flight, artifact-verifiable, structural) and covered by its category-appropriate mechanism: pre-flight constraints in pre-flight table, artifact-verifiable constraints in step evals, structural constraints in play structure | Constraint ID not covered by its category-appropriate mechanism |
 | **G2 — Failure Condition Coverage** | Every failure condition ID in intent.yaml is covered by at least one step eval | FC ID not referenced by any SE-* eval |
-| **G3 — Scenario Coverage** | Every scenario ID in intent.yaml is covered by at least one scenario eval | Scenario ID not referenced by any SCE-* eval |
+| **G3 — Scenario Coverage** | Every success_scenario ID in expectation.yaml (or, for legacy plays, every scenario ID in intent.yaml) is covered by at least one scenario eval | Scenario ID not referenced by any SCE-* eval |
+| **G3b — Recovery Coverage** | (Migrated plays) Every failure condition in intent.yaml has exactly one recovery entry in expectation.yaml, and every recovery entry references a real failure condition | A failure condition has no recovery entry, or a recovery entry's `for_failure` resolves to nothing |
 | **G4 — Skill Existence** | Every skill referenced in play step contracts exists at `core/components/skills/{name}/SKILL.md` | Skill referenced but file missing |
 | **G5 — Agent Existence** | Every agent in the play's agent boundary table exists at `core/components/agents/{name}.md` | Agent declared but definition missing |
 | **G6 — Skill-Agent Alignment** | Every skill a play step assigns to an agent is listed in that agent's skill inventory | Play assigns skill X to agent Y, but agent Y doesn't declare skill X |
 | **G7 — Contract Schema** | JSON contracts in play steps contain required fields: `intent_path`, `stm_base`, `stm`, `task_id` | Required contract field missing |
 | **G8 — Template References** | Skills/plays that reference templates point to files that exist (now bundled with the owning skill/play under its own `templates/` or `reference/` directory) | Template path referenced but file missing |
 | **G9 — Intent Hash Drift** | Compiled intent_hash in SKILL.md matches current SHA-256 of intent.yaml | Hash mismatch — intent changed since last compilation |
-| **G10 — Required Sections** | Compiled SKILL.md contains all required sections: Frontmatter, Header, Compiled From, Role, Pre-flight, Task DAG, Workflow, Scenario Validation, Evidence & Close, Pause and Resume, Compilation Metadata | Section missing from compiled play |
+| **G10 — Required Sections** | Compiled SKILL.md contains all required sections: Frontmatter, Header, Compiled From, Role, Pre-flight, Task DAG, Workflow, Scenario Validation, Recovery (migrated plays only), Evidence & Close, Pause and Resume, Compilation Metadata | Section missing from compiled play |
 | **G11 — Skill LTM Input Coverage** | For every skill a play step invokes, each required/recommended LTM input in the skill's Input section has a corresponding discovery instruction in the play step text (e.g., "agent must glob X and pass as Y") | Skill declares LTM input (e.g., `epic_rules_path`, `domain_taxonomy_paths`) but the play step has no instruction for the agent to discover and pass it |
 | **G12 — Standard Play Close** | The Evidence & Close section contains the canonical Standard Play Close block — the opener and closer anchor comment lines defined verbatim in `standards/rules/play-close.md` (that file is the single source of the exact strings; do NOT re-quote them here), exactly one pair, opener before closer, with C1 (evidence-file.md, `evidence.record`-gated) and C2 (delivery-report.md, always) | Anchor pair missing/altered/duplicated, or close emitted as hand-authored prose instead of the standard block |
 
@@ -155,11 +158,16 @@ The crafter reads the play analysis from STM — the full mapping of agents, ski
 
 #### Gate
 
-intent.yaml must exist and conform to schema:
+intent.yaml must exist and conform to the triple schema:
 - `intent` field present and implementation-agnostic
 - At least 1 constraint with id and rule
 - At least 1 failure condition with id and condition
-- At least 1 scenario with id, persona, given, then
+
+Expectation gate — `reference/expectation.yaml` (migrated play) must contain:
+- At least 1 `success_scenario` with id, persona, given, then, measure
+- Exactly one `recovery` entry per failure condition (id, for_failure, trigger, direction, handoff)
+
+**Backward compatibility:** if expectation.yaml is absent AND intent still carries a `scenarios:` block, accept the legacy scenarios in place of expectation — the play is not yet migrated. A play with neither expectation nor legacy scenarios is rejected.
 
 Present intent.yaml to user:
 
@@ -172,6 +180,58 @@ Present intent.yaml to user:
 
 Type **Tether** to approve or **Vanish** to revise.
 ```
+
+### Step 2.5 — Expectation (generate + validate)
+
+After the intent triple is approved, generate the play's **Expectation**
+(`success_scenarios` + `recovery`). Expectation is GENERATED from the intent, never
+hand-authored — hand-authoring is the SDD pattern IDD rejects.
+
+Invoke the `expectation-crafter` agent:
+
+```json
+{
+  "intent_path": "core/components/plays/{play-name}/reference/intent.yaml",
+  "stm_base": "{stm_base}",
+  "stm": {
+    "input": { "rules_path": "core/components/memory/standards/rules/expectation-generation.md" },
+    "output": { "expectation": "core/components/plays/{play-name}/reference/expectation.yaml" }
+  },
+  "task_id": "craft-expectation"
+}
+```
+
+The agent invokes `draft-play-expectation`, which derives the success scenarios and
+exactly one recovery entry per failure condition (routing each `handoff` autonomous
+vs human per the rules) and writes `expectation.yaml` with `vetted.status: pending`.
+
+**Migration ordering (generate-before-strip):** when building a LEGACY play under ICE
+for the first time, run this step BEFORE removing the `scenarios:` block from
+intent.yaml, so the generator lifts the authored scenarios (and adds each `measure`).
+After the expectation is approved, strip the scenarios from intent.yaml — the
+expectation now owns them. Skipping this order makes the generator reinvent success
+scenarios from the goal and lose the authored ones.
+
+**Human validation checkpoint:** present the generated expectation:
+
+```markdown
+## Generated Expectation — {play-name}
+
+{expectation.yaml content}
+
+Success scenarios: {n} | Recovery entries: {n} (one per failure condition)
+
+---
+
+Type **Tether** to approve (sets `vetted.status: approved`) or **Vanish** to revise.
+```
+
+Nothing downstream consumes a `pending` expectation. On Tether, set
+`vetted.status: approved`. On Vanish, the crafter regenerates or you adjust the
+intent and re-run.
+
+**Gate:** `expectation.yaml` exists, `vetted.status: approved`, and there is exactly
+one recovery entry per failure condition (G3b).
 
 ### Step 3 — Skill Inventory
 
@@ -309,6 +369,7 @@ Invoke `evals-creator` skill with all skill contracts AND the constraint classif
 ```yaml
 Input:
   intent_path: "core/components/plays/{play-name}/reference/intent.yaml"
+  expectation_path: "core/components/plays/{play-name}/reference/expectation.yaml"   # migrated plays; omit for legacy
   skill_contracts:
     - skill_name: "{skill-1}"
       contract_path: "core/components/skills/{skill-1}/SKILL.md"
@@ -324,15 +385,16 @@ Input:
   output_path: "{stm_base}/{issue}/evidence/create-play/{play-name}/evals.yaml"
 ```
 
-The compiler MUST NOT hand-author any evals. All evals come from evals-creator's output file. The compiler copies eval language verbatim when embedding into the compiled SKILL.md — no reformulation, no added thresholds.
+The compiler MUST NOT hand-author any evals. All evals come from evals-creator's output file. The compiler copies eval language verbatim when embedding into the compiled SKILL.md — no reformulation, no added thresholds. For migrated plays, evals-creator sources scenario evals (SCE-*) from `expectation.yaml` `success_scenarios` (and their `measure`); for legacy plays it falls back to intent.yaml scenarios. Step evals (SE-*) still derive from constraints + failure conditions either way.
 
 #### 6c. Compile SKILL.md
 
 Read `reference/compiled-example.md` for the target output format. Read `docs/adr/016-agent-json-contract.md` for contract schema.
 
-Compute intent hash:
+Compute intent hash (and expectation hash for migrated plays — drift in EITHER requires rebuild):
 ```bash
 intent_hash=$(shasum -a 256 core/components/plays/{play-name}/reference/intent.yaml | awk '{print $1}')
+expectation_hash=$(test -f core/components/plays/{play-name}/reference/expectation.yaml && shasum -a 256 core/components/plays/{play-name}/reference/expectation.yaml | awk '{print $1}')
 ```
 
 Write `core/components/plays/{play-name}/SKILL.md` with ALL required sections:
@@ -346,17 +408,19 @@ Write `core/components/plays/{play-name}/SKILL.md` with ALL required sections:
 | Pre-flight | Baked checks with constraint IDs, bash logic, resume check |
 | Task DAG | TaskCreate calls for ALL steps with blockedBy, ownership rule, TaskUpdate protocol |
 | Workflow | Sequential steps organized by phase, each with: owner, depends-on, JSON contract (per ADR 016), skill invoked, step eval criteria, TaskUpdate calls |
-| Scenario Validation | E2E scenario evals from intent.yaml |
+| Scenario Validation | E2E scenario evals from expectation.yaml `success_scenarios` (legacy plays: intent.yaml scenarios) |
+| Recovery (migrated plays) | Recovery handoff entries from expectation.yaml `recovery` — per failure condition: the symptom trigger, the directional fix, and the `autonomous`\|`human` handoff routing |
 | Evidence & Close | The canonical **Standard Play Close** block emitted verbatim per `standards/rules/play-close.md` (C1 evidence-file.md gated by `evidence.record` + C2 delivery-report.md always, the exact lint-anchor comment pair, `started_at` precedence, `parent_run_id` sub-play rule). Substitute only `{play-name}` and the project/product scope line. NEVER hand-author close prose. A play with bespoke evidence content (e.g. ship's C9 sweep) keeps that content as the C1 slot fill, wrapped by the standard block. |
 | Pause and Resume | Status file format, resume logic |
-| Compilation Metadata | intent_hash, compiled_by, compiled_at, maturity, workflow_structure, agent count, eval counts |
+| Compilation Metadata | intent_hash, expectation_hash (migrated plays), compiled_by, compiled_at, maturity, workflow_structure, agent count, eval counts (incl. recovery entry count) |
 
 **Eval embedding rules:**
 - Step evals from evals.yaml are embedded immediately after the step they validate
 - The compiler reads `skill` field on each eval to determine placement
 - Eval text is copied verbatim from evals.yaml — no reformulation, no added thresholds
 - Each eval shows its source ID: `**SE-X (F-n/C-n):** {check}`
-- Scenario evals are embedded in the Scenario Validation section: `**SCE-X (S-n — {persona}):** {check}`
+- Scenario evals are embedded in the Scenario Validation section: `**SCE-X (S-n — {persona}):** {check}` — sourced from expectation.yaml `success_scenarios` (legacy: intent.yaml scenarios)
+- (Migrated plays) Recovery entries are embedded in a `## Recovery` section — per failure condition: the symptom trigger, the directional handoff plan, and the `autonomous`/`human` routing, copied verbatim from expectation.yaml `recovery`
 
 **Compilation rules (from ADR 013):**
 - Workflow steps are sequential with named phases — not abstract stage numbers
@@ -400,7 +464,8 @@ Before finalizing, produce and validate a coverage matrix:
 Verification rules:
 - Every `artifact-verifiable` constraint has >= 1 SE-n from evals-creator output
 - Every failure condition has >= 1 SE-n from evals-creator output
-- Every scenario has >= 1 SCE-n from evals-creator output
+- Every success_scenario (migrated) or legacy scenario has >= 1 SCE-n from evals-creator output
+- (Migrated plays) Every failure condition has exactly one recovery entry, embedded in the Recovery section
 - Every `pre-flight` constraint appears in the pre-flight table of the compiled SKILL.md
 - Every `structural` constraint has a verifiable structural element (agent boundary table, compilation rule, budget statement)
 - All required sections present in the compiled SKILL.md
