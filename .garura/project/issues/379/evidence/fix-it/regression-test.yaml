@@ -1,0 +1,52 @@
+style: yaml_eval_spec
+target_issue: 379
+based_on:
+  rca: ".garura/project/issues/379/evidence/fix-it/rca.yaml"
+  design: ".garura/project/issues/379/evidence/fix-it/design.yaml"
+
+description: |
+  Asserts that the codify action-mapping rule in normalize-proposals-for-enrichment/SKILL.md
+  has been replaced from tier-based selection (the defect) to existence-based selection (the fix).
+  A1 checks that the defective tier-keyed rule text is gone.
+  A2 checks that the corrected existence-based rule text is present in the codify section.
+  Both assertions are RED against the unfixed skill (A1 fails because the defective text exists;
+  A2 fails because the existence-check phrasing does not exist).
+
+assertions:
+  - id: A1
+    description: |
+      The defective tier-keyed action rule ('`modify` for tier 2 (existing artifact)') must be
+      absent from the codify section of normalize-proposals-for-enrichment/SKILL.md after the fix.
+      Currently RED: the text IS present at line 109.
+    kind: grep_absent
+    spec:
+      pattern: "modify` for tier 2 \\(existing artifact\\)"
+      path: "core/components/skills/normalize-proposals-for-enrichment/SKILL.md"
+    red_verification:
+      result: "grep found 1 match — assertion currently FAILS (text is present, absence required)"
+      exit_code: 0
+
+  - id: A2
+    description: |
+      The corrected existence-based action rule must be present in the codify section after the fix.
+      The rule must describe checking whether target_path exists in product_ltm_root before
+      assigning action:add or action:modify, not selecting action from tier alone.
+      Currently RED: no existence-check phrasing is present in the skill.
+    kind: grep_present
+    spec:
+      pattern: "target_path does not exist|target does not exist|existence|does not exist.*product_ltm_root|product_ltm_root.*does not exist|check.*exist|exist.*check"
+      path: "core/components/skills/normalize-proposals-for-enrichment/SKILL.md"
+    red_verification:
+      result: "grep found 0 matches — assertion currently FAILS (existence-check phrasing absent)"
+      exit_code: 1
+
+pass_when: all_assertions_pass
+
+verified_red_at: "2026-05-25T00:00:00Z"
+expected_state_before_fix: red
+expected_state_after_fix: green
+
+red_verification_summary:
+  A1: "FAIL — pattern 'modify` for tier 2 (existing artifact)' found 1 time; grep_absent requires 0 matches"
+  A2: "FAIL — no existence-check phrasing found; grep_present requires ≥1 match"
+  overall: red

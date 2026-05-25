@@ -75,12 +75,14 @@ The eight elements describe the *machinery*. ICE describes the three *artifacts*
 | Layer | What it holds | Authored or generated |
 |-------|---------------|-----------------------|
 | **Intent** | goal, constraints, failure conditions | Human-authored, stable |
-| **Context** | the tech, design, standards, and the pathway to build — in a Garura system, the plays, skills, and sub-agents the work runs inside | Assembled from memory (LTM + STM) |
+| **Context** | the tech, design patterns, standards, and the system the work runs inside — in a Garura system, the plays, skills, and sub-agents that surround the task (the environment to understand, not the plan to build it) | Assembled from memory (LTM + STM) |
 | **Expectation** | success scenarios, recovery | Generated from Intent + Context, then vetted at a human checkpoint |
 
 **Intent — the clean triple.** Goal, constraints, failure conditions. Nothing else lives here. Success scenarios and recovery are *not* authored into Intent; they are generated one layer down, in Expectation. Keeping Intent to the triple is what keeps it stable across implementation change (Element 1).
 
-**Context — the surround.** The technology, design patterns, standards, and the build pathway the work travels. This is Memory (Element 5) made concrete for the task through context-aware assembly (Element 7). The builder receives all of it.
+**Context — the surround.** The technology, design patterns, standards, and the system the work runs inside — the plays, skills, and sub-agents that surround the task. This is Memory (Element 5) made concrete for the task through context-aware assembly (Element 7). The builder receives all of it.
+
+Context is the surround to *understand*, never the work itself. It holds the existing tech, patterns, and standards the agent reads to build understanding — not the approach, the steps, or the way of working, which are the agent's to decide. The moment Context names how to build *this* change, it has done the agent's job and become a spec. **Test:** could two different implementations both draw on the same Context? If it fits only one solution, it has stopped being the surround and become the plan.
 
 **Expectation — the generated spec.** Two parts:
 - **Success scenarios** — what a consumer can do with the output (persona / given / then), which is *also* the checkable definition of done. Acceptance and done-target are one thing, not two — the target the builder marches toward and the signal that decides stop-or-go: while a success scenario is unmet, keep going; when all are met, stop. Evals are built from these.

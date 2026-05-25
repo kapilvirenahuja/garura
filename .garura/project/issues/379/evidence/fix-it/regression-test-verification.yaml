@@ -1,0 +1,8 @@
+regression_test_path: ".garura/project/issues/379/evidence/fix-it/regression-test.yaml"
+failing: true
+verified_by: play
+assertions:
+  A1: "grep_absent — pattern present at SKILL.md:109 → FAIL (red as required)"
+  A2: "grep_present — 0 matches → FAIL (red as required)"
+overall: red
+verified_at: "2026-05-25T16:15:00Z"

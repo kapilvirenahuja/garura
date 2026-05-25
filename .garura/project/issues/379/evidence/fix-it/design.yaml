@@ -1,0 +1,95 @@
+based_on_rca: ".garura/project/issues/379/evidence/fix-it/rca.yaml"
+
+strategy: |
+  Replace the single tier-keyed action rule on line 109 of the codify mapper in
+  normalize-proposals-for-enrichment/SKILL.md with an existence-based rule: for
+  every tier-2 codify proposal, Glob or Grep the resolved product_ltm_root to
+  determine whether the target_path already exists on disk — if absent, assign
+  action:add; if present, assign action:modify. The tier-1 rule (contradict_with_adr)
+  and the tier-3 rule (add) are unchanged because tier-1 is always a conflict against
+  a LOCKED artifact (which by definition exists) and tier-3 is always a new artifact
+  (experience/* is never pre-seeded). The fix aligns the codify mapper with the decode
+  mapper, which already uses existence-based selection ("add for new specs, modify for
+  updates to existing"). One sentence changes in SKILL.md; no other files are touched.
+
+alternatives_considered:
+  - option: "Add a create-fallback inside apply-ltm-enrichment's modify branch — if the target file does not exist, create it before applying the change"
+    rejection_reason: |
+      apply-ltm-enrichment is the LTM write boundary and must stay semantically clean:
+      modify means 'update a known artifact', add means 'create a new artifact'. Collapsing
+      those semantics inside apply-ltm-enrichment hides the intent from the enrichment report
+      (the report would record action:modify for a file that was actually created), breaking
+      auditability and making the report untrustworthy for re-run decisions. The correct place
+      to decide create-vs-update is the normalizer, which has access to the full proposal
+      context and the product LTM root before any writes happen.
+
+  - option: "Add a new action value 'upsert' to the reconciliation schema and handle it in apply-ltm-enrichment as create-if-absent / update-if-present"
+    rejection_reason: |
+      This widens the action enum schema shared by all four extractors (distill, reap, codify,
+      decode), requiring changes to apply-ltm-enrichment, the reconciliation schema, and
+      potentially the enrich play's reviewer-presentation logic for every extractor — all to
+      solve a defect that only affects the codify mapper's single rule line. Razor 1 (Occam's
+      Razor): fewer moving parts wins; the existence-check in the normalizer achieves the same
+      outcome with one sentence changed in one file.
+
+  - option: "Have the codify play (or aggregate-codify-proposals) pre-check target existence and stamp action in proposals.yaml before normalize-proposals-for-enrichment runs"
+    rejection_reason: |
+      aggregate-codify-proposals is a deterministic aggregator — its job is to collect and
+      catalogue what inference agents produced, not to resolve write semantics. Stamping action
+      there couples the aggregator to the product LTM layout and breaks the clean separation
+      where normalize-proposals-for-enrichment is the sole owner of per-source mapping logic
+      (its own purpose statement: "Per-source mapping logic lives here"). Moving the decision
+      upstream would require the codify play or aggregator to know about product_ltm_root,
+      which they deliberately do not touch.
+
+affected_files:
+  - path: "core/components/skills/normalize-proposals-for-enrichment/SKILL.md"
+    role: "Owns the per-source action-mapping rule for codify proposals in Step 3"
+    action: modify
+    change: |
+      Line 109 — replace:
+        `action`: `add` for tier 3 (new artifact), `modify` for tier 2 (existing artifact), `contradict_with_adr` for tier 1.
+      With:
+        `action`: determined by target existence — `add` when `target_path` does not exist
+        under `product_ltm_root`, `modify` when it does; `contradict_with_adr` for tier 1
+        (unchanged). Tier 3 proposals are always new artifacts so they remain `add`; for
+        tier 2 the mapper must Glob or check `{product_ltm_root}/{target_path}` before
+        assigning the action. This mirrors the decode mapper's existing pattern ("add for
+        new specs, modify for updates to existing").
+    risk: low
+    risk_rationale: "Single-sentence rule change in one skill; the downstream add and modify handlers in apply-ltm-enrichment already work correctly — only the assignment decision changes."
+
+execution_plan:
+  - id: step-1
+    description: |
+      Open core/components/skills/normalize-proposals-for-enrichment/SKILL.md and locate
+      the codify subsection of Step 3 (currently at line 109). Replace the tier-keyed
+      action rule with an existence-based rule as specified in the affected_files change
+      above. The surrounding lines (107-108, 110-112) are unchanged.
+    files:
+      - path: "core/components/skills/normalize-proposals-for-enrichment/SKILL.md"
+        action: modify
+        details: |
+          Replace line 109:
+            - `action`: `add` for tier 3 (new artifact), `modify` for tier 2 (existing artifact), `contradict_with_adr` for tier 1.
+          With:
+            - `action`: determined by target-path existence in `product_ltm_root` — `add`
+              when `{product_ltm_root}/{target_path}` does not exist on disk, `modify` when
+              it does. Tier 1 remains `contradict_with_adr` (unchanged). Tier 3 is always
+              `add` (experience/* is never pre-seeded). For tier 2, the mapper checks
+              existence before assigning action — aligning with the decode mapper's pattern.
+    expected_outcome: |
+      The SKILL.md codify section no longer contains the text "modify for tier 2 (existing artifact)".
+      It instead describes existence-based selection for tier-2 proposals.
+    self_test: |
+      Grep core/components/skills/normalize-proposals-for-enrichment/SKILL.md for the string
+      "modify for tier 2" — it must produce zero matches.
+      Grep for "target_path does not exist" (or equivalent existence-check phrasing) — it must
+      produce at least one match within the codify subsection.
+      The regression test produced by author-regression-test will assert these conditions
+      and must turn GREEN after this step.
+
+confidence: high
+confidence_rationale: "Root cause is a single rule sentence; the fix aligns codify with decode's already-correct pattern; apply-ltm-enrichment's add and modify branches are already correct and require no change."
+
+produced_at: "2026-05-25T00:00:00Z"

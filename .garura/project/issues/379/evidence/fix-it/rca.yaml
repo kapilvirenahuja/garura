@@ -1,0 +1,43 @@
+issue_number: 379
+summary: "On cold-start brownfield bootstrap the enrich play only writes experience/design files and silently skips all structural-core artifacts (scope, features, epics, architecture, quality-profile, market-brief, research, etc.), because the normalize-proposals-for-enrichment skill maps codify action by tier — assigning action:modify to tier-2 proposals — yet apply-ltm-enrichment's modify handler requires the target file to already exist on disk; since none do on a cold start, those writes never happen."
+
+root_cause:
+  file: "core/components/skills/normalize-proposals-for-enrichment/SKILL.md"
+  logic: |
+    Step 3, codify subsection, line 109:
+      `action`: `add` for tier 3 (new artifact), `modify` for tier 2 (existing artifact), `contradict_with_adr` for tier 1.
+    The rule selects action from tier membership alone. Tier-2 proposals
+    (quality-profile, domain-selection, market-brief, scope, enriched-capabilities,
+    features, mvp-recommendation, epics, research) always receive action:modify.
+  why_wrong: |
+    apply-ltm-enrichment's modify handler "opens target, locates insertion point,
+    applies change block preserving surrounding content" — it requires the target
+    LTM artifact to already exist on disk. On a cold start (empty product memory)
+    none of the structural-core files exist, so the modify path silently produces
+    no file. Only tier-3 experience/* proposals get action:add, which instructs
+    apply-ltm-enrichment to CREATE the target file; those land. The correct action
+    is not determined by tier but by target-path existence: add when the file is
+    absent, modify when it is present. Tier is a governance signal (who approves,
+    what conflict escalation applies), not a write-mode selector.
+  line_range: "109"
+
+trace:
+  - step: "User runs codify → enrich on a repo with empty product memory (.garura/product/ has no specification/, scope/, architecture/ files)"
+  - step: "codify play runs all inference agents, aggregate-codify-proposals produces proposals.yaml; tier-2 proposals cover all structural-core artifacts; tier-3 covers experience/*"
+  - step: "enrich play Step 2 dispatches knowledge-extractor → normalize-proposals-for-enrichment with the codify proposals.yaml"
+  - step: "normalize-proposals-for-enrichment Step 3 codify mapper executes: all tier-1 entries get action:contradict_with_adr, all tier-2 entries get action:modify, all tier-3 entries get action:add"
+  - step: "reconciliation-proposals.yaml is written; reviewer approves all entries including all tier-2 structural-core proposals"
+  - step: "enrich play Step 4 dispatches knowledge-extractor → apply-ltm-enrichment with approved reconciliation"
+  - step: "apply-ltm-enrichment processes each approved entry: for action:add it creates the target file (experience/* lands); for action:modify it opens the target, but the target path does not exist on disk for any structural-core artifact"
+  - step: "Because apply-ltm-enrichment's modify branch has no create fallback, it fails silently or records a write error; no structural-core files are created"
+  - step: "enrich continues to Step 5 (archive) and Step 6 (evidence commit) and closes the issue — run reports done with the missing files invisible in the summary"
+
+blast_radius:
+  - path: "core/components/skills/normalize-proposals-for-enrichment/SKILL.md"
+    role: "Owns the codify action-mapping rule; this is the single file that needs to change"
+    change_needed: "Replace tier-based action selection for codify with existence-based selection: action:add when target_path does not exist in product LTM, action:modify when it does; action:contradict_with_adr is still tier-1-only and unchanged"
+  - path: "core/components/skills/apply-ltm-enrichment/SKILL.md"
+    role: "Downstream consumer of action field; modify branch requires target to exist"
+    change_needed: "No change needed to this file — its existing add branch already handles creation; the fix in normalize-proposals-for-enrichment ensures add is assigned on cold start"
+
+produced_at: "2026-05-25T00:00:00Z"

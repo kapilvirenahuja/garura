@@ -1,0 +1,35 @@
+resolution_trace:
+  - decision: "What rule governs how the normalize-proposals-for-enrichment skill should select the action field for codify tier-2 proposals on cold start?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "No project-scoped or core-scoped standard covers skill action-mapping logic. General reasoning applied: action must reflect target-path existence, not tier, because tier is a governance signal (approval level, conflict escalation) not a write-mode signal."
+
+  - decision: "Does the architecture standards rule file define how LTM skill write modes (add vs modify) should be selected?"
+    resolved_from: "core"
+    source: ".garura/core/memory/standards/rules/architecture.md"
+    section: "Build-arch rules"
+    authority: "draft"
+    value: "architecture.md governs artifact shape and driver traceability for arch plays; it does not address skill-level action-mapping within the learning pipeline."
+
+  - decision: "Does any core design-patterns knowledge file prescribe create-or-update semantics for LTM writes?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "No matching knowledge file in .garura/core/memory/knowledge/ covers learning-pipeline write semantics. LLM fallback: create-or-update is the standard idempotent write pattern — check existence, create if absent, update if present."
+
+  - decision: "Is there a project-scoped locked artifact defining the canonical tier→action mapping for the normalize-proposals skill?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "locked_artifacts is empty; no project-scoped file overrides the skill's own SKILL.md definition. The defect lives exclusively in the skill's codify section."
+
+  - decision: "What quality standards apply to the fix (correctness, regression scope, non-regression of everyday loop)?"
+    resolved_from: "core"
+    source: ".garura/core/memory/standards/rules/resolution.md"
+    section: "R4 — Flag LLM Fallback"
+    authority: "draft"
+    value: "Resolution protocol is advisory; fix should be targeted (change only the action-selection rule), idempotent (correct on cold start and re-run), and must not break the everyday distill/reap loop which does not use the codify mapper."

@@ -1,0 +1,6 @@
+regression_test_verdict: pass
+verified_at: "2026-05-25T08:00:00Z"
+regression_test_path: ".garura/project/issues/379/evidence/fix-it/regression-test.yaml"
+assertion_results:
+  A1: pass (0 matches — defective tier-keyed rule text is absent)
+  A2: pass (1 match — existence-based rule text is present)
