@@ -8,6 +8,8 @@ platform: github
 
 github:
   repo: https://github.com/kapilvirenahuja/garura.git
+  owner: kapilvirenahuja   # GitHub account handle (from repo URL), not the display name
+  name: garura             # repo name (lowercase, as in the URL)
 
 # Source of truth locations
 components:
