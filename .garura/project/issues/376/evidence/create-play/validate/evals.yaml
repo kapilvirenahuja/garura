@@ -1,0 +1,192 @@
+step_evals:
+  - id: SE-1
+    source_type: constraint
+    failure_condition_id: F15
+    constraint_id: C16
+    skill: validate
+    check: milestone_id resolves to an entry in plan-milestone-summary.yaml and only milestone-scoped scenarios are loaded.
+    artifact_pattern: "{stm_base}/{issue}/context/design/plan-milestone-summary.yaml"
+    pass_criteria: milestone_id matches an entry, the entry's scenario_gate.ids[] are loaded, and no scenarios beyond milestone scope plus cumulative regression are selected.
+    fail_criteria: milestone_id resolves to no entry, or scenarios outside the milestone scope plus cumulative regression are selected (F14, F15).
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: C1
+    skill: validate
+    check: implement status report exists for this milestone and shows COMPLETE with unit tests passing and quality-auditor CERTIFIED.
+    artifact_pattern: "{stm_base}/{issue}/milestones/{milestone_id}/status-report.yaml"
+    pass_criteria: status-report.yaml exists, shows COMPLETE, all unit tests passing, quality-auditor CERTIFIED.
+    fail_criteria: status report is missing or shows INCOMPLETE/below-threshold (F1, F14).
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F15
+    constraint_id: C13
+    skill: validate
+    check: Milestone-scoped scenario set has baseline (cumulative prior), new (this milestone's scenario_gate.ids[]), and regression tiers, with no non-prior milestone scenarios.
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/milestone-scenarios.yaml"
+    pass_criteria: baseline tier carries cumulative prior-milestone scenarios, new tier carries exactly this milestone's scenario_gate.ids[], and no scenario from a non-prior milestone appears.
+    fail_criteria: a scenario from a non-prior milestone leaks into the new tier, or the scenario set omits cumulative regression (F15).
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F7
+    constraint_id: C3
+    skill: validate
+    check: Eval file exists outside the repo tree with manifest count greater than zero, and the evals-engineer prompt carries no forbidden inputs.
+    artifact_pattern: "{eval_dir}/validate-{milestone_id}.yaml + {eval_dir}/manifest.json"
+    pass_criteria: eval file and manifest exist outside the repo tree, eval count is greater than zero, and the evals-engineer prompt contains zero implementation code, zero builder outputs, zero quality-auditor results, and zero scenarios from other milestones.
+    fail_criteria: eval files are absent, inside the repo tree, or the evals-engineer prompt contains any forbidden input (F7).
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: C4
+    skill: validate
+    check: E2E test manifest exists, all test files use an e2e framework, and all target the deploy URL.
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/e2e-test-manifest.yaml"
+    pass_criteria: manifest exists, every listed test file imports an e2e framework (Playwright/Cypress/equivalent), no unit test framework imports, and all tests target {deploy_url}.
+    fail_criteria: any test file uses a unit test framework or targets localhost (F5).
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F10
+    constraint_id: C5
+    skill: validate
+    check: If baseline tests FAIL, Tier 2 and Tier 3 results do not exist for that iteration; baseline includes cumulative prior-milestone scenarios.
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/e2e-results.yaml"
+    pass_criteria: when baseline tier status is FAIL, new and regression tiers show SKIPPED; baseline tier lists cumulative scenarios from all prior milestones.
+    fail_criteria: new or regression tier executed despite a baseline failure (F10).
+  - id: SE-7
+    source_type: failure_condition
+    failure_condition_id: F9
+    constraint_id: C12
+    skill: validate
+    check: e2e-results.yaml exists with milestone_id and every executed test has at least one evidence artifact.
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/e2e-results.yaml + traces/"
+    pass_criteria: e2e-results.yaml carries milestone_id and the traces directory holds a screenshot, trace, or response body for every executed test.
+    fail_criteria: results lack evidence artifacts — no screenshots, traces, or response bodies for executed tests (F9).
+  - id: SE-8
+    source_type: constraint
+    failure_condition_id: F10
+    constraint_id: C5
+    skill: validate
+    check: Tiers executed in order baseline then new then regression; on baseline failure new and regression show SKIPPED.
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/e2e-results.yaml"
+    pass_criteria: e2e-results.yaml records baseline before new before regression; a baseline FAIL leaves new and regression SKIPPED.
+    fail_criteria: tiers ran out of order, or new/regression ran after a baseline failure (F10).
+  - id: SE-9
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: C6
+    skill: validate
+    check: Judge report exists with runtime evidence from the deploy URL and the judge prompt carries no forbidden inputs.
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/judge-report.yaml"
+    pass_criteria: judge report exists, evidence contains HTTP responses or screenshots from {deploy_url}, and the judge prompt contains zero builder prompts, zero evals-engineer prompts, zero unit tests, zero quality-auditor results, zero source code.
+    fail_criteria: judge report relies on static analysis or source reading, or the judge prompt carries any forbidden input (F6, F8).
+  - id: SE-10
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: C8
+    skill: validate
+    check: Remediation file exists with zero eval IDs and zero eval text, targeting implement for this milestone_id.
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/remediation-{iteration}.md"
+    pass_criteria: remediation file exists, names this milestone_id as the implement target, and contains zero eval IDs and zero eval text.
+    fail_criteria: remediation carries eval IDs/text, or a code-builder call was made directly instead of routing through implement (F4).
+  - id: SE-11
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: C9
+    skill: validate
+    check: If 3 iterations exhausted, a failure report exists with persistent failures, per-iteration history, and a recommendation, and no ACCEPT verdict is issued.
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/"
+    pass_criteria: after 3 iterations with failures remaining, the failure report lists persistent failures, a per-iteration remediation history, and a recommendation, and no milestone-verdict.yaml records ACCEPT.
+    fail_criteria: the fix loop ran past 3 iterations, or an ACCEPT verdict was issued with failures still present (F3).
+  - id: SE-12
+    source_type: failure_condition
+    failure_condition_id: F11
+    constraint_id: C10
+    skill: validate
+    check: Manual test scenarios exist for this milestone with at least one numbered scenario carrying pass/fail criteria.
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/manual-test-scenarios.md"
+    pass_criteria: manual-test-scenarios.md exists, is scoped to this milestone, and carries at least one numbered scenario with explicit pass/fail criteria.
+    fail_criteria: the feature-steward step was skipped or produced an empty checklist (F11).
+  - id: SE-13
+    source_type: failure_condition
+    failure_condition_id: F12
+    constraint_id: C11
+    skill: validate
+    check: milestone-verdict.yaml exists at the milestone path; ACCEPT only when e2e PASS, judge threshold met, manual scenarios generated; file is per-milestone, not epic-level.
+    artifact_pattern: "{stm_base}/{issue}/milestones/{milestone_id}/milestone-verdict.yaml"
+    pass_criteria: milestone-verdict.yaml exists keyed to milestone_id; an ACCEPT verdict has all e2e PASS, judge threshold met, and manual scenarios generated; the file is per-milestone.
+    fail_criteria: an ACCEPT verdict coexists with e2e failures (F12), or an epic-level verdict was produced from a subset of milestones (F16).
+  - id: SE-14
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C12
+    skill: validate
+    check: Evidence file exists with all artifact references and the milestone summary.
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/{YYYYMMDD-HHMMSS}.md"
+    pass_criteria: the evidence file exists carrying references to e2e-results, judge-report, manual-test-scenarios, and milestone-verdict plus the execution summary.
+    fail_criteria: the evidence file is missing or omits artifact references / milestone summary.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: "QA Engineer"
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/e2e-results.yaml + traces/"
+    check: The milestone-scoped e2e suite ran across baseline, new, and regression tiers with per-scenario PASS/FAIL and an evidence artifact per executed scenario.
+    pass_criteria: e2e-results.yaml carries this run's milestone_id, lists every executed scenario under baseline/new/regression with a PASS or FAIL status, and traces/ holds at least one evidence artifact per executed scenario.
+    fail_criteria: e2e-results.yaml is missing the milestone_id, omits per-scenario status, or an executed scenario has no evidence artifact.
+  - id: SCE-2
+    scenario_id: S2
+    persona: "QA Engineer"
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/manual-test-scenarios.md"
+    check: Manual test scenarios are executable against the deployed environment without reading source code, each with clear pass/fail criteria.
+    pass_criteria: manual-test-scenarios.md has at least one numbered scenario, each carries an explicit pass/fail criterion, and no item requires reading source code.
+    fail_criteria: the checklist is empty, lacks pass/fail criteria, or requires source reading to evaluate.
+  - id: SCE-3
+    scenario_id: S3
+    persona: "Security Auditor"
+    artifact_pattern: "agent invocation contracts (evals-engineer, judge, test-engineer)"
+    check: Each agent's contract resolves only to its permitted input paths with no cross-contamination and no KB/LTM path.
+    pass_criteria: the evals-engineer contract carries no implementation-code/builder-prompt/prior-eval/other-milestone scenario path; the judge contract carries only the encrypted eval path, manifest, and deploy_url; the test-engineer contract carries no unit-test or builder-prompt path; no contract has an ltm_context field or a {product_base}/~/.garura/core/memory/ path.
+    fail_criteria: any contract carries an out-of-scope input or a KB/LTM path (C14, F7, F8, F13).
+  - id: SCE-4
+    scenario_id: S4
+    persona: "Engineering Lead"
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/ (failure report)"
+    check: When 3 fix iterations are exhausted, the failure report identifies persistent failures, remediation history including implement re-runs, and a restructure/escalate recommendation.
+    pass_criteria: the failure report lists each persistent failure, a per-iteration history table naming implement re-runs and e2e/judge results, and a recommendation line; no ACCEPT verdict was issued.
+    fail_criteria: the failure report is missing, omits remediation history, or lacks a recommendation (conditional — skips if no fix loop).
+  - id: SCE-5
+    scenario_id: S5
+    persona: "Product Owner"
+    artifact_pattern: "{stm_base}/{issue}/milestones/{milestone_id}/milestone-verdict.yaml + traces/"
+    check: The per-milestone verdict plus e2e evidence provides go/no-go confidence without running tests.
+    pass_criteria: milestone-verdict.yaml carries ACCEPT or REJECT with the e2e/judge counts backing it, and the referenced e2e evidence resolves on disk in traces/.
+    fail_criteria: the verdict is absent/ambiguous, or the referenced evidence is missing.
+  - id: SCE-6
+    scenario_id: S6
+    persona: "Testing Architect"
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/e2e-results.yaml"
+    check: All 3 tiers ran in order, a baseline failure halted subsequent tiers, and evidence artifacts exist for every executed test.
+    pass_criteria: e2e-results.yaml records baseline before new before regression; when baseline status is FAIL the new and regression tiers show SKIPPED; every PASS/FAIL scenario has an evidence artifact path that resolves on disk.
+    fail_criteria: tiers ran out of order, subsequent tiers ran after baseline failure, or an executed test lacks an evidence artifact.
+  - id: SCE-7
+    scenario_id: S7
+    persona: "Developer"
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/remediation-{iteration}.md"
+    check: Remediation instructions enable targeted fixes via implement for this milestone — identifying failures, affected scenarios, and fix areas — without a full re-implementation.
+    pass_criteria: remediation-{iteration}.md exists for the failing iteration, names this milestone_id as the implement target, lists affected scenarios and suggested fix areas, and contains zero eval IDs and zero eval text.
+    fail_criteria: remediation is missing, targets the wrong milestone, or carries eval IDs/text (conditional — skips if no fix loop).
+  - id: SCE-8
+    scenario_id: S8
+    persona: "QA Engineer"
+    artifact_pattern: "{stm_base}/{issue}/evidence/validate/{milestone_id}/milestone-scenarios.yaml + milestone-verdict.yaml"
+    check: validate ran for a specific milestone_id executing only milestone-scoped scenarios plus prior-milestone baseline regression and produced a per-milestone verdict.
+    pass_criteria: milestone-scenarios.yaml has exactly the milestone's scenario_gate.ids[] in the new tier plus prior-milestone cumulative scenarios in baseline and no non-prior milestone scenarios, and milestone-verdict.yaml is keyed to that single milestone_id.
+    fail_criteria: scenarios from non-prior milestones executed, or the verdict is not scoped to the single milestone_id.
+  - id: SCE-9
+    scenario_id: S9
+    persona: "Engineering Lead"
+    artifact_pattern: "{stm_base}/{issue}/milestones/{milestone_id}/milestone-verdict.yaml (per milestone)"
+    check: Per-milestone verdict files are trackable across milestones and a baseline-tier failure identifies its source milestone.
+    pass_criteria: one milestone-verdict.yaml exists per validated milestone each with an ACCEPT/REJECT verdict, and a baseline-tier failure in any e2e-results.yaml records the source_milestone of the failed scenario.
+    fail_criteria: verdict files are missing for validated milestones, or a baseline failure cannot be traced to its source milestone (applicable with multiple milestones).

@@ -1,0 +1,175 @@
+# Evals for the check-drift play (ICE migration, #376).
+# step_evals derived from the intent failure conditions F1–F13 (the play has no
+# pre-existing compiled SKILL.md SE surface to match — see migration note below).
+# scenario_evals derived one-per-success_scenario from reference/expectation.yaml
+# `measure` fields.
+
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: check-drift
+    check: Each of the four core output artifacts is either populated or empty with a 90%-confidence justification.
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/"
+    pass_criteria: drift-report.md, adrs.md, debt-catalog.md, and memory-items.md each contain items, or carry a justification asserting at least 90% confidence that no items exist.
+    fail_criteria: any of the four core artifacts is empty and carries no justification asserting at least 90% confidence that no items exist.
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: check-drift
+    check: Every "no items found" claim lists the specific inputs examined and why no items were found.
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/"
+    pass_criteria: each empty-domain justification enumerates the inputs inspected and the reason none qualified.
+    fail_criteria: a domain claims "no items found" without listing the evidence of what was examined and why.
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: check-drift
+    check: The cross-validation artifact records zero unresolved contradictions.
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/"
+    pass_criteria: the cross-validation artifact shows every detected contradiction remediated, with no open contradictions remaining before the brief is generated.
+    fail_criteria: the cross-validation artifact contains unresolved contradictions between analysis outputs.
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: check-drift
+    check: All output items use the canonical ID scheme (DRIFT/ADR/DEBT/MEM/REC-SPEC/REC-CODE) and the fixed categorization.
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/"
+    pass_criteria: every item carries a canonical ID prefix and a valid category, parseable by downstream aggregation without transformation.
+    fail_criteria: items lack consistent IDs or categorization, making them unparseable by downstream aggregation tooling.
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: null
+    skill: check-drift
+    check: No source code, design specification, or file outside the analysis output area was modified.
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/ + repository working tree"
+    pass_criteria: the only files written are under the analysis output area (plus additive ADR/debt files per C2/C15); no existing locked artifact or source file is modified.
+    fail_criteria: source code, design specifications, or any file outside the analysis output area has been modified.
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: null
+    skill: check-drift
+    check: No analysis domain received another domain's output before cross-validation.
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/"
+    pass_criteria: each domain's input context contains only its own scope inputs until the cross-validation phase begins.
+    fail_criteria: an analysis domain's input context contained the output of another analysis domain prior to cross-validation.
+  - id: SE-7
+    source_type: failure_condition
+    failure_condition_id: F7
+    constraint_id: null
+    skill: check-drift
+    check: A specific scope (issue, epic, or branch) was resolved before any analysis ran.
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/"
+    pass_criteria: the output records a resolved implementation unit (issue number, epic ID, or branch) identified before analysis began; no full-project analysis was performed.
+    fail_criteria: analysis was performed without a resolved scope.
+  - id: SE-8
+    source_type: failure_condition
+    failure_condition_id: F8
+    constraint_id: null
+    skill: check-drift
+    check: Every recommendation names a specific path, section, and concrete change.
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/recommendations.md"
+    pass_criteria: each REC-SPEC and REC-CODE entry specifies an artifact path, a section, and an executable change.
+    fail_criteria: a recommendation contains a vague directive without a specific file path, section, and change description.
+  - id: SE-9
+    source_type: failure_condition
+    failure_condition_id: F9
+    constraint_id: null
+    skill: check-drift
+    check: Every value shown in the brief matches the underlying structured data artifacts.
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/"
+    pass_criteria: the brief is derived from the structured data and every displayed value agrees with its source artifact.
+    fail_criteria: the brief displays data that differs from the underlying structured data artifacts.
+  - id: SE-10
+    source_type: failure_condition
+    failure_condition_id: F10
+    constraint_id: null
+    skill: check-drift
+    check: Defects were produced as a structured manifest, not created directly in an issue tracker.
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/"
+    pass_criteria: a structured defect manifest tagged with drift IDs exists, and no defect was created directly in an issue tracker.
+    fail_criteria: defects were created directly in an issue tracker rather than produced as a structured manifest for delegation.
+  - id: SE-11
+    source_type: failure_condition
+    failure_condition_id: F11
+    constraint_id: null
+    skill: check-drift
+    check: Locked design artifacts were read and used as the PRIMARY spec source when present.
+    artifact_pattern: "{stm_base}/{issue}/context/design/ + {stm_base}/{issue}/evidence/check-drift/"
+    pass_criteria: when tech.yaml, scenarios.yaml, and plan.yaml exist at the design path, the "what was specified" column anchors to them as the primary source.
+    fail_criteria: analysis ran without reading locked design artifacts that existed, and the "what was specified" column references only product-level specs.
+  - id: SE-12
+    source_type: failure_condition
+    failure_condition_id: F12
+    constraint_id: null
+    skill: check-drift
+    check: spec-correction-manifest.yaml is present in the output directory after analysis completes.
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/spec-correction-manifest.yaml"
+    pass_criteria: spec-correction-manifest.yaml exists, with an empty items list and documented justification when no corrections were identified.
+    fail_criteria: spec-correction-manifest.yaml is absent from the output directory after analysis completes.
+  - id: SE-13
+    source_type: failure_condition
+    failure_condition_id: F13
+    constraint_id: null
+    skill: check-drift
+    check: All arbiter verdict files at the implement evidence path were consumed and spec_ambiguous verdicts became evidence-drift items.
+    artifact_pattern: "{stm_base}/{issue}/evidence/implement/arbiter-verdict-*.yaml + {stm_base}/{issue}/evidence/check-drift/"
+    pass_criteria: every arbiter-verdict file was consumed, and each spec_ambiguous verdict maps to an evidence-drift item.
+    fail_criteria: arbiter verdict files exist but were not consumed, or spec_ambiguous verdicts were not translated into evidence-drift items.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/drift-report.md + recommendations.md"
+    check: Every drift item has a full specified/built mapping and RCA, and every recommendation names a path, section, and concrete change.
+    pass_criteria: every drift item carries a non-empty "what was specified / where / what was built / where" mapping and an RCA, and every REC-SPEC and REC-CODE entry names a specific artifact path, section, and concrete change — zero vague entries.
+    fail_criteria: a drift item is missing its mapping or RCA, or a recommendation contains a vague directive.
+  - id: SCE-2
+    scenario_id: S2
+    persona: Tech Lead
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/"
+    check: Each empty analysis domain carries a justification listing inputs examined and at least 90% confidence that no items exist.
+    pass_criteria: every empty domain has a justification block listing the specific inputs examined and stating at least 90% confidence that no items exist.
+    fail_criteria: an empty domain has no such justification block.
+  - id: SCE-3
+    scenario_id: S3
+    persona: Tech Lead
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/"
+    check: The cross-validation artifact records the contradiction, its remediation, and zero unresolved contradictions afterward.
+    pass_criteria: the cross-validation artifact records each contradiction, the responsible domain's remediation, and a post-remediation state with zero open contradictions.
+    fail_criteria: a contradiction lacks a recorded remediation, or unresolved contradictions remain.
+  - id: SCE-4
+    scenario_id: S4
+    persona: Product Manager
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/"
+    check: The brief presents each technology-drift item with impact and rationale in plain language, and every brief value matches the structured drift data.
+    pass_criteria: each technology-drift item appears in the brief with impact and rationale, and every value shown matches the underlying structured drift data exactly.
+    fail_criteria: a technology-drift item lacks impact/rationale in the brief, or a brief value differs from its structured source.
+  - id: SCE-5
+    scenario_id: S5
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/ + {stm_base}/{issue}/status/check-drift.json"
+    check: After resume, all four analysis artifacts are complete and the two pre-interruption domains were reused, not regenerated.
+    pass_criteria: after resume, drift-report.md, adrs.md, debt-catalog.md, and memory-items.md are all present and complete, and the domains completed before the interruption are reused unchanged.
+    fail_criteria: an analysis artifact is missing after resume, or a previously-completed domain was regenerated.
+  - id: SCE-6
+    scenario_id: S6
+    persona: Engineering Lead
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/drift-report.md"
+    check: Every drift item across reports uses the DRIFT-xxx ID format and one of the five fixed categories, with no ID collisions across issues.
+    pass_criteria: every drift item uses a DRIFT-xxx id and a valid drift category, so items from multiple issues concatenate with no ID collisions and no untransformed categories.
+    fail_criteria: a drift item uses a non-canonical ID or category, or IDs collide across issues.
+  - id: SCE-7
+    scenario_id: S7
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/check-drift/"
+    check: Every defect-manifest entry references an existing DRIFT-xxx id and carries a drift type, priority, and blast radius, with no defect filed directly in a tracker.
+    pass_criteria: each defect entry references an existing DRIFT-xxx id and carries a drift type, priority, and blast radius; no defect was created directly in an issue tracker.
+    fail_criteria: a defect entry references no drift id, lacks type/priority/blast radius, or was filed directly in an issue tracker.
