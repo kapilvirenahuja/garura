@@ -1,0 +1,128 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: manage-issue
+    check: An open GitHub issue is associated with the work after issue resolution.
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml"
+    pass_criteria: issue-resolution.yaml records a non-null issue number and the issue exists on GitHub as OPEN.
+    fail_criteria: no issue number is recorded, or the recorded issue does not exist on GitHub as OPEN.
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: null
+    skill: resolve-issues
+    check: A low-confidence inference halted the play rather than producing a branch and issue.
+    artifact_pattern: "{stm_base}/_pending/start-feature/issue-resolution.yaml"
+    pass_criteria: when inference confidence is "low", issue-resolution.yaml shows the play halted and no branch/issue was produced from the weak signal.
+    fail_criteria: a branch and issue were produced while inference confidence was "low".
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: null
+    skill: resolve-issues
+    check: No new issue was created when an existing open issue already matched the work.
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml"
+    pass_criteria: when an existing open issue matched, issue-resolution.yaml shows created is false and reuses that issue.
+    fail_criteria: a new issue was created even though an existing open issue already matched the inferred work.
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F7
+    constraint_id: null
+    skill: manage-issue
+    check: User confirmation was obtained before matching or creating against a closed issue.
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml"
+    pass_criteria: when the best candidate was closed, issue-resolution.yaml records that user confirmation to reopen was obtained before proceeding.
+    fail_criteria: a closed issue was matched or reopened without recorded user confirmation.
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F8
+    constraint_id: null
+    skill: resolve-issues
+    check: When multiple candidates had no clear winner, the user was asked to pick.
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml"
+    pass_criteria: when candidates_considered > 1 with no clear winner, issue-resolution.yaml shows ambiguity_resolved_by_user is true.
+    fail_criteria: multiple candidates with no clear winner existed and the play proceeded without asking the user to pick.
+  - id: SE-6
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C10
+    skill: manage-issue
+    check: A newly created issue body contains a ~25-60 word summary of the inferred work.
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml"
+    pass_criteria: when created is true, the issue body carries a summary of approximately 25-60 words derived from the changed files.
+    fail_criteria: a new issue was created without a ~25-60 word summary body.
+  - id: SE-7
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: setup-branch
+    check: The checked-out branch follows the {type}/{issue_number}-{slug} convention.
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/branch-result.yaml"
+    pass_criteria: branch-result.yaml records a branch name matching {type}/{issue_number}-{slug}.
+    fail_criteria: the checked-out branch does not follow {type}/{issue_number}-{slug}.
+  - id: SE-8
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: setup-branch
+    check: Uncommitted changes present before the play ran are still present in the working tree after completion.
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/branch-result.yaml"
+    pass_criteria: every file from the pre-play `git status --porcelain` snapshot is still present in the working tree; branch-result.yaml shows changes_preserved is true.
+    fail_criteria: a file present in the pre-play snapshot is no longer present in the working tree after completion.
+  - id: SE-9
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: start-feature
+    check: An STM directory exists at {stm_base}/{issue}/ on completion.
+    artifact_pattern: "{stm_base}/{issue}/"
+    pass_criteria: the directory {stm_base}/{issue}/ exists after the play completes.
+    fail_criteria: no STM directory exists at {stm_base}/{issue}/.
+  - id: SE-10
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C3
+    skill: setup-branch
+    check: An existing target branch was switched to, not duplicated.
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/branch-result.yaml"
+    pass_criteria: when the target branch already existed, branch-result.yaml records action "switched" and no duplicate branch was created.
+    fail_criteria: branch-result.yaml records a new branch created when the target branch already existed.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml + branch-result.yaml + git state"
+    check: With uncommitted changes and no args, an open issue is tracked, the convention-named branch is checked out with changes intact, and the STM directory is ready.
+    pass_criteria: an open GitHub issue is associated with the work, the checked-out branch follows {type}/{issue_number}-{slug}, every file from the pre-play snapshot is still present, and {stm_base}/{issue}/ exists.
+    fail_criteria: no issue is associated, the branch is off-convention, a pre-play file is missing, or the STM directory is absent.
+  - id: SCE-2
+    scenario_id: S2
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/branch-result.yaml + git state"
+    check: Given an explicit issue number, the exact issue is used, the branch name carries that number, the STM directory exists, and uncommitted changes are preserved.
+    pass_criteria: the checked-out branch name contains exactly the argument issue number and follows {type}/{issue_number}-{slug}, {stm_base}/{issue}/ exists, and pre-play changes are still present.
+    fail_criteria: the branch number differs from the argument, the branch is off-convention, the STM directory is absent, or pre-play changes are lost.
+  - id: SCE-3
+    scenario_id: S3
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml + branch-result.yaml + platform"
+    check: Given a descriptive title, a new open issue with a ~25-60 word body is created, a branch for it is checked out, and the STM directory exists.
+    pass_criteria: a new open GitHub issue exists whose title matches the provided string with a ~25-60 word summary body, a feature branch named for that issue is checked out, and {stm_base}/{issue}/ exists.
+    fail_criteria: no matching new issue exists, the body summary is missing or out of range, the branch is absent, or the STM directory is absent.
+  - id: SCE-4
+    scenario_id: S4
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/branch-result.yaml + git state"
+    check: Given an existing target branch, it is switched to (not recreated), no duplicate issue is created, changes are preserved, and the STM directory is present.
+    pass_criteria: branch-result.yaml records action "switched", no new issue was created, pre-play changes are still present, and {stm_base}/{issue}/ exists.
+    fail_criteria: the branch was recreated/duplicated, a duplicate issue was created, pre-play changes are lost, or the STM directory is absent.
+  - id: SCE-5
+    scenario_id: S5
+    persona: Team Lead
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml + branch-result.yaml + platform"
+    check: From the GitHub issues list, the work's issue is open, titled, summarized, and traceable to a feature branch on origin.
+    pass_criteria: the resolved issue appears OPEN on GitHub with a non-empty title and summary body, and its number matches the {issue_number} in the feature branch name pushed to origin.
+    fail_criteria: the issue is not open, lacks a title/summary, or its number does not match the branch on origin.

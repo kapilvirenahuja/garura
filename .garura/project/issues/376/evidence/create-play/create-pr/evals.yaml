@@ -1,0 +1,62 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: create-pr
+    check: The created PR is linked to an originating issue that resolves on the platform.
+    artifact_pattern: "{stm_base}/{issue}/evidence/create-pr/pr-record.yaml"
+    pass_criteria: pr-record.yaml records a linked issue (number, title, url) and the PR body contains a resolvable link to that issue.
+    fail_criteria: pr-record.yaml shows no linked issue, or the PR body contains no resolvable link to an originating issue.
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: C4
+    skill: create-pr
+    check: The quality checklist is tailored to the actual changes — every item traces to a real change in the diff, with no generic items.
+    artifact_pattern: "{stm_base}/{issue}/evidence/create-pr/analysis.yaml"
+    pass_criteria: analysis.yaml shows every checklist item carries a trigger reason tied to an actual file pattern or change in the diff, and no generic boilerplate item is present.
+    fail_criteria: analysis.yaml contains a checklist item with no trigger reason tying it to an actual change, or a generic item unrelated to what changed.
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: C5
+    skill: create-pr
+    check: Every checklist item has evidence backing derived from analysis of the actual changes.
+    artifact_pattern: "{stm_base}/{issue}/evidence/create-pr/analysis.yaml"
+    pass_criteria: analysis.yaml shows a non-empty evidence entry for every checklist item, each derived from the actual changes.
+    fail_criteria: analysis.yaml shows one or more checklist items with a missing or empty evidence entry.
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: C6
+    skill: create-pr
+    check: When evals passed, the eval results are present in the created PR body; when evals failed, eval output is written to STM.
+    artifact_pattern: "{stm_base}/{issue}/evidence/create-pr/pr-record.yaml"
+    pass_criteria: pr-record.yaml shows that when evals passed the PR body (or comments) contains the eval results; when evals failed, eval output was written to STM.
+    fail_criteria: evals passed but the PR body contains no eval results.
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: C7
+    skill: create-pr
+    check: The PR was auto-submitted only when the target branch was selected with high confidence; any less-than-high-confidence target was confirmed by the user before creation.
+    artifact_pattern: "{stm_base}/{issue}/evidence/create-pr/pr-record.yaml"
+    pass_criteria: pr-record.yaml shows the target branch was high-confidence and auto-submitted, or a less-than-high-confidence target was explicitly confirmed by the user before the PR was created.
+    fail_criteria: pr-record.yaml shows the PR targets a branch selected with less than high confidence and no user confirmation was recorded before creation.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Code Reviewer
+    artifact_pattern: "{stm_base}/{issue}/evidence/create-pr/pr-record.yaml + platform PR body"
+    check: The PR body lets a reviewer assess safety to merge, understand each item's rationale, and trace to the originating issue from the PR alone.
+    pass_criteria: the PR body contains a change summary, a quality checklist whose every item carries a trigger reason tied to an actual change, a non-empty evidence entry per item, a resolvable link to the originating issue, and embedded eval results when evals ran — no field missing.
+    fail_criteria: the PR body is missing the change summary, the per-item trigger reasons, any item's evidence entry, the resolvable issue link, or the eval results when evals ran.
+  - id: SCE-2
+    scenario_id: S2
+    persona: Author (Developer)
+    artifact_pattern: "{stm_base}/{issue}/evidence/create-pr/pr-record.yaml + platform PR body"
+    check: The PR lets the author verify every change is accounted for, every item is backed by evidence, the linked issue is correct, and eval results are present.
+    pass_criteria: every change in the diff is reflected by at least one checklist item, every checklist item has a backing evidence entry, the linked issue matches the issue the work was done against, and eval results are present in the PR body.
+    fail_criteria: a diff change is unaccounted for by any checklist item, a checklist item is unbacked, the linked issue is wrong, or eval results are absent from the PR body.

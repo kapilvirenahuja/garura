@@ -1,0 +1,35 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: distill
+    check: distill returns gracefully on any error and never propagates an exception or non-zero exit to ship's orchestrator.
+    artifact_pattern: "distill return struct to ship"
+    pass_criteria: on any failure the return struct is { status "skipped", reason "<error>" } and ship continues to scenario validation; no exception or non-zero exit reaches the caller.
+    fail_criteria: distill propagated an exception or non-zero exit to ship, or otherwise halted or delayed the ship pipeline instead of returning a result struct.
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: distill
+    check: All distill output is written under {stm_base}/{issue}/evidence/distill/; nothing is written to product LTM.
+    artifact_pattern: "{stm_base}/{issue}/evidence/distill/proposals.yaml"
+    pass_criteria: proposals.yaml (and every other distill artifact) lands under {stm_base}/{issue}/evidence/distill/, and no file under {product_base} was created or modified by the run.
+    fail_criteria: proposals.yaml or any distill output was written to a path under {product_base} instead of the STM evidence directory.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/distill/proposals.yaml + distill return struct"
+    check: On a non-trivial PR with STM evidence, proposals are staged to STM citing concrete evidence, the return struct reports completed with a proposals_path, and product LTM is unchanged.
+    pass_criteria: proposals.yaml exists under {stm_base}/{issue}/evidence/distill/, each proposal cites concrete diff evidence and/or an STM artifact path, the return struct has status "completed" with a non-null proposals_path, and no file under {product_base} was created or modified.
+    fail_criteria: proposals.yaml is missing or has proposals citing no evidence, the return struct lacks a completed status or proposals_path, or any file under {product_base} was created or modified.
+  - id: SCE-2
+    scenario_id: S2
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/distill/ + distill return struct"
+    check: On a trivial PR with no non-trivial design evidence, no proposals.yaml is written, the return struct reports no_learnings, and product LTM is unchanged.
+    pass_criteria: no proposals.yaml is present under {stm_base}/{issue}/evidence/distill/, the return struct is exactly status "completed" with no_learnings true and proposals_path null, and no file under {product_base} was created or modified.
+    fail_criteria: a proposals.yaml was written for the trivial PR, the return struct does not report no_learnings true with a null proposals_path, or any file under {product_base} was created or modified.
