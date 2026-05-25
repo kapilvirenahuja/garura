@@ -1,136 +1,157 @@
 branch: refactor/376-streamline-idsd-modelling
 issue: 376
 is_hotfix: false
-analysis_pass: 2
+analysis_pass: 3
 
 change_summary:
   total_in_scope: 12
-  excluded: 1
+  excluded: 0
   staged: 0
-  unstaged_tracked: 7
-  untracked_new: 5
+  unstaged_tracked: 9
+  untracked_new: 3
 
 groups:
   - id: A
     issue: 376
-    type: feat
+    type: refactor
     scope: ice
-    subject: "add ICE expectation-generation harness — crafter agent, draft-play-expectation skill, and generation rules"
+    subject: "strip scenarios from intent layer; introduce expectation schema"
     confidence: high
     files:
-      - path: core/components/plays/create-play/SKILL.md
+      - path: core/components/agents/intent-crafter.md
         status: modified
         description: >
-          Compiler updated: new Step 2.5 for expectation generation, expectation-crafter added
-          to build-time tools, G3b gate check added, backward-compat for legacy scenarios,
-          triple schema gate updated.
-      - path: core/components/skills/evals-creator/SKILL.md
+          Interview flow drops Category 4 scenario authoring; Category 4 rewritten
+          to sharpen the goal only; Quality Gate strips scenario rules; skill pool
+          input contract removes scenarios[]; output contract drops scenario_count;
+          NEVER list updated to forbid scenario authoring in intent.
+      - path: core/components/skills/author-intent-yaml/SKILL.md
         status: modified
         description: >
-          Accepts optional expectation_path; scenario evals now sourced from expectation.yaml
-          success_scenarios with measure-based pass criteria when provided; legacy intent.yaml
-          scenarios fallback preserved.
-      - path: core/components/agents/expectation-crafter.md
+          Description updated to "clean triple"; scenarios removed from input
+          contract and validation; emit step removes scenarios: block; output
+          contract drops scenario count and max_id.
+      - path: core/components/memory/standards/schemas/intent.yaml
+        status: modified
+        description: >
+          Content zone renamed from four canonical fields to three (the ICE Intent
+          layer); scenarios: block replaced with comment pointing to expectation.yaml;
+          field count in crafting principles updated from 8 to 7; checksum
+          normalization updated to exclude scenarios.
+      - path: core/components/memory/standards/schemas/expectation.yaml
         status: new
-        description: Agent that generates expectation.yaml from the intent triple for human validation.
-      - path: core/components/memory/standards/rules/expectation-generation.md
-        status: new
-        description: Generation rules and standards for expectation artifacts.
-      - path: core/components/skills/draft-play-expectation/SKILL.md
-        status: new
-        description: Skill that drafts the expectation artifact (success_scenarios + recovery).
+        description: >
+          New file defining the ICE Expectation layer — metadata (name,
+          generated_from, vetted) + content (success_scenarios with measure,
+          recovery with one-per-failure-condition rule).
     type_rationale: >
-      evals-creator adds a new input parameter (expectation_path), a new code path
-      (measure-based pass criteria), and a new fallback branch. This is additive behavior
-      — feat, not refactor. Dominant type for the group is feat.
+      No net-new capability — scenarios moved out of intent.yaml into a
+      separate layer. Authoring path and canonical schemas restructured.
+      refactor is correct.
 
   - id: B
     issue: 376
     type: refactor
-    scope: lint
-    subject: "teach linter to discover and validate ICE expectation.yaml alongside intent"
+    scope: refactor
+    subject: "migrate refactor play to ICE triple + expectation"
     confidence: high
     files:
-      - path: core/tools/lint-components/lib/discover.js
+      - path: core/components/plays/refactor/reference/intent.yaml
         status: modified
         description: >
-          Discovers expectation.yaml per play directory; populates expectationFile on
-          the intent object (null when absent).
-      - path: core/tools/lint-components/lib/rules/structural.js
+          S1-S6 scenarios block removed; replaced with comment pointing to
+          expectation.yaml; intent is now the clean triple.
+      - path: core/components/plays/refactor/reference/expectation.yaml
+        status: new
+        description: >
+          New file — S1-S6 moved here as success_scenarios with new measure
+          fields; recovery REC1-REC12 added (one per failure condition;
+          9 autonomous, 3 human).
+      - path: core/components/plays/refactor/SKILL.md
         status: modified
         description: >
-          Removes scenarios from required intent keys; adds checkExpectation() for
-          ICE-migrated plays; preserves legacy validation for un-migrated plays.
-      - path: core/tools/lint-components/lib/rules/cross-reference.js
-        status: modified
-        description: >
-          Reads scenario IDs from expectation.yaml success_scenarios when expectationFile
-          is present; falls back to intent.yaml scenarios for legacy plays.
+          Compiled From header updated to reference both source files; hash guard
+          extended with expectation hash; Recovery section added with REC1-REC12
+          table; metadata table updated with expectation_hash, new compiled_at,
+          and recovery_entries count.
     type_rationale: >
-      Restructures how the linter discovers and validates plays — no new user-visible feature.
-      Backward-compat preservation means un-migrated plays are not broken. refactor is correct.
+      First concrete play migrated to the ICE structure from Group A.
+      No behavior change — structural migration only. refactor is correct.
 
   - id: C
     issue: 376
-    type: refactor
-    scope: commit-code
-    subject: "migrate commit-code play to ICE triple — split expectation into expectation.yaml, add recovery table"
+    type: chore
+    scope: config
+    subject: "add github owner and name fields to config"
     confidence: high
     files:
-      - path: core/components/plays/commit-code/SKILL.md
+      - path: .garura/core/config.yaml
         status: modified
         description: >
-          Compiled From updated to reference ICE triple; Recovery section added with
-          REC1-REC6 table; compilation metadata updated with expectation_hash and
-          recovery_entries count.
-      - path: core/components/plays/commit-code/reference/intent.yaml
-        status: modified
-        description: >
-          Trailing comment added noting scenarios moved to expectation.yaml.
-          intent/constraints/failure_conditions content unchanged.
-      - path: core/components/plays/commit-code/reference/expectation.yaml
-        status: new
-        description: >
-          success_scenarios S1-S2 and recovery REC1-REC6 extracted from the old
-          intent scenarios block.
+          Added owner: kapilvirenahuja and name: garura under the github: key.
+          Values extracted from the existing repo URL. No other keys changed.
+    type_rationale: >
+      Config maintenance — no code or schema change. chore is correct.
 
   - id: D
     issue: 376
     type: chore
     scope: stm
-    subject: "record ICE pilot evidence for #376"
+    subject: "record capture evidence for #377 (repo-orchestrator multi-commit bug)"
     confidence: high
     files:
-      - path: .garura/project/issues/376/evidence/ice-pilot/generated-expectation.yaml
-        status: new
+      - path: .garura/project/issues/capture-report/evidence/capture/body.md
+        status: modified
         description: >
-          Generated expectation YAML from the ICE pilot run. Pure data artifact,
-          no executable code.
+          Overwritten with body for bug #377 — repo-orchestrator drops bundled
+          multi-commit dispatches. Severity, reported_from, date, problem,
+          root_cause, expected_behavior, and impact all updated.
+      - path: .garura/project/issues/capture-report/evidence/capture/inference-trace.yaml
+        status: modified
+        description: >
+          Updated to reflect explicit type resolution (no ambiguity); repo_slug
+          now resolved; also records that config had no owner/name keys (now
+          fixed in Group C).
+      - path: .garura/project/issues/capture-report/evidence/capture/issue-comment-agent.yaml
+        status: modified
+        description: >
+          Date, type, issue_number, and issue_url updated to reflect #377.
+      - path: .garura/project/issues/capture-report/evidence/capture/issue-result.yaml
+        status: modified
+        description: >
+          Title, URL, number, labels, and completed_at updated to reflect #377.
+      - path: .garura/project/issues/capture-report/evidence/capture/title.txt
+        status: modified
+        description: >
+          Updated to: [BUG] repo-orchestrator drops bundled multi-commit
+          dispatches (commits one, then stops)
+    type_rationale: >
+      Operational STM artifacts produced during #376 session. Bug #377 was
+      discovered and filed as a side-effect of #376 commit-code runs.
+      chore(stm) is correct.
 
-exclusions:
-  - path: .garura/project/issues/373/status/fix-it.json
-    reason: >
-      Stale #373 write present on main branch before this branch diverged.
-      Not part of #376 work. Do not commit on this branch.
-    reason_code: SE-5
+exclusions: []
 
 risks:
   sensitive_files: []
   breaking_changes:
-    - group: B
-      file: core/tools/lint-components/lib/rules/structural.js
+    - group: A
+      file: core/components/memory/standards/schemas/intent.yaml
       description: >
-        Removes scenarios from the required intent key set. Backward-compatible:
-        un-migrated plays (no expectation.yaml) still require scenarios in intent.yaml
-        via the preserved else-branch. ICE-migrated plays no longer need scenarios in
-        intent. Net effect: the linter accepts either shape. Deliberately more permissive
-        for migrated plays; equally strict for legacy ones. Not a breaking change for
-        existing components.
-  ambiguous_types:
-    - file: core/components/skills/evals-creator/SKILL.md
-      candidates: [feat, refactor]
-      resolved: feat
-      rationale: >
-        Adds new input parameter and new code path — additive behavior.
-        Would be refactor only if the change were neutral. It is not.
+        intent.yaml schema now forbids the scenarios: block. Any intent.yaml
+        still carrying scenarios will fail lint-components validation once the
+        linter enforces the triple. Existing plays that have not yet been
+        migrated remain valid as legacy until migrated. Backward-compat is
+        preserved by the linter's existing else-branch (from Group B of
+        analysis_pass: 2).
+      severity: low
+  ambiguous_types: []
   hotfix_branch: false
+
+summary:
+  total_groups: 4
+  total_files_tracked: 9
+  total_files_untracked: 3
+  all_issues: [376]
+  approval_required: false
+  reason: all four groups map to #376 at high confidence

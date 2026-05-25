@@ -2,7 +2,5 @@ auto_resolved: true
 source: branch-name
 issue: 376
 confidence: high
-mappings: []  # all change groups map to #376
-excluded:
-  - file: .garura/project/issues/373/status/fix-it.json
-    reason: "stale write belonging to #373 (already shipped on main); not this branch's #376 concern"
+mappings: []  # all four change groups map to #376
+excluded: []  # stale #373 file was discarded earlier; not in this changeset
