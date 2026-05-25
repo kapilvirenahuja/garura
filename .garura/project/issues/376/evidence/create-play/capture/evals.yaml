@@ -1,0 +1,153 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: capture
+    check: A capture request submitted with title or problem missing is rejected before any filing occurs.
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/rejection.yaml"
+    pass_criteria: rejection.yaml exists naming the missing required field (title and/or problem); no issue-result.yaml is written — no gh issue was created and no fallback file exists.
+    fail_criteria: a capture with title or problem missing was filed, or no rejection.yaml naming the missing field exists.
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: capture
+    check: A capture request with type "defect" and severity omitted is rejected before filing.
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/rejection.yaml"
+    pass_criteria: rejection.yaml exists naming severity as the missing required field for defect type; no issue-result.yaml is written.
+    fail_criteria: a defect with severity omitted was filed, or no rejection.yaml naming severity exists.
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: capture
+    check: A capture request with a type value outside the allowed set that cannot be inferred from problem text is rejected before filing.
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/rejection.yaml"
+    pass_criteria: rejection.yaml exists naming the invalid type value and the allowed set; no issue-result.yaml is written.
+    fail_criteria: an invalid, non-inferable type was filed, or no rejection.yaml naming the invalid value exists.
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: capture
+    check: On gh failure the run produces at least a dispatched stub or a fallback file — never silence.
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/issue-comment-agent.yaml | fallback-{date}.md"
+    pass_criteria: at least one of issue-comment-agent.yaml with status "dispatched" or fallback-{date}.md under evidence/capture/ exists.
+    fail_criteria: both the dispatched stub and the fallback file are missing after a gh failure.
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: null
+    skill: capture
+    check: On gh failure the caller-facing response names what failed and how to share the fallback.
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/fallback-{date}.md + caller response"
+    pass_criteria: the response names what failed (auth, network, or permissions), includes the fallback file path, and lists sharing instructions (email, Slack, paste into a GitHub issue).
+    fail_criteria: the response omits the failure reason, the fallback path, or the sharing instructions.
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: null
+    skill: capture
+    check: The caller is not blocked on the GitHub round-trip — confirmation returns before the background task completes.
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/issue-comment-agent.yaml + status/capture.json"
+    pass_criteria: the caller confirmation return event precedes the issue-comment-agent.yaml completed_at timestamp; the status file shows the dispatch step completed with the background task still in_progress at the moment the caller received the confirmation.
+    fail_criteria: the caller confirmation was returned only after the background task completed, i.e. the caller was blocked waiting for the round-trip.
+  - id: SE-7
+    source_type: both
+    failure_condition_id: F7
+    constraint_id: Cconf
+    skill: capture
+    check: The confirmation returned to the caller is exactly one line carrying the stm_tracking_path.
+    artifact_pattern: caller response
+    pass_criteria: the response contains exactly one line, starts with "garura:capture dispatched →", and the path after the arrow is non-empty ending in issue-result.yaml or issue-comment-agent.yaml.
+    fail_criteria: the response contains more than one line, or omits/empties the stm_tracking_path.
+  - id: SE-8
+    source_type: failure_condition
+    failure_condition_id: F8
+    constraint_id: null
+    skill: capture
+    check: An ambiguous type (no caller type, no C2 keyword) is not silently resolved to a non-bug type for agents, and is human-confirmed for humans.
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/inference-trace.yaml"
+    pass_criteria: for agent callers the filed issue type is bug (label and prefix correspond to bug); for human callers a human-confirmation-prompt event exists in inference-trace.yaml before any dispatch event.
+    fail_criteria: an ambiguous request was filed as a non-bug type for an agent caller, or dispatched without a human-confirmation-prompt for a human caller.
+  - id: SE-9
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C5
+    skill: capture
+    check: The issue body uses a structured markdown format — a leading metadata table followed by labeled sections.
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/issue-result.yaml"
+    pass_criteria: the issue body (captured in issue-result.yaml) contains a leading markdown table with metadata rows followed by labeled markdown-heading sections for problem and any provided evidence / expected behavior / impact fields.
+    fail_criteria: the body lacks the leading metadata table or the labeled section headings.
+  - id: SE-10
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C6
+    skill: capture
+    check: Optional fields appear only when the caller provided them — no empty sections.
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/issue-result.yaml"
+    pass_criteria: for each optional field NOT provided by the caller, the corresponding section heading does not appear in the issue body; only caller-provided optional fields produce section headings.
+    fail_criteria: a section heading appears for an optional field the caller did not provide.
+  - id: SE-11
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C8
+    skill: capture
+    check: The filed issue title begins with the correct type-driven prefix.
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/issue-result.yaml"
+    pass_criteria: the filed title begins with the correct prefix for the resolved type per the table; for defect type the prefix contains both [DEF] and [Severity].
+    fail_criteria: the title prefix does not match the resolved type, or a defect title is missing [DEF] or the severity.
+  - id: SE-12
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C9
+    skill: capture
+    check: The filed issue carries the type-driven label, creating it first if absent.
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/issue-result.yaml"
+    pass_criteria: the filed issue has at least the type-driven label from the github-issue.md template table applied; if the label did not exist prior to filing, a label-create event precedes the issue-create event.
+    fail_criteria: the type-driven label is absent, or a missing label was not created before filing.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Agent in another play
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/issue-result.yaml + issue-comment-agent.yaml"
+    check: For an agent-dispatched feature request with no type provided, type is inferred feature and the caller is not blocked.
+    pass_criteria: issue-result.yaml records type=feature, the title begins with [FEAT], the labels list contains "enhancement", and the caller confirmation was returned before issue-comment-agent.yaml completed_at.
+    fail_criteria: type is not feature, the title prefix is not [FEAT], the label is missing, or confirmation was not returned before the background task completed.
+  - id: SCE-2
+    scenario_id: S2
+    persona: Human developer
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/issue-result.yaml + issue-comment-agent.yaml"
+    check: For a human-filed defect with explicit type defect and severity High, the issue is correctly prefixed and labeled and the caller is not blocked.
+    pass_criteria: issue-result.yaml records type=defect and severity=High, the title begins with [DEF][High], the labels list contains "defect", and the caller confirmation was returned before issue-comment-agent.yaml completed_at.
+    fail_criteria: type/severity is wrong, the title prefix is not [DEF][High], the label is missing, or confirmation came after completion.
+  - id: SCE-3
+    scenario_id: S3
+    persona: Human developer
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/issue-result.yaml"
+    check: For a human-filed epic with explicit type epic and no severity, the issue files cleanly without a severity error.
+    pass_criteria: issue-result.yaml records type=epic, the title begins with [EPIC], the labels list contains "epic", and no severity-missing rejection artifact exists under the capture evidence directory.
+    fail_criteria: type is not epic, the title prefix is not [EPIC], the label is missing, or a severity-missing rejection artifact exists.
+  - id: SCE-4
+    scenario_id: S4
+    persona: Agent in another play
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/issue-comment-agent.yaml + caller response"
+    check: The caller confirmation return is strictly earlier than the background task completion and carries a valid tracking path.
+    pass_criteria: the timestamp of the caller confirmation return is strictly earlier than issue-comment-agent.yaml completed_at, and the stm_tracking_path in the confirmation is a valid path under the capture evidence directory.
+    fail_criteria: confirmation was returned at or after the background task completed, or the tracking path is invalid.
+  - id: SCE-5
+    scenario_id: S5
+    persona: Human developer
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/fallback-{date}.md + caller response"
+    check: On gh failure a full fallback file is produced and the caller is told what failed and how to share it.
+    pass_criteria: a fallback-{date}.md file exists under the capture evidence directory with the full issue content, and the caller response names the specific failure (auth or network), includes the fallback file path, and lists sharing options including email, paste into a GitHub issue, and Slack.
+    fail_criteria: no fallback file exists, or the response omits the failure reason, the path, or the sharing options.
+  - id: SCE-6
+    scenario_id: S6
+    persona: Human developer
+    artifact_pattern: "{stm_base}/capture-report/evidence/capture/inference-trace.yaml"
+    check: For ambiguous text from a human caller, the type is human-confirmed before any dispatch.
+    pass_criteria: inference-trace.yaml contains a human-confirmation-prompt event with ambiguous_text true, followed by a human-confirmed type event, followed by the dispatch event; the filed issue type matches the human-confirmed value; and no dispatch occurred before the confirmation.
+    fail_criteria: a dispatch event precedes the human confirmation, the confirmation event is missing, or the filed type does not match the confirmed value.

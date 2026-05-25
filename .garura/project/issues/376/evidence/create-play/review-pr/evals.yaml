@@ -1,0 +1,112 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: C2
+    skill: quality-check-scoped
+    check: Every finding carries a standard_id that matches a row in the PR severity taxonomy.
+    artifact_pattern: "{stm_base}/{issue}/evidence/review-pr/findings.yaml"
+    pass_criteria: every finding in findings.yaml has a standard_id present as a row in the PR severity taxonomy; no finding has a missing or unknown standard_id.
+    fail_criteria: a finding is emitted without a standard_id, or with a standard_id that does not exist in the PR severity taxonomy.
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: C1
+    skill: quality-check-scoped
+    check: No file outside the PR's changed paths was read, and /quality-check was not invoked.
+    artifact_pattern: "{stm_base}/{issue}/evidence/review-pr/findings.yaml"
+    pass_criteria: findings.yaml meta.diff_path points at the PR diff, every cited location lies within changed_paths, and no full-repo scan marker is present.
+    fail_criteria: findings.yaml cites a file outside changed_paths, or shows a full-repo scan / /quality-check invocation.
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F7
+    constraint_id: C3
+    skill: quality-check-scoped
+    check: Severity values are sourced verbatim from the PR severity taxonomy row for each standard_id, not computed at runtime.
+    artifact_pattern: "{stm_base}/{issue}/evidence/review-pr/findings.yaml"
+    pass_criteria: each finding's severity matches the taxonomy row for its standard_id exactly; two runs on the same diff produce identical P1..P4 buckets.
+    fail_criteria: a severity differs from the taxonomy row for its standard_id, or severity differs across two back-to-back runs on the same diff.
+  - id: SE-4
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C4
+    skill: review-pr
+    check: context.yaml lists the resolved standards_set paths and the resolved severity_taxonomy_path, all originating from .garura/core/config.yaml.
+    artifact_pattern: "{stm_base}/{issue}/evidence/review-pr/context.yaml"
+    pass_criteria: every path in context.yaml standards_set and severity_taxonomy_path is resolved from config; no hardcoded path appears.
+    fail_criteria: context.yaml carries a path or threshold not resolved from .garura/core/config.yaml.
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: null
+    skill: review-pr
+    check: confidence.yaml routing is block iff findings.counts.P1 > 0, escalate iff confidence < threshold, else pass.
+    artifact_pattern: "{stm_base}/{issue}/evidence/review-pr/confidence.yaml"
+    pass_criteria: routing is "block" exactly when P1 > 0, "escalate" exactly when confidence < confidence_threshold, and "pass" otherwise.
+    fail_criteria: a P1 finding is present but routing is not "block", or confidence is below threshold but routing is not "escalate".
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: C6
+    skill: review-pr
+    check: reviewers.yaml selected_reviewers excludes the PR author and is bounded by activity_window_days from config.
+    artifact_pattern: "{stm_base}/{issue}/evidence/review-pr/reviewers.yaml"
+    pass_criteria: selected_reviewers does not contain the PR author, and the git log window equals review-pr.activity_window_days from config.
+    fail_criteria: the PR author appears in selected_reviewers, or the activity window is not sourced from config.
+  - id: SE-7
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: C7
+    skill: review-pr
+    check: When candidate count < reviewer_count, fallback is used; if fallback_reviewers is empty and the pool is short, the play HALTs with F3.
+    artifact_pattern: "{stm_base}/{issue}/evidence/review-pr/reviewers.yaml"
+    pass_criteria: reviewers.yaml shows fallback_used true with selected_reviewers drawn from review-pr.fallback_reviewers when the pool is short; or the play HALTs with structured failure F3 when fallback_reviewers is empty and the pool is short.
+    fail_criteria: a short pool yields fewer than reviewer_count without using the fallback, or the play proceeds despite an empty fallback and a short pool.
+  - id: SE-8
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: C8
+    skill: review-pr
+    check: The PR comment uses the structured template with P1/P2/P3 sections and a confidence score; a prior review-pr comment is updated in place; request-changes is set on a P1 finding and reviewers are added on block/escalate.
+    artifact_pattern: "{stm_base}/{issue}/evidence/review-pr/comment-record.yaml"
+    pass_criteria: comment-record.yaml shows the structured comment posted (or updated in place with the same comment_id), review_action request-changes when a P1 is present, and reviewers_added populated on block or escalate.
+    fail_criteria: the comment is stacked instead of updated in place, lacks the structured sections/confidence, or a P1 finding does not set request-changes.
+  - id: SE-9
+    source_type: failure_condition
+    failure_condition_id: F8
+    constraint_id: C4
+    skill: review-pr
+    check: Pre-flight HALTs if the PR severity taxonomy file is missing OR any of the six review-pr.* config keys are missing.
+    artifact_pattern: "{stm_base}/{issue}/evidence/review-pr/pr-meta.yaml"
+    pass_criteria: pre-flight proceeds only when the taxonomy file exists and all six review-pr config keys (bypass, confidence_threshold, reviewer_count, standards_order, fallback_reviewers, activity_window_days) are present; otherwise it hard-halts.
+    fail_criteria: the play proceeds with the taxonomy file missing or any of the six required review-pr config keys absent.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Reviewer
+    artifact_pattern: "PR comment (via gh pr view)"
+    check: Exactly one review-pr comment carries a confidence score, P1/P2/P3 sections, a standard ID on every finding line, and a Reviewers block listing the selected names.
+    pass_criteria: exactly one review-pr comment (with the review-pr marker) is present, containing a confidence score, P1/P2/P3 sections, a standard_id on every finding line, and a Reviewers block listing the selected names.
+    fail_criteria: more than one review-pr comment exists, or the comment lacks the confidence score, P1/P2/P3 sections, a per-finding standard_id, or the Reviewers block.
+  - id: SCE-2
+    scenario_id: S2
+    persona: PR Author
+    artifact_pattern: "PR comment + findings.yaml + PR severity taxonomy"
+    check: Every finding line carries a standard_id mapping to a real KB rule and a specific file:line inside the PR diff.
+    pass_criteria: every finding line carries a standard_id that maps to a real taxonomy/KB rule row and points to a specific file:line inside the PR diff; no finding lacks a standard_id or a diff location.
+    fail_criteria: a finding line lacks a standard_id, cites a standard_id with no KB rule, or has no file:line in the diff.
+  - id: SCE-3
+    scenario_id: S3
+    persona: Ship Pipeline
+    artifact_pattern: "confidence.yaml + ship run state"
+    check: With review-pr.bypass=false and routing block or escalate, ship halts before merge-pr and surfaces the routing decision.
+    pass_criteria: when review-pr.bypass is false and confidence.yaml routing is block or escalate, ship stops before merge-pr and reports the routing decision instead of merging.
+    fail_criteria: ship proceeds to merge-pr despite review-pr.bypass=false and a block or escalate routing decision.
+  - id: SCE-4
+    scenario_id: S4
+    persona: QA / Determinism Auditor
+    artifact_pattern: "two findings.yaml from back-to-back runs"
+    check: Two back-to-back runs on the same PR produce byte-identical findings.yaml (modulo meta.generated_at) and identical P1..P4 counts.
+    pass_criteria: the two findings.yaml files are byte-identical except for meta.generated_at, and the P1..P4 counts match exactly across both runs.
+    fail_criteria: the two findings.yaml files differ beyond meta.generated_at, or the P1..P4 counts differ between runs.
