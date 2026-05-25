@@ -1,0 +1,383 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: synthesize-personas
+    check: personas.md exists and persona count >= 1.
+    artifact_pattern: "{product_base}experience/personas.md"
+    pass_criteria: personas.md exists with at least one persona.
+    fail_criteria: personas.md is absent or contains zero personas.
+
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: generate-screen-inventory
+    check: screens/ exists and contains >= 1 screen MD file.
+    artifact_pattern: "{product_base}experience/screens/"
+    pass_criteria: screens/ exists with at least one screen MD file.
+    fail_criteria: screens/ is absent or empty.
+
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: map-user-flows
+    check: flows/ exists and contains >= 1 flow MD file.
+    artifact_pattern: "{product_base}experience/flows/"
+    pass_criteria: flows/ exists with at least one flow MD file.
+    fail_criteria: flows/ is absent or empty.
+
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: synthesize-personas
+    check: Every persona uses JTBD 'When … I want … so I can …' format.
+    artifact_pattern: "{product_base}experience/personas.md"
+    pass_criteria: Every persona is in JTBD format.
+    fail_criteria: Any persona is demographic-driven, narrative-only, or missing the JTBD structure.
+
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: synthesize-personas
+    check: Every persona is mapped to >= 1 capability from scope.selected_capabilities.
+    artifact_pattern: "{product_base}experience/personas.md"
+    pass_criteria: Every persona maps to at least one selected capability.
+    fail_criteria: Any persona has zero capability mappings.
+
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: validate-screen-coverage
+    check: Every capability has >= 1 screen.
+    artifact_pattern: "{product_base}experience/validation-screens-pre-flow.yaml"
+    pass_criteria: Every selected capability maps to at least one screen.
+    fail_criteria: Any selected capability has zero screens.
+
+  - id: SE-7
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: null
+    skill: validate-screen-coverage
+    check: Every screen enumerates >= 3 distinct states.
+    artifact_pattern: "{product_base}experience/validation-screens-pre-flow.yaml"
+    pass_criteria: Every screen enumerates three or more distinct states.
+    fail_criteria: Any screen has fewer than three states.
+
+  - id: SE-8
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: null
+    skill: validate-screen-coverage
+    check: Every success_scenario has >= 1 flow.
+    artifact_pattern: "{product_base}experience/validation-screens-with-flows.yaml"
+    pass_criteria: Every success_scenario is referenced by at least one flow.
+    fail_criteria: Any success_scenario has zero flows.
+
+  - id: SE-9
+    source_type: failure_condition
+    failure_condition_id: F7
+    constraint_id: null
+    skill: validate-screen-coverage
+    check: Every failure_scenario has >= 1 recovery flow.
+    artifact_pattern: "{product_base}experience/validation-screens-with-flows.yaml"
+    pass_criteria: Every failure_scenario is referenced by at least one recovery flow.
+    fail_criteria: Any failure_scenario has zero recovery flows.
+
+  - id: SE-10
+    source_type: failure_condition
+    failure_condition_id: F8
+    constraint_id: null
+    skill: generate-wireframes
+    check: No vague wireframe descriptions; every wireframe names components + layout pattern.
+    artifact_pattern: "{product_base}experience/screens/"
+    pass_criteria: Every wireframe names concrete components and a specific layout pattern.
+    fail_criteria: Any wireframe uses a vague description ("a form", "the dashboard") without named components and a layout pattern.
+
+  - id: SE-11
+    source_type: failure_condition
+    failure_condition_id: F9
+    constraint_id: null
+    skill: generate-screen-inventory
+    check: Every interactive screen carries WCAG-level accessibility requirements.
+    artifact_pattern: "{product_base}experience/screens/"
+    pass_criteria: Every interactive screen carries WCAG-level accessibility requirements.
+    fail_criteria: Any interactive screen is missing accessibility requirements.
+
+  - id: SE-12
+    source_type: failure_condition
+    failure_condition_id: F10
+    constraint_id: null
+    skill: scriber
+    check: All 3 human checkpoint artifacts exist with recorded Tether/Vanish/Orbit.
+    artifact_pattern: "{product_base}_checkpoints/design/"
+    pass_criteria: All three checkpoint artifacts exist with a recorded human response.
+    fail_criteria: Any checkpoint artifact is missing or proceeded without a recorded response.
+
+  - id: SE-13
+    source_type: failure_condition
+    failure_condition_id: F11
+    constraint_id: null
+    skill: play
+    check: No artifact written outside ADR 017 whitelist; all evidence/checkpoint/status went through scriber.
+    artifact_pattern: "{product_base}_evidence/design/, {product_base}experience/"
+    pass_criteria: All files land inside the ADR 017 whitelist and all evidence/checkpoint/status writes went through scriber.
+    fail_criteria: A file is written outside the whitelist, or an evidence/checkpoint/status file bypassed scriber.
+
+  - id: SE-14
+    source_type: failure_condition
+    failure_condition_id: F12
+    constraint_id: null
+    skill: generate-wireframes
+    check: No visual-design elements (hex, px/rem, font-family) inside wireframe ASCII blocks. DS-as-sibling artifact remains the allowed home for visual tokens.
+    artifact_pattern: "{product_base}experience/screens/"
+    pass_criteria: No wireframe ASCII block contains hex, px/rem, or font-family elements.
+    fail_criteria: Any wireframe ASCII block carries a visual-design element.
+
+  - id: SE-15
+    source_type: failure_condition
+    failure_condition_id: F13
+    constraint_id: null
+    skill: play
+    check: No skill receives `ltm_domain_taxonomy_path`; no skill reads directly from `core/components/memory/knowledge/domain/`.
+    artifact_pattern: "core/components/plays/design/SKILL.md"
+    pass_criteria: No skill contract passes ltm_domain_taxonomy_path and no skill reads domain content directly from the KB.
+    fail_criteria: A skill receives ltm_domain_taxonomy_path or reads domain content directly from core/components/memory/knowledge/domain/.
+
+  - id: SE-16
+    source_type: failure_condition
+    failure_condition_id: F14
+    constraint_id: null
+    skill: synthesize-personas
+    check: No persona generated for a use case absent from `mvp-recommendation.md` primary_use_cases.
+    artifact_pattern: "{product_base}experience/personas.md"
+    pass_criteria: Every persona corresponds to a primary use case in mvp-recommendation.md.
+    fail_criteria: A persona was generated for a use case not in mvp-recommendation.md primary_use_cases.
+
+  - id: SE-17
+    source_type: failure_condition
+    failure_condition_id: F14
+    constraint_id: null
+    skill: generate-screen-inventory
+    check: No user-surface screen for a capability serving only deferred use cases.
+    artifact_pattern: "{product_base}experience/screens/"
+    pass_criteria: No user-surface screen exists for a deferred-only capability.
+    fail_criteria: A user-surface screen was created for a capability serving only deferred use cases.
+
+  - id: SE-18
+    source_type: failure_condition
+    failure_condition_id: F14
+    constraint_id: null
+    skill: map-user-flows
+    check: No flow authored for a scenario belonging to a deferred-use-case-only epic.
+    artifact_pattern: "{product_base}experience/flows/"
+    pass_criteria: No flow exists for a scenario in a deferred-use-case-only epic.
+    fail_criteria: A flow was authored for a scenario belonging to a deferred-use-case-only epic.
+
+  - id: SE-19
+    source_type: failure_condition
+    failure_condition_id: F15
+    constraint_id: null
+    skill: generate-screen-inventory
+    check: generate-screen-inventory emits `## Wireframe` as the FIRST body section after H1 (placeholder ok).
+    artifact_pattern: "{product_base}experience/screens/"
+    pass_criteria: Every screen skeleton has `## Wireframe` as the first body section after the H1.
+    fail_criteria: A screen skeleton has any section before `## Wireframe`.
+
+  - id: SE-20
+    source_type: failure_condition
+    failure_condition_id: F15
+    constraint_id: null
+    skill: generate-wireframes
+    check: generate-wireframes full shape — Wireframe first, Layout Spec last, every declared state has a wireframe block, no visual-design tokens inside wireframes.
+    artifact_pattern: "{product_base}experience/screens/"
+    pass_criteria: Every screen has `## Wireframe` first, `## Layout Spec` last, a wireframe block per declared state, and no visual tokens inside wireframes.
+    fail_criteria: Any screen violates the visual-first order, omits a state's wireframe block, or carries visual tokens inside a wireframe.
+
+  - id: SE-21
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C17
+    skill: play
+    check: Every inferred decision has tier + grounding_source + recommendation + alternatives_considered; tiered surfacing flow ran per tier before downstream consume.
+    artifact_pattern: "{product_base}experience/decision-manifest-*.yaml"
+    pass_criteria: Every inferred decision carries the four required fields and the tiered surfacing flow ran before downstream consumption.
+    fail_criteria: An inferred decision lacks a required field, or was consumed downstream before its tier-appropriate surfacing flow ran.
+
+  - id: SE-22
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C18
+    skill: play
+    check: Every inferred-decision skill wrote `decision-manifest.yaml` with all required fields populated for every entry.
+    artifact_pattern: "{product_base}experience/decision-manifest-*.yaml"
+    pass_criteria: Every inferred-decision skill emitted a manifest with all required fields populated for every entry.
+    fail_criteria: A decision-producing skill wrote no manifest, or a manifest omits a required field for any entry.
+
+  - id: SE-23
+    source_type: failure_condition
+    failure_condition_id: F16
+    constraint_id: null
+    skill: play
+    check: No inferred decision was silently committed; user_response non-null for every entry before next step.
+    artifact_pattern: "{product_base}experience/decision-manifest-*.yaml"
+    pass_criteria: Every manifest entry has a non-null user_response before the next step proceeds.
+    fail_criteria: An inferred decision was committed downstream without a recorded user_response.
+
+  - id: SE-24
+    source_type: failure_condition
+    failure_condition_id: F17
+    constraint_id: null
+    skill: play
+    check: No manifest is missing, malformed, or has un-surfaced entries.
+    artifact_pattern: "{product_base}experience/decision-manifest-*.yaml"
+    pass_criteria: Every decision-producing skill's manifest exists, is well-formed, and has user_response populated for all entries.
+    fail_criteria: A manifest is missing, malformed, or has any un-surfaced entry after the surfacing flow.
+
+  - id: SE-25
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C19
+    skill: play
+    check: When invoked with `--epic` or `--feature`, scope-resolver narrows the epics set before any skill dispatches; skill contracts receive the narrowed `epics_dir`.
+    artifact_pattern: "core/components/plays/design/SKILL.md"
+    pass_criteria: With --epic/--feature, the epics set is narrowed before any skill dispatch and skills receive the narrowed epics_dir.
+    fail_criteria: A skill dispatched before scope narrowing, or received an un-narrowed epics_dir under --epic/--feature.
+
+  - id: SE-26
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C20
+    skill: play
+    check: Pre-flight scans `{product_base}experience/` only; sets mode=greenfield|gap-only; in gap-only mode skips LOCKED-artifact stages unless `--force-stage`.
+    artifact_pattern: "{product_base}_status/design.json"
+    pass_criteria: Pre-flight scans only experience/, sets the mode, and skips LOCKED-artifact stages in gap-only mode unless --force-stage is passed.
+    fail_criteria: Pre-flight scanned outside experience/, failed to set mode, or overwrote a LOCKED-artifact stage without --force-stage.
+
+  - id: SE-27
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C21
+    skill: draft-design-system
+    check: After Checkpoint 2 and before Step 6, designer invokes `draft-design-system`; `design-system.md` exists with sections Palette, Typography, Tokens, Inspirations, Open Questions.
+    artifact_pattern: "{product_base}experience/design-system.md"
+    pass_criteria: design-system.md exists with all five required sections and was authored between Checkpoint 2 and Step 6.
+    fail_criteria: design-system.md is missing a required section or was not authored in the Step 5b slot.
+
+  - id: SE-28
+    source_type: failure_condition
+    failure_condition_id: F19
+    constraint_id: null
+    skill: draft-design-system
+    check: "`design-system.md` contains no specific hex codes outside Inspirations, no rem/px values, no CSS variable names, no font-family declarations."
+    artifact_pattern: "{product_base}experience/design-system.md"
+    pass_criteria: design-system.md carries token ranges + inspirations only — no hex outside Inspirations, no rem/px, no CSS variable names, no font-family declarations.
+    fail_criteria: design-system.md carries a pixel-level or implementation-level spec.
+
+  - id: SE-29
+    source_type: failure_condition
+    failure_condition_id: F18
+    constraint_id: null
+    skill: play
+    check: In gap-only mode, no stage overwrites a LOCKED artifact without a delta checkpoint Tether or `--force-stage`.
+    artifact_pattern: "{product_base}_checkpoints/design/"
+    pass_criteria: No LOCKED artifact was overwritten without an explicit delta-checkpoint Tether or --force-stage.
+    fail_criteria: A gap-only stage overwrote a LOCKED artifact without a delta Tether or --force-stage.
+
+  - id: SE-30
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C13
+    skill: generate-wireframes
+    check: DS lives at `{product_base}experience/design-system.md` as a sibling artifact; DS tokens do NOT flow into wireframe ASCII; wireframes remain structural.
+    artifact_pattern: "{product_base}experience/design-system.md, {product_base}experience/screens/"
+    pass_criteria: The Design System is a sibling artifact; DS tokens do not appear inside wireframe ASCII; wireframes stay structural.
+    fail_criteria: DS tokens flowed into wireframe ASCII, or the DS was embedded inside a wireframe rather than kept as a sibling artifact.
+
+  - id: SE-31
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C12
+    skill: play
+    check: Exactly 3 human-review checkpoints (after personas, after screens, after final spec) with recorded responses.
+    artifact_pattern: "{product_base}_checkpoints/design/"
+    pass_criteria: Exactly three human-review checkpoints exist (personas, screens, final spec), each with a recorded response.
+    fail_criteria: Fewer or more than three human-review checkpoints, or any without a recorded response.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Developer
+    artifact_pattern: "{product_base}experience/screens/"
+    check: For the screen's `## Wireframe` + `## Layout Spec`, every enumerated state has a layout pattern, a named component inventory, per-state data fields, and an action list — with no vague placeholder and no TODO/clarification marker.
+    pass_criteria: Every state has a layout pattern, named components, data fields, and an action list, with no vague placeholder or clarification marker.
+    fail_criteria: A state lacks a layout pattern, named components, data fields, or an action list, or carries a vague placeholder / clarification marker.
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: Designer (external, receiving the spec)
+    artifact_pattern: "{product_base}experience/personas.md"
+    check: Every persona in personas.md is in JTBD "When … I want … so I can …" format and maps to >=1 capability from scope.selected_capabilities, and every selected user-surface capability is represented by at least one persona.
+    pass_criteria: Every persona is JTBD-formatted and capability-mapped, and every selected user-surface capability has a persona.
+    fail_criteria: A persona is not JTBD-formatted or unmapped, or a selected user-surface capability has no persona.
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: Product Manager
+    artifact_pattern: "{product_base}experience/flows/"
+    check: Every intent-epic success_scenario has >=1 flow file referencing it and every failure_scenario has >=1 recovery flow referencing it (via frontmatter source_scenario); zero scenarios are without a flow.
+    pass_criteria: Every success_scenario has a flow and every failure_scenario has a recovery flow, each referenced via frontmatter source_scenario.
+    fail_criteria: A success_scenario or failure_scenario has no flow referencing it.
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: Technical Architect
+    artifact_pattern: "{product_base}experience/screens/"
+    check: Every screen file discloses a state count (>=3 states), per-state data requirements, per-state action lists, and navigation points — all machine-readable from `## States` + `## Layout Spec` without a visual mockup.
+    pass_criteria: Every screen discloses state count, per-state data requirements, per-state action lists, and navigation points machine-readably.
+    fail_criteria: A screen omits its state count, per-state data requirements, per-state action lists, or navigation points.
+
+  - id: SCE-5
+    scenario_id: S5
+    persona: Accessibility Lead
+    artifact_pattern: "{product_base}experience/screens/"
+    check: Every interactive screen's `## Accessibility` section names a specific WCAG level that meets or exceeds the product quality-profile interaction target; no interactive screen omits its accessibility requirements.
+    pass_criteria: Every interactive screen names a WCAG level meeting or exceeding the quality-profile interaction target.
+    fail_criteria: An interactive screen omits its accessibility requirements or names a WCAG level below the target.
+
+  - id: SCE-6
+    scenario_id: S6
+    persona: Developer
+    artifact_pattern: "{product_base}experience/design-spec.md"
+    check: design-spec.md carries a single product-wide decision for each interaction pattern (validation, loading, error placement, empty states, transitions), so each pattern resolves to exactly one specification.
+    pass_criteria: Each interaction pattern resolves to exactly one product-wide decision in design-spec.md.
+    fail_criteria: An interaction pattern has zero or conflicting decisions in design-spec.md.
+
+  - id: SCE-7
+    scenario_id: S7
+    persona: Product Manager (at final review)
+    artifact_pattern: "{product_base}experience/design-spec.md, {product_base}_checkpoints/design/"
+    check: design-spec.md contains the full consolidated section set (personas, screens, flows, wireframes, interaction patterns, handoff notes) and the Checkpoint 3 artifact records exactly one Tether/Orbit/Vanish response.
+    pass_criteria: design-spec.md carries the full consolidated section set and Checkpoint 3 records exactly one human response.
+    fail_criteria: design-spec.md is missing a consolidated section, or Checkpoint 3 records zero or multiple responses.
+
+  - id: SCE-8
+    scenario_id: S8
+    persona: Product owner scoping a single epic for design
+    artifact_pattern: "{product_base}experience/"
+    check: With `--epic <id>`, the resolved epics set is the single named epic file; produced/updated artifacts cover only that epic's capabilities, and no design artifact belonging to another epic's capabilities is modified.
+    pass_criteria: --epic narrows to the single epic; only that epic's capability artifacts are produced/updated; other epics' artifacts are untouched.
+    fail_criteria: --epic resolved to more than the named epic, or an artifact for another epic's capabilities was modified.
+
+  - id: SCE-9
+    scenario_id: S9
+    persona: Designer re-entering an in-progress product
+    artifact_pattern: "{product_base}_status/design.json, {product_base}_evidence/design/"
+    check: Pre-flight sets mode=gap-only; the persona and screen stages are recorded as skipped-locked; the run executes DS → flows → wireframes → compile-spec; and the delivery record lists the LOCKED-skipped stages.
+    pass_criteria: Mode is gap-only, persona/screen stages are skipped-locked, the run executes DS→flows→wireframes→compile-spec, and the delivery record lists the skipped stages.
+    fail_criteria: Mode is not gap-only, a LOCKED stage re-ran, or the delivery record omits the skipped stages.

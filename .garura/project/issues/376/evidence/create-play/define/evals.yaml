@@ -1,0 +1,270 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: manage-issue
+    check: >
+      Phase 0 ends with a resolved-or-created open GH issue. The skill output carries an
+      integer issue.number and issue.state == "open", and all subsequent STM paths are
+      anchored at {stm_base}{issue}/.
+    artifact_pattern: "{stm_base}{issue}/evidence/define/issue-resolution.yaml"
+    pass_criteria: "Output carries an integer issue.number and issue.state == open; subsequent STM is anchored at {stm_base}{issue}/."
+    fail_criteria: "issue.number missing, issue.state != open, or STM paths written under any location other than {stm_base}{issue}/."
+
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: play-intake-interview
+    check: >
+      At least one of brief.md or grounding-questions.md at the user-provided path for the
+      issue has non-zero size after the interview concludes — user input produced scopable
+      content.
+    artifact_pattern: "{product_base}{product.user-provided}{issue}/brief.md"
+    pass_criteria: "At least one of brief.md or grounding-questions.md has non-zero size after the interview concludes."
+    fail_criteria: "Both brief.md and grounding-questions.md remain empty after the interview — a failed interview."
+
+  - id: SE-3
+    source_type: both
+    failure_condition_id: F3
+    constraint_id: C4
+    skill: product-keeper
+    check: >
+      catalog-match.yaml classifies the feature into exactly one of the five declared
+      buckets (exact_match, extension, new_feature_in_existing_capability,
+      new_capability_in_existing_domain, new_domain) with an accompanying rationale string.
+    artifact_pattern: "{stm_base}{issue}/evidence/define/catalog-match.yaml"
+    pass_criteria: "classification field value is one of the five enumerated buckets and is accompanied by a rationale string."
+    fail_criteria: "classification field missing, empty, or outside the five declared buckets."
+
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: product-keeper
+    check: >
+      constraint-fit.yaml does not record an unresolved hard regression against any ISO
+      25010 target in quality-profile.yaml; any flagged regression is either resolved at
+      the placement checkpoint or triggers Vanish with the GH issue closed.
+    artifact_pattern: "{stm_base}{issue}/evidence/define/constraint-fit.yaml"
+    pass_criteria: "Every ISO 25010 target in constraint-fit.yaml passes or is resolved at the placement checkpoint; any unresolved regression triggered Vanish and issue close."
+    fail_criteria: "constraint-fit.yaml shows a hard regression against an ISO 25010 target AND the user did not resolve it at the placement checkpoint AND the play proceeded past Phase 5."
+
+  - id: SE-5
+    source_type: both
+    failure_condition_id: F5
+    constraint_id: C9
+    skill: manage-features
+    check: >
+      Every feature row written in Phase 6 carries an `issue` field whose value is the
+      integer GH issue number resolved in Phase 0.
+    artifact_pattern: "{product_base}{product.scope}features.yaml"
+    pass_criteria: "The feature row for this scoping session contains an issue field equal to the Phase-0 issue number."
+    fail_criteria: "Feature row missing the issue field, the field is empty, or its value does not equal the Phase-0 issue number."
+
+  - id: SE-6
+    source_type: both
+    failure_condition_id: F6
+    constraint_id: C10
+    skill: generate-intent-epics
+    check: >
+      Epic generation is scoped to the target capability and every epic for that capability
+      passes validate-intent-epics before the play continues; if a gap interview ran, the
+      post-loop validation run also reports PASS.
+    artifact_pattern: "{product_base}{product.scope}validation-intent-epics.yaml"
+    pass_criteria: "validation-intent-epics.yaml reports PASS for the target capability's epic file(s); any post-gap-loop run also reports PASS."
+    fail_criteria: "validate-intent-epics reports FAIL on the target capability's epic and the single-loop gap interview did not resolve the missing fields."
+
+  - id: SE-7
+    source_type: failure_condition
+    failure_condition_id: F7
+    constraint_id: C12
+    skill: product-keeper
+    check: >
+      Every working artifact (catalog-match, constraint-fit, grounding, decision manifest,
+      delivery record) is located under {stm_base}{issue}/evidence/define/; no working
+      artifact path resolves under {product_base}.
+    artifact_pattern: "{stm_base}{issue}/evidence/define/"
+    pass_criteria: "All working artifacts live under {stm_base}{issue}/evidence/define/; no working artifact path resolves under {product_base}."
+    fail_criteria: "A working artifact is written under {product_base} instead of {stm_base}{issue}/evidence/define/."
+
+  - id: SE-8
+    source_type: failure_condition
+    failure_condition_id: F8
+    constraint_id: null
+    skill: manage-issue
+    check: >
+      When the user responds Vanish at the Phase 5 placement checkpoint, the GH issue
+      opened in Phase 0 is closed before the play exits.
+    artifact_pattern: "{stm_base}{issue}/evidence/define/issue-close.yaml"
+    pass_criteria: "On a Phase-5 Vanish, delivery-record.yaml records a manage-issue close action against the Phase-0 issue and the resulting issue.state == closed."
+    fail_criteria: "Phase-5 Vanish occurred and the GH issue from Phase 0 is still open — an orphaned issue is left in the tracker."
+
+  - id: SE-9
+    source_type: failure_condition
+    failure_condition_id: F9
+    constraint_id: null
+    skill: product-keeper
+    check: >
+      Every existing product-LTM artifact read during the play parses as YAML and contains
+      the required top-level keys for its schema; missing artifacts are auto-created per C14
+      and are not a halt condition.
+    artifact_pattern: "{product_base} product-LTM artifacts read during the play"
+    pass_criteria: "Every existing product-LTM artifact parses as YAML with required top-level keys; missing artifacts auto-created per C14."
+    fail_criteria: "An existing product-LTM artifact fails schema on read (malformed YAML, missing required keys, corrupted structure) and the play proceeded past that read."
+
+  - id: SE-10
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C3
+    skill: repo-orchestrator
+    check: >
+      Intake output files are written to {product_base}{product.user-provided}{issue}/ with
+      the fixed names brief.md and grounding-questions.md and are self-committed as soon as
+      the first interview turn produces content.
+    artifact_pattern: "{stm_base}{issue}/evidence/define/intake-commit.yaml"
+    pass_criteria: "Both files exist at the resolved user-provided path under the issue folder with the fixed names, and the commit record shows they were committed after the first interview turn produced content."
+    fail_criteria: "Files located outside {product_base}{product.user-provided}{issue}/, named differently, or not committed after the first interview turn produced content."
+
+  - id: SE-11
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C5
+    skill: product-keeper
+    check: >
+      constraint-fit.yaml contains entries for security_level, compliance.categories (with
+      any applicable ratchets), team_size, delivery_ambition.current_level, target_milestone
+      (drawn from timeline.milestones), and an ISO 25010 regression check with no unresolved
+      regression.
+    artifact_pattern: "{stm_base}{issue}/evidence/define/constraint-fit.yaml"
+    pass_criteria: "All enumerated entries present; target_milestone is one of the timeline.milestones values; no unresolved ISO 25010 regression."
+    fail_criteria: "constraint-fit.yaml missing any enumerated entry, target_milestone not one of timeline.milestones, or an ISO 25010 target shows an unresolved regression."
+
+  - id: SE-12
+    source_type: failure_condition
+    failure_condition_id: F10
+    constraint_id: C16
+    skill: play-checkpoint-rendering
+    check: >
+      Every user-facing surface declared in C16's template_map (placement checkpoint file,
+      placement approval prompt, epic checkpoint file, epic approval prompt, delivery report,
+      evidence file) is loaded from its declared template path under
+      {ltm.project-target}standards/templates/ rather than emitted as inline prose. The
+      compiled SKILL.md references each declared template path at the phase that emits the
+      corresponding surface.
+    artifact_pattern: "compiled SKILL.md template path references + emitted artifact files"
+    pass_criteria: "SKILL.md references checkpoint.md (phase 5 + phase 9), approval-prompt.md (phase 5 + phase 9), delivery-report.md (phase 10), evidence-file.md (phase 10); emitted artifacts are produced by filling those templates."
+    fail_criteria: "Any user-facing surface is emitted as inline prose in the compiled SKILL.md instead of loaded from the C16 template path."
+
+  - id: SE-13
+    source_type: both
+    failure_condition_id: F11
+    constraint_id: C17
+    skill: play-decision-surfacing
+    check: >
+      At each human-review checkpoint gate (Phase 5 and Phase 9), before the checkpoint file
+      is written or the Tether/Orbit/Vanish prompt is presented, every decision-manifest
+      entry with surfaced_for_review: true is surfaced to the user batched by confidence tier
+      (HIGH single batch-confirm, MID batch with explicit per-decision questions, LOW
+      one-by-one) and the user's response is written back into the originating manifest entry.
+      No surfaced_for_review: true entry is carried past a checkpoint without user_response.
+    artifact_pattern: "{stm_base}{issue}/evidence/define/decision-manifest-*.yaml + Step 5.0 / Step 9.0 in SKILL.md"
+    pass_criteria: "Every surfaced_for_review: true entry across the manifests available at each gate has user_response populated (accept | override | orbit) with user_response_detail before the gate proceeds; SKILL.md contains decision-surfacing steps at Phase 5 (Step 5.0) and Phase 9 (Step 9.0)."
+    fail_criteria: "Any surfaced_for_review: true entry is carried past Phase 5 or Phase 9 with user_response unpopulated, or the SKILL.md has no decision-surfacing step before a gate."
+
+# Scenario evals are sourced from reference/expectation.yaml success_scenarios —
+# one per success_scenario, derived from each scenario's `measure` field.
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: "Product owner with a raw feature idea, no FEAT-ID yet"
+    source: expectation.success_scenarios[S1].measure
+    artifact_pattern: "{stm_base}{issue}/evidence/define/delivery-record.yaml + {product_base}{product.scope}"
+    check: >
+      delivery-record.yaml shows the Phase-0 issue was created, bucket is one of the five
+      declared values, target_milestone matches a timeline.milestones entry, Phase 5 Tether
+      and Phase 9 Tether are recorded, the features.yaml row carries the new issue number,
+      at least one epic file exists under epics/ for the target capability, and the record
+      ends with "ready for /prepare".
+    pass_criteria: "All measure properties hold: issue created, valid bucket, target_milestone matches timeline.milestones, both Tethers recorded, features.yaml row carries the new issue number, an epic exists for the target capability, record ends with 'ready for /prepare'."
+    fail_criteria: "Any measure property fails — missing issue, invalid bucket, target_milestone mismatch, a Tether unrecorded, missing issue number on the row, no epic, or record does not end with 'ready for /prepare'."
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: "Product manager preparing an existing planned feature for build"
+    source: expectation.success_scenarios[S2].measure
+    artifact_pattern: "{stm_base}{issue}/evidence/define/delivery-record.yaml + {product_base}{product.scope}"
+    check: >
+      delivery-record.yaml records bucket=exact_match, Phase 4 skipped, the features.yaml
+      WI-F001 row has the new issue field populated and the gap fields filled, an epic file
+      for the agentic-triage capability exists and validation-intent-epics.yaml reports PASS
+      for it, and the record ends with "ready for /prepare".
+    pass_criteria: "bucket=exact_match, Phase 4 skipped, WI-F001 row has issue populated and gap fields filled, agentic-triage epic exists and validates PASS, record ends with 'ready for /prepare'."
+    fail_criteria: "bucket != exact_match, Phase 4 ran, issue field not populated on WI-F001, epic missing or failing validation, or record does not end with 'ready for /prepare'."
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: "Product owner evolving an existing feature that already has a linked issue"
+    source: expectation.success_scenarios[S3].measure
+    artifact_pattern: "{stm_base}{issue}/evidence/define/delivery-record.yaml + {product_base}{product.scope}"
+    check: >
+      delivery-record.yaml records Phase-0 reuse of issue N, bucket=extension, the
+      features.yaml AM-F014 row has notes + gap_items updated with the issue field equal to
+      its prior value N, the epic for the target capability is present (extended as needed)
+      and validates, and the record ends with "ready for /prepare".
+    pass_criteria: "Phase-0 reused issue N, bucket=extension, AM-F014 row notes+gap_items updated with issue field unchanged at N, target-capability epic present and validates, record ends with 'ready for /prepare'."
+    fail_criteria: "A new issue was created instead of reusing N, bucket != extension, AM-F014 issue field changed, epic validation failed, or record does not end with 'ready for /prepare'."
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: "Product owner proposing a feature that needs a new capability"
+    source: expectation.success_scenarios[S4].measure
+    artifact_pattern: "{stm_base}{issue}/evidence/define/ + {product_base}{product.scope}"
+    check: >
+      delivery-record.yaml records bucket=new_capability_in_existing_domain, grounding
+      artifacts exist under {stm_base}{issue}/evidence/define/, enriched-capabilities.yaml
+      carries the new capability record, features.yaml carries the new feature row with the
+      `issue` field, a fresh epic exists under epics/ and validation-intent-epics.yaml
+      reports PASS, and the record ends with "ready for /prepare".
+    pass_criteria: "bucket=new_capability_in_existing_domain, grounding artifacts under STM evidence, new capability record in enriched-capabilities.yaml, new feature row with issue field, fresh epic exists and validates PASS, record ends with 'ready for /prepare'."
+    fail_criteria: "Bucket incorrect, grounding artifacts missing when required, new capability record missing, epic missing or failing validation, or record does not end with 'ready for /prepare'."
+
+  - id: SCE-5
+    scenario_id: S5
+    persona: "Product owner whose feature idea regresses a declared quality target"
+    source: expectation.success_scenarios[S5].measure
+    artifact_pattern: "{stm_base}{issue}/evidence/define/constraint-fit.yaml + delivery-record.yaml"
+    check: >
+      constraint-fit.yaml records the specific ISO 25010 regression with the target name and
+      conflict; delivery-record.yaml records the Phase-5 Vanish with the regression as
+      reason, records that Phases 6-10 did not run, and records that the Phase-0 issue was
+      closed; the GH issue state is "closed".
+    pass_criteria: "constraint-fit.yaml records the named ISO 25010 regression and conflict; delivery-record.yaml records the Phase-5 Vanish with the regression as reason, Phases 6-10 not run, and issue closed; GH issue state is closed."
+    fail_criteria: "Phases 6-10 ran, the Phase-0 issue is still open, or delivery-record.yaml does not record the Vanish reason with the regression cited."
+
+  - id: SCE-6
+    scenario_id: S6
+    persona: "Product owner scoping a feature into a greenfield product with no existing features.yaml"
+    source: expectation.success_scenarios[S6].measure
+    artifact_pattern: "{product_base}{product.scope}features.yaml + delivery-record.yaml"
+    check: >
+      features.yaml exists after the play with the new feature as its first entry and a
+      summary with initialised counters; delivery-record.yaml includes a decision-manifest
+      entry recording the auto-creation of features.yaml; the record ends with "ready for
+      /prepare".
+    pass_criteria: "features.yaml exists with the new feature as its first entry and an initialised summary; delivery-record.yaml records a decision-manifest entry for the auto-creation; record ends with 'ready for /prepare'."
+    fail_criteria: "features.yaml was not auto-created, no decision-manifest entry recorded the auto-creation, or record does not end with 'ready for /prepare'."
+
+evals:
+  path: ".garura/project/issues/376/evidence/create-play/define/evals.yaml"
+  step_eval_count: 13
+  scenario_eval_count: 6
+  scenario_evals_source: reference/expectation.yaml success_scenarios
+  coverage:
+    failure_conditions_covered: [F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11]
+    failure_conditions_uncovered: []
+    constraints_covered: [C3, C4, C5, C9, C10, C12, C16, C17]
+    constraints_uncovered: []
+    scenarios_covered: [S1, S2, S3, S4, S5, S6]
+    scenarios_uncovered: []

@@ -1,0 +1,221 @@
+step_evals:
+  - id: SE-1
+    source_type: constraint
+    failure_condition_id: F0
+    constraint_id: C0
+    skill: project-orchestrator
+    check: An issue number is resolved and recorded in status/codify.json before any scan or inference work begins.
+    artifact_pattern: "{stm_base}/{issue}/status/codify.json"
+    pass_criteria: status/codify.json exists and contains issue_number as an integer before Step 2 begins.
+    fail_criteria: scan or any inference agent runs before status/codify.json carries an issue_number, or no issue could be resolved or created.
+  - id: SE-2
+    source_type: constraint
+    failure_condition_id: F2
+    constraint_id: C2
+    skill: scan-codebase
+    check: A valid bounded scan-index.json is produced before any agent dispatch.
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/scan-index.json"
+    pass_criteria: scan-index.json exists with scan_status complete or budget_exhausted, a repos list matching the --path args, and manifests + trees + frontend_detection; scan-result.yaml mirrors status.
+    fail_criteria: scan-index.json is absent, empty, malformed, or the scan exit code is non-zero.
+  - id: SE-3
+    source_type: constraint
+    failure_condition_id: F11
+    constraint_id: C3
+    skill: codify
+    check: A budget-exhausted scan triggers a user checkpoint before inference dispatch.
+    artifact_pattern: "{stm_base}/{issue}/status/codify.json"
+    pass_criteria: when scan_status is budget_exhausted, the scan-status checkpoint is presented and recorded before Foundation Inference; when scan_status is complete, Step 3 is skipped.
+    fail_criteria: inference proceeds on a budget_exhausted scan with no recorded user Tether.
+  - id: SE-4
+    source_type: constraint
+    failure_condition_id: F3
+    constraint_id: C4
+    skill: product-keeper
+    check: Every foundation proposal carries the three required provenance fields.
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/proposals/**"
+    pass_criteria: project-profile, domain-selection, market-brief, mvp-recommendation each carry source_type inferred_from_code, a non-empty evidence list, and confidence in {high, medium, low}.
+    fail_criteria: any foundation proposal is missing source_type, evidence, or confidence.
+  - id: SE-5
+    source_type: constraint
+    failure_condition_id: F9
+    constraint_id: C10
+    skill: product-keeper
+    check: Every dispatched skill that receives ltm_context writes a resolution-trace.
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/**/resolution-trace.yaml"
+    pass_criteria: each foundation skill writes resolution-trace.yaml at its declared path and resolution_trace_path is populated.
+    fail_criteria: any ltm_context-bearing skill produces no resolution-trace.yaml.
+  - id: SE-6
+    source_type: constraint
+    failure_condition_id: F8
+    constraint_id: C4
+    skill: product-keeper
+    check: scope, enriched-capabilities, and features proposals carry provenance and valid taxonomy.
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/proposals/scope/**"
+    pass_criteria: scope.yaml, enriched-capabilities.yaml, and features.yaml are present with meta blocks and taxonomy valid per C7.
+    fail_criteria: any of the three is missing, lacks a meta block, or carries an invalid taxonomy.
+  - id: SE-7
+    source_type: constraint
+    failure_condition_id: F4
+    constraint_id: C19
+    skill: validate-abstraction-layer
+    check: Specification/, research/, and scope/ proposals carry no abstraction-layer deny-list tokens.
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/proposals/{specification,research,scope}/**"
+    pass_criteria: validate-abstraction-layer passes for every proposal under specification/, research/, and scope/.
+    fail_criteria: any such proposal contains a deny-list token.
+  - id: SE-8
+    source_type: constraint
+    failure_condition_id: F3
+    constraint_id: C4
+    skill: product-keeper
+    check: At least one epic and one research file exist (or are skipped with a recorded reason), each with correct taxonomy.
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/proposals/{scope/epics,research}/**"
+    pass_criteria: at least one epic YAML and one research/{domain}.md exist with meta blocks and correct taxonomy, or skipped_phases records "epics"/"research" with a reason.
+    fail_criteria: epics or research are absent without a recorded skip, or a produced file has wrong taxonomy.
+  - id: SE-9
+    source_type: constraint
+    failure_condition_id: F3
+    constraint_id: C4
+    skill: test-engineer
+    check: quality-profile.yaml carries provenance, taxonomy, and populated ISO 25010 characteristics.
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/proposals/specification/quality-profile.yaml"
+    pass_criteria: quality-profile.yaml exists with learning_category quality, sub_category testing, tier 2, and ISO 25010 characteristics populated with target_level + evidence.
+    fail_criteria: quality-profile.yaml is missing, mistagged, or has empty characteristics.
+  - id: SE-10
+    source_type: constraint
+    failure_condition_id: F3
+    constraint_id: C6
+    skill: tech-architect
+    check: All five architecture artifacts are present with provenance and tier-1 taxonomy.
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/proposals/architecture/**"
+    pass_criteria: logical, physical, nfr-spec, quality-vision, and design-patterns are present with meta blocks, tier 1, learning_category arch|quality, and sub_category matching the canonical tree.
+    fail_criteria: any of the five is missing, lacks a meta block, or is mistagged.
+  - id: SE-11
+    source_type: constraint
+    failure_condition_id: F4
+    constraint_id: C19
+    skill: tech-architect
+    check: Architecture artifacts are exempt from the abstraction-layer rule; product-layer artifacts remain bound.
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/proposals/architecture/**"
+    pass_criteria: validate-abstraction-layer is not applied to architecture/ (physical-architecture may name products); specification/, research/, scope/ remain bound by the rule.
+    fail_criteria: the abstraction-layer validator is wrongly applied to architecture/, or a product-layer artifact is exempted.
+  - id: SE-12
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: C8
+    skill: designer
+    check: Designer is dispatched if and only if scan-index records a frontend.
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/scan-index.json"
+    pass_criteria: designer is dispatched exactly when scan-index frontend_detection is true for some repo, and not dispatched otherwise.
+    fail_criteria: designer is dispatched with no frontend detected, or skipped when a frontend is present.
+  - id: SE-13
+    source_type: constraint
+    failure_condition_id: F3
+    constraint_id: C4
+    skill: designer
+    check: When dispatched, every experience proposal carries provenance and tier-3 taxonomy.
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/proposals/experience/**"
+    pass_criteria: each experience/* file has a meta block with tier 3, learning_category product, sub_category null.
+    fail_criteria: any experience file is missing a meta block or is mistagged.
+  - id: SE-14
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: C5
+    skill: codify
+    check: Every proposal passes its scoped schema validator before aggregation.
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/proposals/**"
+    pass_criteria: validate-intent-epics, validate-architecture-spec, validate-screen-coverage (when experience ran), and validate-abstraction-layer all pass for their scoped sets.
+    fail_criteria: any validator fails; the play halts before aggregation and records validation-failures.yaml.
+  - id: SE-15
+    source_type: failure_condition
+    failure_condition_id: F14
+    constraint_id: C20
+    skill: aggregate-codify-proposals
+    check: The master proposals.yaml index is written with required headers and per-proposal fields.
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/proposals.yaml"
+    pass_criteria: proposals.yaml exists with schema_version, total_proposals, tier_counts, confidence_counts, learning_category_counts, and a proposals list where each entry has target_path, artifact_path, learning_category, tier, source_type inferred_from_code, and confidence.
+    fail_criteria: proposals.yaml is absent or missing any required header or per-proposal field.
+  - id: SE-16
+    source_type: failure_condition
+    failure_condition_id: F13
+    constraint_id: C13
+    skill: codify
+    check: Low-confidence and Tier-1-LOCKED-conflict proposals are surfaced 1-by-1 with explicit decisions.
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/checkpoint-decisions.yaml"
+    pass_criteria: every proposal with confidence low OR tier 1 + LOCKED conflict is surfaced individually and its accept/reject/defer decision is recorded.
+    fail_criteria: any such proposal is accepted silently with no recorded per-proposal decision.
+  - id: SE-17
+    source_type: failure_condition
+    failure_condition_id: F10
+    constraint_id: C12
+    skill: codify
+    check: A summary checkpoint is always shown before evidence commit.
+    artifact_pattern: "{stm_base}/{issue}/status/codify.json"
+    pass_criteria: the summary checkpoint is presented even for zero-proposal runs, and evidence commit does not execute until the user Tethers.
+    fail_criteria: the play commits evidence without presenting the summary checkpoint and awaiting Tether.
+  - id: SE-18
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C17
+    skill: repo-orchestrator
+    check: Evidence self-commit runs after Tether and is non-blocking.
+    artifact_pattern: "{stm_base}/{issue}/status/codify.json"
+    pass_criteria: evidence commit runs after Tether; a commit failure is logged in the status file, does not roll back proposals.yaml, and does not halt the play.
+    fail_criteria: a commit failure halts the play or rolls back proposals.yaml.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: "Product owner onboarding a single-service brownfield codebase"
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/proposals/** + proposals.yaml"
+    check: A full single-repo proposal set is produced, all provenance-tagged and validator-clean, with a shown summary and a Tether-gated commit.
+    pass_criteria: scan-index records exactly 1 repo; foundation, scope (3-5 capabilities), features, 2-4 epics, research/{domain}.md per detected domain, and all 5 architecture artifacts are present under proposals/; every proposal carries source_type, evidence, confidence; all validators pass; the summary checkpoint was shown; and evidence committed only after a recorded Tether.
+    fail_criteria: any expected proposal is missing, a proposal lacks provenance, a validator fails, the summary was not shown, or evidence committed without a recorded Tether.
+  - id: SCE-2
+    scenario_id: S2
+    persona: "Platform engineer onboarding a multi-repo monolith"
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/scan-index.json + proposals/architecture/**"
+    check: The scan aggregates all five repos within budget and architecture proposes multiple bounded contexts plus shared infra.
+    pass_criteria: scan-index.repos lists all five requested roots with per-repo byte counts; logical-architecture.yaml declares more than one bounded_context keyed to repos; physical-architecture.yaml records shared infrastructure; and scan_status is complete.
+    fail_criteria: scan-index omits a requested root, logical-architecture declares one or zero bounded_contexts, physical-architecture records no shared infra, or scan_status is budget_exhausted.
+  - id: SCE-3
+    scenario_id: S3
+    persona: "Backend engineer onboarding a headless service"
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/scan-index.json + proposals.yaml"
+    check: With no frontend, designer is not dispatched and experience is skipped with a recorded reason while all other proposals are produced.
+    pass_criteria: scan-index frontend_detection is false for every repo; no designer dispatch occurs; no proposals exist under proposals/experience/; proposals.yaml skipped_phases contains "experience" with a reason; and every non-experience proposal is present.
+    fail_criteria: designer is dispatched, experience proposals exist, skipped_phases omits "experience", or a non-experience proposal is missing.
+  - id: SCE-4
+    scenario_id: S4
+    persona: "Tech lead re-running codify to check LTM alignment"
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/proposals.yaml"
+    check: A fully-LOCKED incremental run produces zero new proposals and confirms alignment.
+    pass_criteria: proposals.yaml shows total_proposals 0, alignment_confirmed true, and a skipped_locked entry for every LOCKED target artifact; the play exits cleanly after the summary checkpoint.
+    fail_criteria: proposals.yaml lists any new proposal, alignment_confirmed is false, or a LOCKED artifact lacks a skipped_locked entry.
+  - id: SCE-5
+    scenario_id: S5
+    persona: "Platform engineer running codify on an extreme codebase"
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/scan-index.json + proposals.yaml"
+    check: A budget-exhausted scan is checkpointed before inference and the partial status is recorded.
+    pass_criteria: scan-index scan_status is budget_exhausted with a top-paths-by-size report; the scan-status checkpoint was presented before any inference dispatch; inference proceeded only after a recorded user Tether (and on Vanish no inference agent was dispatched); proposals.yaml records the partial scan status.
+    fail_criteria: inference dispatched before a recorded Tether on a budget_exhausted scan, or proposals.yaml does not record the partial status.
+  - id: SCE-6
+    scenario_id: S6
+    persona: "Product owner with a codebase in a domain Garura's KB does not yet cover"
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/proposals/specification/domain-selection.yaml + research/**"
+    check: A new domain is proposed with justification and a matching Tier-3 research draft, surfaced at the checkpoint.
+    pass_criteria: domain-selection.yaml carries an entry with inferred_domain_new true, learning_category domain, and a non-empty taxonomy_justification block; a matching research/{new-domain}.md proposal exists tagged tier 3; and that proposed-new value was surfaced at the checkpoint with its justification.
+    fail_criteria: the new-domain entry lacks inferred_domain_new or a justification, no matching research draft exists, or the proposed-new value was not surfaced.
+  - id: SCE-7
+    scenario_id: S7
+    persona: "Tech lead with partial LOCKED LTM and missing scope"
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/proposals.yaml"
+    check: LOCKED architecture is skipped while missing scope and research are freshly inferred, with no DRAFT comparison.
+    pass_criteria: proposals.yaml records skipped_locked entries for every LOCKED architecture artifact AND fresh proposals for the missing scope artifacts plus research/{domain}.md; no proposal contains a delta or comparison against DRAFT LTM.
+    fail_criteria: a LOCKED architecture artifact has a fresh proposal, a missing scope artifact has no proposal, or any proposal compares against DRAFT LTM.
+  - id: SCE-8
+    scenario_id: S8
+    persona: "Tech lead invoking codify with a single-artifact target"
+    artifact_pattern: "{stm_base}/{issue}/evidence/codify/proposals.yaml + proposals/architecture/**"
+    check: A --target architecture run dispatches only tech-architect and produces exactly the five validated architecture proposals.
+    pass_criteria: only tech-architect was dispatched (no product-keeper, test-engineer, or designer dispatch); proposals.yaml skipped_phases lists scope, experience, research, specification, and user-provided with the reason "target filter"; and exactly the 5 architecture proposals are present and pass validation.
+    fail_criteria: a non-architecture agent was dispatched, skipped_phases omits an expected phase, or the architecture proposal set is incomplete or fails validation.
