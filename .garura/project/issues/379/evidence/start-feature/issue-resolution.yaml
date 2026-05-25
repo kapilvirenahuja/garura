@@ -1,0 +1,12 @@
+issue:
+  number: 379
+  title: "Fix codify→enrich cold-start writes (full LTM file-set parity)"
+  url: "https://github.com/kapilvirenahuja/garura/issues/379"
+  state: "open"
+  created: true
+  type_hint: "fix"
+inference:
+  source: "explicit_title"
+  confidence: "high"
+  candidates_considered: 0
+  ambiguity_resolved_by_user: true

@@ -1,0 +1,5 @@
+input_type: "title"
+value: "Fix codify→enrich cold-start writes (full LTM file-set parity)"
+type_hint: "fix"
+body: "On a brownfield bootstrap, codify→enrich only writes the experience/design files; the structural core never lands, and the run still reports done. Make enrich create-or-enrich the full specify/design/arch file set, both cold-start and re-run, with no silent half-write."
+note: "user-confirmed title/body/type at create-play checkpoint; create new issue (no open match exists)"

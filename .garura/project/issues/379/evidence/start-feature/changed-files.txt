@@ -1,0 +1,3 @@
+ M .claude/specs/codify-enrich-cold-start-writes/spec.md
+ M .garura/project/issues/_pending/start-feature/changed-files.txt
+ M docs/philosophy/intent-driven-development.md
