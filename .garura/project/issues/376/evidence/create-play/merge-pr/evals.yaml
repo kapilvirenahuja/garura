@@ -1,0 +1,62 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: merge-pr
+    check: No merge was performed while the PR had conflicts, and the base branch carries no merge conflict markers.
+    artifact_pattern: "{stm_base}/{issue}/evidence/merge-pr/merge-result.yaml"
+    pass_criteria: merge-result.yaml shows status is "merged" only when the PR was not conflicting; status is never "conflict" with a merge recorded, and the base branch has no conflict markers.
+    fail_criteria: merge-result.yaml shows a merge recorded while the PR/source branch had conflicts, or the base branch contains conflict markers.
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: merge-pr
+    check: After completion the feature branch is absent locally and on the remote, unless the platform already removed the remote branch.
+    artifact_pattern: "{stm_base}/{issue}/evidence/merge-pr/merge-result.yaml"
+    pass_criteria: merge-result.yaml shows branch_deleted is true and the feature branch is absent from local and remote listings (an already-deleted remote counts as success).
+    fail_criteria: the feature branch still exists locally or on the remote, and the remote was not already removed by the platform.
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: merge-pr
+    check: After completion the local checkout is on the base branch and the local base branch is up to date with the remote.
+    artifact_pattern: "{stm_base}/{issue}/evidence/merge-pr/merge-result.yaml"
+    pass_criteria: merge-result.yaml shows base_branch set, local HEAD is on that base branch, and local base SHA matches the remote base SHA.
+    fail_criteria: the local checkout is not on the base branch, or the local base branch is behind the remote base branch.
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: merge-pr
+    check: No merge was performed when the working tree or index had uncommitted or staged changes present before the operation began.
+    artifact_pattern: "{stm_base}/{issue}/evidence/merge-pr/merge-result.yaml"
+    pass_criteria: the pre-operation working tree was clean (pre-flight snapshot empty) and merge-result.yaml shows status "merged".
+    fail_criteria: merge-result.yaml shows status "merged" while the pre-operation working tree or index had uncommitted or staged changes.
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: null
+    skill: merge-pr
+    check: A recorded merge corresponds to a merged PR on the platform for the feature branch.
+    artifact_pattern: "{stm_base}/{issue}/evidence/merge-pr/merge-result.yaml"
+    pass_criteria: merge-result.yaml shows status "merged" with pr_number set, and the platform shows that PR as merged.
+    fail_criteria: merge-result.yaml shows a merge was performed but no corresponding merged PR exists on the platform for the feature branch.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/merge-pr/merge-result.yaml + git state"
+    check: After completion, local HEAD is on the base branch, the local base branch is level with its remote, and the feature branch is absent locally and remotely.
+    pass_criteria: local HEAD is on the base branch, the local base branch is 0 commits behind origin, and the feature branch is absent from both `git branch` and `git branch -r`.
+    fail_criteria: HEAD is not on the base branch, the local base is behind origin, or the feature branch still appears in `git branch` or `git branch -r`.
+  - id: SCE-2
+    scenario_id: S2
+    persona: Code Reviewer
+    artifact_pattern: "{stm_base}/{issue}/evidence/merge-pr/merge-result.yaml + platform PR state"
+    check: The PR is reflected as merged on the platform and its merge commit is present on the base branch.
+    pass_criteria: the platform reports the PR state as merged, and the merge commit (merge_sha from merge-result.yaml) is reachable from the base branch tip.
+    fail_criteria: the platform does not report the PR as merged, or the merge commit is not reachable from the base branch tip.
