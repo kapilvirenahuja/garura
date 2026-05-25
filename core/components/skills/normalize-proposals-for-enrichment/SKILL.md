@@ -106,7 +106,7 @@ codify proposals come through `aggregate-codify-proposals` as a master index wit
 
 - Tier and taxonomy come from the `meta` block.
 - `target_path` is the LTM-relative destination already recorded in the master index entry.
-- `action`: `add` for tier 3 (new artifact), `modify` for tier 2 (existing artifact), `contradict_with_adr` for tier 1.
+- `action`: determined by target-path existence in `product_ltm_root` — `add` when `{product_ltm_root}/{target_path}` does not exist on disk, `modify` when it does. Tier 1 remains `contradict_with_adr` (unchanged). Tier 3 is always `add` (experience/* is never pre-seeded). For tier 2, the mapper checks existence before assigning action — aligning with the decode mapper's pattern.
 - `change` is the file content the inference produced. For YAML proposals, this is the file body. For markdown, the body sans frontmatter.
 - `impact` carries through; default `risk: medium` if absent (codify writes large surface).
 - `adr_draft_path` carries through when present.
