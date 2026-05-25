@@ -1,72 +1,136 @@
-branch:
-  name: refactor/376-streamline-idsd-modelling
-  issue: "376"
-  is_hotfix: false
+branch: refactor/376-streamline-idsd-modelling
+issue: 376
+is_hotfix: false
+analysis_pass: 2
 
 change_summary:
-  total_files: 11
+  total_in_scope: 12
+  excluded: 1
   staged: 0
-  unstaged: 8
-  untracked: 3
+  unstaged_tracked: 7
+  untracked_new: 5
 
 groups:
   - id: A
-    issue: "376"
-    type: docs
-    scope: idsd
-    subject: "introduce ICE model and reframe intent as clean triple"
+    issue: 376
+    type: feat
+    scope: ice
+    subject: "add ICE expectation-generation harness — crafter agent, draft-play-expectation skill, and generation rules"
     confidence: high
     files:
-      - path: core/grounding/glossary.md
-        description: "Updated Intent definition to clean triple (goal+constraints+failure_conditions); removed scenarios from intent; updated ICE framing"
-      - path: docs/framework/intent-driven-recovery.md
-        description: "Reframed recovery as unified concept (Expectation layer) plus autonomous-fix branch; added recovery handoff plan description"
-      - path: docs/philosophy/architecture.md
-        description: "Updated Four Crafts table description; removed scenarios block from intent.yaml template; renamed Recovery Protocol section to Recovery (Autonomous-Fix Branch)"
-      - path: docs/philosophy/idsd.md
-        description: "Updated JSON contract description to reflect ICE (success scenarios in Expectation, not intent.yaml); renamed Recovery Protocol section"
-      - path: docs/philosophy/intent-driven-development.md
-        description: "Added full ICE model section; restated decision space for ICE; added Level 4 autonomy; updated routing table to ICE columns; rewrote success-in-intent rationale"
+      - path: core/components/plays/create-play/SKILL.md
+        status: modified
+        description: >
+          Compiler updated: new Step 2.5 for expectation generation, expectation-crafter added
+          to build-time tools, G3b gate check added, backward-compat for legacy scenarios,
+          triple schema gate updated.
+      - path: core/components/skills/evals-creator/SKILL.md
+        status: modified
+        description: >
+          Accepts optional expectation_path; scenario evals now sourced from expectation.yaml
+          success_scenarios with measure-based pass criteria when provided; legacy intent.yaml
+          scenarios fallback preserved.
+      - path: core/components/agents/expectation-crafter.md
+        status: new
+        description: Agent that generates expectation.yaml from the intent triple for human validation.
+      - path: core/components/memory/standards/rules/expectation-generation.md
+        status: new
+        description: Generation rules and standards for expectation artifacts.
+      - path: core/components/skills/draft-play-expectation/SKILL.md
+        status: new
+        description: Skill that drafts the expectation artifact (success_scenarios + recovery).
+    type_rationale: >
+      evals-creator adds a new input parameter (expectation_path), a new code path
+      (measure-based pass criteria), and a new fallback branch. This is additive behavior
+      — feat, not refactor. Dominant type for the group is feat.
 
   - id: B
-    issue: "376"
-    type: chore
-    scope: specs
-    subject: "add working specs for ICE refactor and codify-enrich cold-start writes"
+    issue: 376
+    type: refactor
+    scope: lint
+    subject: "teach linter to discover and validate ICE expectation.yaml alongside intent"
     confidence: high
     files:
-      - path: .claude/specs/ice-refactor/schema-stub.md
-        description: "Schema stub for the ICE refactor — untracked new file"
-      - path: .claude/specs/codify-enrich-cold-start-writes/spec.md
-        description: "Working spec for codify-enrich cold-start writes — untracked new file"
+      - path: core/tools/lint-components/lib/discover.js
+        status: modified
+        description: >
+          Discovers expectation.yaml per play directory; populates expectationFile on
+          the intent object (null when absent).
+      - path: core/tools/lint-components/lib/rules/structural.js
+        status: modified
+        description: >
+          Removes scenarios from required intent keys; adds checkExpectation() for
+          ICE-migrated plays; preserves legacy validation for un-migrated plays.
+      - path: core/tools/lint-components/lib/rules/cross-reference.js
+        status: modified
+        description: >
+          Reads scenario IDs from expectation.yaml success_scenarios when expectationFile
+          is present; falls back to intent.yaml scenarios for legacy plays.
+    type_rationale: >
+      Restructures how the linter discovers and validates plays — no new user-visible feature.
+      Backward-compat preservation means un-migrated plays are not broken. refactor is correct.
 
   - id: C
-    issue: "376"
-    type: chore
-    scope: stm
-    subject: "record STM artifacts for #376 start-feature"
+    issue: 376
+    type: refactor
+    scope: commit-code
+    subject: "migrate commit-code play to ICE triple — split expectation into expectation.yaml, add recovery table"
     confidence: high
     files:
-      - path: .garura/project/issues/376/
-        description: "STM directory for issue 376 — evidence and status subdirectories created by start-feature; untracked"
-      - path: .garura/project/issues/_pending/start-feature/args.yaml
-        description: "start-feature scratch: updated to reflect issue #376 (title, type_hint, notes)"
-      - path: .garura/project/issues/_pending/start-feature/changed-files.txt
-        description: "start-feature scratch: populated with files changed at feature-start time"
+      - path: core/components/plays/commit-code/SKILL.md
+        status: modified
+        description: >
+          Compiled From updated to reference ICE triple; Recovery section added with
+          REC1-REC6 table; compilation metadata updated with expectation_hash and
+          recovery_entries count.
+      - path: core/components/plays/commit-code/reference/intent.yaml
+        status: modified
+        description: >
+          Trailing comment added noting scenarios moved to expectation.yaml.
+          intent/constraints/failure_conditions content unchanged.
+      - path: core/components/plays/commit-code/reference/expectation.yaml
+        status: new
+        description: >
+          success_scenarios S1-S2 and recovery REC1-REC6 extracted from the old
+          intent scenarios block.
 
-excluded:
+  - id: D
+    issue: 376
+    type: chore
+    scope: stm
+    subject: "record ICE pilot evidence for #376"
+    confidence: high
+    files:
+      - path: .garura/project/issues/376/evidence/ice-pilot/generated-expectation.yaml
+        status: new
+        description: >
+          Generated expectation YAML from the ICE pilot run. Pure data artifact,
+          no executable code.
+
+exclusions:
   - path: .garura/project/issues/373/status/fix-it.json
-    reason: "Belongs to issue #373 (evidence-report step — self_commit_sha set to 45bb7cd). This branch is #376. Staging this would mix concerns across issues. Must NOT be staged."
-    issue: "373"
+    reason: >
+      Stale #373 write present on main branch before this branch diverged.
+      Not part of #376 work. Do not commit on this branch.
+    reason_code: SE-5
 
 risks:
   sensitive_files: []
-  breaking_changes: []
-  ambiguous_types: []
+  breaking_changes:
+    - group: B
+      file: core/tools/lint-components/lib/rules/structural.js
+      description: >
+        Removes scenarios from the required intent key set. Backward-compatible:
+        un-migrated plays (no expectation.yaml) still require scenarios in intent.yaml
+        via the preserved else-branch. ICE-migrated plays no longer need scenarios in
+        intent. Net effect: the linter accepts either shape. Deliberately more permissive
+        for migrated plays; equally strict for legacy ones. Not a breaking change for
+        existing components.
+  ambiguous_types:
+    - file: core/components/skills/evals-creator/SKILL.md
+      candidates: [feat, refactor]
+      resolved: feat
+      rationale: >
+        Adds new input parameter and new code path — additive behavior.
+        Would be refactor only if the change were neutral. It is not.
   hotfix_branch: false
-
-notes:
-  - "Group A is the core work — five philosophy/docs files all coherently describe the ICE model introduction. Type is docs (not refactor) because no code changed, only documentation."
-  - "Group B spec files are in .claude/specs/ (not .garura/) — they fall outside the garura folder whitelist, so they are author working notes rather than tracked STM artifacts. Safe to commit but low operational value."
-  - "Group C _pending files are ephemeral start-feature scratch. Their commit value is low but they document the feature context at branch creation time."
-  - "The 373/fix-it.json exclusion is the key safety call: a stale modification from a prior session that completed #373 work. It must stay unstaged to avoid a misleading commit on a #376 branch."

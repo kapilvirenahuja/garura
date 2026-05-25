@@ -1,0 +1,77 @@
+name: commit-code
+generated_from:
+  intent: core/components/plays/commit-code/reference/intent.yaml
+vetted:
+  status: pending
+success_scenarios:
+  - id: S1
+    persona: developer who ran the play
+    given: a git history where every changed file (staged, unstaged, untracked) is committed
+    then: they have a clean working tree on a non-default branch, pushed to the remote
+    measure: >
+      git status reports no uncommitted or untracked changes, the current branch is
+      not main/master/default, and the branch's HEAD exists on the remote (or a logged
+      push failure is present — push is non-blocking).
+  - id: S2
+    persona: reviewer reading the commit log
+    given: the sequence of commits the play created
+    then: they can trace every commit to a single concern and an existing issue
+    measure: >
+      each commit message follows conventional commit format, references an existing
+      issue number, describes the actual change, and contains changes for exactly one
+      concern.
+recovery:
+  - id: REC1
+    for_failure: F1
+    trigger: a single commit contains changes belonging to unrelated concerns
+    direction: split the changeset so each commit holds exactly one concern before committing
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC2
+    for_failure: F2
+    trigger: >
+      a commit message follows conventional format but does not describe the actual
+      change
+    direction: >
+      rewrite the message body from the commit's own diff so it states what actually
+      changed
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC3
+    for_failure: F3
+    trigger: >
+      changed files remain uncommitted after the play completes with no stated reason
+      for their exclusion
+    direction: >
+      commit every remaining changed file, or record an explicit reason for excluding
+      it, so nothing is silently left behind
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC4
+    for_failure: F4
+    trigger: a commit references the wrong issue
+    direction: >
+      every commit references the issue its changes actually belong to — confirm the
+      mapping with a human before committing
+    handoff: human
+    derivable_at_l4: false
+  - id: REC5
+    for_failure: F5
+    trigger: >
+      a commit is created from a change group with an unresolved issue-mapping conflict
+      (multiple competing matches) that was never surfaced for review
+    direction: >
+      surface every competing issue match and route the choice to a human for
+      resolution before any commit is created from that group
+    handoff: human
+    derivable_at_l4: false
+  - id: REC6
+    for_failure: F6
+    trigger: >
+      a commit is created from a change group whose issue mapping had less than high
+      confidence, with no human approval obtained
+    direction: >
+      obtain human approval for every below-confidence issue mapping before committing
+      that group
+    handoff: human
+    derivable_at_l4: false
