@@ -1,0 +1,19 @@
+task_id: implement-fix
+success: true
+steps_completed: 1
+steps_total: 1
+
+files_modified:
+  - path: "core/components/skills/normalize-proposals-for-enrichment/SKILL.md"
+    action: modified
+    summary: |
+      Replaced the tier-keyed action rule on line 109 of the codify subsection in Step 3.
+      Old rule: `add` for tier 3, `modify` for tier 2, `contradict_with_adr` for tier 1.
+      New rule: action determined by target-path existence in product_ltm_root — `add`
+      when the file does not exist on disk, `modify` when it does; tier 1 still
+      `contradict_with_adr` (unchanged); tier 3 still always `add` (experience/* is never
+      pre-seeded). For tier 2, the mapper now checks existence before assigning action,
+      aligning with the decode mapper's existing pattern.
+    deviation_justification: null
+
+produced_at: "2026-05-25T00:00:00Z"

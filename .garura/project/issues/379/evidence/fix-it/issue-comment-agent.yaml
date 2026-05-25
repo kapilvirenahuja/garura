@@ -1,0 +1,6 @@
+status: completed
+dispatched_at: "2026-05-25T16:20:05Z"
+completed_at: "2026-05-25T16:19:19Z"
+task_id: issue-comment-dispatch
+template: core/components/memory/standards/templates/issue-comment-rca-approved.md
+comment_url: "https://github.com/kapilvirenahuja/garura/issues/379#issuecomment-4535668463"

@@ -1,0 +1,83 @@
+branch:
+  name: fix/379-codify-enrich-cold-start-writes
+  issue: 379
+  is_hotfix: false
+
+change_summary:
+  total_files: 20
+  staged: 0
+  unstaged: 3
+  untracked_directories: 2
+  untracked_files: 17
+
+groups:
+  - id: A
+    issue: 379
+    type: fix
+    scope: normalize-proposals-for-enrichment
+    subject: "use existence-based action selection for codify proposals (#379)"
+    confidence: high
+    files:
+      - path: core/components/skills/normalize-proposals-for-enrichment/SKILL.md
+        description: >
+          Replaces pure tier→action map with existence-based selection for codify
+          proposals. add when target path is missing on disk, modify when it
+          exists. Tier 1 (contradict_with_adr) and tier 3 (always add) unchanged.
+
+  - id: B
+    issue: 379
+    type: docs
+    scope: codify
+    subject: "tighten ICE spec and Context-section definition for cold-start fix (#379)"
+    confidence: high
+    files:
+      - path: .claude/specs/codify-enrich-cold-start-writes/spec.md
+        description: >
+          Version 0.1.0 → 0.3.0. Spec rewritten in canonical ICE shape
+          (Intent/Context/Expectation). Removes prescriptive fix-shape section.
+          Rewrites Constraints/Failure Conditions/Scenarios to ICE vocabulary.
+      - path: docs/philosophy/intent-driven-development.md
+        description: >
+          Tightens Context-layer definition: Context is the surround to understand,
+          not the plan. Adds the two-implementation test guidance to prevent
+          Context from becoming prescriptive.
+
+  - id: C
+    issue: 379
+    type: chore
+    scope: stm
+    subject: "record fix-it and start-feature STM evidence for #379 (#379)"
+    confidence: high
+    files:
+      - path: .garura/project/issues/379/evidence/fix-it/design.yaml
+      - path: .garura/project/issues/379/evidence/fix-it/implementation-report.yaml
+      - path: .garura/project/issues/379/evidence/fix-it/issue-comment-agent.yaml
+      - path: .garura/project/issues/379/evidence/fix-it/issue-read.yaml
+      - path: .garura/project/issues/379/evidence/fix-it/rca.yaml
+      - path: .garura/project/issues/379/evidence/fix-it/regression-test-path.yaml
+      - path: .garura/project/issues/379/evidence/fix-it/regression-test-verdict.yaml
+      - path: .garura/project/issues/379/evidence/fix-it/regression-test-verification.yaml
+      - path: .garura/project/issues/379/evidence/fix-it/regression-test.yaml
+      - path: .garura/project/issues/379/evidence/fix-it/resolution-trace.yaml
+      - path: .garura/project/issues/379/evidence/start-feature/20260525-160551.md
+      - path: .garura/project/issues/379/evidence/start-feature/args.yaml
+      - path: .garura/project/issues/379/evidence/start-feature/branch-result.yaml
+      - path: .garura/project/issues/379/evidence/start-feature/changed-files.txt
+      - path: .garura/project/issues/379/evidence/start-feature/issue-resolution.yaml
+      - path: .garura/project/issues/379/status/fix-it.json
+      - path: .garura/project/issues/379/status/ship.json
+        description: STM operational artifacts from fix-it and start-feature plays
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  hotfix_branch: false
+  ambiguous_types: []
+
+coverage:
+  all_files_assigned: true
+  total_assigned: 20
+  notes: >
+    3 modified files assigned to Groups A and B.
+    17 untracked STM files assigned to Group C.
+    No file is dropped.

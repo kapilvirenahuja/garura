@@ -1,0 +1,16 @@
+{
+  "play": "ship",
+  "issue": "379",
+  "started_at": "2026-05-25T16:25:00Z",
+  "feature_branch": "fix/379-codify-enrich-cold-start-writes",
+  "review_pr_bypass": true,
+  "tasks": {
+    "commit-code": { "status": "in_progress" },
+    "create-pr": { "status": "pending" },
+    "review-pr": { "status": "skipped", "bypass": true },
+    "merge-pr": { "status": "pending" },
+    "distill": { "status": "pending" },
+    "scenario-evals": { "status": "pending" },
+    "write-evidence": { "status": "pending" }
+  }
+}

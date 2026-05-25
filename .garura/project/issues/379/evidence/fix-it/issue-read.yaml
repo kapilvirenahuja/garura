@@ -1,0 +1,6 @@
+number: 379
+title: "Fix codify→enrich cold-start writes (full LTM file-set parity)"
+state: open
+url: "https://github.com/kapilvirenahuja/garura/issues/379"
+labels: []
+body: "On a brownfield bootstrap, codify→enrich only writes the experience/design files; the structural core never lands, and the run still reports done. Make enrich create-or-enrich the full specify/design/arch file set, both cold-start and re-run, with no silent half-write."
