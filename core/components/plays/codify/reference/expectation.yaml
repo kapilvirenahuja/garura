@@ -1,0 +1,323 @@
+# Expectation for the codify play (ICE refactor, #376).
+# Generated from reference/intent.yaml by draft-play-expectation.
+# Two parts only: success_scenarios and recovery.
+
+name: garura:codify
+
+generated_from:
+  intent: core/components/plays/codify/reference/intent.yaml
+
+vetted:
+  status: approved
+  approved_by: autonomous-migration (#376, user-authorized non-stop self-approval)
+  approved_at: "2026-05-25"
+
+# Success scenarios — acceptance AND the checkable definition of done (one bucket).
+success_scenarios:
+  - id: S1
+    persona: "Product owner onboarding a single-service brownfield codebase"
+    given: >
+      A ~50k-LOC single-repo service with a README, a package.json, a src/
+      directory, tests, and a Dockerfile. No prior Garura LTM exists.
+    then: >
+      /codify produces a full proposal set: project-profile, domain-selection,
+      quality-profile, scope.yaml with 3-5 capabilities, features.yaml, 2-4
+      epics, research/{domain}.md for every detected domain, and all 5
+      architecture artifacts. Every proposal carries source_type, evidence,
+      confidence. Validators pass. A summary checkpoint shows counts by tier.
+      On Tether, evidence commits and /garura:enrich can later consume the proposals.
+    measure: >
+      scan-index records exactly 1 repo; under proposals/ the foundation,
+      scope (3-5 capabilities), features, 2-4 epics, research/{domain}.md per
+      detected domain, and all 5 architecture artifacts are present; every
+      proposal carries source_type, evidence, and confidence; all validators
+      pass; the summary checkpoint was shown; and evidence was committed only
+      after a recorded Tether.
+  - id: S2
+    persona: "Platform engineer onboarding a multi-repo monolith"
+    given: >
+      Five top-level repositories totalling ~600k LOC, each with its own
+      manifest, invoked as /codify --path repoA --path repoB --path repoC
+      --path repoD --path repoE. No prior LTM.
+    then: >
+      The scan aggregates across all five repos, scan-index records repos: [...]
+      header with per-repo byte counts, logical-architecture.yaml proposes
+      multiple bounded contexts keyed to repos, physical-architecture.yaml
+      captures shared infra, and the scan stays within size budget.
+    measure: >
+      scan-index.repos lists all five requested roots with per-repo byte
+      counts; logical-architecture.yaml declares more than one bounded_context
+      keyed to repos; physical-architecture.yaml records shared infrastructure;
+      and scan_status is "complete" (size budget not exhausted).
+  - id: S3
+    persona: "Backend engineer onboarding a headless service"
+    given: >
+      A pure API service with no frontend — no React/Vue/Svelte dep, no src/
+      components, no public/index.html.
+    then: >
+      The scan records frontend_detected: false. The designer agent is NOT
+      dispatched. experience/* proposals are skipped. proposals.yaml records
+      skipped_phases: [experience] with a reason. All other proposals are
+      produced normally. The play completes cleanly.
+    measure: >
+      scan-index frontend_detection is false for every repo; no designer
+      dispatch occurs; no proposals exist under proposals/experience/;
+      proposals.yaml skipped_phases contains "experience" with a reason; and
+      every non-experience proposal is present.
+  - id: S4
+    persona: "Tech lead re-running codify to check LTM alignment"
+    given: >
+      A product with a fully-populated LOCKED product LTM that has evolved
+      alongside the code. User invokes /codify --incremental.
+    then: >
+      For each target artifact, the play sees a LOCKED file in product LTM and
+      skips inference. proposals.yaml records skipped_locked entries and
+      writes total_proposals: 0 with alignment_confirmed: true. The play
+      completes as a clean alignment check with no new proposals.
+    measure: >
+      proposals.yaml shows total_proposals: 0, alignment_confirmed: true, and
+      a skipped_locked entry for every LOCKED target artifact; the play exits
+      cleanly after the summary checkpoint.
+  - id: S5
+    persona: "Platform engineer running codify on an extreme codebase"
+    given: >
+      A 1.2M-LOC monorepo where the scan script exhausts the default 10 MB
+      size budget mid-run.
+    then: >
+      The scan writes a partial scan-index.json with scan_status:
+      "budget_exhausted" and contributors showing the top paths by size. The
+      play presents the partial status and prompts the user to Tether (proceed
+      with partial inference) or Vanish (halt to adjust filters). If the user
+      Tethers, inference proceeds over the partial index. If Vanish, the play
+      halts without invoking inference agents.
+    measure: >
+      scan-index scan_status is "budget_exhausted" with a top-paths-by-size
+      report; the scan-status checkpoint was presented before any inference
+      dispatch; inference proceeded only after a recorded user Tether (and on
+      Vanish no inference agent was dispatched); proposals.yaml records the
+      partial scan status.
+  - id: S6
+    persona: "Product owner with a codebase in a domain Garura's KB does not yet cover"
+    given: >
+      A codebase in a domain not represented in
+      core/components/memory/knowledge/domain/ (e.g., a vertical Garura has
+      never indexed).
+    then: >
+      domain-selection.yaml proposes a new domain with
+      learning_category: domain, inferred_domain_new: true, and a
+      taxonomy_justification block per /reap C7a. A research/{new-domain}.md
+      draft is proposed as a Tier-3 addition. The user sees the proposed-new
+      value at the checkpoint with its justification.
+    measure: >
+      domain-selection.yaml carries an entry with inferred_domain_new: true,
+      learning_category: domain, and a non-empty taxonomy_justification block;
+      a matching research/{new-domain}.md proposal exists tagged tier 3; and
+      that proposed-new value was surfaced at the checkpoint with its
+      justification.
+  - id: S7
+    persona: "Tech lead with partial LOCKED LTM and missing scope"
+    given: >
+      A product whose LTM has LOCKED architecture artifacts and no scope
+      artifacts yet. User invokes /codify --incremental.
+    then: >
+      LOCKED architecture files are skipped and recorded under skipped_locked.
+      The 4 missing scope artifacts plus research/{domain}.md proposals are
+      produced as fresh inferences. proposals.yaml reflects the mixed outcome.
+      Reconciling the fresh scope proposals with any DRAFT scope content is
+      left to /garura:enrich — codify does not compare against DRAFT LTM.
+    measure: >
+      proposals.yaml records skipped_locked entries for every LOCKED
+      architecture artifact AND fresh proposals for the missing scope
+      artifacts plus research/{domain}.md; no proposal contains a delta or
+      comparison against DRAFT LTM.
+  - id: S8
+    persona: "Tech lead invoking codify with a single-artifact target"
+    given: >
+      /codify --target architecture on a codebase where only the 5 architecture
+      artifacts are desired.
+    then: >
+      Only tech-architect is dispatched. scope, experience, research,
+      specification, and user-provided phases are skipped. proposals.yaml
+      records skipped_phases with the reason "target filter". The 5
+      architecture artifact proposals are produced and validated normally.
+    measure: >
+      Only tech-architect was dispatched (no product-keeper, test-engineer, or
+      designer dispatch); proposals.yaml skipped_phases lists scope,
+      experience, research, specification, and user-provided with the reason
+      "target filter"; and exactly the 5 architecture proposals are present and
+      pass validation.
+
+# Recovery — one entry per failure condition in intent.yaml. The validator turns a
+# tripped failure into a recovery handoff plan and routes it: `autonomous` loops the
+# fix back to the builder; `human` escalates for a manual call.
+recovery:
+  - id: REC1
+    for_failure: F0                 # scan/dispatch before issue resolved
+    trigger: >
+      The play entered the scan phase or dispatched an inference agent before
+      an issue number was resolved and recorded in
+      {stm_base}/{issue}/status/codify.json.
+    direction: >
+      STM paths must be anchored before any work that writes to them; resolve
+      the issue number and record it in status/codify.json before running the
+      scan or dispatching any agent.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC2
+    for_failure: F1                 # write to product LTM or core LTM
+    trigger: >
+      A write to {product_base} or to ~/.garura/core/memory/ occurred during
+      the run, outside the permitted STM evidence/status paths.
+    direction: >
+      Every output must land under {stm_base}/{issue}/evidence/codify/ or
+      status/codify.json; re-route the offending write to its STM path and
+      undo the out-of-bounds write.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC3
+    for_failure: F2                 # scan-index absent/empty/malformed
+    trigger: >
+      scan-index.json is absent, empty, or malformed at the start of the
+      inference phase.
+    direction: >
+      A valid scan-index must exist before any agent is dispatched; re-run the
+      deterministic scan to produce a well-formed index, then resume inference.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC4
+    for_failure: F3                 # proposal missing source_type/evidence/confidence
+    trigger: >
+      A proposal is missing source_type, evidence, or confidence.
+    direction: >
+      Every proposal must carry all three fields; re-derive the offending
+      proposal so source_type, evidence, and confidence are populated.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC5
+    for_failure: F4                 # proposal fails its schema validator
+    trigger: >
+      A proposal fails its target schema validator (validate-intent-epics,
+      validate-architecture-spec, validate-screen-coverage,
+      validate-abstraction-layer).
+    direction: >
+      Every proposal must pass its scoped schema validator; re-derive the
+      offending artifact to satisfy the validator and re-run validation before
+      the checkpoint.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC6
+    for_failure: F5                 # designer dispatch mismatched to frontend detection
+    trigger: >
+      The designer agent was dispatched when scan-index reports no frontend, or
+      was not dispatched when scan-index reports a frontend.
+    direction: >
+      Designer dispatch must match the deterministic frontend_detection flag in
+      scan-index; re-align the dispatch decision to the scan-index flag.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC7
+    for_failure: F6                 # Tier-1 LOCKED conflict missing adr_draft/impact
+    trigger: >
+      A Tier-1 proposal that conflicts with an existing LOCKED product LTM
+      artifact was produced without an adr_draft_path or without an impact
+      block.
+    direction: >
+      Every Tier-1 conflict must carry both an adr_draft_path and an impact
+      block; stage the missing ADR draft and impact block for the offending
+      proposal.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC8
+    for_failure: F7                 # incremental wrote proposals for LOCKED artifacts
+    trigger: >
+      Incremental mode produced proposals for artifacts already present and
+      LOCKED in product LTM.
+    direction: >
+      LOCKED artifacts must be skipped in incremental mode; drop the proposal
+      for the LOCKED artifact and record it under skipped_locked instead.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC9
+    for_failure: F8                 # taxonomy field missing or wrong shape
+    trigger: >
+      A proposal is missing learning_category, carries sub_category non-null for
+      a flat parent (domain, product), or carries sub_category null for a
+      hierarchical parent (arch, quality, standards) without a
+      sub_category_proposed + taxonomy_justification block.
+    direction: >
+      Every proposal must carry a well-formed taxonomy per the canonical tree;
+      re-derive the offending proposal so learning_category and sub_category
+      match the canonical taxonomy (with a justification block when proposing a
+      new value).
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC10
+    for_failure: F9                 # ltm_context agent produced no resolution-trace
+    trigger: >
+      An inference agent invoked with ltm_context produced no
+      resolution-trace.yaml at the declared output path.
+    direction: >
+      Every agent that receives ltm_context must emit a resolution-trace;
+      re-run the offending agent so it writes resolution-trace.yaml at its
+      declared path.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC11
+    for_failure: F10                # past inference without checkpoint summary
+    trigger: >
+      The play proceeded past the inference phase without presenting the
+      checkpoint summary (even on a zero-proposal run).
+    direction: >
+      The checkpoint summary must always be shown and a Tether/Vanish awaited
+      before any evidence commit; this gate is a human response the builder
+      cannot self-grant — pause and present the summary, then obtain the user's
+      Tether or Vanish.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC12
+    for_failure: F11                # budget_exhausted, proceeded without Tether
+    trigger: >
+      The scan reported scan_status: "budget_exhausted" and the play proceeded
+      to inference without an explicit user confirmation.
+    direction: >
+      A partial scan may proceed only after the user acknowledges it; this
+      acknowledgement is a human go/no-go the builder cannot self-grant —
+      present the partial-scan status and obtain the user's Tether before
+      dispatching any inference agent.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC13
+    for_failure: F12                # agents read source outside scan-index
+    trigger: >
+      An inference agent read source files outside the set named in
+      scan-index.json.
+    direction: >
+      Agents must reason only over scan-index and the paths it names; re-bound
+      the offending agent's reads to the scan-index set and re-run the
+      inference within that boundary.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC14
+    for_failure: F13                # low-conf / Tier-1-conflict accepted silently
+    trigger: >
+      A low-confidence proposal, or a Tier-1 proposal that conflicts with
+      existing LOCKED LTM, was accepted silently at the checkpoint without
+      1-by-1 surfacing.
+    direction: >
+      These cases require an explicit per-proposal user decision; this
+      accept/reject/defer is a human pick the builder cannot make — surface
+      each flagged proposal 1-by-1 and record the user's explicit decision
+      before it stands.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC15
+    for_failure: F14                # proposals.yaml absent after completion
+    trigger: >
+      proposals.yaml is absent from {stm_base}/{issue}/evidence/codify/ after
+      the play completes and the user Tethered (even a zero-proposal run must
+      write the master index).
+    direction: >
+      The master index must always be written; re-run the aggregation step to
+      produce proposals.yaml (with total_proposals: 0 for a zero-proposal run).
+    handoff: autonomous
+    derivable_at_l4: true
