@@ -1,0 +1,305 @@
+# Expectation for the define play (ICE refactor, #376).
+# Generated from reference/intent.yaml by draft-play-expectation.
+# Two parts only: success_scenarios and recovery.
+
+name: define
+
+generated_from:
+  intent: core/components/plays/define/reference/intent.yaml
+
+vetted:
+  status: approved
+  approved_by: autonomous-migration (#376, user-authorized non-stop self-approval)
+  approved_at: "2026-05-25"
+
+# Success scenarios — acceptance AND the checkable definition of done (one bucket).
+success_scenarios:
+  - id: S1
+    persona: >
+      Product owner with a raw feature idea, no FEAT-ID yet.
+    given: >
+      Product owner runs /define with a free-text description of a new
+      feature they want scoped. No existing features.yaml entry matches
+      the description.
+    then: >
+      Phase 0 creates a new GH issue and initialises STM at
+      {stm_base}{issue}/. Phase 1 interviews the product owner until the
+      brief and grounding-questions files contain enough to classify.
+      Phase 2 classifies as new_feature_in_existing_capability (or one
+      of the other four buckets). Phase 3 assigns a target_milestone from
+      {product_base}{product.specification}project-profile.yaml
+      timeline.milestones. Phase 5 placement checkpoint is approved.
+      Phase 6 upserts the feature row with the new issue number in the
+      `issue` field. Phase 7 extends or generates an epic for the target
+      capability. Phase 9 epic checkpoint is approved. Phase 10 commits
+      the delivery record and the play exits with "ready for /prepare".
+    measure: >
+      delivery-record.yaml shows the Phase-0 issue was created, bucket is one of
+      the five declared values, target_milestone matches a timeline.milestones
+      entry, Phase 5 Tether and Phase 9 Tether are recorded, the features.yaml row
+      carries the new issue number, at least one epic file exists under epics/ for
+      the target capability, and the record ends with "ready for /prepare".
+
+  - id: S2
+    persona: >
+      Product manager preparing an existing planned feature for build.
+    given: >
+      Product manager runs /define with FEAT-ID WI-F001 (Profile-Based
+      Auto-Triage, status=planned). WI-F001 does not yet carry an `issue`
+      field in the feature catalog. Its capability (agentic-triage) does
+      not have an epic.
+    then: >
+      Phase 0 creates a new GH issue anchored to WI-F001 and initialises
+      STM. Phase 1 runs a gap interview with the product manager —
+      notes and target_milestone are the known missing fields; the
+      feature already has a description and capability mapping. Phase 2
+      classifies as exact_match. Phase 3 confirms constraint fit.
+      Phase 4 is skipped (C6 exact_match). Phase 5 is approved. Phase 6
+      writes the `issue` field into WI-F001 and fills the gap fields.
+      Phase 7 runs generate-intent-epics scoped to the agentic-triage
+      capability; epic passes validation. Phase 9 is approved. Phase 10
+      closes with "ready for /prepare".
+    measure: >
+      delivery-record.yaml records bucket=exact_match, Phase 4 skipped, the
+      features.yaml WI-F001 row has the new issue field populated and the gap fields
+      filled, an epic file for the agentic-triage capability exists and
+      validation-intent-epics.yaml reports PASS for it, and the record ends with
+      "ready for /prepare".
+
+  - id: S3
+    persona: >
+      Product owner evolving an existing feature that already has a
+      linked issue.
+    given: >
+      Product owner runs /define with FEAT-ID AM-F014 (Intent Inference,
+      status=rollout, issue=N). The feature's notes need to expand to
+      cover a new sub-concern surfaced from customer or stakeholder
+      feedback.
+    then: >
+      Phase 0 reuses the existing issue N (feature is evolving, not being
+      re-created). Phase 1 runs a narrow gap interview with the product
+      owner on the new sub-concern. Phase 2 classifies as extension.
+      Phase 3 confirms constraint fit with existing quality targets.
+      Phase 5 placement checkpoint shows the proposed notes expansion
+      with rationale. Phase 6 updates the notes + gap_items on AM-F014;
+      `issue` field unchanged. Phase 7 checks whether the existing
+      l3-intent-driven epic covers the new sub-concern; extends if
+      needed. Phase 9 is approved. Phase 10 closes with "ready for
+      /prepare".
+    measure: >
+      delivery-record.yaml records Phase-0 reuse of issue N, bucket=extension, the
+      features.yaml AM-F014 row has notes + gap_items updated with the issue field
+      equal to its prior value N, the epic for the target capability is present
+      (extended as needed) and validates, and the record ends with "ready for
+      /prepare".
+
+  - id: S4
+    persona: >
+      Product owner proposing a feature that needs a new capability.
+    given: >
+      Product owner runs /define with a free-text description whose subject
+      matter does not fit any existing capability under any selected
+      domain, but does fit under engineering-experience domain as a new
+      capability. No existing enriched-capabilities.yaml record covers
+      this capability.
+    then: >
+      Phase 0 creates a new GH issue. Phase 1 interviews until the
+      classification is clear. Phase 2 classifies as
+      new_capability_in_existing_domain. Phase 3 verifies no
+      constraint-fit conflicts. Phase 4 invokes KB grounding via
+      {ltm.project-target}knowledge/domain/ and, if thin,
+      research-domain-context — the grounding pack is written to STM
+      evidence. Phase 5 surfaces the new-capability proposal with business
+      rules, success criteria, and failure scenarios derived from
+      grounding; user Tethers. Phase 6 extends (or creates, per C14)
+      enriched-capabilities.yaml with the new record AND upserts the
+      feature row. Phase 7 generates a fresh epic for the new capability.
+      Phase 9 is approved. Phase 10 closes with "ready for /prepare".
+    measure: >
+      delivery-record.yaml records bucket=new_capability_in_existing_domain,
+      grounding artifacts exist under {stm_base}{issue}/evidence/define/,
+      enriched-capabilities.yaml carries the new capability record, features.yaml
+      carries the new feature row with the `issue` field, a fresh epic exists under
+      epics/ and validation-intent-epics.yaml reports PASS, and the record ends with
+      "ready for /prepare".
+
+  - id: S5
+    persona: >
+      Product owner whose feature idea regresses a declared quality
+      target.
+    given: >
+      Product owner runs /define with a free-text description whose subject
+      matter regresses an ISO 25010 target declared in
+      {product_base}{product.specification}quality-profile.yaml, and the
+      product owner does not agree to adjust the quality profile.
+    then: >
+      Phases 0-4 proceed as normal and the constraint-fit check in Phase 3
+      flags the regression. Phase 5 placement checkpoint surfaces the
+      regression finding with the specific target and the conflict.
+      Product owner Vanishes. Phases 6-10 do NOT run. The play closes the
+      GH issue opened in Phase 0 per C7 and writes a delivery record to
+      STM evidence noting the Vanish reason.
+    measure: >
+      constraint-fit.yaml records the specific ISO 25010 regression with the target
+      name and conflict; delivery-record.yaml records the Phase-5 Vanish with the
+      regression as reason, records that Phases 6-10 did not run, and records that
+      the Phase-0 issue was closed; the GH issue state is "closed".
+
+  - id: S6
+    persona: >
+      Product owner scoping a feature into a greenfield product with no
+      existing features.yaml.
+    given: >
+      Product owner runs /define with a free-text description on a new
+      product where {product_base}{product.scope}features.yaml does not
+      yet exist.
+    then: >
+      Phase 0 creates a new GH issue. Phase 1 completes intake. Phase 2
+      detects features.yaml is missing; per C14 the play creates it with
+      the minimum valid schema (summary counters zeroed, empty domains
+      list) and proceeds with classification. The new feature is then
+      the first entry. Subsequent phases run normally. The delivery
+      record notes the auto-creation of features.yaml as a decision
+      manifest entry.
+    measure: >
+      features.yaml exists after the play with the new feature as its first entry and
+      a summary with initialised counters; delivery-record.yaml includes a
+      decision-manifest entry recording the auto-creation of features.yaml; the record
+      ends with "ready for /prepare".
+
+# Recovery — one entry per failure condition in intent.yaml. The validator turns a
+# tripped failure into a recovery handoff plan and routes it: `autonomous` loops the
+# fix back to the builder; `human` escalates for a manual call.
+recovery:
+  - id: REC1
+    for_failure: F1                 # Phase 0 ends without a resolved-or-created open GH issue
+    trigger: >
+      Phase 0 concluded with no resolved-or-created open GH issue — no integer
+      issue.number is present, or the resolved issue is not in an open state, so
+      subsequent STM paths have nothing to anchor to.
+    direction: >
+      The play must end Phase 0 with an open GH issue whose number anchors all
+      subsequent STM; the missing-or-not-open issue is an external tracker state the
+      builder cannot manufacture — escalate for a human to supply or open a valid
+      issue before the play proceeds.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC2
+    for_failure: F2                 # intake produced zero scopable content
+    trigger: >
+      Both brief.md and grounding-questions.md remain empty after the interview
+      concludes — no user input produced any scopable content.
+    direction: >
+      Intake must produce non-empty scopable content in at least one of brief.md or
+      grounding-questions.md; the missing content is the user's to provide and cannot
+      be authored by the builder — escalate for the user to supply the feature
+      description before classification can run.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC3
+    for_failure: F3                 # catalog-match classification missing or out of bucket set
+    trigger: >
+      catalog-match.yaml has no classification, or its classification is outside the
+      five declared buckets (exact_match, extension,
+      new_feature_in_existing_capability, new_capability_in_existing_domain,
+      new_domain).
+    direction: >
+      The catalog match must land in exactly one of the five declared buckets with a
+      rationale; re-run the classification, constraining product-keeper to the
+      five-bucket enum, until a valid bucket is produced.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC4
+    for_failure: F4                 # ISO 25010 hard regression unresolved at the placement gate
+    trigger: >
+      constraint-fit.yaml shows a hard regression against an ISO 25010 target and the
+      user did not resolve it at the placement checkpoint, yet the play proceeded past
+      Phase 5.
+    direction: >
+      A feature that regresses a declared ISO 25010 target must not ship; the go/no-go
+      on the regression is a user judgment the builder lacks — hold at the placement
+      checkpoint for the user to resolve or Vanish before any spec update lands.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC5
+    for_failure: F5                 # feature row written without an issue field
+    trigger: >
+      A feature row written in Phase 6 is missing the `issue` field, the field is
+      empty, or its value does not equal the Phase-0 issue number.
+    direction: >
+      Every feature row must carry the integer Phase-0 issue number in its `issue`
+      field; write (or correct) the field to the Phase-0 issue number — the value is
+      already known to the builder.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC6
+    for_failure: F6                 # epic still fails validation after the single gap loop
+    trigger: >
+      validate-intent-epics reports FAIL on the target capability's epic after the
+      single Phase-8 gap interview loop, so the epic is not /prepare-ready.
+    direction: >
+      The epic must pass validate-intent-epics before the play continues; when one gap
+      loop has not closed the missing fields, the remaining gaps need user input the
+      builder cannot synthesize — escalate for the user to supply the missing epic
+      content before re-validation.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC7
+    for_failure: F7                 # working artifact written under product_base, not STM
+    trigger: >
+      A working artifact (catalog-match, constraint-fit, grounding, or a decision
+      manifest) is written under {product_base} instead of
+      {stm_base}{issue}/evidence/define/.
+    direction: >
+      Working artifacts must live under {stm_base}{issue}/evidence/define/ and only
+      product-LTM lands under {product_base}; relocate the misplaced artifact to the
+      STM evidence path — the correct destination is known to the builder.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC8
+    for_failure: F8                 # Vanish at Phase 5 but issue left open
+    trigger: >
+      The user responded Vanish at the Phase 5 placement checkpoint but the Phase-0 GH
+      issue is still open — an orphaned issue is left in the tracker.
+    direction: >
+      A Phase-5 Vanish must close the Phase-0 issue per C7; invoke manage-issue to
+      close the known issue number with the recorded Vanish reason.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC9
+    for_failure: F9                 # existing product-LTM artifact fails schema on read
+    trigger: >
+      A product-LTM artifact exists at its config-resolved path but fails its schema on
+      read (malformed YAML, missing required top-level keys, corrupted structure).
+    direction: >
+      The play may create a missing artifact but must not proceed against a broken one;
+      repairing the malformed artifact requires judgment about its intended content
+      that the builder lacks — escalate with the validator's error report and a pointer
+      to the offending file for a human to repair.
+    handoff: human
+    derivable_at_l4: false
+  - id: REC10
+    for_failure: F10                # user-facing surface emitted as inline prose, not template
+    trigger: >
+      A user-facing surface (checkpoint file, approval prompt, delivery report, or
+      evidence file) is emitted as inline prose in the compiled SKILL.md instead of
+      loaded from the template path declared in C16's template_map.
+    direction: >
+      Every user-facing surface must load its format from the declared LTM template
+      path; rewire the surface to load and fill its template — a mechanical
+      compile-time correction the builder can apply from the C16 template_map.
+    handoff: autonomous
+    derivable_at_l4: true
+  - id: REC11
+    for_failure: F11                # decision carried past a gate without user_response
+    trigger: >
+      A decision-manifest entry with surfaced_for_review: true is carried past a
+      checkpoint (Phase 5 or Phase 9) without user_response populated — an unsurfaced
+      decision was silently committed.
+    direction: >
+      Every surfaced_for_review: true decision must have user_response populated before
+      its gate proceeds; the missing response is the user's to give and the builder
+      cannot supply it — hold at the gate and surface the decision for the user's
+      response before continuing.
+    handoff: human
+    derivable_at_l4: false
