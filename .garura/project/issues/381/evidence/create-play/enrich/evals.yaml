@@ -1,0 +1,349 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: apply-ltm-enrichment
+    check: >
+      No product LTM artifact contains content sourced from a proposal that was
+      missing one or more required taxonomy fields.
+    artifact_pattern: "{stm_archive}/{YYYY-MM}/{issue}/evidence/enrich/enrichment-report.yaml + reconciliation-proposals.yaml"
+    pass_criteria: >
+      Every entry missing a required taxonomy field appears in reconciliation rejected[]
+      and produces no writes[] entry with status applied; the named target artifacts
+      contain no content from such an entry.
+    fail_criteria: >
+      A writes[] entry with status applied references a proposal that lacked a required
+      taxonomy field.
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: apply-ltm-enrichment
+    check: >
+      No write was made to a path outside the product LTM tree or the ADR archive.
+    artifact_pattern: "{stm_archive}/{YYYY-MM}/{issue}/evidence/enrich/enrichment-report.yaml"
+    pass_criteria: >
+      Every writes[] entry with status applied has a target_path whose prefix is
+      .garura/product/ or docs/adr/.
+    fail_criteria: >
+      Any applied write has a target_path outside .garura/product/ and docs/adr/.
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: apply-ltm-enrichment
+    check: >
+      The same proposal's content does not appear applied more than once across product
+      LTM as a result of repeated invocations.
+    artifact_pattern: "product LTM tree + {stm_archive}/{YYYY-MM}/{issue}/"
+    pass_criteria: >
+      A re-invocation for an already-archived issue produces no new applied writes
+      (idempotency by archival); each proposal's content appears at most once.
+    fail_criteria: >
+      A proposal's content appears applied more than once across product LTM.
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: apply-ltm-enrichment
+    check: >
+      No Tier 1 proposal's content appears in product LTM or the ADR archive without a
+      recorded explicit approval for that proposal.
+    artifact_pattern: "{stm_archive}/{YYYY-MM}/{issue}/evidence/enrich/enrichment-report.yaml + reconciliation-proposals.yaml"
+    pass_criteria: >
+      For every applied write, the reconciliation entry referenced by proposal_id carries
+      approval_status approved; Tier 1 entries without approval_status approved produce no
+      applied writes.
+    fail_criteria: >
+      Tier 1 content is applied for an entry whose reconciliation approval_status is not
+      approved.
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: null
+    skill: promote-adr-draft
+    check: >
+      No approved Tier 1 proposal carrying ADR draft content completed without a
+      corresponding new ADR file in the ADR archive.
+    artifact_pattern: "docs/adr/NNNN-{slug}.md + enrichment-report.yaml"
+    pass_criteria: >
+      For every approved Tier 1 entry with adr_draft content, a new ADR file exists at
+      docs/adr/ and is referenced in the enrichment report.
+    fail_criteria: >
+      An approved Tier 1 entry with adr_draft content has no corresponding new ADR file.
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: null
+    skill: archive-issue-stm
+    check: >
+      No issue's STM directory remains in the active issues area after its proposals were
+      reported as successfully applied.
+    artifact_pattern: "{stm_base}/{issue}/ + {stm_archive}/{YYYY-MM}/{issue}/"
+    pass_criteria: >
+      After successful processing, {stm_base}/{issue}/ is absent from the active issues
+      area and present under the archived subtree.
+    fail_criteria: >
+      A successfully processed issue's STM directory remains under the active issues area.
+  - id: SE-7
+    source_type: failure_condition
+    failure_condition_id: F7
+    constraint_id: null
+    skill: archive-issue-stm
+    check: >
+      No issue's STM directory was archived while one or more of its proposals lacked a
+      confirmed successful write to product LTM and was not explicitly rejected.
+    artifact_pattern: "{stm_archive}/{YYYY-MM}/{issue}/evidence/enrich/enrichment-report.yaml + reconciliation-proposals.yaml"
+    pass_criteria: >
+      If the issue is under the archived subtree, then every reconciliation entry is
+      either explicitly rejected or has a writes[] entry with status applied (a confirmed
+      successful write); no approved entry remains with a non-applied write state.
+    fail_criteria: >
+      The issue is archived while an approved entry has a write that is not confirmed
+      applied (status pending, failed, or verification_failed) and is not explicitly
+      rejected.
+  - id: SE-8
+    source_type: failure_condition
+    failure_condition_id: F8
+    constraint_id: null
+    skill: apply-ltm-enrichment
+    check: >
+      No malformed source proposal resulted in a partial product LTM write for that
+      proposal.
+    artifact_pattern: "product LTM target artifacts + enrichment-report.yaml"
+    pass_criteria: >
+      Every malformed entry appears in the enrichment report with a status other than
+      applied, and the corresponding target LTM artifacts contain no content sourced from
+      that malformed entry.
+    fail_criteria: >
+      A malformed entry left partial content in a target LTM artifact.
+  - id: SE-9
+    source_type: failure_condition
+    failure_condition_id: F9
+    constraint_id: null
+    skill: archive-issue-stm
+    check: >
+      No sweep-mode invocation processed a directory under the archived or pending
+      subtrees of the issues area.
+    artifact_pattern: "sweep enumeration list"
+    pass_criteria: >
+      The set of issue directories enumerated by sweep mode contains no path under the
+      archived subtree and no path under the pending subtree.
+    fail_criteria: >
+      Sweep enumeration included a path under the archived or pending subtree.
+  - id: SE-10
+    source_type: both
+    failure_condition_id: F2
+    constraint_id: C1
+    skill: apply-ltm-enrichment
+    check: >
+      Writes are confined to the product LTM tree (.garura/product/) and the ADR archive
+      (docs/adr/); no writes to global knowledge base, core memory, or any path outside
+      these two roots.
+    artifact_pattern: "{stm_archive}/{YYYY-MM}/{issue}/evidence/enrich/enrichment-report.yaml"
+    pass_criteria: >
+      Every applied write's target_path prefix is .garura/product/ or docs/adr/.
+    fail_criteria: >
+      Any applied write targets a path outside .garura/product/ and docs/adr/.
+  - id: SE-11
+    source_type: both
+    failure_condition_id: F1
+    constraint_id: C2
+    skill: normalize-proposals-for-enrichment
+    check: >
+      Every proposal consumed carries the two-level taxonomy contract fields
+      (learning_category, sub_category, _proposed flags where applicable,
+      taxonomy_justification); proposals lacking any of these are rejected and not applied.
+    artifact_pattern: "reconciliation-proposals.yaml"
+    pass_criteria: >
+      Each entry missing a required taxonomy field is in rejected[] with reason
+      missing_taxonomy; only taxonomy-complete entries reach proposals[] for application.
+    fail_criteria: >
+      A taxonomy-incomplete entry was applied rather than rejected.
+  - id: SE-12
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C3
+    skill: normalize-proposals-for-enrichment
+    check: >
+      Proposals are read in the native shape emitted by their producing extractor
+      (distill, reap, codify, or decode); the play detects the source per proposals file
+      and applies a source-appropriate mapping without rewriting the source files.
+    artifact_pattern: "reconciliation-proposals.yaml (detected_source) + source proposals files"
+    pass_criteria: >
+      detected_source is recorded per proposals file and the source proposals file is
+      unmodified after normalization.
+    fail_criteria: >
+      The source proposals file was rewritten, or no source was detected for an applied
+      mapping.
+  - id: SE-13
+    source_type: both
+    failure_condition_id: F5
+    constraint_id: C5
+    skill: promote-adr-draft
+    check: >
+      On approval of a Tier 1 proposal that carries an ADR draft, the draft content is
+      promoted into the ADR archive as a new ADR with the next sequential number, in
+      addition to any LTM artifact write the proposal entails.
+    artifact_pattern: "docs/adr/NNNN-{slug}.md + enrichment-report.yaml"
+    pass_criteria: >
+      A new ADR file at the next sequential number exists for each approved Tier 1 ADR
+      draft, and any in-place LTM write the proposal entailed is recorded as applied.
+    fail_criteria: >
+      An approved Tier 1 ADR draft yielded no new sequential ADR file.
+  - id: SE-14
+    source_type: both
+    failure_condition_id: F3
+    constraint_id: C6
+    skill: archive-issue-stm
+    check: >
+      Idempotency is enforced by archival: after an issue's proposals are processed, the
+      entire issue STM directory is moved into the archived subtree of the issues area, so
+      a second invocation finds no source to re-apply.
+    artifact_pattern: "{stm_base}/{issue}/ + {stm_archive}/{YYYY-MM}/{issue}/"
+    pass_criteria: >
+      The processed issue directory is present under the archived subtree and absent from
+      the active area; re-invocation produces no new applied writes.
+    fail_criteria: >
+      The processed issue was not moved to the archived subtree, allowing re-application.
+  - id: SE-15
+    source_type: both
+    failure_condition_id: F8
+    constraint_id: C8
+    skill: apply-ltm-enrichment
+    check: >
+      A malformed or unparseable source proposal halts processing of that proposal without
+      partial writes to product LTM and without archiving the containing issue.
+    artifact_pattern: "enrichment-report.yaml + product LTM target artifacts + {stm_base}/{issue}/"
+    pass_criteria: >
+      Each malformed entry is recorded with a status other than applied, target artifacts
+      contain no content from that entry, and the issue STM directory is not archived while
+      malformed entries remain unresolved.
+    fail_criteria: >
+      A malformed entry caused a partial LTM write, or the issue was archived with a
+      malformed entry unresolved.
+  - id: SE-16
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C11
+    skill: archive-issue-stm
+    check: >
+      An issue's STM directory is archived only when every approved proposal has a
+      confirmed successful write to product LTM, including completion of any approved
+      Tier 1 ADR promotion; if any approved proposal's write reaches a terminal
+      non-success state, the issue is not archived and the failure is surfaced to the
+      reviewer.
+    artifact_pattern: "{stm_archive}/{YYYY-MM}/{issue}/ OR {stm_base}/{issue}/ + enrichment-report.yaml"
+    pass_criteria: >
+      If the issue is under the archived subtree, every approved entry has a writes[] entry
+      with status applied (and any approved Tier 1 ADR draft has a promoted ADR file).
+      If any approved entry has a write in a terminal non-success state, the issue remains
+      under the active issues area and that write is surfaced in the enrichment report as a
+      non-applied status rather than reported as applied.
+    fail_criteria: >
+      The issue is archived while an approved entry's write is in a terminal non-success
+      state, or such a failure is reported as applied / not surfaced to the reviewer.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Repository maintainer
+    artifact_pattern: "{stm_archive}/{YYYY-MM}/{issue}/evidence/enrich/reconciliation-proposals.yaml + product LTM"
+    check: >
+      Tier 1 entries reviewed individually, Tier 2/3 approved as a batch with diffs, and
+      the resulting updates appear in product LTM with the issue archived.
+    pass_criteria: >
+      The archived reconciliation file records each Tier 1 entry with an individual approval
+      record and Tier 2 / Tier 3 entries with a batch approval record; every product LTM
+      artifact named in an approved entry reflects that change; and the issue path is absent
+      under the active issues area but present under the archived subtree.
+    fail_criteria: >
+      Tier 1 entries lack individual approval records, an approved change is missing from
+      LTM, or the issue is not archived.
+  - id: SCE-2
+    scenario_id: S2
+    persona: Repository maintainer
+    artifact_pattern: "{stm_base}/ active issue directories + {stm_archive}/"
+    check: >
+      A no-argument sweep applies every previously-unprocessed issue's approved changes and
+      relocates each into the archived subtree, leaving archived and pending untouched.
+    pass_criteria: >
+      For every issue directory active at run start (excluding the archived and pending
+      subtrees), its approved changes are present in product LTM and the directory now lives
+      under the archived subtree; every directory already under the archived or pending
+      subtrees is byte-identical before and after the run.
+    fail_criteria: >
+      An active issue was not processed or relocated, or an archived/pending directory
+      changed.
+  - id: SCE-3
+    scenario_id: S3
+    persona: Repository maintainer
+    artifact_pattern: "product LTM + docs/adr/"
+    check: >
+      Re-invoking the play for an already-applied-and-archived issue produces no further
+      changes and no error.
+    pass_criteria: >
+      Re-invocation for the already-archived issue exits without error and product LTM plus
+      docs/adr/ are byte-identical to their pre-re-invocation state.
+    fail_criteria: >
+      Re-invocation errors or mutates product LTM or docs/adr/.
+  - id: SCE-4
+    scenario_id: S4
+    persona: Architecture reviewer
+    artifact_pattern: "docs/adr/NNNN-{slug}.md"
+    check: >
+      An approved Tier 1 proposal with draft ADR content yields a new sequential ADR file
+      alongside any in-place LTM edit.
+    pass_criteria: >
+      A new file docs/adr/NNNN-{slug}.md exists whose NNNN is one greater than the maximum
+      ADR number that existed before the run, whose body matches the draft content, and whose
+      frontmatter sourced_from equals the proposal's id; any in-place LTM edit the proposal
+      entailed is present in its named target.
+    fail_criteria: >
+      No new sequential ADR file exists, its content does not match the draft, or the
+      entailed LTM edit is missing.
+  - id: SCE-5
+    scenario_id: S5
+    persona: Repository maintainer
+    artifact_pattern: "{stm_archive}/{YYYY-MM}/{issue}/evidence/enrich/reconciliation-proposals.yaml + product LTM"
+    check: >
+      An entry missing required taxonomy fields is rejected and not applied while valid
+      entries are processed per tier rules.
+    pass_criteria: >
+      The archived reconciliation file lists the offending entry in rejected[] with reason
+      missing_taxonomy and not in proposals[]; valid entries carry approval_status approved
+      or rejected with approved entries' writes present in product LTM; no entry remains
+      pending.
+    fail_criteria: >
+      The offending entry was applied, or a valid entry remains pending.
+  - id: SCE-6
+    scenario_id: S6
+    persona: Learning pipeline auditor
+    artifact_pattern: "{stm_archive}/{YYYY-MM}/*/evidence/enrich/reconciliation-proposals.yaml + enrichment-report.yaml"
+    check: >
+      Each archived issue lets an auditor trace which proposals were approved, which
+      rejected, and what LTM artifacts and ADRs resulted.
+    pass_criteria: >
+      Every archived issue contains a reconciliation file recording each entry's final
+      approval_status and an enrichment report listing every applied write with its target
+      path and references to any ADRs produced during the run.
+    fail_criteria: >
+      An archived issue lacks a reconciliation file or enrichment report, or the report omits
+      an applied write's target path.
+  - id: SCE-7
+    scenario_id: S7
+    persona: Repository maintainer
+    artifact_pattern: "{stm_base}/{issue}/ + {stm_archive}/ + enrichment-report.yaml"
+    check: >
+      When an approved entry's write to product LTM reaches a terminal non-success state, the
+      issue is NOT archived, remains in the active area, and the failed approved write is
+      surfaced to the reviewer rather than reported as applied.
+    pass_criteria: >
+      The issue path is present under the active issues area and absent under the archived
+      subtree, and the run's evidence / enrichment report records the approved entry's write
+      with a terminal non-success status surfaced as a failure rather than listed among
+      applied writes.
+    fail_criteria: >
+      The issue is archived despite the failed approved write, or the failed write is listed
+      among applied writes / not surfaced.

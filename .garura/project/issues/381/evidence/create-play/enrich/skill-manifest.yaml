@@ -1,0 +1,28 @@
+play: enrich
+note: >
+  #381 archive-gate guard is enforced in the play's own archival step (Step 5
+  gate), which create-play regenerates from intent constraint C11. No skill
+  change required. apply-ltm-enrichment already distinguishes a non-landed
+  approved write (status failed or verification_failed) from applied, so a
+  positive-check gate (archive only when every approved write == applied)
+  catches it.
+skills:
+  - name: normalize-proposals-for-enrichment
+    path: core/components/skills/normalize-proposals-for-enrichment/SKILL.md
+    status: existing
+  - name: apply-ltm-enrichment
+    path: core/components/skills/apply-ltm-enrichment/SKILL.md
+    status: existing
+  - name: promote-adr-draft
+    path: core/components/skills/promote-adr-draft/SKILL.md
+    status: existing
+  - name: archive-issue-stm
+    path: core/components/skills/archive-issue-stm/SKILL.md
+    status: existing
+observations:
+  - >
+    apply-ltm-enrichment documents writes[].status enum as
+    "applied | skipped | verification_failed" but also produces "failed" on a
+    write error (per its error table and summary failed count). Non-blocking
+    pre-existing contract-doc inconsistency, orthogonal to #381 — flagged, not
+    fixed in this play's scope.

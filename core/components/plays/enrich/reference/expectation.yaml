@@ -1,5 +1,8 @@
 # Expectation for the enrich play (ICE refactor, #376).
 # Generated from reference/intent.yaml by draft-play-expectation.
+# Incrementally regenerated for #381: added S7 (archive-gate guard, C11) and
+# sharpened REC7's trigger to mirror the sharpened F7. S1-S6 and the other
+# recovery entries are preserved verbatim from the prior vetted version.
 # Two parts only: success_scenarios and recovery.
 
 name: enrich
@@ -9,7 +12,7 @@ generated_from:
 
 vetted:
   status: approved
-  approved_by: autonomous-migration (#376, user-authorized non-stop self-approval)
+  approved_by: user (Tether at create-play checkpoint, #381)
   approved_at: "2026-05-25"
 
 # Success scenarios — acceptance AND the checkable definition of done (one bucket).
@@ -99,6 +102,21 @@ success_scenarios:
       Every archived issue contains a reconciliation file recording each entry's final
       approval_status and an enrichment report listing every applied write with its
       target path and references to any ADRs produced during the run.
+  - id: S7
+    persona: Repository maintainer
+    given: >
+      An issue whose proposals include an approved entry whose write to
+      product LTM reaches a terminal non-success state during the run.
+    then: >
+      Can confirm the issue was NOT archived, that it remains in the
+      active issues area, and that the failed approved write was
+      surfaced to the reviewer as a failure rather than reported as
+      applied.
+    measure: >
+      The issue path is present under the active issues area and absent under the
+      archived subtree, and the run's evidence / enrichment report records the approved
+      entry's write with a terminal non-success status surfaced as a failure rather than
+      listed among applied writes.
 
 # Recovery — one entry per failure condition in intent.yaml. The validator turns a
 # tripped failure into a recovery handoff plan and routes it: `autonomous` loops the
@@ -171,14 +189,15 @@ recovery:
     handoff: autonomous
     derivable_at_l4: true
   - id: REC7
-    for_failure: F7                 # archived while entries unresolved
+    for_failure: F7                 # archived while an approved write was unconfirmed and entry not rejected
     trigger: >
-      An issue's STM directory was archived while one or more of its proposals were
-      neither applied nor explicitly rejected.
+      An issue's STM directory was archived while one or more of its proposals lacked a
+      confirmed successful write to product LTM and was not explicitly rejected.
     direction: >
-      Archival must happen only after every proposal is applied or explicitly rejected;
-      restore the prematurely archived issue to the active area and resolve every
-      outstanding proposal before re-archiving.
+      Archival must happen only after every approved proposal has a confirmed successful
+      write to product LTM and every other proposal is explicitly rejected; restore the
+      prematurely archived issue to the active area, ensure every approved proposal's
+      write actually lands or is explicitly rejected, then re-archive.
     handoff: autonomous
     derivable_at_l4: true
   - id: REC8
