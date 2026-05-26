@@ -1,0 +1,10 @@
+status: merged
+pr_number: 384
+merge_sha: dee9815ef703ba0d287ce2a138e2a0d6188dd324
+base_branch: main
+branch_deleted: true
+remote_branch_deleted: true
+local_branch_deleted: true
+deleted_at: "2026-05-26T13:34:52Z"
+started_at: "2026-05-26T13:34:40Z"
+completed_at: "2026-05-26T13:34:55Z"
