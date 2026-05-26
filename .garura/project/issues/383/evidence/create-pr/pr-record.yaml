@@ -1,0 +1,14 @@
+pr:
+  number: 384
+  url: "https://github.com/kapilvirenahuja/garura/pull/384"
+  state: open
+  title: "feat(craft-ice): add craft-ice play, generate-feature-expectation skill, and expectation-crafter dual-case support (#383)"
+  target_branch: main
+  head_branch: feature/383-craft-ice
+  head_sha: "4eba0fa213937f603f07bfd01a4cf6d8a95a29f2"
+  created_at: "2026-05-26"
+  issue_closes: 383
+  checklist:
+    required_count: 12
+    optional_count: 5
+  platform: github
