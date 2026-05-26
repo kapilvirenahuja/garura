@@ -1,0 +1,31 @@
+commits:
+  - sha: b803599
+    type: feat
+    scope: craft-ice
+    subject: "feat(craft-ice): add craft-ice play, generate-feature-expectation skill, and expectation-crafter dual-case support"
+    issue: 383
+    files:
+      - .garura/core/config.yaml
+      - core/components/agents/expectation-crafter.md
+      - core/components/memory/standards/rules/feature-expectation-generation.md
+      - core/components/plays/craft-ice/SKILL.md
+      - core/components/plays/craft-ice/reference/expectation.yaml
+      - core/components/plays/craft-ice/reference/intent.yaml
+      - core/components/skills/generate-feature-expectation/SKILL.md
+  - sha: ed958a0
+    type: chore
+    scope: stm
+    subject: "chore(stm): record create-play and start-feature evidence for craft-ice (#383)"
+    issue: 383
+    files:
+      - .garura/project/issues/383/evidence/create-play/craft-ice/agent-audit-expectation-crafter.md
+      - .garura/project/issues/383/evidence/create-play/craft-ice/agent-audit-intent-crafter.md
+      - .garura/project/issues/383/evidence/create-play/craft-ice/agent-audit-tech-designer.md
+      - .garura/project/issues/383/evidence/create-play/craft-ice/coverage-matrix.md
+      - .garura/project/issues/383/evidence/create-play/craft-ice/evals.yaml
+      - .garura/project/issues/383/evidence/create-play/craft-ice/skill-manifest.yaml
+      - .garura/project/issues/383/evidence/create-play/craft-ice/workflow-selection.md
+      - .garura/project/issues/383/evidence/start-feature/20260525-000000.md
+      - .garura/project/issues/383/evidence/start-feature/args.yaml
+      - .garura/project/issues/383/evidence/start-feature/branch-result.yaml
+      - .garura/project/issues/383/evidence/start-feature/issue-resolution.yaml
