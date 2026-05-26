@@ -32,6 +32,8 @@ An intent.yaml is the **clean triple** (the ICE Intent layer):
 
 It does NOT carry scenarios. Success scenarios and recovery are the **Expectation** layer — generated from this intent by `expectation-crafter` (via `draft-play-expectation`) and human-validated at the create-play checkpoint. Your job ends at the triple.
 
+See also: `core/components/memory/standards/rules/builder-isolation.md` for the canonical three-element Intent model and compartmentation contract.
+
 It never describes HOW to achieve the goal. No play names, no agent names, no skill names, no tool names, no implementation steps.
 
 ## Interview Protocol
