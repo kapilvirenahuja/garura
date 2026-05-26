@@ -1,0 +1,8 @@
+input_type: title
+value: "Plays should speak product-language to the user, not file/component-language"
+body: |
+  When a user asks Garura to do something, they think in products, features, capabilities, and technology — not in files, classes, or paths. Today, our plays push the file/component view at the user from the very first message: start-feature-planning, for example, asks the user to look at "Affected Files" tables and per-task file paths before they've understood what the work is even about at a product level. This wrecks the L3 working mode, where the user does not read source files and needs the play to translate.
+
+  The fix is to standardize a short voice rule that every play follows when addressing the user. The rule: when a play speaks to the user — in any checkpoint, summary, status update, or close report — it leads in the language the user operates in (product, feature, capability, technology, outcome). File paths, component names, class names, and line numbers go in an appendix or a machine-readable artifact, never in the lead of a human-facing message. The rule lives at `core/components/memory/standards/rules/user-facing-voice.md`, every play's compiled SKILL.md inlines it with a lint-anchored block, the `/create-play` compiler emits the same block on rebuild (so direct edits and rebuilds converge), and `lint-components` enforces the anchors. Same converge-and-lint pattern we already use for Standard Play Close.
+
+  This is a non-intent change — it doesn't alter what any play decides, guarantees, or evaluates. It only standardizes the register the play speaks in when addressing the human.

@@ -1,0 +1,66 @@
+analysis:
+  issue: 385
+  branch: feature/385-user-facing-voice
+  run_id: ship-385
+  sensitive_file_scan:
+    result: clean
+    files_checked: 28
+    file_types: [.md, .yaml, .js]
+    sensitive_files_found: []
+  groups:
+    - id: group-1
+      type: feat
+      scope: voice
+      subject: "add user-facing-voice rule, inline into all plays, enforce via lint and compiler"
+      files_count: 28
+      files:
+        - core/components/memory/standards/rules/user-facing-voice.md
+        - core/components/plays/algorithm/SKILL.md
+        - core/components/plays/arch/SKILL.md
+        - core/components/plays/capture/SKILL.md
+        - core/components/plays/codify/SKILL.md
+        - core/components/plays/commit-code/SKILL.md
+        - core/components/plays/craft-ice/SKILL.md
+        - core/components/plays/create-play/SKILL.md
+        - core/components/plays/create-pr/SKILL.md
+        - core/components/plays/decode/SKILL.md
+        - core/components/plays/define/SKILL.md
+        - core/components/plays/design/SKILL.md
+        - core/components/plays/distill/SKILL.md
+        - core/components/plays/enhance/SKILL.md
+        - core/components/plays/enrich/SKILL.md
+        - core/components/plays/fix-it/SKILL.md
+        - core/components/plays/implement/SKILL.md
+        - core/components/plays/merge-pr/SKILL.md
+        - core/components/plays/prepare/SKILL.md
+        - core/components/plays/reap/SKILL.md
+        - core/components/plays/refactor/SKILL.md
+        - core/components/plays/review-pr/SKILL.md
+        - core/components/plays/ship/SKILL.md
+        - core/components/plays/specify/SKILL.md
+        - core/components/plays/start-feature-planning/SKILL.md
+        - core/components/plays/start-feature/SKILL.md
+        - core/components/plays/validate/SKILL.md
+        - core/tools/lint-components/lib/rules/structural.js
+      concern: "New user-facing-voice standard + inline across all 26 plays + lint enforcement + compiler wiring"
+      issue_mapping:
+        issue: 385
+        confidence: high
+    - id: group-2
+      type: chore
+      scope: stm
+      subject: "record start-feature evidence for #385"
+      files_count: 3
+      files:
+        - .garura/project/issues/385/evidence/start-feature/args.yaml
+        - .garura/project/issues/385/evidence/start-feature/branch-result.yaml
+        - .garura/project/issues/385/evidence/start-feature/issue-resolution.yaml
+      concern: "STM evidence files for issue #385"
+      issue_mapping:
+        issue: 385
+        confidence: high
+  risks:
+    sensitive_files: []
+    breaking_changes: []
+    ambiguous_types: []
+    hotfix_branch: false

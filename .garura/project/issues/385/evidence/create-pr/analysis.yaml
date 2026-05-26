@@ -1,0 +1,76 @@
+analysis:
+  branch: feature/385-user-facing-voice
+  base: main
+  issue: 385
+  suggested_title: "feat(voice): add user-facing-voice rule, inline into all plays, enforce via lint and compiler (#385)"
+  context:
+    branch_classification: feature
+    file_patterns_matched:
+      - plays (SKILL.md x26 modified)
+      - memory/standards (new rule file)
+      - lint-components JS (structural.js)
+      - STM evidence YAML
+    commit_types:
+      - feat (cb33405)
+      - chore/stm (981272e, 710745b)
+    total_files_changed: 33
+    total_insertions: 983
+    total_deletions: 1
+
+  checklist:
+    must_have:
+      - item: "No merge conflicts"
+        trigger: "Universal — always applies"
+        status: "PASS"
+        evidence: "git merge-tree --write-tree main HEAD returned clean tree hash (7f49df9); no conflict markers"
+
+      - item: "No secrets committed"
+        trigger: "Universal — always applies"
+        status: "PASS"
+        evidence: "Scanned all +983 lines in diff for secret patterns (password, api_key, token, etc.); none found. Files are .md, .yaml, .js only."
+
+      - item: "Play SKILL.md files have valid frontmatter"
+        trigger: "Play definitions changed — 26 plays modified"
+        status: "PASS"
+        evidence: "Sample verified (algorithm/SKILL.md): name, description, user-invocable fields present. All 26 plays follow identical structure — only additions inside body, frontmatter untouched."
+
+      - item: "Play SKILL.md files define workflow sections"
+        trigger: "Play definitions changed — 26 plays modified"
+        status: "PASS"
+        evidence: "Diff shows only User-Facing Voice block added between ## Role and next section. No workflow sections removed or altered."
+
+      - item: "Play SKILL.md files define checkpoint behavior"
+        trigger: "Play definitions changed — 26 plays modified"
+        status: "PASS"
+        evidence: "Diff confirms only additive insertion of User-Facing Voice block; checkpoint sections unmodified in all 26 plays."
+
+      - item: "Feature documented — user-facing-voice rule file created"
+        trigger: "feat commit type — new capability added"
+        status: "PASS"
+        evidence: "core/components/memory/standards/rules/user-facing-voice.md created (133 lines): defines rule, scope boundary (orchestrator surfaces only), lint anchors, and follow-on scope for artifact-templates tracked in #386."
+
+      - item: "Components synced with core/components/"
+        trigger: "core/components/** changed — sync-claude rule"
+        status: "REVIEW"
+        evidence: "26 SKILL.md plays and user-facing-voice.md are in core/components/. Sync to ~/.claude/ required before use. Manual step post-merge."
+
+    nice_to_have:
+      - item: "Significant feature has ADR"
+        trigger: "feat commit with broad cross-play impact (26 plays touched)"
+        status: "REVIEW"
+        evidence: "No new ADR created. The change is a non-intent scaffolding addition (same converge-and-lint pattern as play-close). Issue description explicitly classifies this as non-intent. ADR may be appropriate given 26-play blast radius but is not blocking."
+
+      - item: "Play agent call limits respected"
+        trigger: "Play definitions changed"
+        status: "PASS"
+        evidence: "Only voice block inserted — no agent calls added to any play. Agent budgets unchanged."
+
+  blocking_issues: []
+
+  ready: true
+  confidence: high
+  confidence_rationale: >
+    All must-have items PASS or are standard post-merge ops (sync-claude).
+    No merge conflicts, no secrets, no structural regressions. The change is
+    purely additive across all 26 plays. Target branch (main) is unambiguous.
+    Auto-submit authorized.
