@@ -1,0 +1,85 @@
+step_evals:
+  - id: SE-1
+    source_type: "both"
+    failure_condition_id: F1
+    constraint_id: C1
+    skill: generate-feature-expectation
+    check: "The produced specification contains all three ICE layers — Intent (goal + constraints + failure conditions), Context (memory/knowledge/codebase grounding), and Expectation (success scenarios + recovery)."
+    artifact_pattern: "{stm_base}/{issue}/specs/intent.yaml, {stm_base}/{issue}/context/, {stm_base}/{issue}/specs/expectation.yaml"
+    pass_criteria: "All three layers present and non-empty: an Intent triple, a Context bundle, and an Expectation (success_scenarios + recovery)."
+    fail_criteria: "One or more of the three ICE layers is missing or empty."
+
+  - id: SE-2
+    source_type: "both"
+    failure_condition_id: F2
+    constraint_id: C2
+    skill: author-intent-yaml
+    check: "The delivered Intent layer is implementation-agnostic — it does not name agents, skills, tools, technologies, file paths, or step-by-step instructions."
+    artifact_pattern: "{stm_base}/{issue}/specs/intent.yaml"
+    pass_criteria: "No agent names, skill names, tool names, technologies, file paths, or step-by-step instructions appear anywhere in the Intent layer."
+    fail_criteria: "The Intent layer carries any implementation detail — an agent name, skill name, tool name, technology, file path, or step-by-step instruction."
+
+  - id: SE-3
+    source_type: "both"
+    failure_condition_id: F3
+    constraint_id: C3
+    skill: generate-feature-expectation
+    check: "The delivered Expectation carries an approval marker and a provenance link to the Intent it was derived from."
+    artifact_pattern: "{stm_base}/{issue}/specs/expectation.yaml"
+    pass_criteria: "The Expectation has a vetted approval marker AND a generated_from.intent provenance link that resolves to the feature's Intent."
+    fail_criteria: "The Expectation lacks an approval marker, or lacks a provenance link to the Intent it was derived from."
+
+  - id: SE-4
+    source_type: "failure_condition"
+    failure_condition_id: F4
+    constraint_id: null
+    skill: generate-feature-expectation
+    check: "Every artifact the specification contains carries a resolvable link back to the source epic/feature it specifies."
+    artifact_pattern: "{stm_base}/{issue}/specs/, {stm_base}/{issue}/context/"
+    pass_criteria: "Each produced artifact (Intent, Context, Expectation) carries a resolvable link back to the source epic/feature (e.g., a source epic/feature identifier), not merely a tracking-issue number."
+    fail_criteria: "Any produced artifact has no traceable link back to the source epic/feature."
+
+  - id: SE-5
+    source_type: "failure_condition"
+    failure_condition_id: F5
+    constraint_id: null
+    skill: author-intent-yaml
+    check: "No full specification exists for fix-it-scale work."
+    artifact_pattern: "{stm_base}/{issue}/specs/, {stm_base}/{issue}/evidence/craft-ice/scope-assessment.md"
+    pass_criteria: "Either the work was assessed as substantial (not fix-it-scale), or no full specification was produced."
+    fail_criteria: "A full specification exists for work assessed as fix-it-scale."
+
+  - id: SE-6
+    source_type: "failure_condition"
+    failure_condition_id: F6
+    constraint_id: null
+    skill: generate-feature-expectation
+    check: "The specification's approval is consistent with the human-in-the-loop configuration."
+    artifact_pattern: "{stm_base}/{issue}/specs/expectation.yaml, .garura/core/config.yaml (craft-ice.hitl)"
+    pass_criteria: "The approval state matches the configured human-in-the-loop setting — when configuration requires human-in-the-loop, the approval was granted by a human (approver recorded)."
+    fail_criteria: "The approval contradicts the human-in-the-loop configuration — for example, it was auto-approved when the configuration requires human-in-the-loop."
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: "the agent (the orchestrating agent that selects the next play)"
+    artifact_pattern: "{stm_base}/{issue}/specs/intent.yaml, {stm_base}/{issue}/context/, {stm_base}/{issue}/specs/expectation.yaml"
+    check: "The specification contains a non-empty Intent layer (goal + constraints + failure conditions), a non-empty Context layer (memory/knowledge/codebase grounding), and a non-empty Expectation layer (success scenarios + recovery) — all three present — and the Expectation is marked approved."
+    pass_criteria: "All three layers are present and non-empty AND the Expectation's vetted.status is approved, so the agent can select and run prepare or enhance directly against the spec."
+    fail_criteria: "Any layer is missing/empty, or the Expectation is not marked approved."
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: "the reviewer at the spec approval checkpoint"
+    artifact_pattern: "{stm_base}/{issue}/specs/expectation.yaml, .garura/core/config.yaml (craft-ice.hitl)"
+    check: "The Expectation carries a generated_from.intent provenance link and a vetted.status marker that, under a human-in-the-loop configuration, a reviewer flips to approved at the checkpoint before the agent in S1 can run anything."
+    pass_criteria: "generated_from.intent resolves to the Intent AND vetted.status is approved at the checkpoint (by a human when human-in-the-loop is configured on) before any downstream play is selected."
+    fail_criteria: "Provenance link is missing, or vetted.status is not approved when the agent proceeds, or approval bypassed the human-in-the-loop requirement."
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: "auditor tracing the specification back to its origin"
+    artifact_pattern: "{stm_base}/{issue}/specs/, {stm_base}/{issue}/context/"
+    check: "The specification references a tracking issue and every contained artifact carries a resolvable link back to the source epic/feature."
+    pass_criteria: "A tracking issue is referenced AND every artifact in the specification resolves back to the source epic/feature."
+    fail_criteria: "No tracking issue reference, or any artifact cannot be traced back to the source epic/feature."

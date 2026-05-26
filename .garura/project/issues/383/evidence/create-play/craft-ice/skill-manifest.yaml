@@ -1,0 +1,43 @@
+play: "craft-ice"
+
+# Capability → component mapping (create-play Step 3)
+# Scope guard is inline in the play (copies enhance's threshold pattern) — no skill.
+skills:
+  - name: "author-intent-yaml"
+    path: "core/components/skills/author-intent-yaml/SKILL.md"
+    status: existing
+    capability: "Intent layer — write the clean feature triple (goal, constraints, failure conditions)"
+
+  - name: "scout-project"
+    path: "core/components/skills/scout-project/SKILL.md"
+    status: existing
+    capability: "Context layer — project-level grounding (architecture, stack, constraints)"
+
+  - name: "research-domain-context"
+    path: "core/components/skills/research-domain-context/SKILL.md"
+    status: existing
+    capability: "Context layer — vertical/domain grounding when LTM is insufficient"
+
+  - name: "generate-feature-expectation"
+    path: "core/components/skills/generate-feature-expectation/SKILL.md"
+    status: new
+    capability: "Expectation layer — generate success_scenarios + recovery for a FEATURE at runtime from its intent triple + Context bundle (the runtime feature case draft-play-expectation explicitly is NOT)"
+
+# Supporting LTM authored alongside the new skill:
+#   core/components/memory/standards/rules/feature-expectation-generation.md (new rules file)
+
+agents:
+  - name: "intent-crafter"
+    status: existing
+    role: "Intent layer — interview/sharpen feature intent, invoke author-intent-yaml"
+  - name: "tech-designer"
+    status: existing
+    role: "Context layer — assemble codebase/feature context bundle (as in enhance)"
+  - name: "expectation-crafter"
+    status: modified
+    role: "Expectation layer — extended to dispatch generate-feature-expectation for the feature case (one domain, two skills: play vs feature)"
+
+config_additions:
+  - file: ".garura/core/config.yaml"
+    key: "craft-ice.hitl"
+    purpose: "Config-driven human-in-the-loop toggle for the approval checkpoint (C6). New pattern — existing plays hardcode approval via orchestrator flags."
