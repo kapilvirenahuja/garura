@@ -1,0 +1,41 @@
+commits:
+  - group: group-1
+    hash: cb33405
+    type: feat
+    scope: voice
+    subject: "add user-facing-voice rule, inline into all plays, enforce via lint and compiler (#385)"
+    body: >
+      Adds a new user-facing-voice.md standard that governs plain, human tone for all
+      orchestrator-to-user surfaces. Inlines the rule into all 26 plays so it is always
+      in-scope at the point of output. Enforces compliance via a new lint-components
+      structural check and wires the rule into the create-play compiler so rebuilt plays
+      inherit it automatically. Scope is narrow: orchestrator-to-user surfaces only.
+      Follow-on issue #386 covers artifact-template scope.
+    issue: 385
+    files_changed: 28
+    insertions: 845
+    deletions: 1
+    validation:
+      clean_tree: true
+      conventional_format: true
+  - group: group-2
+    hash: 981272e
+    type: chore
+    scope: stm
+    subject: "record start-feature evidence for #385"
+    body: "Records STM evidence files for issue #385 (user-facing-voice rule)."
+    issue: 385
+    files_changed: 3
+    insertions: 31
+    deletions: 0
+    validation:
+      clean_tree: true
+      conventional_format: true
+
+push:
+  status: success
+  branch: feature/385-user-facing-voice
+  remote: origin
+  tracking: origin/feature/385-user-facing-voice
+  from_sha: bba54c6
+  to_sha: 981272e
