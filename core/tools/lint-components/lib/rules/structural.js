@@ -264,6 +264,36 @@ function checkPlay(component) {
     });
   }
 
+  // User-Facing Voice block — canonical voice rule, see standards/rules/user-facing-voice.md.
+  // Anchors must match byte-for-byte, appear exactly once each, opener before closer.
+  const voiceOpener =
+    '<!-- --- User-Facing Voice (canonical; see standards/rules/user-facing-voice.md) --- -->';
+  const voiceCloser = '<!-- --- end User-Facing Voice --- -->';
+  const voiceOpenerCount = body.split(voiceOpener).length - 1;
+  const voiceCloserCount = body.split(voiceCloser).length - 1;
+  if (voiceOpenerCount !== 1 || voiceCloserCount !== 1) {
+    violations.push({
+      file: component.file,
+      rule: 'structural/missing-user-facing-voice',
+      severity: 'error',
+      message:
+        `User-Facing Voice anchors must appear exactly once each ` +
+        `(found opener ${voiceOpenerCount}, closer ${voiceCloserCount}). ` +
+        `See standards/rules/user-facing-voice.md.`,
+      line: 1,
+    });
+  } else if (body.indexOf(voiceOpener) >= body.indexOf(voiceCloser)) {
+    violations.push({
+      file: component.file,
+      rule: 'structural/user-facing-voice-order',
+      severity: 'error',
+      message:
+        'User-Facing Voice opener anchor must appear before the closer anchor. ' +
+        'See standards/rules/user-facing-voice.md.',
+      line: 1,
+    });
+  }
+
   return { violations, spellingUsed };
 }
 
