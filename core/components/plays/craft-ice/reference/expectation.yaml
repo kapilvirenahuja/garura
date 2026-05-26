@@ -1,0 +1,128 @@
+name: craft-ice
+generated_from:
+  intent: core/components/plays/craft-ice/reference/intent.yaml
+vetted:
+  status: approved
+  approved_by: Kapil Viren Ahuja
+  approved_at: 2026-05-25
+
+success_scenarios:
+  - id: S1
+    persona: the agent (the orchestrating agent that selects the next play)
+    given: >
+      An approved ICE-compliant specification for a substantial epic or
+      feature, carrying all three layers — a clean Intent triple, a Context
+      bundle, and an approved Expectation.
+    then: >
+      Select and run the right downstream play — the only choices are
+      prepare or enhance — directly against the specification, without
+      re-deriving the source epic/feature.
+    measure: >
+      The specification contains a non-empty Intent layer (goal +
+      constraints + failure conditions), a non-empty Context layer
+      (memory/knowledge/codebase grounding), and a non-empty Expectation
+      layer (success scenarios + recovery) — all three present — and the
+      Expectation is marked approved.
+
+  - id: S2
+    persona: the reviewer at the spec approval checkpoint
+    given: >
+      A generated Expectation layer carrying a provenance link to the
+      Intent it was derived from and a vetting marker awaiting approval,
+      with the human-in-the-loop requirement set by configuration.
+    then: >
+      When configuration sets human-in-the-loop on, review the Expectation
+      at craft-ice's own approval checkpoint and approve the spec — and only
+      an approved spec unblocks the agent in S1 from selecting and running a
+      downstream play.
+    measure: >
+      The Expectation carries a generated_from.intent provenance link and a
+      vetted.status marker that, under a human-in-the-loop configuration, a
+      reviewer flips to approved at the checkpoint before the agent in S1 can
+      run anything.
+
+  - id: S3
+    persona: auditor tracing the specification back to its origin
+    given: >
+      A completed ICE specification anchored to a tracking issue.
+    then: >
+      Trace every artifact in the specification back to the source epic or
+      feature and the tracking issue it specifies.
+    measure: >
+      The specification references a tracking issue and every contained
+      artifact carries a resolvable link back to the source epic/feature.
+
+recovery:
+  - id: REC1
+    for_failure: F1
+    trigger: >
+      The delivered specification is missing one or more of the three ICE
+      layers (Intent, Context, or Expectation).
+    direction: >
+      Every delivered specification must carry all three ICE layers — fill
+      the absent layer by deriving it from material already gathered before
+      the spec is considered complete.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC2
+    for_failure: F2
+    trigger: >
+      The delivered Intent layer carries implementation details — agent
+      names, skill names, tool names, technologies, file paths, or
+      step-by-step instructions.
+    direction: >
+      The Intent layer must stay implementation-agnostic — strip every
+      implementation token so the Intent describes only goal, constraints,
+      and failure conditions.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC3
+    for_failure: F3
+    trigger: >
+      The delivered Expectation lacks an approval marker, or lacks a
+      provenance link to the Intent it was derived from.
+    direction: >
+      Every Expectation must carry a provenance link to its Intent and an
+      approval marker — restore the provenance link and route the
+      Expectation to a human for the approval the builder cannot grant.
+    handoff: human
+    derivable_at_l4: false
+
+  - id: REC4
+    for_failure: F4
+    trigger: >
+      The delivered specification has no traceable link back to the source
+      epic/feature or tracking issue.
+    direction: >
+      The specification must be anchored to a tracking issue and traceable
+      to its source epic/feature — establish that anchor, which requires a
+      human to map the work to the correct external tracking record.
+    handoff: human
+    derivable_at_l4: false
+
+  - id: REC5
+    for_failure: F5
+    trigger: >
+      A full specification exists for fix-it-scale work — work whose scope
+      fits a quick fix.
+    direction: >
+      A full ICE specification must not be produced for fix-it-scale work —
+      a human must judge the scope and redirect quick-fix-sized work away
+      from the spec pipeline.
+    handoff: human
+    derivable_at_l4: false
+
+  - id: REC6
+    for_failure: F6
+    trigger: >
+      The specification's approval contradicts the human-in-the-loop
+      configuration — for example, it was auto-approved when the
+      configuration requires human-in-the-loop.
+    direction: >
+      The approval path must follow the configured human-in-the-loop
+      setting — re-run the review honoring the configuration so a human
+      grants approval whenever the configuration requires it.
+    handoff: human
+    derivable_at_l4: false

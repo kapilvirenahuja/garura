@@ -72,6 +72,15 @@ review-pr:
   fallback_reviewers: []
   activity_window_days: 90
 
+# craft-ice play configuration
+# hitl — human-in-the-loop for the ICE-spec approval checkpoint (C6).
+#   true  → a human approves the generated spec at the checkpoint before any
+#           downstream play is selected.
+#   false → the checkpoint is skipped and the spec is auto-approved per policy.
+# Default true (fail safe toward human approval) when absent or unreadable.
+craft-ice:
+  hitl: true
+
 # Evidence recording — when false, STM evidence writes are skipped across ship and all sub-plays
 evidence:
   record: false
