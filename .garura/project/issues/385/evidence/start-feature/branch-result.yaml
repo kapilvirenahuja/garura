@@ -1,0 +1,11 @@
+branch:
+  name: "feature/385-user-facing-voice"
+  action: "created"
+  pushed: true
+  changes_preserved: true  # working tree was clean — vacuously true
+  tracking: "origin/feature/385-user-facing-voice"
+  base_ref: "main"
+worktree:
+  used: false
+  path: null
+  reason: "Working tree was clean (only untracked STM files) — direct checkout used"
