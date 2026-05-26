@@ -1,0 +1,79 @@
+iteration: 3
+verified_at: "2026-05-26T00:00:00Z"
+evals:
+  - id: E1
+    status: PASS
+    evidence: >
+      core/components/memory/standards/rules/builder-isolation.md exists and is non-empty.
+      All six required sections present: (1) three-element model naming goal/constraints/failure_conditions
+      at lines 8-22; (2) compartmentation contract with explicit "The builder never receives
+      success_scenarios under any circumstance." at lines 28-40; (3) HITL section at lines 43-53
+      names `hitl` as governor and states "There is no global 'human must approve' rule — the
+      decision is per-play"; (4) constraint-vs-failure-condition rule with exact literal question
+      "Would knowing this change how the builder writes code?" at line 56 plus two worked examples
+      (coverage threshold and deprecated API endpoints); (5) Connections pointer is exactly one line
+      at line 24 ("Connections is conceptually part of Intent but lives on a different surface;
+      its design is the subject of a future issue (TBD)."); (6) provenance footer at lines 83-86
+      references originating issue #388.
+
+  - id: E2
+    status: PASS
+    evidence: >
+      Grepped all "scenarios" occurrences in core/components/agents/intent-resolver.md (5 hits at
+      lines 27, 54, 123, 138, 211, 214). No sentence names intent.yaml as the source of scenarios
+      or success_scenarios. Line 214 (NEVER section) explicitly prohibits: "Read scenarios from
+      intent.yaml. Success scenarios live in the Expectation artifact at `expectation_path`."
+      Input Contract includes `expectation_path` field, optional, naming expectation.yaml as source
+      (line 54). Step 1 item 2 (line 123) reads success_scenarios from expectation_path and treats
+      as empty when absent. Step 2 (line 138) sources Stage 6 tasks from the Expectation artifact
+      only; zero Stage 6 tasks when expectation_path is absent. Line 211 mentions "scenarios" only
+      as part of a boundary statement ("not traceable to intent elements") — does not name intent.yaml
+      as the source.
+
+  - id: E3
+    status: PASS
+    evidence: >
+      core/components/agents/intent-resolver.md line 34: "See also:
+      `core/components/memory/standards/rules/builder-isolation.md` for the canonical three-element
+      Intent model and compartmentation contract."
+      core/components/agents/intent-crafter.md line 35: same cross-reference text. Both agent files
+      contain the required pointer to the canonical rule surface.
+
+  - id: E4
+    status: PASS
+    evidence: >
+      `git diff --name-only main...HEAD` returns only .garura/project/issues/388/ paths (8 files,
+      all STM artifacts). Zero files matching core/components/plays/*/SKILL.md or
+      core/components/plays/*/reference/intent.yaml appear in committed diff.
+      `git status --short` shows no modifications under core/components/plays/ whatsoever.
+      Implementation touches only agent files and the new rule file — both outside the play scope.
+
+  - id: E5
+    status: PASS
+    evidence: >
+      Doctrine surfaces scoped per eval definition: docs/philosophy/, core/grounding/,
+      core/components/agents/, core/components/skills/**/SKILL.md,
+      core/components/memory/standards/rules/.
+      Grep for "Connections" across all doctrine surfaces returns exactly one match:
+      core/components/memory/standards/rules/builder-isolation.md line 24 —
+      a single line: "Connections is conceptually part of Intent but lives on a different
+      surface; its design is the subject of a future issue (TBD)."
+      No other doctrine surface file (agents, skills, philosophy, grounding) contains the word
+      "Connections". Count across doctrine surfaces: 1 occurrence, 1 line, pointer only.
+      (The iteration-2 failure was due to reading the file pre-remediation which had a section
+      header and inline paragraph mention; the current file on disk has been remediated to a
+      single line at line 24 only.)
+
+  - id: E6
+    status: PASS
+    evidence: >
+      builder-isolation.md HITL section (lines 43-53) explicitly names per-play `hitl` config as
+      the governor. States "There is no global 'human must approve' rule — the decision is per-play."
+      States that HITL-off plays "auto-approve per its configured policy and records the decision."
+      No global human-approval requirement stated or implied anywhere in the file.
+
+summary:
+  total: 6
+  passed: 6
+  failed: 0
+  overall: PASS

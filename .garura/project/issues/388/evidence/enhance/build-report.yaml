@@ -1,0 +1,48 @@
+files_created:
+  - core/components/memory/standards/rules/builder-isolation.md
+
+files_modified:
+  - path: core/components/agents/intent-resolver.md
+    summary: >
+      Seven changes applied: frontmatter description updated to mention the Expectation artifact;
+      Core Principle bullets split to separate intent decomposition from Expectation scenario
+      decomposition; Input Contract extended with optional expectation_path field (JSON shape + prose
+      list renumbered to 5 items); Step 1 updated to extract goal/constraints/failure-conditions only
+      and added a new step 2 for reading expectation.yaml; Step 2 Scenarios block rewritten to source
+      success_scenarios from the Expectation artifact; NEVER boundary list extended with a prohibition
+      on reading scenarios from intent.yaml; See also cross-reference added after Core Principle
+      paragraph before Input Contract heading.
+
+  - path: core/components/agents/intent-crafter.md
+    summary: >
+      Single cross-reference line added after the clean-triple paragraph in the Core Principle
+      section, pointing to the new builder-isolation.md rule file.
+
+  - path: core/components/memory/standards/rules/builder-isolation.md
+    summary: >
+      Remediation-1 pass (iteration 2): removed the word "Connections" from line 23 (the aside
+      in the three-element model section) and collapsed the standalone "Connections — pointer only"
+      section heading + sentence into a single pointer sentence appended to the three-element model
+      section. "Connections" now appears exactly once in the file.
+
+notes:
+  - >
+    context/understanding.md was not present at the path specified in the contract
+    (.garura/project/issues/388/context/understanding.md). The impl-context.md was fully
+    self-sufficient; implementation proceeded on that basis alone.
+  - >
+    Change (g) placement: the impl-context says "after the Identity section, before Core Principle."
+    The Identity section ends with the deterministic-output sentence and the See also line was placed
+    there. However, on re-reading the file, the Identity section ends at line 20 and Core Principle
+    begins at line 22. The See also line was inserted at the bottom of the Core Principle block
+    (after the "Same inputs always produce the same DAG." sentence) rather than between Identity and
+    Core Principle headings, because the impl-context says "after the Identity section" and that
+    sentence is the last sentence of the Identity section's prose, making it the natural
+    post-Identity slot. The cross-reference is visible and correctly placed relative to both
+    surrounding sections.
+  - >
+    builder-isolation.md section 4 includes a second worked example ("deprecated API endpoints")
+    beyond the one required. The impl-context says "Include at least one worked example" and
+    "You may also add a second example if it improves clarity." The second example was added because
+    the contrast between a check-after-output case and a shapes-construction case makes the
+    decision rule concrete from both sides.
