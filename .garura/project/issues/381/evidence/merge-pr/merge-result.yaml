@@ -1,0 +1,20 @@
+result:
+  status: merged
+  pr_number: 382
+  merge_sha: 2008ae9c639cfd2e2ae208ca64572cf96b6fa664
+  base_branch: main
+  branch_deleted: true
+  branch_deleted_local: true
+  branch_deleted_remote: true
+  error: null
+
+evals:
+  SE-1: PASS  # No merge attempted past conflict — pre-flight enforced MERGEABLE
+  SE-2: PASS  # Feature branch absent locally and remotely
+  SE-3: PASS  # On main, local SHA 2008ae9c matches origin/main SHA 2008ae9c
+  SE-4: PASS  # Pre-merge tree was clean — pre-flight enforced
+  SE-5: PASS  # PR #382 state is MERGED on platform
+
+scenarios:
+  SCE-1: PASS  # HEAD on main, 0 commits behind origin, feature branch absent everywhere
+  SCE-2: PASS  # PR state MERGED, merge SHA 2008ae9c reachable from main tip
