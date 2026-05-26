@@ -1,0 +1,16 @@
+issue_linkage:
+  issue_number: 385
+  title: "Plays should speak product-language to the user, not file/component-language"
+  state: open
+  author: kapilvirenahuja
+  labels:
+    - feature
+  assignees:
+    - kapilvirenahuja
+  url: "https://github.com/kapilvirenahuja/garura/issues/385"
+  closes_keyword: "Closes #385"
+  references:
+    - number: 386
+      relationship: follow-on
+      note: "Artifact-template scope extension — standardize product-language lead in sub-agent artifact templates (spec.md, brief templates, etc.)"
+  linkage_confidence: high
