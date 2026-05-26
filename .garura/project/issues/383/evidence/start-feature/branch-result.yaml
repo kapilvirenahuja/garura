@@ -1,0 +1,20 @@
+branch:
+  name: "feature/383-craft-ice"
+  action: "created"
+  pushed: true
+  tracking: "origin/feature/383-craft-ice"
+  base_ref: "main"
+
+changes_preserved: true
+worktree_used: false
+worktree_path: null
+preservation_method: "untracked-only tree — git checkout -b carries untracked files forward without stash or worktree"
+
+verification:
+  branch_current: true
+  remote_tracking_set: true
+  untracked_files_intact: true
+  files_present:
+    - ".garura/project/issues/381/evidence/create-pr/"
+    - ".garura/project/issues/381/evidence/merge-pr/"
+    - ".garura/project/issues/383/"

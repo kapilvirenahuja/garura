@@ -1,0 +1,13 @@
+issue:
+  number: 383
+  title: "Build craft-ICE play — upstream Specifier that turns an epic/feature into ICE-compliant specs (Intent + Context + Expectation) for big build plays"
+  url: "https://github.com/kapilvirenahuja/garura/issues/383"
+  state: "open"
+  created: true
+  type_hint: "feature"
+
+inference:
+  source: "title_provided"
+  confidence: "high"
+  candidates_considered: 0
+  ambiguity_resolved_by_user: false
