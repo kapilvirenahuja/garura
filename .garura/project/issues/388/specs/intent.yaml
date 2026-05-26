@@ -1,0 +1,109 @@
+intent: >
+  Every place in the framework that teaches what Intent is —
+  philosophy writing, agent guidance, schema rules, knowledge
+  base, and the abstraction linter — describes Intent as
+  exactly three elements (goal, constraints, failure
+  conditions) and treats success scenarios as belonging to
+  Expectation, not Intent.
+
+constraints:
+  - id: C1
+    rule: >
+      The three-element definition of Intent reads as one
+      coherent rule across philosophy docs, agent guidance,
+      schema validators, the knowledge base, and the
+      abstraction linter — a reader cannot find two
+      definitions that disagree.
+  - id: C2
+    rule: >
+      Every surface that previously taught Intent as five
+      elements now teaches it as three; the old five-element
+      framing is removed, not layered on top.
+  - id: C3
+    rule: >
+      Success scenarios are doctrinally relocated to the
+      Expectation layer and described as generated from intent
+      plus context, with reviewer vetting governed by the
+      existing per-play human-in-the-loop setting — no new
+      global behavior is forced.
+  - id: C4
+    rule: >
+      The compartmentation rule is stated plainly: the builder
+      receives goal and constraints and context only, the
+      validator receives failure conditions and vetted success
+      scenarios, and the builder never sees scenarios.
+  - id: C5
+    rule: >
+      The builder-isolation rule is carried in agent contracts
+      AND backstopped by step evals in the affected plays that
+      scan builder contracts for scenario leakage — no new
+      runtime validator agent is introduced.
+  - id: C6
+    rule: >
+      Scope is bounded to doctrine surfaces only; reference
+      intent fixtures and unmigrated plays are explicitly
+      deferred to a follow-on.
+  - id: C7
+    rule: >
+      Connections is referenced exactly once, as a one-line
+      pointer that its surface is the subject of a future
+      issue — no doctrine text about Connections beyond that
+      pointer.
+  - id: C8
+    rule: >
+      Borderline guidance uses the decision rule "would
+      knowing this change how the builder writes code" to
+      split items into constraints versus failure conditions,
+      with at least one worked example carried in the
+      doctrine.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      A doctrine document, agent prompt, schema validator,
+      knowledge-base file, or linter description still
+      describes Intent as five elements or lists success
+      scenarios as part of Intent.
+  - id: F2
+    condition: >
+      A schema validator still accepts a success_scenarios
+      block inside intent.yaml without flagging it as
+      belonging to Expectation.
+  - id: F3
+    condition: >
+      The abstraction-layer linter fails to flag
+      implementation-pattern tokens that appear inside an
+      Intent block.
+  - id: F4
+    condition: >
+      An agent prompt, contract, or guidance still instructs
+      or permits the builder to read success scenarios.
+  - id: F5
+    condition: >
+      An affected play lacks a step eval that checks the
+      builder contract for scenario leakage.
+  - id: F6
+    condition: >
+      Any compiled play SKILL.md is rebuilt or any
+      reference/intent.yaml fixture is modified by this work.
+  - id: F7
+    condition: >
+      Doctrine text about Connections appears anywhere beyond
+      the single one-line pointer to a future issue.
+  - id: F8
+    condition: >
+      A play whose HITL setting is off is forced by the new
+      doctrine to require human approval of a generated
+      Expectation.
+  - id: F9
+    condition: >
+      A doctrine surface describes Expectation generation
+      without naming the per-play HITL configuration as the
+      vetting governor.
+  - id: F10
+    condition: >
+      Two doctrine surfaces give materially different
+      definitions of what counts as a constraint versus a
+      failure condition.
+
+version: 1.0.0
