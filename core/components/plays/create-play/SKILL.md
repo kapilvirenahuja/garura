@@ -32,32 +32,6 @@ You are the **play compiler** and **architectural gatekeeper**. You own the pipe
 - `docs/adr/016-agent-json-contract.md` — universal JSON contract schema
 - `docs/adr/013-play-maturity-model.md` — design elements and workflow structures
 
-## User-Facing Voice
-
-<!-- --- User-Facing Voice (canonical; see standards/rules/user-facing-voice.md) --- -->
-
-When this play addresses the user — in any checkpoint, summary, status
-update, or close report — it leads in the language the user operates in:
-product, feature, capability, technology, outcome. File paths, component
-names, class names, function names, and line numbers belong in an appendix
-or a machine-readable artifact, never in the lead of a human-facing message.
-
-Signals the play has drifted:
-- The opening sentence names a file path, class, function, or line number.
-- The user has to read a table of files to learn what the work is about.
-- A status update enumerates components touched before stating the outcome.
-- A checkpoint asks the user to approve "changes to X.yaml" instead of "the
-  decision that Y".
-
-When the play detects any of these signals in its own draft output, it
-rewrites before showing the user. Downstream-agent artifacts may still carry
-file-level detail — in an appendix, after the user-facing lead.
-
-See `standards/rules/user-facing-voice.md` for the full rule.
-
-<!-- --- end User-Facing Voice --- -->
-
-
 ## Compilation Pipeline
 
 ### Step 1 — Gate & Identity
@@ -115,10 +89,9 @@ Run these checks against the semantic map. Each check produces a PASS or GAP res
 | **G7 — Contract Schema** | JSON contracts in play steps contain required fields: `intent_path`, `stm_base`, `stm`, `task_id` | Required contract field missing |
 | **G8 — Template References** | Skills/plays that reference templates point to files that exist (now bundled with the owning skill/play under its own `templates/` or `reference/` directory) | Template path referenced but file missing |
 | **G9 — Intent Hash Drift** | Compiled intent_hash in SKILL.md matches current SHA-256 of intent.yaml | Hash mismatch — intent changed since last compilation |
-| **G10 — Required Sections** | Compiled SKILL.md contains all required sections: Frontmatter, Header, Compiled From, Role, User-Facing Voice, Pre-flight, Task DAG, Workflow, Scenario Validation, Recovery (migrated plays only), Evidence & Close, Pause and Resume, Compilation Metadata | Section missing from compiled play |
+| **G10 — Required Sections** | Compiled SKILL.md contains all required sections: Frontmatter, Header, Compiled From, Role, Pre-flight, Task DAG, Workflow, Scenario Validation, Recovery (migrated plays only), Evidence & Close, Pause and Resume, Compilation Metadata | Section missing from compiled play |
 | **G11 — Skill LTM Input Coverage** | For every skill a play step invokes, each required/recommended LTM input in the skill's Input section has a corresponding discovery instruction in the play step text (e.g., "agent must glob X and pass as Y") | Skill declares LTM input (e.g., `epic_rules_path`, `domain_taxonomy_paths`) but the play step has no instruction for the agent to discover and pass it |
 | **G12 — Standard Play Close** | The Evidence & Close section contains the canonical Standard Play Close block — the opener and closer anchor comment lines defined verbatim in `standards/rules/play-close.md` (that file is the single source of the exact strings; do NOT re-quote them here), exactly one pair, opener before closer, with C1 (evidence-file.md, `evidence.record`-gated) and C2 (delivery-report.md, always) | Anchor pair missing/altered/duplicated, or close emitted as hand-authored prose instead of the standard block |
-| **G13 — User-Facing Voice** | The compiled SKILL.md contains the canonical User-Facing Voice block in a `## User-Facing Voice` section placed immediately after `## Role` — the opener and closer anchor HTML-comment lines defined verbatim in `standards/rules/user-facing-voice.md` (that file is the single source of the exact strings; do NOT re-quote them here), exactly one pair, opener before closer | Anchor pair missing/altered/duplicated, or block placed in a section other than `## User-Facing Voice` between `## Role` and the next section |
 
 **Step R3 — Gap Report**
 
@@ -432,7 +405,6 @@ Write `core/components/plays/{play-name}/SKILL.md` with ALL required sections:
 | Header | One-paragraph operational description |
 | Compiled From | Notice: compiled artifact, edit intent.yaml and re-run /create-play |
 | Role + Agent Boundaries | Orchestrator role, agent table with domains and phases |
-| User-Facing Voice | The canonical **User-Facing Voice** block emitted verbatim per `standards/rules/user-facing-voice.md` in a `## User-Facing Voice` section placed immediately after `## Role` (the exact lint-anchor HTML-comment pair, no per-play substitution). Sets the register the play uses when addressing the user. |
 | Pre-flight | Baked checks with constraint IDs, bash logic, resume check |
 | Task DAG | TaskCreate calls for ALL steps with blockedBy, ownership rule, TaskUpdate protocol |
 | Workflow | Sequential steps organized by phase, each with: owner, depends-on, JSON contract (per ADR 016), skill invoked, step eval criteria, TaskUpdate calls |
@@ -461,7 +433,6 @@ Write `core/components/plays/{play-name}/SKILL.md` with ALL required sections:
 - **Checkpoint review surface:** Human checkpoints present the YAML artifact file paths as the review surface by default. Domain agents produce artifacts → play presents the artifact paths for human review (Tether/Vanish/Orbit). Do NOT insert a `doc-builder` step before checkpoints unless intent.yaml explicitly mandates brief generation as a constraint. Briefs are opt-in, not mandatory.
 - **Agent budget — domain vs utility:** The ≤5 agent call limit applies to domain agents only. Utility agents (`repo-orchestrator` for commits/evidence, and `doc-builder` when a play explicitly opts into brief generation) are exempt. Compilation Metadata must list domain and utility agents separately.
 - **Standard Play Close (mandatory, non-negotiable):** The Evidence & Close section MUST be the canonical Standard Play Close block from `standards/rules/play-close.md`, emitted verbatim with only `{play-name}` and the project/product scope line substituted. This converges hand edits and rebuilds — a play whose close was direct-edited to the block is reproduced identically by the next `/create-play --build`, never clobbered. It is enforced by gate G12. Bespoke per-play evidence content is preserved as the C1 slot fill inside the block, not as a replacement for it.
-- **User-Facing Voice (mandatory, non-negotiable):** A `## User-Facing Voice` section MUST be emitted immediately after `## Role` and immediately before the next section. It contains the canonical User-Facing Voice block from `standards/rules/user-facing-voice.md`, emitted verbatim — no per-play substitution. This converges hand edits and rebuilds the same way Standard Play Close does. It is enforced by gate G13. The block sets the register the play uses when addressing the user; it changes nothing the play decides or guarantees, so it is non-intent scaffolding.
 
 **Task DAG rules (compiled into every play):**
 - The compiled play MUST include a `## Task DAG` section immediately after Pre-flight
@@ -571,4 +542,4 @@ C2 Next Steps line. C2 is emitted regardless.
 
 **Direct-edit deviation note (play-close standardization, #371):** create-play has no `intent.yaml` (it is the compiler bootstrap), so all changes to it are direct edits by definition. Step 7 was restructured into the canonical Standard Play Close block (its compilation summary is the C2 delivery report; C1 writes compile evidence). The compiler-side convergence (the Evidence & Close required-section spec, gate G12, the compilation rule, and `reference/compiled-example.md`) was added in the same change so every play create-play compiles now reproduces the standard block. Non-intent format change.
 
-**Direct-edit deviation note (user-facing-voice standardization, #385):** Same compiler-bootstrap rationale as #371. Added the `User-Facing Voice` required section (placed immediately after `## Role`), the `G13 — User-Facing Voice` gate, the User-Facing Voice compilation rule, and the User-Facing Voice row in the required-sections table. Every play create-play compiles now emits the canonical `standards/rules/user-facing-voice.md` block, so direct-edit and rebuild converge. The block scope is narrow (orchestrator-to-user surfaces only) per `standards/rules/user-facing-voice.md`. Non-intent format change.
+**Direct-edit deviation note (user-facing-voice compiler-strip, #386):** The original #385 work added a mandatory `## User-Facing Voice` section, the G13 gate, a compilation rule, and a required-sections row so every compiled play carried the canonical block. The follow-on experiment (#386) to extend that scope to artifact templates was dropped, and the block-paste mechanism was reverted along with it: the section, the gate, the compilation rule, and the row in the required-sections table have been removed from this compiler, and the block has been stripped from every compiled play. The rule file at `standards/rules/user-facing-voice.md` is retained as guidance (the principle stays — the play-block enforcement does not). The rule's "Enforced" claim and "The block" paste mechanism are now stale relative to this compiler; future cleanup of that file is a separate, optional follow-up. Non-intent format change.

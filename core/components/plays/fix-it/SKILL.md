@@ -44,32 +44,6 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 Domain agents: 4 of 5 (project-orchestrator, tech-designer, code-builder, quality-auditor). Within the ≤5 budget.
 Utility agents: 2 (project-orchestrator background dispatch, repo-orchestrator). Exempt from budget.
 
-## User-Facing Voice
-
-<!-- --- User-Facing Voice (canonical; see standards/rules/user-facing-voice.md) --- -->
-
-When this play addresses the user — in any checkpoint, summary, status
-update, or close report — it leads in the language the user operates in:
-product, feature, capability, technology, outcome. File paths, component
-names, class names, function names, and line numbers belong in an appendix
-or a machine-readable artifact, never in the lead of a human-facing message.
-
-Signals the play has drifted:
-- The opening sentence names a file path, class, function, or line number.
-- The user has to read a table of files to learn what the work is about.
-- A status update enumerates components touched before stating the outcome.
-- A checkpoint asks the user to approve "changes to X.yaml" instead of "the
-  decision that Y".
-
-When the play detects any of these signals in its own draft output, it
-rewrites before showing the user. Downstream-agent artifacts may still carry
-file-level detail — in an appendix, after the user-facing lead.
-
-See `standards/rules/user-facing-voice.md` for the full rule.
-
-<!-- --- end User-Facing Voice --- -->
-
-
 ## Pre-flight
 
 Execute these checks before any domain work:
