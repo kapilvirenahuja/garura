@@ -1,0 +1,64 @@
+implementation:
+  success: true
+  steps_completed: 3
+  steps_total: 4
+  notes: >
+    Steps 1-3 are code edits to the source file — completed. Step 4 (sync via
+    /sync-claude) is intentionally excluded: the design states "never edit directly"
+    and the play contract specifies sync as a separate post-implementation step.
+    Step 5 (regression test) is excluded per the fix-it play contract — the
+    quality-auditor runs it independently.
+
+  changes:
+    - step: 1
+      description: >
+        Qualified the "Don't chain" rule in the Handling Ambiguity section.
+        Changed from a blanket prohibition to a conditional that carves out
+        intentional multi-group iteration when the dispatch contract specifies it.
+      files_modified:
+        - path: "core/components/agents/repo-orchestrator.md"
+          action: modified
+          summary: >
+            Replaced the single-line "Don't chain" bullet with a two-sentence
+            version that adds "OR the dispatch contract specifies multiple change
+            groups requiring the same skill. In the multi-group case, iterate:
+            invoke the skill once per group, collect all results, then proceed
+            to Write outputs."
+      verified: true
+      deviation: null
+
+    - step: 2
+      description: >
+        Added step 8b loop construct to the Decision Framework between steps 8
+        and 9. Gives the agent LLM an explicit execution model for iterating
+        over N change groups before proceeding to interpret results.
+      files_modified:
+        - path: "core/components/agents/repo-orchestrator.md"
+          action: modified
+          summary: >
+            Inserted "8b. Multi-group iteration" step between step 8 (Check
+            inputs) and step 9 (Invoke skill). Step 8b instructs the agent to
+            invoke the skill once per group and accumulate results before
+            proceeding; directs the agent to skip this step for single-operation
+            contracts.
+      verified: true
+      deviation: null
+
+    - step: 3
+      description: >
+        Added multi-group pattern row to the Intent→Skill Mapping code block,
+        immediately after the existing singular "Commit these files" row.
+      files_modified:
+        - path: "core/components/agents/repo-orchestrator.md"
+          action: modified
+          summary: >
+            Inserted a new mapping entry for "Commit these change groups:
+            [{group1}, {group2}, …]" → create-commit (once per group, then push),
+            with constraint note matching existing row format.
+      verified: true
+      deviation: null
+
+  issues_encountered: []
+
+  files_touched:
+    - path: "core/components/agents/repo-orchestrator.md"

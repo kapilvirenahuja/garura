@@ -1,0 +1,27 @@
+regression_test_verdict: pass
+verified_at: "2026-05-27T12:00:00Z"
+regression_test_path: ".garura/project/issues/377/evidence/fix-it/regression-test.yaml"
+assertion_results:
+  - id: A1
+    status: PASS
+    evidence: >
+      grep -n "multiple change groups" core/components/agents/repo-orchestrator.md
+      exit code: 0
+      stdout: 'line 253: - **Don't chain** — One skill per invocation unless explicitly asked OR the dispatch contract specifies multiple change groups requiring the same skill.'
+
+  - id: A2
+    status: PASS
+    evidence: >
+      grep -n "8b" core/components/agents/repo-orchestrator.md
+      exit code: 0
+      stdout: 'line 242: 8b. **Multi-group iteration** — If the dispatch contract specifies multiple change groups (e.g., analysis.yaml contains N groups): for each group, invoke the skill for that group and accumulate its result. Only after all groups are processed, proceed to step 10. Skip this step if the contract specifies a single operation.'
+
+  - id: A3
+    status: PASS
+    evidence: >
+      grep -n "change groups" core/components/agents/repo-orchestrator.md
+      exit code: 0
+      stdout: |
+        line 183: "Commit these change groups: [{group1}, {group2}, …]" → create-commit (once per group, then push)
+        line 242: 8b. **Multi-group iteration** — If the dispatch contract specifies multiple change groups ...
+        line 253: - **Don't chain** — ... multiple change groups requiring the same skill.

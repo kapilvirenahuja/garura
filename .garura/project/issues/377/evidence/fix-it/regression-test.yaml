@@ -1,0 +1,66 @@
+style: yaml_eval_spec
+target_issue: 377
+based_on:
+  rca: "/Users/kapilahuja/cto/builder/garura/.garura/project/issues/377/evidence/fix-it/rca.yaml"
+  design: "/Users/kapilahuja/cto/builder/garura/.garura/project/issues/377/evidence/fix-it/design.yaml"
+
+# What this test guards against:
+# Root cause: repo-orchestrator stops after one commit when given a multi-group dispatch
+# because (a) the "Don't chain" NEVER rule has no carve-out for multi-group iteration,
+# (b) the Decision Framework has no loop construct (step 8b), and
+# (c) the Intent→Skill Mapping table has no multi-group pattern row.
+#
+# All three assertions verified RED on unfixed codebase (2026-05-27):
+#   grep "multiple change groups" core/components/agents/repo-orchestrator.md  → exit 1
+#   grep "8b"                     core/components/agents/repo-orchestrator.md  → exit 1
+#   grep "change groups"          core/components/agents/repo-orchestrator.md  → exit 1
+
+assertions:
+  - id: A1
+    description: >
+      The "Don't chain" rule in repo-orchestrator's Handling Ambiguity section must contain
+      a carve-out for the multi-group case. The fix qualifies the blanket NEVER to read:
+      "unless explicitly asked OR the dispatch contract specifies multiple change groups
+      requiring the same skill." Without this carve-out the LLM reads the rule as an
+      absolute prohibition and stops after the first create-commit call.
+    kind: grep_present
+    spec:
+      pattern: "multiple change groups"
+      path: "core/components/agents/repo-orchestrator.md"
+    red_state_confirmed: true
+    red_exit_code: 1
+    red_verified_at: "2026-05-27T00:00:00Z"
+
+  - id: A2
+    description: >
+      A step 8b loop construct must exist in the Decision Framework between steps 8 and 9.
+      The fix inserts: "8b. If the dispatch contract specifies multiple change groups ...
+      for each group, invoke the skill for that group and accumulate its result."
+      Without step 8b the framework is strictly linear — no iteration model — so the LLM
+      proceeds from step 8 directly to step 9 (single invocation) then 10-13 (return).
+    kind: grep_present
+    spec:
+      pattern: "8b"
+      path: "core/components/agents/repo-orchestrator.md"
+    red_state_confirmed: true
+    red_exit_code: 1
+    red_verified_at: "2026-05-27T00:00:00Z"
+
+  - id: A3
+    description: >
+      The Intent→Skill Mapping table must contain a multi-group pattern row using the phrase
+      "change groups". The fix adds: '"Commit these change groups: [{group1}, {group2}, …]"
+      → create-commit (once per group, then push)'. Without this row the agent pattern-matches
+      on the singular "Commit these files" entry and defaults to one call.
+    kind: grep_present
+    spec:
+      pattern: "change groups"
+      path: "core/components/agents/repo-orchestrator.md"
+    red_state_confirmed: true
+    red_exit_code: 1
+    red_verified_at: "2026-05-27T00:00:00Z"
+
+pass_when: all_assertions_pass
+verified_red_at: "2026-05-27T00:00:00Z"
+expected_state_before_fix: red
+expected_state_after_fix: green

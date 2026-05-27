@@ -1,0 +1,183 @@
+based_on_rca: ".garura/project/issues/377/evidence/fix-it/rca.yaml"
+
+strategy: >
+  Qualify the "Don't chain" NEVER rule in repo-orchestrator's Handling Ambiguity section
+  to carve out explicit multi-group iteration: the rule fires for undisciplined, ad-hoc
+  chaining but MUST NOT block intentional iteration when the dispatch contract itself
+  specifies multiple change groups requiring the same skill. Simultaneously add a
+  "For each change group" loop construct between Decision Framework steps 8 and 9
+  so the agent LLM has an explicit execution model for the multi-commit case.
+  Finally, add a multi-group pattern to the Intent→Skill Mapping table so the agent
+  recognises this as a first-class intent rather than extrapolating from the singular case.
+  The fix touches exactly one source file (core/components/agents/repo-orchestrator.md)
+  and its deployed copy (synced via /sync-claude — never edited directly).
+
+alternatives_considered:
+  - option: >
+      Codify the workaround: change agent contract semantics to single-group only;
+      update commit-code play to dispatch repo-orchestrator N times (once per change group).
+    rejection_reason: >
+      This hardcodes the workaround as canonical behaviour. It breaks the Step 5 contract
+      in commit-code's SKILL.md ("Agent invokes create-commit skill for each change group
+      … in the same dispatch") — fixing the bug by enshrining the symptom. It also
+      multiplies agent spawn overhead N-fold, adds N round-trips to the play loop, and
+      eliminates any chance of atomic multi-group outcomes. Scope cost is larger than
+      the chosen fix: commit-code SKILL.md must be recompiled (intent change) not just
+      patched, because the contract semantics change.
+
+  - option: >
+      Push multi-commit logic into the create-commit skill itself: skill accepts a list
+      of change groups and produces N commits internally.
+    rejection_reason: >
+      create-commit is a narrow, single-concern skill (Razor 1 — Occam's Razor): one
+      intent, one commit. Bloating it with iteration violates the single-responsibility
+      principle the framework is built on and makes the skill non-composable for callers
+      that genuinely need only one commit. It also moves branching logic into a Haiku-model
+      skill that currently runs deterministic Bash — adding conditional iteration there
+      raises reliability risk without clear benefit. The root cause is in the agent, not
+      the skill; fix it where it lives.
+
+affected_files:
+  - path: "core/components/agents/repo-orchestrator.md"
+    role: "Source of truth for repo-orchestrator agent definition — governs all LLM behaviour"
+    action: modify
+    change: >
+      Three targeted edits:
+      (1) Handling Ambiguity section (line 250): qualify "Don't chain" from a blanket NEVER
+          to a conditional: "Don't chain — One skill per invocation unless explicitly asked
+          OR the dispatch contract specifies multiple change groups requiring the same skill.
+          In the multi-group case, iterate — invoke the skill once per group, collect all
+          results, then proceed to Write outputs."
+      (2) Decision Framework (between steps 8 and 9, lines 239-240): insert a loop construct:
+          "8b. If the dispatch contract specifies multiple change groups (e.g., analysis.yaml
+          contains N groups): for each group, invoke the skill for that group, collect its
+          result, and accumulate. Only when all groups are processed, proceed to step 10."
+      (3) Intent→Skill Mapping table (lines 178-192): add a multi-group pattern row:
+          '"Commit these change groups: [{group1}, {group2}, …]" → create-commit (once per group)
+           + constraints shape: same as singular case, applied per group; push after all commits'
+    risk: medium
+    risk_rationale: >
+      Agent definitions are the highest-leverage single files in the framework — every
+      repo operation flows through this agent. The edits are surgical (three bounded sections)
+      and align the text with the play contract's explicit expectation, but any wording
+      regression could re-break the iteration or over-extend the carve-out.
+
+  - path: "~/.claude/agents/repo-orchestrator.md"
+    role: "Deployed copy of the agent — consumed by Claude Code at runtime"
+    action: modify
+    change: >
+      Re-sync via /sync-claude after the source file is fixed. Never edit directly.
+    risk: low
+    risk_rationale: >
+      Derived from source; no independent logic. Risk is only that the sync is forgotten —
+      mitigated by the execution plan making sync an explicit step.
+
+execution_plan:
+  - id: step-1
+    description: >
+      Edit core/components/agents/repo-orchestrator.md — qualify the "Don't chain" rule.
+      In the "Handling Ambiguity" section, change the bullet that reads
+      "Don't chain — One skill per invocation unless explicitly asked"
+      to read:
+      "Don't chain — One skill per invocation unless explicitly asked OR the dispatch
+      contract specifies multiple change groups requiring the same skill. In the multi-group
+      case, iterate: invoke the skill once per group, collect all results, then proceed to
+      Write outputs."
+    files:
+      - path: "core/components/agents/repo-orchestrator.md"
+        action: modify
+        details: >
+          Replace the single-line "Don't chain" bullet in the Handling Ambiguity section
+          (currently line 250) with the two-sentence qualified version above.
+    expected_outcome: >
+      The "Don't chain" rule no longer reads as an absolute prohibition against invoking
+      the same skill twice; it explicitly carves out the multi-group case.
+    self_test: >
+      grep the file for "Don't chain" — the result must contain "OR the dispatch contract
+      specifies multiple change groups" and the phrase "iterate" must appear in the same
+      paragraph. The word "unless" must appear exactly once in that bullet (no double-negation).
+
+  - id: step-2
+    description: >
+      Edit core/components/agents/repo-orchestrator.md — add a loop construct to the
+      Decision Framework between steps 8 and 9. Insert a new step 8b immediately after
+      "8. Check inputs — Do I have what the skill needs from stm.input?" and before
+      "9. Invoke skill — Use the Skill tool with context". The new step reads:
+      "8b. If the dispatch contract specifies multiple change groups (e.g., analysis.yaml
+      contains N groups): for each group, invoke the skill for that group and accumulate
+      its result. Only after all groups are processed, proceed to step 10. Skip this step
+      if the contract specifies a single operation."
+    files:
+      - path: "core/components/agents/repo-orchestrator.md"
+        action: modify
+        details: >
+          Insert step 8b between existing steps 8 and 9 in the Decision Framework's
+          "Choosing Skills" numbered list (currently lines 239-244).
+    expected_outcome: >
+      The Decision Framework now contains an explicit iteration construct. An LLM reading
+      the framework has a concrete model for how to process N change groups without
+      returning after the first.
+    self_test: >
+      grep the file for "8b" — must be present in the Decision Framework section.
+      Confirm steps 8, 8b, 9 appear in that order in the numbered list.
+      Confirm the phrase "for each group" appears in step 8b.
+
+  - id: step-3
+    description: >
+      Edit core/components/agents/repo-orchestrator.md — add a multi-group pattern to the
+      Intent→Skill Mapping table. Add a new row after the existing singular "Commit these
+      files: [...]" row:
+      | "Commit these change groups: [{group1}, {group2}, …]" | create-commit (once per group, then push) | same as singular case per group; push after all commits complete |
+    files:
+      - path: "core/components/agents/repo-orchestrator.md"
+        action: modify
+        details: >
+          Insert a new row in the Intent→Skill Mapping table (lines 178-192) after the
+          "Commit these files" row. Follow existing row format exactly.
+    expected_outcome: >
+      The mapping table has an explicit multi-group entry. Pattern matching on this intent
+      does not fall through to the singular case, removing the ambiguity that caused the
+      single-invocation default.
+    self_test: >
+      grep the file for "change groups" — must appear in the Intent→Skill Mapping table
+      section and reference create-commit. Confirm the table still renders correctly
+      (three pipes per row, consistent spacing).
+
+  - id: step-4
+    description: >
+      Sync the edited source file to the global deployment via /sync-claude. This
+      overwrites ~/.claude/agents/repo-orchestrator.md with the fixed version.
+    files:
+      - path: "~/.claude/agents/repo-orchestrator.md"
+        action: modify
+        details: >
+          Written by /sync-claude — do not edit directly.
+    expected_outcome: >
+      The deployed agent at ~/.claude/agents/repo-orchestrator.md matches the source
+      at core/components/agents/repo-orchestrator.md.
+    self_test: >
+      diff core/components/agents/repo-orchestrator.md ~/.claude/agents/repo-orchestrator.md
+      must return no output (files are identical).
+
+  - id: step-5
+    description: >
+      Run the regression test (authored by author-regression-test) against the patched
+      files to confirm the test transitions from red to green. If the test is a YAML
+      eval-spec, execute it per the eval-spec protocol and verify all assertions pass.
+    files: []
+    expected_outcome: >
+      All regression test assertions pass against the patched repo-orchestrator.md.
+      No assertions that were passing before the fix have regressed.
+    self_test: >
+      Regression test exit code is 0 (or all assertions in the eval-spec return PASS).
+      The three grep assertions introduced in the test (presence of loop construct,
+      qualified Don't-chain rule, multi-group mapping row) all return PASS.
+
+confidence: high
+confidence_rationale: >
+  Root cause is fully traced to three bounded text sections in a single source file.
+  The fix is surgical — no new abstractions, no cross-file dependency changes, no
+  schema alterations. The play contract (commit-code SKILL.md Step 5) already states
+  the expected multi-group behaviour; this fix aligns the agent with that contract.
+
+produced_at: "2026-05-27T00:00:00Z"
