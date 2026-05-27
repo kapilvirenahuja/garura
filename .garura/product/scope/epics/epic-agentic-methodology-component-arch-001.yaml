@@ -1,345 +1,124 @@
 # epic-agentic-methodology-component-arch-001.yaml
-# Garura Platform — specify-product Stage 5: Intent Epic
-#
-# Provenance
-# play: specify-product
-# stage: 5-generate-intent-epics
-# agent: product-keeper
-# skill: generate-intent-epics v0.2.0
-# task_id: specify-product-stage-5-generate
-# created_at: 2026-04-18T03:00:00Z
-# migrated_at: 2026-05-27  (schema migration #390 — singular intent→intents[], failure_scenarios→failure_conditions, success_scenarios moved to expectation block)
-# kb_source_file: .garura/product/research/agentic-methodology.md
-# enriched_capabilities_path: .garura/product/scope/enriched-capabilities.yaml
+# Garura Platform — Intent Epic (ICE shape per #397)
+# Migrated 2026-05-28 from the post-#390 single-file shape to the four-section ICE shape.
 
 id: "EPIC-agentic-methodology-component-arch-001"
 domain: "agentic-methodology"
 capability: "AM-F001"
 
-provenance:
-  source: brief_explicit
-  source_quote: "agentic-methodology / component-architecture (LIVE) — Stage-3 user input"
-  confidence: high
+intent:
+  goal: >
+    A solo founder running a Garura-managed project invokes at least 95% of their engineering
+    actions through Garura plays — every one carrying a traceable evidence trail — over a
+    rolling 30-day window.
+  constraints:
+    - "Play invocation success rate at least 90% over a rolling 30-day window."
+    - "Every play step writes its evidence file and commits it within 30 seconds of the step completing."
+    - "OWASP ASVS Level 1 baseline — internal tooling surface, no external auth, evidence commits and the project memory folder are access-controlled."
+    - "WCAG 2.1 AA — applies to any command-line output rendered in a user interface."
+    - "AI-authorship traceability — 100% of commits produced by plays carry an AI-authorship trailer in the commit message."
+    - "All nine component-architecture features (the three layers, the three memory tiers, the hierarchy invariant, the approval gate, and the evidence substrate) must remain mandatory for every Garura-based product."
+    - "Every play is a compiled artifact traceable to its intent file — hand editing a compiled play file is forbidden."
+    - "Every domain task inside a play is delegated to an agent — inlining domain logic in a play is forbidden."
+    - "Every skill is invoked only via an agent — plays never call skills directly."
+    - "Every artifact written by a play lands under the project memory folder whitelist — zero whitelist violations."
+    - "Every decision that pauses for a human uses the Tether or Vanish approval protocol — raw yes/no prompts are forbidden at destructive steps."
+  failure_scenario:
+    - "A developer under time pressure edits a compiled play file directly instead of going through the play rebuild workflow — the compiled artifact drifts from its intent file and the manual edit is lost on the next rebuild."
+    - "A play author bypasses agent delegation and inlines domain logic in the play markdown — the play becomes untestable and its evidence files vary run to run."
+    - "A play writes an output artifact to a path outside the project memory folder whitelist — files leak across issues and pollute the workspace."
+    - "A self-commit step in a play fails silently — the evidence artifact stays in the working tree only and is lost at session end."
 
-problem_statement: >
-  Every major AI coding tool (GitHub Copilot, Cursor, Windsurf) operates within a single
-  session context — when the session ends, all methodology decisions, play traces, and
-  engineering constraints are discarded (market brief gap 1, validated via MemNexus Feb 2026).
-  Without a compiled three-layer hierarchy (Play → Agent → Skill) with traceable evidence
-  artifacts, engineering actions become ad-hoc: plays inline domain logic, skills are called
-  directly from plays, and evidence files never reach git. For a solo developer, this
-  compounds silently — there is no second reviewer to catch drift before a rebuild resets
-  manually edited compiled artifacts.
-
-intents:
-  - >
-    Enable a solo founder to invoke ≥ 95% of engineering actions via plays with full KB
-    traceability, reducing ad-hoc tool drift to < 5% of engineering actions over a 30-day window.
-
-intent_lock:
-  locked_at: "2026-04-18T05:00:00Z"
-  intent_hash: "sha256:dd3d7f4ab3f455115ba3ae31a96f8fe12183f5b0bb68ef9613b5ad13a22e863e"
-  locked_by: "specify-product-stage-5-validate"
-  immutability_note: >
-    Intent is immutable after lock. Features may be added to the ledger as the
-    product evolves, but each must serve this intent. Any change to the intent
-    string requires a successor epic with a new ID (see Product-Drift trigger).
-
-appetite: "2 weeks"
-
-in_scope:
-  - "All 9 component-architecture features (AM-F001 through AM-F009) at Advanced depth — hardening to close evidence and enforcement gaps"
-  - "Play compilation: every play is a compiled artifact traceable to intent.yaml — /create-play --rebuild detects drift and warns"
-  - "Agent delegation enforcement: 100% of domain tasks in plays delegated to agents; /create-play compiler warns on inlined domain logic"
-  - "STM folder whitelist enforcement: zero whitelist violations in rolling 30 days; preflight validators in plays"
-  - "Tether/Vanish protocol coverage: 100% of destructive steps use Tether/Vanish, not raw y/n prompts"
-  - "Evidence and checkpoint substrate: 100% of play steps produce evidence; evidence self-committed per ADR 012; checkpoint rollback success ≥ 95%"
-  - "AI-authorship commit trailer on all play-produced commits (ratchet requirement from audit-attribution capability)"
-
-anti_goals:
-  - "Enterprise governance agents, approval quorum, or signed attestation — requires security_level=high or critical; profile declares elevated"
-  - "Tab-complete or arg-hint CLI improvements to slash commands — those belong to the cli-slash-commands epic"
-  - "Multi-tenant or governance-gated play invocation — post-v1 enterprise milestone (Jul 2026)"
-  - "Brownfield project migration flows — greenfield-first architecture; brownfield is the May 2026 milestone scope"
-
-must_not_break:
-  - "None — foundational epic; this is the substrate on which all other 8 epics depend"
-
-foundation_investment: true
-
-features:
-  - id: AM-F001
-    name: "Plays"
-    status: LIVE
-    delivered_at: "2026-03-10"
-    evidence:
-      - path: core/components/plays/
-        type: directory
-      - path: docs/adr/001-three-layer-hierarchy.md
-        type: adr
-      - path: docs/adr/013-play-maturity-model.md
-        type: adr
-    delta_remaining: null
-    intent_fit_rationale: >
-      Plays are the compiled surface that makes ≥95% invocation-via-plays
-      measurable — without slash-command-reachable plays, the intent's
-      traceability target has no substrate.
-
-  - id: AM-F002
-    name: "Agents"
-    status: LIVE
-    delivered_at: "2026-03-10"
-    evidence:
-      - path: core/components/agents/
-        type: directory
-      - path: docs/adr/004-agent-naming.md
-        type: adr
-      - path: docs/adr/005-skills-as-capabilities.md
-        type: adr
-    delta_remaining: null
-    intent_fit_rationale: >
-      Agents enforce the delegation invariant inside plays; without agents, plays
-      inline domain logic and the KB-traceability half of the intent collapses.
-
-  - id: AM-F003
-    name: "Skills"
-    status: LIVE
-    delivered_at: "2026-03-10"
-    evidence:
-      - path: core/components/skills/
-        type: directory
-      - path: docs/adr/005-skills-as-capabilities.md
-        type: adr
-      - path: docs/adr/009-skill-ltm-organizational-knowledge.md
-        type: adr
-    delta_remaining: null
-    intent_fit_rationale: >
-      Skills are the artifact-producing layer that generates the evidence
-      required to measure the <5% ad-hoc drift target in the intent.
-
-  - id: AM-F004
-    name: "Memory — STM"
-    status: LIVE
-    delivered_at: "2026-02-15"
-    evidence:
-      - path: .garura/project/issues/
-        type: directory
-      - path: docs/adr/008-issue-centric-stm-and-nwwi.md
-        type: adr
-      - path: docs/adr/017-folder-whitelist.md
-        type: adr
-      - path: core/components/skills/archive-issue-stm/
-        type: directory
-    delta_remaining: null
-    intent_fit_rationale: >
-      STM is the durable substrate where play evidence lands; the 95%
-      invocation target is measurable only because STM retains traces
-      across sessions.
-
-  - id: AM-F005
-    name: "Memory — Project LTM"
-    status: PARTIAL
-    delivered_at: null
-    evidence:
-      - path: .garura/product/
-        type: directory
-      - path: core/components/memory/standards/rules/
-        type: directory
-      - path: core/components/plays/distill/
-        type: directory
-      - path: core/components/plays/capture-learning/
-        type: directory
-    delta_remaining: "Automated STM→LTM promotion via distill + capture-learning not fully wired; LTM retention and archival policy not enforced."
-    intent_fit_rationale: >
-      Project LTM accumulates the decision corpus needed to make future play
-      invocations traceable; partial wiring weakens long-horizon KB traceability
-      but does not block the 95% invocation target.
-
-  - id: AM-F006
-    name: "Memory — Global KB"
-    status: PARTIAL
-    delivered_at: null
-    evidence:
-      - path: core/components/memory/knowledge/
-        type: directory
-      - path: core/components/memory/standards/
-        type: directory
-      - path: docs/adr/009-skill-ltm-organizational-knowledge.md
-        type: adr
-    delta_remaining: "Open KB-review issues (domain-taxonomy completeness, CTC gaps); LTM→KB promotion workflow and KB review SLA not published."
-    intent_fit_rationale: >
-      Global KB is the taxonomy configure-capabilities reads; KB content
-      maturity is the limiting factor on epic-authoring traceability for
-      net-new products.
-
-  - id: AM-F007
-    name: "Three-Layer Hierarchy"
-    status: LIVE
-    delivered_at: "2026-02-01"
-    evidence:
-      - path: docs/adr/001-three-layer-hierarchy.md
-        type: adr
-      - path: docs/philosophy/architecture.md
-        type: doc
-    delta_remaining: null
-    intent_fit_rationale: >
-      The Play→Agent→Skill invariant is the architectural contract the
-      intent's 95% target measures compliance against.
-
-  - id: AM-F008
-    name: "Human-in-the-Loop Approval"
-    status: LIVE
-    delivered_at: "2026-02-20"
-    evidence:
-      - path: core/components/memory/standards/rules/
-        type: directory
-      - path: CLAUDE.md
-        type: doc
-      - path: docs/adr/002-l1-checkpoint-model.md
-        type: adr
-    delta_remaining: null
-    intent_fit_rationale: >
-      Human-in-the-loop gates keep destructive steps reviewable; without
-      them the 95% play-invocation target would trade safety for coverage.
-
-  - id: AM-F009
-    name: "Evidence & Checkpoint Substrate"
-    status: LIVE
-    delivered_at: "2026-03-01"
-    evidence:
-      - path: core/components/skills/write-evidence/
-        type: directory
-      - path: docs/adr/002-l1-checkpoint-model.md
-        type: adr
-      - path: docs/adr/012-evidence-self-commit.md
-        type: adr
-    delta_remaining: null
-    intent_fit_rationale: >
-      Evidence is the measurement surface for the intent — the 95% and <5%
-      drift numbers are derived from evidence artifacts committed to git.
-
-epic_status:
-  live_count: 7
-  partial_count: 2
-  planned_count: 0
-  delivered_pct: 78
-  total_features: 9
-
-failure_conditions:
-  - "A developer under time pressure edits a compiled SKILL.md directly instead of going through /create-play --build, causing the compiled artifact to drift from its intent.yaml and losing the manual edits on the next rebuild"
-  - "A play author bypasses the agent delegation rule and inlines domain logic directly in the play markdown, making the play untestable and causing evidence files to be inconsistent across runs"
-  - "A play writes output artifacts to a path outside the STM folder whitelist, causing file-system pollution and cross-issue leakage"
-  - "A self-commit step in a play fails silently, leaving the evidence artifact in the working tree only and losing it at session end"
-
-constraints:
-  performance:
-    value: "Play invocation success rate ≥ 90% over rolling 30 days; play step evidence commit within 30s of step completion"
-    source_for_quantification:
-      source: kb_default
-      source_reference: "kb.agentic-methodology.AM-F001.success_criteria[2]; kb.agentic-methodology.AM-F009"
-      user_grounded: true
-      user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
-  security:
-    value: "OWASP ASVS Level 1 minimum — no user-facing auth surface in component-architecture; security applies to evidence commit integrity and STM folder access control"
-    source_for_quantification:
-      source: profile_nfr
-      source_reference: "profile.security_level=elevated maps to OWASP ASVS Level 1 for internal tooling surfaces without external auth"
-  accessibility:
-    value: "WCAG 2.1 AA — applies to any CLI output rendered in a UI surface; component-architecture has no direct UI; constraint inherited for compliance traceability"
-    source_for_quantification:
-      source: profile_nfr
-      source_reference: "profile.audience includes designers and PMs; WCAG 2.1 AA is the org-wide baseline"
-  compliance:
-    - value: "ai-usage-traceability — 100% of play-produced commits carry AI-authorship commit trailer per ratcheted compliance mandate"
-      source_for_quantification:
-        source: profile_nfr
-        source_reference: "profile.compliance.categories includes 'ai-usage-traceability'; ratchet fired on AG-F004"
-
-business_rules:
-  - "All 9 component-architecture features (AM-F001 through AM-F009) are mandatory — never excludable for any Garura-based product"
-  - "Every play is a compiled artifact traceable to an intent.yaml — direct SKILL.md edits are forbidden (CLAUDE.md hard rule)"
-  - "100% of domain tasks in plays must be delegated to agents — inlining domain logic in plays is forbidden (agent-first rule)"
-  - "Every skill must be model-invocable only — no direct play-to-skill calls; skills are only invoked via agents"
-  - "100% of play-produced artifacts must land under the STM folder whitelist per ADR 017 — zero whitelist violations"
-  - "Every Tether/Vanish decision must produce an evidence artifact — AskUserQuestion is forbidden at destructive steps"
-  - "100% of play steps must produce evidence — evidence self-committed per ADR 012; rollback must succeed on ≥ 95% of failure cases"
-
-hypothesis: >
-  We believe that enforcing the Play → Agent → Skill three-layer hierarchy with compiled
-  artifacts and evidence substrate for solo founders working on Garura-managed projects
-  will result in ≥ 95% of engineering actions being invoked via plays with full KB
-  traceability. We will know this is true when a 30-day play invocation log shows ≥ 95%
-  play-invoked vs ad-hoc engineering actions with zero silent evidence losses.
-
-assumptions_requiring_validation:
-  - "Solo founders operating Garura will consistently use play invocations rather than ad-hoc tool calls once the slash-command surface is complete — this assumes the command discoverability investment (cli-slash-commands epic) has landed first"
-  - "The 95% invocation rate is achievable without requiring the developer to change established workflows — this assumes Garura plays cover enough of the frequent-action surface to be the lower-friction path"
-  - "/create-play --rebuild correctly detects all categories of compiled-artifact drift — this assumption would fail if the compiler misses a drift pattern introduced by a new play type"
-
-dependencies: []
-
-depends_on: []
-
-uses_mocks: false
-
-kb_source:
-  capability: "AM-F001"
-  rules_applied:
-    - "AM-F001 mandatory-default inclusion: mandatory for any Garura-based product"
-    - "AM-F002 agent delegation: 100% domain tasks delegated"
-    - "AM-F003 skills model-invocable only"
-    - "AM-F004 STM folder whitelist per ADR 017"
-    - "AM-F008 Tether/Vanish protocol mandatory at destructive steps"
-    - "AM-F009 evidence substrate: self-commit per ADR 012"
-    - "three-layer hierarchy invariant: Play→Agent→Skill non-negotiable"
-  experiential_warnings:
-    - "Editing compiled SKILL.md directly instead of going through /create-play workflow"
-    - "Skipping /create-play and hand-authoring play markdown"
-    - "Inlining agent logic inside plays instead of delegating"
-    - "Bypassing agents and calling skills directly from plays"
-    - "Creating narrow one-off skills instead of generalizing"
-    - "Writing evidence to ad-hoc paths outside the whitelist"
-    - "Falling back to raw y/n prompts instead of Tether/Vanish"
-    - "Forcing project-specific content into Global KB prematurely"
-
-expectation:
+expectations:
   vetted:
     status: approved
-    approved_by: "human-review-migration-#390"
-    approved_at: "2026-05-27"
-  success_scenarios:
+    approved_by: "human-review-migration-#397"
+    approved_at: "2026-05-28"
+  success_scenario:
     - id: S1
       persona: "solo founder working on a Garura-managed project"
-      given: "they perform any engineering action (commit, PR, spec, feature)"
-      then: "≥ 95% of those actions are invoked via a play with a traceable evidence artifact rather than ad-hoc tool use"
-      measure: "play invocation log for a 30-day window shows ≥ 95% play-invoked vs ad-hoc; measured by counting sessions where all major actions appear in play evidence files vs sessions with only ad-hoc git/tool invocations"
+      given: "they perform any engineering action — a commit, a pull request, a spec, a feature"
+      then: "at least 95% of those actions are invoked via a play with a traceable evidence artifact, not via ad-hoc tool use."
+      measure: "Play invocation log over a 30-day window shows at least 95% play-invoked vs ad-hoc actions, counted from session evidence files."
     - id: S2
       persona: "developer on a Garura-managed project"
       given: "a play is invoked"
-      then: "the invocation succeeds and produces a valid evidence artifact in ≥ 90% of runs over the trailing 30-day window"
-      measure: "play invocation success rate ≥ 90% over rolling 30 days; measured by play status artifacts — failed runs have explicit failure evidence, not silent drops"
+      then: "the invocation succeeds and produces a valid evidence artifact on at least 90% of runs over a trailing 30-day window."
+      measure: "Play invocation success rate at least 90% over a rolling 30-day window — failed runs carry explicit failure evidence, not silent drops."
   recovery:
     - id: REC1
-      for_failure_condition: "A developer under time pressure edits a compiled SKILL.md directly instead of going through /create-play --build, causing the compiled artifact to drift from its intent.yaml and losing the manual edits on the next rebuild"
-      trigger: "/create-play --rebuild detects drift between SKILL.md and intent.yaml; or developer notices manual edits silently reset after a rebuild"
-      direction: "Hard rule in CLAUDE.md enforces no direct SKILL.md edits; /create-play --rebuild emits a Tether/Vanish gate before overwriting; recipe-changes-via-rebake rule enforced in agent system prompt so the developer is prompted to go through the intent-change path instead"
+      for_failure_scenario: "A developer under time pressure edits a compiled play file directly instead of going through the play rebuild workflow — the compiled artifact drifts from its intent file and the manual edit is lost on the next rebuild."
+      trigger: "The play rebuild step detects drift between the compiled file and the intent file; or the developer notices manual edits silently reset after a rebuild."
+      direction: "Hard rule in the project guide forbids direct edits to compiled play files; the play rebuild step emits a Tether approval gate before overwriting; the change-via-rebuild rule lives in the agent system prompt so the developer is redirected onto the intent-change path."
       handoff: autonomous
       derivable_at_l4: true
     - id: REC2
-      for_failure_condition: "A play author bypasses the agent delegation rule and inlines domain logic directly in the play markdown, making the play untestable and causing evidence files to be inconsistent across runs"
-      trigger: "play step evals fail because inlined logic produces inconsistent outputs; or /create-play compiler emits agent-delegation warning during compilation"
-      direction: "CLAUDE.md agent-first rule enforced at every invocation; /create-play compiler emits a warning when it detects domain logic patterns in play markdown that should be delegated to a named agent, guiding the author to extract the logic into an agent"
+      for_failure_scenario: "A play author bypasses agent delegation and inlines domain logic in the play markdown — the play becomes untestable and its evidence files vary run to run."
+      trigger: "Play step evaluations fail because inlined logic produces inconsistent outputs; or the play compiler emits an agent-delegation warning during compilation."
+      direction: "The agent-first rule is enforced at every invocation; the play compiler emits a warning when it detects domain-logic patterns in a play that should be delegated to a named agent, guiding the author to extract the logic into an agent."
       handoff: autonomous
       derivable_at_l4: true
     - id: REC3
-      for_failure_condition: "A play writes output artifacts to a path outside the STM folder whitelist, causing file-system pollution and cross-issue leakage"
-      trigger: "preflight validator in the play catches the out-of-whitelist path and returns a structured failure before the write occurs"
-      direction: "Folder-whitelist rule enforcement per ADR 017; preflight validators in every play that writes artifacts check the output path before the write; the play must be fixed to write to a whitelisted path"
+      for_failure_scenario: "A play writes an output artifact to a path outside the project memory folder whitelist — files leak across issues and pollute the workspace."
+      trigger: "The pre-write validator inside the play catches the out-of-whitelist path and returns a structured failure before the write occurs."
+      direction: "Folder-whitelist enforcement is mandatory for every play that writes artifacts; pre-write validators check the output path before the write; the play is fixed to write into a whitelisted path."
       handoff: autonomous
       derivable_at_l4: true
     - id: REC4
-      for_failure_condition: "A self-commit step in a play fails silently, leaving the evidence artifact in the working tree only and losing it at session end"
-      trigger: "commit verification step detects the commit did not land in git; or evidence artifact is present in working tree but absent from git log after session"
-      direction: "Commit verification step in every evidence-producing play; ADR 012 post-commit hook verifies the commit landed before the play proceeds; on failure the play emits a structured failure requiring human resolution of the git state"
+      for_failure_scenario: "A self-commit step in a play fails silently — the evidence artifact stays in the working tree only and is lost at session end."
+      trigger: "The commit verification step detects the commit did not land in git; or the evidence artifact is present in the working tree but absent from git log after the session."
+      direction: "Every evidence-producing play runs a commit verification step; the post-commit hook verifies the commit landed before the play proceeds; on failure the play emits a structured failure requiring human resolution of the git state."
       handoff: human
       derivable_at_l4: false
+
+connections:
+  before_chain:
+    intents: []
+  after:
+    intents:
+      - "EPIC-agentic-methodology-l2-spec-driven-001"
+      - "EPIC-ai-governance-audit-attribution-001"
+      - "EPIC-engineering-experience-cli-slash-commands-001"
+      - "EPIC-engineering-experience-first-run-onboarding-001"
+      - "EPIC-engineering-experience-ide-integrations-001"
+      - "EPIC-engineering-observability-quality-signals-001"
+  peers:
+    intents: []
+  dependency_check: "None — this epic has no upstream dependencies."
+
+provenance:
+  source:
+    kind: brief_explicit
+    quote: "agentic-methodology / component-architecture (LIVE) — Stage-3 user input"
+    confidence: high
+  appetite: "2 weeks"
+  business_rules:
+    - "All nine component-architecture features (AM-F001 through AM-F009) are mandatory — never excludable for any Garura-based product."
+    - "Every play is a compiled artifact traceable to an intent file — direct edits to compiled play files are forbidden."
+    - "100% of domain tasks inside a play are delegated to agents — inlining domain logic in plays is forbidden."
+    - "Every skill is invoked only via an agent — plays never call skills directly."
+    - "100% of artifacts produced by plays land under the project memory folder whitelist — zero whitelist violations."
+    - "Every Tether or Vanish approval decision produces an evidence artifact — raw yes/no prompts are forbidden at destructive steps."
+    - "100% of play steps produce evidence — evidence is self-committed and rollback must succeed on at least 95% of failure cases."
+  kb_source:
+    capability: "AM-F001"
+    rules_applied:
+      - "AM-F001 mandatory-default inclusion — mandatory for any Garura-based product."
+      - "AM-F002 agent delegation — 100% of domain tasks delegated to agents."
+      - "AM-F003 skills are model-invocable only."
+      - "AM-F004 project memory folder whitelist enforcement."
+      - "AM-F008 Tether or Vanish approval protocol mandatory at destructive steps."
+      - "AM-F009 evidence substrate — self-commit per the evidence rule."
+      - "Three-layer hierarchy invariant: Play → Agent → Skill is non-negotiable."
+    experiential_warnings:
+      - "Editing a compiled play file directly instead of going through the play rebuild workflow."
+      - "Skipping the play compiler and hand-authoring play markdown."
+      - "Inlining agent logic inside plays instead of delegating."
+      - "Bypassing agents and calling skills directly from plays."
+      - "Creating narrow one-off skills instead of generalizing."
+      - "Writing evidence to ad-hoc paths outside the whitelist."
+      - "Falling back to raw yes/no prompts instead of Tether or Vanish."
+      - "Forcing project-specific content into Global KB prematurely."
+  uses_mocks: false
+  demock_epic_ref: null
+  foundation_investment: true

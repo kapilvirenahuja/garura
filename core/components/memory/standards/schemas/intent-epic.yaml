@@ -178,22 +178,34 @@ provenance:
 # ──────────────────────────────────────────────────────────────────────────
 # Validation rules (enforced by validate-intent-epics)
 # ──────────────────────────────────────────────────────────────────────────
-# Rules will be re-derived from the rewritten epics.md after the user's
-# review of the rules file. The validator will be updated to read the new
-# shape: intent.goal (string), intent.constraints, intent.failure_scenario,
-# expectations.success_scenario, expectations.recovery (1:1 with
-# failure_scenario), expectations.vetted.status == "approved",
-# connections.before_chain.intents (no cycles), and provenance presence.
-#
-# Until the rules review is complete, the validator MUST refuse epics that
-# carry any of the legacy top-level keys (intents[], failure_conditions,
-# in_scope, anti_goals, must_not_break, problem_statement, hypothesis,
-# assumptions_requiring_validation, dependencies, depends_on,
-# foundation_investment, expectation, constraints at top level) — these
-# belong inside the four sections above or are deleted entirely.
+# The validator reads this schema and enforces:
+#   - The four sections appear in this exact order: intent, expectations,
+#     connections, provenance. Identity (id, domain, capability) sits above.
+#   - intent.goal is a single string, intent.constraints is a list of strings,
+#     intent.failure_scenario is a list of strings (length >= 2).
+#   - expectations.success_scenario is a list of binary-testable entries;
+#     expectations.recovery has exactly one entry per intent.failure_scenario;
+#     expectations.vetted.status must equal "approved".
+#   - connections.before_chain.intents must be acyclic across the epics
+#     directory; connections.dependency_check is a non-empty string whenever
+#     before_chain.intents is non-empty.
+#   - provenance is the LAST section and carries source, appetite,
+#     business_rules, kb_source, uses_mocks, demock_epic_ref, and
+#     foundation_investment.
+#   - No banned legacy top-level keys may appear (intents plural list,
+#     failure_conditions, in_scope, anti_goals, must_not_break,
+#     cross_cutting_justification, problem_statement, hypothesis,
+#     assumptions_requiring_validation, top-level appetite, top-level
+#     constraints, top-level business_rules, top-level depends_on or
+#     dependencies, top-level foundation_investment, top-level uses_mocks,
+#     top-level demock_epic_ref, top-level kb_source, top-level expectation).
+#   - The tenet ("epics are written for humans to read") is enforced
+#     mechanically where possible — goal and every success_scenario.then
+#     capped at 30 words, no opening with a file path or schema field name,
+#     no unexpanded acronyms outside the allow-list.
 
 # Related:
-# - core/components/memory/standards/rules/epics.md (rules — under review)
+# - core/components/memory/standards/rules/epics.md (canonical rules)
 # - core/components/skills/generate-intent-epics/ (producer)
 # - core/components/skills/validate-intent-epics/ (validator)
 # - core/components/skills/draft-epic-expectation/ (generates expectations)

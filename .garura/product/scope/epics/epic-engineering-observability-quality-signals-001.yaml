@@ -1,218 +1,111 @@
 # epic-engineering-observability-quality-signals-001.yaml
-# Garura Platform — specify-product Stage 5: Intent Epic
-#
-# Provenance
-# play: specify-product
-# stage: 5-generate-intent-epics
-# agent: product-keeper
-# skill: generate-intent-epics v0.2.0
-# task_id: specify-product-stage-5-generate
-# created_at: 2026-04-18T03:00:00Z
-# reconciled_at: 2026-04-18T06:00:00Z  (EO-F002/EO-F004 reclassified PLANNED → PARTIAL per user Stage-1/2 authoritative input)
-# migrated_at: 2026-05-27  (schema migration #390 — singular intent→intents[], failure_scenarios→failure_conditions, success_scenarios moved to expectation block)
-# kb_source_file: .garura/product/research/engineering-observability.md
-# enriched_capabilities_path: .garura/product/scope/enriched-capabilities.yaml
+# Garura Platform — Intent Epic (ICE shape per #397)
+# Migrated 2026-05-28 from the post-#390 single-file shape to the four-section ICE shape.
 
 id: "EPIC-engineering-observability-quality-signals-001"
 domain: "engineering-observability"
 capability: "EO-F001"
 
-provenance:
-  source: brief_explicit
-  source_quote: "engineering-observability / quality-signals (EO-F001/F002/F004 PARTIAL) — Stage-3 user input"
-  confidence: high
+intent:
+  goal: >
+    A developer submitting a pull request on a Garura-managed project gets a quality-check
+    report — coverage delta, lint violations, and a security scan summary — in under 3 minutes,
+    with the quality check running on at least 95% of supported stacks.
+  constraints:
+    - "Quality check completes in under 3 minutes per pull request."
+    - "The security scanner run completes in under 5 minutes."
+    - "The security posture dashboard loads within 5 minutes of scan completion."
+    - "OWASP ASVS Level 1 baseline — quality check is an internal continuous-integration tool; no external auth surface; scanner results stored in the project memory folder whitelist; TLS 1.3 for any remote vulnerability database queries."
+    - "WCAG 2.1 AA — applies to the posture dashboard and any user-interface rendering of quality output."
+    - "Mandatory for L2 and above projects — test coverage is measured and surfaced per pull request; the coverage gate blocks merges below the configured threshold."
+    - "Lint runs on every supported stack — violations are surfaced per pull request and are not suppressible without a documented justification."
+    - "Mandatory when security is in scope — security scans run on every project."
+    - "Severity policy baseline — critical and high findings block; medium and low findings inform; the posture dashboard shows only actionable items by default."
+  failure_scenario:
+    - "A coverage tool output format changes in an npm dependency update and the quality check fails to parse the new format — it silently exits 0 with no coverage data."
+    - "A developer facing lint-noise fatigue disables a lint rule globally without a documented justification — subsequent pull requests silently allow the suppressed issue type."
+    - "A security scanner produces 200 findings including low-severity vulnerabilities in transitive dependencies — the developer is overwhelmed and ignores the security signal entirely."
+    - "A coverage percentage is high (for example, 85%) but achieved by covering only the happy path — false confidence that the implementation is well tested."
 
-problem_statement: >
-  Quality signals (coverage, lint, security) run in CI but their results are disconnected
-  from the developer's moment of decision — DORA metrics and CVE aggregations live in
-  manager-layer tools (Jellyfish, LinearB, Swarmia) while AI coding assistants operate
-  at the individual developer level with no upward visibility (market brief gap 3, validated
-  via CodePulseHQ SEI guide). Solo founders operating without a security team have no
-  second reviewer to notice when a signal goes silent. The KB failure scenario is precise:
-  a coverage tool output format change can silently eliminate quality visibility for weeks
-  on a solo-dev project, while high coverage percentages mask shallow test assertions
-  that let defects through to production.
-
-intents:
-  - >
-    Ensure every PR on a Garura-managed project receives a quality-check report (coverage
-    delta, lint violations, security scan) in < 3 minutes, with quality-check running
-    on ≥ 95% of supported stacks and security posture available per project.
-
-intent_lock:
-  locked_at: "2026-04-18T05:00:00Z"
-  intent_hash: "sha256:808df0fa8973028edc5617e5cd299792580bc92936d353401b10098ce9ae461a"
-  locked_by: "specify-product-stage-5-validate"
-  immutability_note: >
-    Intent content is immutable after lock. Post-v1 drift requiring a scope change must
-    be handled via a Product-Drift successor epic, not by editing this intent block. The
-    features[] ledger and epic_status rollup below may evolve as capabilities move through
-    PLANNED → PARTIAL → LIVE; the intent itself is sealed.
-
-appetite: "2 weeks"
-
-in_scope:
-  - "EO-F001 Test Coverage at Standard depth: quality-check runs successfully on ≥ 95% of supported stacks; coverage deltas surfaced per PR within 3 minutes of CI run start"
-  - "EO-F002 Lint at Standard depth: lint runs on ≥ 95% of supported stacks; lint violations surfaced per PR; violations not suppressible without a documented justification comment"
-  - "EO-F004 Security Posture at Standard depth: security scanner integration for ≥ 1 language ecosystem at launch (Node/npm); vulnerability aggregation with severity (critical/high/medium/low) tags; posture dashboard per project showing actionable items only"
-  - "Stack-specific adapter resilience: format-change detection in quality-check for supported stack adapters"
-  - "Severity policy baseline: security scan configured with a policy threshold so only actionable vulnerabilities reach the developer"
-
-anti_goals:
-  - "EO-F003 Build Health — deferred to v1.1-v1.5 per Stage 3 Q1 user decision; not in v1 scope"
-  - "Cross-project vulnerability aggregation — Advanced depth for EO-F004; post-v1; v1 is per-project scans only"
-  - "Vulnerability prioritization engine — Advanced depth; post-v1 functionality"
-  - "Policy-governed lint rules for multi-team enforcement — Enterprise depth; solo-dev profile does not have a multi-team structure in v1"
-  - "Mutation testing as a supplementary signal — post-v1; advanced quality signal for coverage masking detection"
-
-must_not_break:
-  - "EPIC-agentic-methodology-component-arch-001 — quality-check is invoked as a play step; the Play→Agent→Skill hierarchy must remain intact for quality-check invocations"
-  - "Existing CI pipeline configurations — quality-check must run as an additive CI step; it must not replace or break existing project-level CI configurations"
-
-foundation_investment: false
-
-features:
-  - id: "EO-F001"
-    name: "Test Coverage"
-    status: "PARTIAL"
-    delivered_at: null
-    evidence:
-      - path: "core/components/plays/quality-check/"
-        type: "play"
-    delta_remaining: "quality-check runs for Node/TypeScript but stack-adapter coverage across the ≥ 95% supported stack target is incomplete; coverage-delta surfacing per PR not yet wired."
-    intent_fit_rationale: "Coverage delta per PR is the lead metric in this epic's intent; feature delivers the primary quality signal."
-  - id: "EO-F002"
-    name: "Lint"
-    status: "PARTIAL"
-    delivered_at: null
-    evidence:
-      - path: "core/components/plays/quality-check/"
-        type: "play"
-    delta_remaining: "Lint is wired as a step inside quality-check for Node/TypeScript and surfaces violations, but coverage across the ≥ 95% supported stack target is incomplete and the justification-comment policy for global rule disables is not yet enforced."
-    intent_fit_rationale: "Lint is one of three required PR signals (coverage/lint/security) named in the intent target."
-  - id: "EO-F004"
-    name: "Security Posture"
-    status: "PARTIAL"
-    delivered_at: null
-    evidence:
-      - path: "core/components/plays/quality-check/"
-        type: "play"
-    delta_remaining: "Security scan baseline is wired via npm audit as a quality-check step producing a findings list, but severity tagging, posture dashboard per project, severity-policy baseline (critical/high block vs medium/low inform), and actionable-only default view are pending."
-    intent_fit_rationale: "Security posture per project is the third pillar of the intent's PR quality-check contract."
-
-epic_status:
-  live_count: 0
-  partial_count: 3
-  planned_count: 0
-  delivered_pct: 0
-  total_features: 3
-
-failure_conditions:
-  - "A coverage tool output format changes in an npm dependency update and quality-check fails to parse the new format, silently exiting 0 with no coverage data"
-  - "A developer facing lint-noise fatigue disables a lint rule globally without a documented justification, causing subsequent PRs to silently allow the suppressed issue type"
-  - "A security scanner produces 200 findings including low-severity CVEs in transitive dependencies, overwhelming the developer and causing them to ignore the security signal entirely"
-  - "A coverage percentage is high (e.g., 85%) but achieved by covering only the happy path, providing false confidence that the implementation is well-tested"
-
-constraints:
-  performance:
-    value: "quality-check completes in < 3 minutes per PR; security scanner run completes in < 5 minutes; posture dashboard loads within 5 minutes of scan completion"
-    source_for_quantification:
-      source: kb_default
-      source_reference: "kb.engineering-observability.EO-F001.success_criteria[0]; 3-minute CI threshold derived from developer PR review cadence"
-      user_grounded: true
-      user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
-  security:
-    value: "OWASP ASVS Level 1 — quality-check is an internal CI tool; no external auth surface; scanner results stored in STM folder whitelist paths; TLS 1.3 for any remote vulnerability database queries"
-    source_for_quantification:
-      source: profile_nfr
-      source_reference: "profile.security_level=elevated maps to OWASP ASVS Level 1 for internal CI tool surfaces"
-  accessibility:
-    value: "WCAG 2.1 AA — quality-check output is CLI text and PR comments; posture dashboard is a UI surface; AA compliance required for the dashboard"
-    source_for_quantification:
-      source: profile_nfr
-      source_reference: "profile.audience includes engineering-lead; WCAG 2.1 AA is the org-wide baseline"
-  compliance: []
-
-business_rules:
-  - "Mandatory for L2+ projects — test coverage must be measured and surfaced per PR (EO-F001); coverage gate blocks merges below configured threshold"
-  - "Mandatory for any L2+ project — lint runs on every supported stack; violations surfaced per PR; not suppressible without justification (EO-F002)"
-  - "Mandatory when security is in-scope (profile security_level=elevated confirms inclusion) — security scans run on every project (EO-F004); EO-F003 deferred per Stage 3 Q1 user decision"
-  - "Lint violations must be surfaced per PR — not suppressed or deferred without a documented justification (EO-F002)"
-  - "Security posture dashboard shows only actionable items by default — severity policy baseline prevents noise overwhelm"
-
-hypothesis: >
-  We believe that delivering integrated coverage, lint, and security quality signals per PR
-  for software engineers and engineering leads on Garura-managed projects will result in
-  every PR receiving a quality-check report within 3 minutes on ≥ 95% of supported stacks.
-  We will know this is true when quality-check reports appear on ≥ 95% of PRs across
-  supported stacks and zero coverage silent-failure incidents occur in a 30-day window.
-
-assumptions_requiring_validation:
-  - "≥ 1 language ecosystem (Node/npm) at launch is sufficient to demonstrate the quality-signals capability value proposition to solo founders — if the initial adopters use a different primary stack, the scanner integration will miss the target"
-  - "The 3-minute quality-check completion time is achievable without parallel execution across all supported stacks — serial execution across multiple stacks may exceed 3 minutes as the stack count grows"
-  - "Severity filtering policy (critical/high block, medium/low inform) is the right threshold for solo-dev adopters — if the profile shifts toward enterprise adopters with stricter policies, the default threshold will need adjustment"
-
-dependencies:
-  - "Stack-specific coverage tool adapters for each supported language ecosystem — EO-F001 requires adapters for each stack's coverage output format"
-  - "Vulnerability database access for security scanner — EO-F004 requires access to at least one CVE/vulnerability database (npm audit is free; additional databases may have access requirements)"
-
-depends_on:
-  - "EPIC-agentic-methodology-component-arch-001"
-
-uses_mocks: false
-
-kb_source:
-  capability: "EO-F001"
-  rules_applied:
-    - "EO-F001 mandatory-conditional: quality is tracked in L2+ projects"
-    - "EO-F002 mandatory-default: lint on every supported stack"
-    - "EO-F004 mandatory-conditional: security is in-scope; profile security_level=elevated confirms inclusion"
-    - "EO-F003 deferred: Stage 3 Q1 user decision; not in v1 scope"
-    - "lint-suppression policy: justification comment required for global disables"
-    - "severity policy baseline: critical/high block; medium/low inform"
-  experiential_warnings:
-    - "Chasing coverage percentage rather than scenario coverage — high % can mask shallow assertions"
-    - "Disabling lint rules instead of fixing root cause"
-    - "Treating security scan output as a complete prioritization rather than a raw findings list"
-
-expectation:
+expectations:
   vetted:
     status: approved
-    approved_by: "human-review-migration-#390"
-    approved_at: "2026-05-27"
-  success_scenarios:
+    approved_by: "human-review-migration-#397"
+    approved_at: "2026-05-28"
+  success_scenario:
     - id: S1
-      persona: "developer submitting a PR on any Garura-managed project using a supported stack"
-      given: "quality-check runs in CI"
-      then: "coverage delta and lint violations are surfaced in the PR as reviewable findings within 3 minutes of CI run start, and quality-check exits with a deterministic pass or fail in ≥ 95% of supported stack runs"
-      measure: "quality-check exit code is deterministic (0 = pass, non-0 = fail with findings) in ≥ 95% of CI runs across supported stacks in a 30-day window; coverage delta appears in the PR review surface within 3 minutes of CI trigger; measured by CI run timestamps and PR comment timestamps"
+      persona: "developer submitting a pull request on any Garura-managed project using a supported stack"
+      given: "the quality check runs in continuous integration"
+      then: "the coverage delta and lint violations appear in the pull request as reviewable findings within 3 minutes of the run starting, and the quality check exits with a deterministic pass or fail on at least 95% of supported stack runs."
+      measure: "Quality check exit code is deterministic (0 for pass, non-zero for fail with findings) on at least 95% of continuous-integration runs across supported stacks in a 30-day window; coverage delta appears in the pull request review surface within 3 minutes; measured by run timestamps and pull-request comment timestamps."
     - id: S2
       persona: "engineering lead reviewing security posture on a Garura-managed project with npm dependencies"
-      given: "the security scanner runs in CI"
-      then: "a severity-tagged vulnerability list is available in the posture dashboard within 5 minutes of the scan completing, showing only critical and high severity items by default"
-      measure: "security posture dashboard for the project shows the vulnerability list within 5 minutes of scan completion; dashboard default view contains only critical and high items; severity tagging covers all findings (critical/high/medium/low); measured by dashboard load time after scan completion"
+      given: "the security scanner runs in continuous integration"
+      then: "a severity-tagged vulnerability list appears in the posture dashboard within 5 minutes of the scan completing, showing only critical and high severity items by default."
+      measure: "Posture dashboard for the project shows the vulnerability list within 5 minutes of scan completion; the default view contains only critical and high items; severity tagging covers all findings (critical, high, medium, low); measured by dashboard load time after scan completion."
   recovery:
     - id: REC1
-      for_failure_condition: "A coverage tool output format changes in an npm dependency update and quality-check fails to parse the new format, silently exiting 0 with no coverage data"
-      trigger: "quality-check exits 0 but no coverage delta appears in the PR; or stack-specific adapter test fails during CI with a parse error on the coverage output"
-      direction: "Stack-specific adapter tests verify coverage parsing on each CI run; format-change detection emits a warning (not a silent pass) when coverage output is not parseable; the quality-check step fails explicitly on parse error rather than silently succeeding; when triggered, update the adapter to handle the new format before re-enabling the stack"
+      for_failure_scenario: "A coverage tool output format changes in an npm dependency update and the quality check fails to parse the new format — it silently exits 0 with no coverage data."
+      trigger: "The quality check exits 0 but no coverage delta appears in the pull request; or a stack-specific adapter test fails during continuous integration with a parse error on the coverage output."
+      direction: "Stack-specific adapter tests verify coverage parsing on each continuous-integration run; format-change detection emits a warning (not a silent pass) when coverage output is not parseable; the quality-check step fails explicitly on parse error rather than silently succeeding; when triggered, update the adapter to handle the new format before re-enabling the stack."
       handoff: autonomous
       derivable_at_l4: true
     - id: REC2
-      for_failure_condition: "A developer facing lint-noise fatigue disables a lint rule globally without a documented justification, causing subsequent PRs to silently allow the suppressed issue type"
-      trigger: "CI flags a new global disable without a justification comment; or a lint policy violation appears in the quality-check output"
-      direction: "Disable-comment requires a documented justification string; global rule disables require a decision-manifest entry; CI flags any new global disable without a justification comment as a lint policy violation; when triggered, the developer must add a justification comment or re-enable the rule"
+      for_failure_scenario: "A developer facing lint-noise fatigue disables a lint rule globally without a documented justification — subsequent pull requests silently allow the suppressed issue type."
+      trigger: "Continuous integration flags a new global disable without a justification comment; or a lint-policy violation appears in the quality-check output."
+      direction: "A disable comment requires a documented justification string; global rule disables require a decision-manifest entry; continuous integration flags any new global disable without a justification comment as a lint-policy violation; when triggered, the developer adds a justification comment or re-enables the rule."
       handoff: human
       derivable_at_l4: false
     - id: REC3
-      for_failure_condition: "A security scanner produces 200 findings including low-severity CVEs in transitive dependencies, overwhelming the developer and causing them to ignore the security signal entirely"
-      trigger: "developer reports signal fatigue; or security posture dashboard shows hundreds of findings with no filtering applied"
-      direction: "Severity filtering + policy baseline: dashboard default view shows only critical and high items; the policy threshold blocks PRs only on critical findings; medium/low findings are available in an expandable view but do not block progress; configure the policy threshold to critical/high-only before enabling the security scanner for a new project"
+      for_failure_scenario: "A security scanner produces 200 findings including low-severity vulnerabilities in transitive dependencies — the developer is overwhelmed and ignores the security signal entirely."
+      trigger: "The developer reports signal fatigue; or the security posture dashboard shows hundreds of findings with no filtering applied."
+      direction: "Severity filtering and policy baseline: the dashboard default view shows only critical and high items; the policy threshold blocks pull requests only on critical findings; medium and low findings are available in an expandable view but do not block progress; configure the policy threshold to critical-and-high-only before enabling the security scanner for a new project."
       handoff: autonomous
       derivable_at_l4: true
     - id: REC4
-      for_failure_condition: "A coverage percentage is high (e.g., 85%) but achieved by covering only the happy path, providing false confidence that the implementation is well-tested"
-      trigger: "a defect is found in production that was covered by a passing test with shallow assertions; or a code review identifies a scenario that tests touch but do not actually verify"
-      direction: "Coverage delta (not absolute percentage) is the primary surfaced metric per PR; mutation testing is documented as a post-v1 planned enhancement for coverage masking detection; developers are warned in the quality-check output that high coverage does not guarantee scenario coverage; when triggered, add scenario-specific test cases for the uncovered behavior"
+      for_failure_scenario: "A coverage percentage is high (for example, 85%) but achieved by covering only the happy path — false confidence that the implementation is well tested."
+      trigger: "A defect is found in production that was covered by a passing test with shallow assertions; or a code review identifies a scenario that tests touch but do not verify."
+      direction: "Coverage delta (not absolute percentage) is the primary surfaced metric per pull request; mutation testing is documented as a post-version-1 planned enhancement for coverage masking detection; the quality-check output warns that high coverage does not guarantee scenario coverage; when triggered, add scenario-specific test cases for the uncovered behavior."
       handoff: human
       derivable_at_l4: false
+
+connections:
+  before_chain:
+    intents:
+      - "EPIC-agentic-methodology-component-arch-001"
+  after:
+    intents: []
+  peers:
+    intents: []
+  dependency_check: "All before_chain epics carry expectations.vetted.status: approved and post_implementation.status: delivered before this epic begins."
+
+provenance:
+  source:
+    kind: brief_explicit
+    quote: "engineering-observability / quality-signals (EO-F001/F002/F004 PARTIAL) — Stage-3 user input"
+    confidence: high
+  appetite: "2 weeks"
+  business_rules:
+    - "Mandatory for L2 and above projects — test coverage is measured and surfaced per pull request; the coverage gate blocks merges below the configured threshold."
+    - "Mandatory for any L2 and above project — lint runs on every supported stack; violations surfaced per pull request; not suppressible without justification."
+    - "Mandatory when security is in scope (profile security_level=elevated confirms inclusion) — security scans run on every project; the build-health feature is deferred per the Stage 3 user decision."
+    - "Lint violations are surfaced per pull request — not suppressed or deferred without a documented justification."
+    - "The security posture dashboard shows only actionable items by default — the severity policy baseline prevents noise overwhelm."
+    - "Stack-specific coverage tool adapters are required for each supported language ecosystem."
+    - "Vulnerability database access is required for the security scanner — npm audit is free; additional databases may have access requirements."
+  kb_source:
+    capability: "EO-F001"
+    rules_applied:
+      - "EO-F001 mandatory-conditional — quality is tracked in L2 and above projects."
+      - "EO-F002 mandatory-default — lint on every supported stack."
+      - "EO-F004 mandatory-conditional — security is in scope; profile security_level=elevated confirms inclusion."
+      - "EO-F003 deferred — Stage 3 Q1 user decision; not in version-1 scope."
+      - "Lint-suppression policy — justification comment required for global disables."
+      - "Severity policy baseline — critical and high block; medium and low inform."
+    experiential_warnings:
+      - "Chasing coverage percentage rather than scenario coverage — high percent can mask shallow assertions."
+      - "Disabling lint rules instead of fixing the root cause."
+      - "Treating security scan output as a complete prioritization rather than a raw findings list."
+  uses_mocks: false
+  demock_epic_ref: null
+  foundation_investment: false
