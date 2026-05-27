@@ -488,15 +488,58 @@ Agent invokes `generate-intent-epics` skill → loads schema + 3 rule files, ins
 Owner: play (C18)
 Depends on: Step 9
 
-Read `decision-manifest-generate-intent-epics.yaml`. Run the tier-batched surfacing flow (HIGH batch → MID batch → LOW one-by-one). Expect entries for problem-statement synthesis (`D-gie-001`), intent metric pick (`D-gie-002`), appetite computation (`D-gie-003`), success scenario phrasing (`D-gie-004`), hypothesis template fill (`D-gie-005`), and component-to-parent merge (`D-gie-006`). Update every entry with `user_response` and `user_response_detail`. If any entry still has null `user_response`, halt before Step 10 (F14 guard). On Orbit: cycle back to Step 9 with the override.
+Read `decision-manifest-generate-intent-epics.yaml`. Run the tier-batched surfacing flow (HIGH batch → MID batch → LOW one-by-one). Expect entries for problem-statement synthesis (`D-gie-001`), intent metric pick (`D-gie-002`), appetite computation (`D-gie-003`), hypothesis template fill (`D-gie-005`), and component-to-parent merge (`D-gie-006`). Note: `D-gie-004` (success-scenario-phrasing) has moved to the `draft-epic-expectation` skill under the `D-dee-` prefix and is surfaced in Step 9b instead. Update every entry with `user_response` and `user_response_detail`. If any entry still has null `user_response`, halt before Step 9b (F14 guard). On Orbit: cycle back to Step 9 with the override.
 
-This surfacing step runs BEFORE Step 10 validation — the intent is that user-adjusted decisions re-flow through schema validation in the normal cycle, so an Orbit here before validation is cheaper than after.
+This surfacing step runs BEFORE Step 9b expectation generation so that user-adjusted intent decisions re-flow into expectation generation.
+
+---
+
+**Step 9b — Generate epic expectation blocks**
+Owner: `product-keeper`
+Depends on: Step 9a (decision surfacing complete)
+
+```json
+{
+  "intent_path": "core/components/plays/specify/reference/intent.yaml",
+  "stm_base": "{stm_base}",
+  "product_base": "{product_base}",
+  "stm": {
+    "input": {
+      "epics_dir": "{product_base}/scope/epics/",
+      "rules_path": "core/components/memory/standards/rules/expectation-generation.md"
+    },
+    "output": {
+      "decision_manifests_dir": "{product_base}/scope/"
+    }
+  },
+  "task_id": "specify-stage-5-generate-expectations"
+}
+```
+
+Agent `epic-expectation-crafter` discovers all epic YAML files in `epics_dir`, invokes `draft-epic-expectation` once per file, and populates the `expectation.success_scenarios[]` and `expectation.recovery[]` block in each epic file (read-merge-write). All expectation blocks are stamped `vetted.status: pending`.
+
+**Step 9b Evals:**
+
+- **SE-26:** Every epic YAML file in the epics directory has an `expectation:` block with non-empty `success_scenarios[]` (≥2 entries) and `recovery[]` (one entry per `failure_conditions[]` entry). Any file with `success_scenarios: []` or `recovery: []` after this step is a blocking failure.
+- **SE-27:** `decision-manifest-draft-epic-expectation.yaml` (or per-epic equivalent) exists; every entry populates `decision_id`, `decision_type`, `tier`, `grounding_source`, `recommendation`, `alternatives_considered`. Entries exist for `D-dee-001` (success-scenario-phrasing) and `D-dee-003` (recovery-handoff-routing) per epic.
+
+---
+
+### Phase: Decision Surfacing — Epic Expectation Manifest
+
+**Step 9c — Surface draft-epic-expectation decisions**
+Owner: play (C18)
+Depends on: Step 9b
+
+Read each per-epic decision manifest written by `draft-epic-expectation`. Run the tier-batched surfacing flow (HIGH batch → MID batch → LOW one-by-one). Expect entries for success-scenario-phrasing (`D-dee-001`) and recovery-handoff-routing (`D-dee-003`). Update every entry with `user_response` and `user_response_detail`. If any entry still has null `user_response`, halt before Step 10 (F14 guard). On Orbit: cycle back to Step 9b with the override.
+
+This surfacing step runs BEFORE Step 10 validation — the intent is that user-adjusted expectation decisions re-flow through schema validation, so an Orbit here before validation is cheaper than after.
 
 ---
 
 **Step 10 — Validate intent epics**
 Owner: `product-keeper` (delegates validation to `validate-intent-epics` skill)
-Depends on: Step 9a (decision surfacing complete)
+Depends on: Step 9c (decision surfacing complete)
 
 ```json
 {
@@ -576,7 +619,8 @@ Scriber writes the checkpoint artifact. Present:
 
 {per-epic one-line summary: id, capability, intent, appetite}
 
-Failure scenarios per epic: {count range}
+Failure conditions per epic: {count range} — recovery entries: {count range}
+Expectation vetted status: all pending (human approval at this checkpoint)
 Cross-tree constraint provenance: all epics traced to KB feature IDs
 Quantification: all constraints quantified and validated
 
@@ -588,6 +632,22 @@ Type **Tether** to finalize, **Orbit** with per-epic feedback, or **Vanish** to 
 ```
 
 Orbit cycles back to the specific epic(s) in Step 9.
+
+**Step 12a — Post-Tether approval write-back**
+Owner: play
+Depends on: Step 12 (Tether received)
+
+When the user types Tether at Step 12, the play iterates every `*.yaml` file under `{product_base}/scope/epics/` and sets the following fields on each epic's `expectation.vetted` block:
+
+```yaml
+expectation:
+  vetted:
+    status: approved
+    approved_by: human
+    approved_at: "<ISO 8601 timestamp of the Tether response>"
+```
+
+Write each updated epic file back atomically (read-merge-write). Do not alter any other field in the file. After all writes complete, proceed to Step 13.
 
 ---
 
@@ -642,13 +702,13 @@ Read `decision-manifest-derive-quality-profile.yaml`. Run the tier-batched surfa
 
 After all steps complete, run the scenario evals. These are E2E checks against the full artifact set.
 
-- **SCE-1 (S1 — Product Manager):** Every intent epic in the epics directory contains `success_scenarios` and `failure_scenarios` sections populated with scenario / evidence and scenario / impact / mitigation sub-fields such that per-epic acceptance criteria can be derived from those sections alone.
+- **SCE-1 (S1 — Product Manager):** Every intent epic in the epics directory contains a populated `expectation:` block with `success_scenarios[]` (each entry having id/persona/given/then/measure) and `recovery[]` (each entry having id/for_failure_condition/trigger/direction/handoff/derivable_at_l4) such that per-epic acceptance criteria and recovery paths can be derived from those sections alone. The top-level `failure_conditions[]` list contains the plain cause strings from which `recovery[]` entries were generated.
 
 - **SCE-2 (S2 — Technical Architect):** `quality-profile.yaml` aggregates constraints across all selected capabilities and contains measurable targets for every ISO 25010 characteristic that is relevant (not marked `not_applicable`) to the selected capability set, with each target citing its source epic.
 
 - **SCE-3 (S3 — Product Owner):** Every entry in `scope.selected_capabilities` and `scope.rejected_capabilities` has a rationale or reason field, AND `scope.constraint_trace` links each cross-tree-driven decision to the triggering CTC-NNN identifier.
 
-- **SCE-4 (S4 — Product Manager):** Every intent epic's `failure_scenarios` list contains at least 2 entries, each with scenario, impact, and mitigation sub-fields populated.
+- **SCE-4 (S4 — Product Manager):** Every intent epic's `failure_conditions[]` list contains at least 2 plain cause strings, AND the `expectation.recovery[]` list contains exactly one entry per `failure_conditions[]` entry, each with `for_failure_condition`, `trigger`, `direction`, `handoff`, and `derivable_at_l4` populated.
 
 - **SCE-5 (S5 — Engineering Lead):** `market-brief.md` contains quantified TAM/SAM/SOM data AND `scope.yaml` records capability count and depth caps, together providing enough quantified data for a feasibility-within-appetite assessment.
 
@@ -852,3 +912,5 @@ All earlier in-place edits to this compiled SKILL.md are now SUPERSEDED. The onl
 **Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence content/scriber/commit logic preserved as the C1 slot fill. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.
 
 **ICE migration note (#376):** Migrated to the ICE model — scenarios lifted from intent.yaml into `reference/expectation.yaml` (success_scenarios + recovery), intent stripped to the clean triple. Expectation generated by `draft-play-expectation` and self-approved under the user-authorized non-stop migration (see `evidence/refactor/migrations/specify/auto-approval.md`). Recompiled via `/create-play --build`: added the `## Recovery` section and the dual intent+expectation hash guard; scenario evals re-sourced from `expectation.success_scenarios`. Constraints, failure conditions, agents, skills, workflow, and step evals are unchanged. Corrected stale "Compiled From" count (C1-C19 → C1-C21; C20/C21 were prior direct edits) and added the missing `expectation_hash` / `recovery_entries` rows to Compilation Metadata.
+
+**Direct-edit deviation note (#390):** Extended Stage 5 epic generation to the full ICE model at the product layer. Changes: (1) Added Step 9b (epic-expectation-crafter invocation — generates `expectation.success_scenarios[]` and `expectation.recovery[]` per epic file via `draft-epic-expectation`). (2) Added Step 9c (decision surfacing for `D-dee-001` and `D-dee-003` from the expectation manifests). (3) Updated Step 9a to note that `D-gie-004` moved to `D-dee-001` in `draft-epic-expectation`. (4) Updated `Depends on` for Step 10 to reference Step 9c. (5) Updated SCE-1 to reference `expectation.success_scenarios[]` and `expectation.recovery[]` instead of the removed top-level success/cause-list fields. (6) Updated SCE-4 to reference `failure_conditions[]` (plain cause strings) and `expectation.recovery[]` (one entry per condition) instead of the removed cause-list-with-sub-fields structure. (7) Updated Step 12 checkpoint text to surface expectation vetted-status and failure-conditions/recovery counts. (8) Added Step 12a — post-Tether approval write-back that sets `expectation.vetted.status: approved` on every epic file. Non-intent change — no constraint/failure_condition/scenario/eval in `reference/intent.yaml` or `reference/expectation.yaml` was altered. No `/create-play --build` required.

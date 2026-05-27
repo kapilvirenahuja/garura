@@ -8,6 +8,7 @@
 # skill: generate-intent-epics v0.2.0
 # task_id: specify-product-stage-5-generate
 # created_at: 2026-04-18T03:00:00Z
+# migrated_at: 2026-05-27  (schema migration #390 — singular intent→intents[], failure_scenarios→failure_conditions, success_scenarios moved to expectation block)
 # kb_source_file: .garura/product/research/agentic-methodology.md
 # enriched_capabilities_path: .garura/product/scope/enriched-capabilities.yaml
 
@@ -30,9 +31,10 @@ problem_statement: >
   compounds silently — there is no second reviewer to catch drift before a rebuild resets
   manually edited compiled artifacts.
 
-intent: >
-  Enable a solo founder to invoke ≥ 95% of engineering actions via plays with full KB
-  traceability, reducing ad-hoc tool drift to < 5% of engineering actions over a 30-day window.
+intents:
+  - >
+    Enable a solo founder to invoke ≥ 95% of engineering actions via plays with full KB
+    traceability, reducing ad-hoc tool drift to < 5% of engineering actions over a 30-day window.
 
 intent_lock:
   locked_at: "2026-04-18T05:00:00Z"
@@ -223,69 +225,11 @@ epic_status:
   delivered_pct: 78
   total_features: 9
 
-success_scenarios:
-  - scenario: >
-      Given a solo founder working on a Garura-managed project, when they perform any
-      engineering action (commit, PR, spec, feature), then ≥ 95% of those actions are
-      invoked via a play with a traceable evidence artifact rather than ad-hoc tool use.
-    evidence: >
-      Play invocation log for a 30-day window shows ≥ 95% play-invoked vs ad-hoc.
-      Measured by counting sessions where all major actions appear in play evidence files
-      vs sessions with only ad-hoc git/tool invocations.
-  - scenario: >
-      Given a play invoked by a developer on a Garura-managed project, when the play
-      runs end-to-end, then the invocation succeeds and produces a valid evidence artifact
-      in ≥ 90% of runs over the trailing 30-day window.
-    evidence: >
-      Play invocation success rate ≥ 90% over rolling 30 days. Measured by play status
-      artifacts — failed runs have explicit failure evidence, not silent drops.
-
-failure_scenarios:
-  - scenario: >
-      Given a developer under time pressure, when they edit a compiled SKILL.md or play
-      markdown directly instead of going through /create-play --build, then the compiled
-      artifact drifts from its intent.yaml and the next /create-play --rebuild silently
-      resets the manual edits.
-    impact: >
-      Solo-dev impact: no second reviewer catches the drift before a future rebuild
-      resets the changes. Methodology knowledge encoded in the manual edit is permanently
-      lost.
-    mitigation: >
-      Hard rule in CLAUDE.md; /create-play --rebuild detects drift and emits a
-      Tether/Vanish gate before overwriting; recipe-changes-via-rebake rule enforced
-      in agent system prompt.
-  - scenario: >
-      Given a play author who bypasses the agent delegation rule, when they inline
-      domain logic directly in the play markdown, then the play becomes untestable —
-      step evals cannot reach the inlined logic — and evidence files produced by the play
-      are inconsistent across runs.
-    impact: >
-      Play becomes untestable; domain knowledge fragments across the play and its
-      inlined logic. Solo-dev impact: technical debt compounds silently with no team
-      review to surface the violation before it propagates to downstream capabilities.
-    mitigation: >
-      CLAUDE.md agent-first rule enforced at every invocation; /create-play compiler
-      emits a warning when it detects domain logic patterns in play markdown that
-      should be delegated to a named agent.
-  - scenario: >
-      Given a play that writes output artifacts, when the play writes to a path outside
-      the STM folder whitelist, then file-system pollution and cross-issue leakage occur.
-    impact: >
-      STM folder isolation breaks; artifacts from one issue bleed into another; archival
-      and review tools fail silently.
-    mitigation: >
-      Folder-whitelist rule enforcement per ADR 017; preflight validators in every play
-      that writes artifacts check the output path before the write.
-  - scenario: >
-      Given a self-commit step in a play, when the commit fails silently, then the
-      evidence artifact exists in the working tree only and is lost at session end.
-    impact: >
-      Evidence artifacts never reach git; the audit trail for the session is incomplete.
-      Solo-dev impact: session-end loss means the entire issue's evidence is gone with
-      no backup contributor to notice.
-    mitigation: >
-      Commit verification step in every evidence-producing play; ADR 012 post-commit
-      hook verifies the commit landed before the play proceeds.
+failure_conditions:
+  - "A developer under time pressure edits a compiled SKILL.md directly instead of going through /create-play --build, causing the compiled artifact to drift from its intent.yaml and losing the manual edits on the next rebuild"
+  - "A play author bypasses the agent delegation rule and inlines domain logic directly in the play markdown, making the play untestable and causing evidence files to be inconsistent across runs"
+  - "A play writes output artifacts to a path outside the STM folder whitelist, causing file-system pollution and cross-issue leakage"
+  - "A self-commit step in a play fails silently, leaving the evidence artifact in the working tree only and losing it at session end"
 
 constraints:
   performance:
@@ -357,3 +301,45 @@ kb_source:
     - "Writing evidence to ad-hoc paths outside the whitelist"
     - "Falling back to raw y/n prompts instead of Tether/Vanish"
     - "Forcing project-specific content into Global KB prematurely"
+
+expectation:
+  vetted:
+    status: approved
+    approved_by: "human-review-migration-#390"
+    approved_at: "2026-05-27"
+  success_scenarios:
+    - id: S1
+      persona: "solo founder working on a Garura-managed project"
+      given: "they perform any engineering action (commit, PR, spec, feature)"
+      then: "≥ 95% of those actions are invoked via a play with a traceable evidence artifact rather than ad-hoc tool use"
+      measure: "play invocation log for a 30-day window shows ≥ 95% play-invoked vs ad-hoc; measured by counting sessions where all major actions appear in play evidence files vs sessions with only ad-hoc git/tool invocations"
+    - id: S2
+      persona: "developer on a Garura-managed project"
+      given: "a play is invoked"
+      then: "the invocation succeeds and produces a valid evidence artifact in ≥ 90% of runs over the trailing 30-day window"
+      measure: "play invocation success rate ≥ 90% over rolling 30 days; measured by play status artifacts — failed runs have explicit failure evidence, not silent drops"
+  recovery:
+    - id: REC1
+      for_failure_condition: "A developer under time pressure edits a compiled SKILL.md directly instead of going through /create-play --build, causing the compiled artifact to drift from its intent.yaml and losing the manual edits on the next rebuild"
+      trigger: "/create-play --rebuild detects drift between SKILL.md and intent.yaml; or developer notices manual edits silently reset after a rebuild"
+      direction: "Hard rule in CLAUDE.md enforces no direct SKILL.md edits; /create-play --rebuild emits a Tether/Vanish gate before overwriting; recipe-changes-via-rebake rule enforced in agent system prompt so the developer is prompted to go through the intent-change path instead"
+      handoff: autonomous
+      derivable_at_l4: true
+    - id: REC2
+      for_failure_condition: "A play author bypasses the agent delegation rule and inlines domain logic directly in the play markdown, making the play untestable and causing evidence files to be inconsistent across runs"
+      trigger: "play step evals fail because inlined logic produces inconsistent outputs; or /create-play compiler emits agent-delegation warning during compilation"
+      direction: "CLAUDE.md agent-first rule enforced at every invocation; /create-play compiler emits a warning when it detects domain logic patterns in play markdown that should be delegated to a named agent, guiding the author to extract the logic into an agent"
+      handoff: autonomous
+      derivable_at_l4: true
+    - id: REC3
+      for_failure_condition: "A play writes output artifacts to a path outside the STM folder whitelist, causing file-system pollution and cross-issue leakage"
+      trigger: "preflight validator in the play catches the out-of-whitelist path and returns a structured failure before the write occurs"
+      direction: "Folder-whitelist rule enforcement per ADR 017; preflight validators in every play that writes artifacts check the output path before the write; the play must be fixed to write to a whitelisted path"
+      handoff: autonomous
+      derivable_at_l4: true
+    - id: REC4
+      for_failure_condition: "A self-commit step in a play fails silently, leaving the evidence artifact in the working tree only and losing it at session end"
+      trigger: "commit verification step detects the commit did not land in git; or evidence artifact is present in working tree but absent from git log after session"
+      direction: "Commit verification step in every evidence-producing play; ADR 012 post-commit hook verifies the commit landed before the play proceeds; on failure the play emits a structured failure requiring human resolution of the git state"
+      handoff: human
+      derivable_at_l4: false

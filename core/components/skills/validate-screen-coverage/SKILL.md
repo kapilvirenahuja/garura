@@ -1,6 +1,6 @@
 ---
 name: validate-screen-coverage
-description: Blocking validator for the screen inventory. Asserts every capability maps to at least one screen, every screen has at least three states, every success scenario has a user flow, and every failure scenario has a recovery flow. Returns structured failure with per-screen error details.
+description: Blocking validator for the screen inventory. Asserts every capability maps to at least one screen, every screen has at least three states, every success scenario has a user flow, and every failure condition has a recovery flow. Returns structured failure with per-screen error details.
 user-invocable: false
 model: haiku
 allowed-tools: Read, Write, Glob, Grep
@@ -25,7 +25,7 @@ Receive from the designer agent. All paths resolve against `{product_base}` supp
 - `ltm_screen_inventory_schema_path` (path, required)
 - `product_research_path` (path, required) — `{product_base}research/` (the product's frozen domain library per rules/product.md Rule 15 Pull-to-Product). This skill reads domain references from the product's research folder ONLY. Passing `ltm_domain_taxonomy_path` is a structural failure (design intent.yaml F13).
 - `validation_path` (string, required) — validation result YAML written here
-- `mode` (string, optional) — `"strict"` (default) or `"partial"`. In `strict` mode, orphan scenarios (success_scenarios without a flow, failure_scenarios without a recovery flow) flip the overall status to `failed`. In `partial` mode, orphan scenarios are reported in the output but do NOT flip status — useful for iterative/test runs where the flow set is still being built. The validator ALWAYS runs every other check; `mode` only affects how orphan scenarios gate status.
+- `mode` (string, optional) — `"strict"` (default) or `"partial"`. In `strict` mode, orphan scenarios (`expectation.success_scenarios` without a flow, `failure_conditions` without a recovery flow) flip the overall status to `failed`. In `partial` mode, orphan scenarios are reported in the output but do NOT flip status — useful for iterative/test runs where the flow set is still being built. The validator ALWAYS runs every other check; `mode` only affects how orphan scenarios gate status.
 
 ## Process
 
@@ -35,7 +35,7 @@ Resolve each input path by substituting `{product_base}` from the incoming JSON 
 
 - Read `screen-inventory-schema.yaml` for per-screen rules.
 - Load `scope.yaml` → capability set.
-- Load every intent epic in `epics_dir` → build sets of all success_scenarios and failure_scenarios (indexed by epic ID + scenario index).
+- Load every intent epic in `epics_dir` → build sets of all `expectation.success_scenarios` and `failure_conditions`/`expectation.recovery` (indexed by epic ID + scenario index).
 - Glob `{screens_dir}/*.md` → parse each screen file. Each screen is a Markdown document with YAML frontmatter (`id`, `capabilities` (a YAML list), `name`, and optional `capability_classification` — one of `user_surface` (default), `substrate`, `admin_only`) and structured sections (`## Purpose`, `## Personas`, `## States`, `## Navigation`, `## Accessibility`, and optionally `## Wireframe`). Parse the frontmatter via YAML; parse the body sections by walking H2/H3 headings and capturing the content between them.
 
 ### 2. Per-screen validation
@@ -57,9 +57,9 @@ For every screen, run:
 
 - **Capability coverage:** Every `user_surface` capability in `scope.selected_capabilities` must appear in the **union of all screen files' `capabilities` lists**. Screens classified as `substrate` or `admin_only` still contribute their entries to the union (and pass their own dangling checks), but capabilities that are themselves substrate/admin-only (if ever marked as such in scope) are exempt from the user-surface coverage requirement. For now, `scope.selected_capabilities` is assumed user-surface unless scope explicitly classifies entries otherwise. The `orphan_capabilities` list collects any user-surface capability whose union-membership is empty.
 - **Flow coverage (if `flows_dir` is provided):**
-  - For every `success_scenarios[i]` in every epic, there is at least one flow file in `flows_dir` that references either the scenario ID or a screen whose `capabilities` list contains the scenario's epic capability.
-  - For every `failure_scenarios[i]`, there is at least one recovery flow referencing it.
-  - In `strict` mode (default), any orphan scenario flips overall `status` to `failed` and is counted under `by_category.orphan_success_scenario` / `orphan_failure_scenario`.
+  - For every `expectation.success_scenarios[i]` in every epic, there is at least one flow file in `flows_dir` that references either the scenario ID or a screen whose `capabilities` list contains the scenario's epic capability.
+  - For every `failure_conditions[i]` (matched via the corresponding `expectation.recovery[i]`), there is at least one recovery flow referencing it.
+  - In `strict` mode (default), any orphan scenario flips overall `status` to `failed` and is counted under `by_category.orphan_success_scenario` / `orphan_failure_condition`.
   - In `partial` mode, orphan scenarios are listed separately under `orphan_scenarios_in_partial` and do NOT flip overall status. Per-screen violations, shape violations, and orphan_capabilities STILL flip status in partial mode — only the flow-coverage orphan scenarios are excluded from the gate.
 
 ### 4. Build validation result
@@ -80,20 +80,20 @@ summary:
     vague_layout: <int>
     dangling_capability: <int>
     orphan_capability: <int>        # cross-screen — user_surface capability with zero screens
-    orphan_success_scenario: <int>  # cross-screen — success scenario with no flow (strict only)
-    orphan_failure_scenario: <int>  # cross-screen — failure with no recovery flow (strict only)
+    orphan_success_scenario: <int>  # cross-screen — expectation.success_scenarios entry with no flow (strict only)
+    orphan_failure_condition: <int>  # cross-screen — failure_conditions entry with no recovery flow (strict only)
 coverage:
   capabilities_total: <int>
   capabilities_covered: <int>
   orphan_capabilities: [<list of IDs>]
   success_scenarios_total: <int>
   success_scenarios_with_flow: <int>
-  failure_scenarios_total: <int>
-  failure_scenarios_with_recovery: <int>
+  failure_conditions_total: <int>
+  failure_conditions_with_recovery: <int>
 orphan_scenarios_in_partial:
   # populated ONLY when mode == partial; lists scenarios the strict gate would have failed on
   success: [<epic_id/scenario_index>, ...]
-  failure: [<epic_id/scenario_index>, ...]
+  failure_conditions: [<epic_id/condition_index>, ...]
 screens:
   - id: SCR-user-login-primary
     path: <path>
@@ -134,7 +134,7 @@ validation:
 - NEVER accept `capability:` as a scalar in frontmatter. It is the legacy shape and MUST produce a `legacy_singular_capability` violation.
 - NEVER count `substrate` or `admin_only` screens against user-surface capability coverage obligations, but DO still run per-screen checks against them (dangling capability, state count, layout specificity, etc.).
 - ALWAYS read the schema as the source of truth — no hard-coded rules in skill logic.
-- ALWAYS check both directions of flow coverage (success + failure).
+- ALWAYS check both directions of flow coverage (success scenarios + failure conditions).
 - ALWAYS echo `mode` and (when `partial`) `orphan_scenarios_in_partial` in the output so downstream plays can see what the strict gate would have rejected.
 
 ## Version

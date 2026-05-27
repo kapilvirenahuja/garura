@@ -14,7 +14,7 @@ Called by `designer` during `design` Stage 1. Produces `personas.md` with JTBD p
 
 ## Purpose
 
-Extract user types from the intent epics' success_scenarios and failure_scenarios, distill them into JTBD personas, and map each persona to the capabilities they interact with. The output is not a marketing artifact — it's a design input that tells the designer which journeys to map and which screens to build.
+Extract user types from the intent epics' `expectation.success_scenarios` and `failure_conditions`/`expectation.recovery`, distill them into JTBD personas, and map each persona to the capabilities they interact with. The output is not a marketing artifact — it's a design input that tells the designer which journeys to map and which screens to build.
 
 ## Input
 
@@ -38,7 +38,7 @@ Resolve each input path by substituting `{product_base}` from the incoming JSON 
 
 ### 2. Extract user-type candidates
 
-Walk every epic's `success_scenarios` and `failure_scenarios`. Each scenario entry contains a description that implicitly references a user role (explicit or implicit: "the user", "an admin", "the compliance officer", "a new signup"). Build a set of candidate user types.
+Walk every epic's `expectation.success_scenarios` and `failure_conditions` (plus `expectation.recovery`). Each scenario entry contains a description that implicitly references a user role (explicit or implicit: "the user", "an admin", "the compliance officer", "a new signup"). Build a set of candidate user types.
 
 Deduplicate based on functional role, not demographic overlap. "End user in B2C context" and "consumer shopper" collapse to one persona if they describe the same functional role.
 
@@ -51,8 +51,8 @@ For every deduplicated user type, write a persona record:
 
 ### Job Story (primary)
 When I <situation from epic scenarios>,
-I want to <motivation from intent epic's `intent` field>,
-so I can <outcome from success_scenarios[0]>.
+I want to <motivation from intent epic's `intents[0]` entry>,
+so I can <outcome from expectation.success_scenarios[0].then>.
 
 ### Additional Job Stories
 - When <situation 2>, I want to <motivation 2>, so I can <outcome 2>.

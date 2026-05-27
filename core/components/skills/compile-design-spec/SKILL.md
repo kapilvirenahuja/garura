@@ -97,7 +97,7 @@ For each flow, include the Mermaid diagram + its source scenario. Group by capab
 
 **FLOW-user-login-happy-path** (success — end-user)
 
-Source scenario: `EPIC-user-login-001/success_scenarios[0]`
+Source scenario: `EPIC-user-login-001/expectation.success_scenarios[0]`
 
 ```mermaid
 <the Mermaid diagram from flows/FLOW-user-login-happy-path.md>
@@ -105,7 +105,7 @@ Source scenario: `EPIC-user-login-001/success_scenarios[0]`
 
 **FLOW-user-login-lockout-recovery** (recovery — end-user)
 
-Source scenario: `EPIC-user-login-001/failure_scenarios[0]`
+Source scenario: `EPIC-user-login-001/expectation.recovery[0]`
 
 ```mermaid
 <the Mermaid diagram from flows/FLOW-user-login-lockout-recovery.md>

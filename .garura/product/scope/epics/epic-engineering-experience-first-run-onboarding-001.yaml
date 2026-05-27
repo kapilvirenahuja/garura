@@ -9,6 +9,7 @@
 # task_id: specify-product-stage-5-generate
 # created_at: 2026-04-18T03:00:00Z
 # reconciled_at: 2026-04-18T06:00:00Z  (EE-F012 removed — merged into EE-F011 per features.yaml)
+# migrated_at: 2026-05-27  (schema migration #390 — singular intent→intents[], failure_scenarios→failure_conditions, success_scenarios moved to expectation block)
 # kb_source_file: .garura/product/research/engineering-experience.md
 # enriched_capabilities_path: .garura/product/scope/enriched-capabilities.yaml
 
@@ -32,10 +33,11 @@ problem_statement: >
   Garura is unusable without debug skills and the abandonment rate spikes at the install
   step — before the developer ever reaches the wizard.
 
-intent: >
-  Enable a solo founder to complete Garura initialization in < 3 minutes from npm install
-  to a valid project_profile.yaml, with 0 partial-install broken states on supported
-  Node versions.
+intents:
+  - >
+    Enable a solo founder to complete Garura initialization in < 3 minutes from npm install
+    to a valid project_profile.yaml, with 0 partial-install broken states on supported
+    Node versions.
 
 intent_lock:
   locked_at: "2026-04-18T05:00:00Z"
@@ -99,75 +101,11 @@ epic_status:
   delivered_pct: 0
   total_features: 2
 
-success_scenarios:
-  - scenario: >
-      Given a solo founder with a new project directory and no prior Garura configuration
-      on a supported Node version, when they run npm install garura followed by garura init,
-      then they complete a 3-question wizard and a valid project_profile.yaml is written
-      to the project directory in < 3 minutes.
-    evidence: >
-      garura init wizard completion time < 3 minutes measured from first prompt to
-      project_profile.yaml write completion. project_profile.yaml validates against the
-      profile schema (required fields present, no null mandatory values). Measured
-      in CI on a clean macOS/Linux environment.
-  - scenario: >
-      Given a developer on a supported Node version who has not installed Garura previously,
-      when they run npm install garura, then the installation completes with exit code 0,
-      all prerequisites are verified by the preflight check, and no partial-install state
-      is left on failure.
-    evidence: >
-      npm install garura exits 0 on all supported Node versions in CI. Preflight check
-      produces a PASS/FAIL status per prerequisite before install proceeds. Failed installs
-      leave zero modified files in node_modules (atomic rollback verified by file-system
-      diff before and after failed install).
-
-failure_scenarios:
-  - scenario: >
-      Given a wizard flow that has grown beyond 3 questions (due to scope creep during
-      implementation), when a solo founder evaluating Garura reaches question 4, then
-      the evaluator abandons the wizard before completing initialization.
-    impact: >
-      Permanent adoption loss — the solo founder who abandoned will not return to
-      re-evaluate. First impression failure is unrecoverable in the solo-founder segment.
-    mitigation: >
-      3-question maximum enforced as a hard constraint in the wizard implementation;
-      question count gate in the wizard flow emits a test failure if question count
-      exceeds 3 in any wizard variant; any additional profile data collected via
-      optional /configure command after onboarding.
-  - scenario: >
-      Given a developer running npm install garura where a prerequisite (Node version,
-      git, Claude Code) is missing, when the install proceeds past the preflight check,
-      then the install partially completes leaving Garura in a broken state.
-    impact: >
-      Garura is unusable without debug skills. Abandonment rate spikes at the install
-      step — before the developer reaches the wizard. Solo-dev impact: debugging a
-      broken install without team support is a high-effort abandon trigger.
-    mitigation: >
-      Preflight check runs before any file writes; install is atomic — all files written
-      or none; failed preflight emits a clear error listing the missing prerequisite
-      and the remediation command.
-  - scenario: >
-      Given a developer running the upgrade flow (npm install garura@latest), when
-      sync-claude runs as part of the upgrade, then user-customized components in ~/.claude/
-      are overwritten without warning.
-    impact: >
-      Lost customization — solo-dev has no backup copy. The upgrade flow becomes
-      destructive and the developer loses trust in auto-upgrade.
-    mitigation: >
-      Conflict detection before sync: sync-claude checksums local components against
-      source before overwrite; any local modification triggers a Tether/Vanish gate;
-      upgrade flow never silently overwrites customized files.
-  - scenario: >
-      Given a developer who installs Garura on a slow network, when npm install takes
-      more than 5 minutes due to large optional module bundles being included in core,
-      then the negative first impression causes the developer to abandon the install.
-    impact: >
-      Solo-founder evaluating Garura loses patience at the install step — before reaching
-      the wizard. Large package = slow install = first-impression failure.
-    mitigation: >
-      Optional modules excluded from the core npm package; package size monitored in CI
-      with a budget threshold that fails the CI step if exceeded; only required dependencies
-      in the core bundle.
+failure_conditions:
+  - "The wizard grows beyond 3 questions due to scope creep during implementation, causing solo founders evaluating Garura to abandon the wizard before completing initialization"
+  - "npm install garura proceeds past the preflight check when a prerequisite is missing, partially completing and leaving Garura in a broken state"
+  - "The upgrade flow runs sync-claude without conflict detection, silently overwriting user-customized components in ~/.claude/"
+  - "npm install includes optional modules in the core bundle, causing install time to exceed 5 minutes on slow networks and triggering first-impression failure"
 
 constraints:
   performance:
@@ -228,3 +166,45 @@ kb_source:
     - "Missing brownfield scanner for repositories with existing structure (v1 greenfield only)"
     - "npm install sizes growing when optional modules are bundled with core"
     - "Editing ~/.claude/ components directly instead of going through sync-claude"
+
+expectation:
+  vetted:
+    status: approved
+    approved_by: "human-review-migration-#390"
+    approved_at: "2026-05-27"
+  success_scenarios:
+    - id: S1
+      persona: "solo founder with a new project directory and no prior Garura configuration on a supported Node version"
+      given: "they run npm install garura followed by garura init"
+      then: "they complete a 3-question wizard and a valid project_profile.yaml is written to the project directory in < 3 minutes"
+      measure: "garura init wizard completion time < 3 minutes measured from first prompt to project_profile.yaml write completion; project_profile.yaml validates against the profile schema (required fields present, no null mandatory values); measured in CI on a clean macOS/Linux environment"
+    - id: S2
+      persona: "developer on a supported Node version who has not installed Garura previously"
+      given: "they run npm install garura"
+      then: "the installation completes with exit code 0, all prerequisites are verified by the preflight check, and no partial-install state is left on failure"
+      measure: "npm install garura exits 0 on all supported Node versions in CI; preflight check produces a PASS/FAIL status per prerequisite before install proceeds; failed installs leave zero modified files in node_modules (atomic rollback verified by file-system diff before and after failed install)"
+  recovery:
+    - id: REC1
+      for_failure_condition: "The wizard grows beyond 3 questions due to scope creep during implementation, causing solo founders evaluating Garura to abandon the wizard before completing initialization"
+      trigger: "wizard question count exceeds 3 in any code path; CI test for question count fails; or user feedback reports abandonment at question 4"
+      direction: "3-question maximum enforced as a hard constraint in the wizard implementation; question count gate in the wizard flow emits a test failure if question count exceeds 3 in any wizard variant; any additional profile data collected via optional /configure command after onboarding"
+      handoff: autonomous
+      derivable_at_l4: true
+    - id: REC2
+      for_failure_condition: "npm install garura proceeds past the preflight check when a prerequisite is missing, partially completing and leaving Garura in a broken state"
+      trigger: "Garura commands fail with missing dependency errors after install; or install completes but garura init cannot run due to missing Node/Claude Code/git prerequisites"
+      direction: "Preflight check runs before any file writes; install is atomic — all files written or none; failed preflight emits a clear error listing the missing prerequisite and the remediation command; partial installs trigger atomic rollback"
+      handoff: autonomous
+      derivable_at_l4: true
+    - id: REC3
+      for_failure_condition: "The upgrade flow runs sync-claude without conflict detection, silently overwriting user-customized components in ~/.claude/"
+      trigger: "developer notices behavior change after upgrade; git diff shows ~/.claude/ components modified differently from expected source state"
+      direction: "Conflict detection before sync: sync-claude checksums local components against source before overwrite; any local modification triggers a Tether/Vanish gate; upgrade flow never silently overwrites customized files; if already overwritten, restore from source and re-apply customizations"
+      handoff: human
+      derivable_at_l4: false
+    - id: REC4
+      for_failure_condition: "npm install includes optional modules in the core bundle, causing install time to exceed 5 minutes on slow networks and triggering first-impression failure"
+      trigger: "CI package size check exceeds the budget threshold; or developer reports install time > 5 minutes on standard connections"
+      direction: "Optional modules excluded from the core npm package; package size monitored in CI with a budget threshold that fails the CI step if exceeded; only required dependencies in the core bundle; when triggered, identify and move the offending optional modules to optional/peer dependencies"
+      handoff: autonomous
+      derivable_at_l4: true

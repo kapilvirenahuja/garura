@@ -9,6 +9,7 @@
 # task_id: specify-product-stage-5-generate
 # created_at: 2026-04-18T03:00:00Z
 # reconciled_at: 2026-04-18T06:00:00Z  (WI-F010/F011/F012/F013 all LIVE per user Q4 authoritative decision)
+# migrated_at: 2026-05-27  (schema migration #390 — singular intent→intents[], failure_scenarios→failure_conditions, success_scenarios moved to expectation block)
 # kb_source_file: .garura/product/research/work-intelligence.md
 # enriched_capabilities_path: .garura/product/scope/enriched-capabilities.yaml
 
@@ -33,10 +34,11 @@ problem_statement: >
   root cause produces a defect that reopens at the next release — every recurrence costs
   the solo contributor full investigation time with no team to share the load.
 
-intent: >
-  Ensure every Garura play has intent-traceable step evals and every capability has
-  scenario evals that pass on canonical traces, and fix-it closes ≥ 95% of filed defects
-  without reopening within the same milestone window.
+intents:
+  - >
+    Ensure every Garura play has intent-traceable step evals and every capability has
+    scenario evals that pass on canonical traces, and fix-it closes ≥ 95% of filed defects
+    without reopening within the same milestone window.
 
 intent_lock:
   locked_at: "2026-04-18T05:00:00Z"
@@ -129,87 +131,12 @@ epic_status:
   delivered_pct: 100
   total_features: 4
 
-success_scenarios:
-  - scenario: >
-      Given any Garura play with a valid intent.yaml and a locked epic, when evals-creator
-      runs as part of /create-play --build, then a step eval file exists for every play step
-      and a scenario eval file exists for every success and failure scenario in the intent,
-      with all evals passing on their canonical traces.
-    evidence: >
-      evals-creator exit code 0. Step eval file count equals play step count in intent.yaml.
-      Scenario eval count equals success_scenario count + failure_scenario count from the
-      epic. All evals pass when run against the canonical play trace captured at build time.
-  - scenario: >
-      Given a defect filed against a Garura play using the garura:capture workflow, when
-      fix-it completes the RCA-driven fix, then a regression test is linked to the defect
-      in STM and the fix does not reopen within the same milestone window in ≥ 95% of cases.
-    evidence: >
-      Regression test file exists in STM linked to the defect issue number. fix-it exit
-      code 0. Defect reopening rate < 5% measured across all defects closed by fix-it in
-      a 30-day window. Tracked via defect reopen events in the issue tracker.
-
-failure_scenarios:
-  - scenario: >
-      Given a play that has been rebuilt with a new intent.yaml version, when the associated
-      evals are not regenerated, then evals pass against the old intent but fail against
-      the new intent — tests are validating the wrong behavior silently.
-    impact: >
-      False positive passes — evals pass against stale scenarios. The defect surfaces
-      when a real user exercises the changed behavior, not in CI. Solo-dev impact:
-      no second reviewer to notice the eval-intent drift before the next release.
-    mitigation: >
-      evals-creator is invoked in /create-play --rebuild alongside the play recompilation;
-      a rebuilt play with unapplied eval updates is a blocking CI failure until evals
-      are regenerated.
-  - scenario: >
-      Given a synthesized test whose scenario is ambiguous (multiple valid interpretations
-      of the then clause), when the test is run against an implementation that satisfies
-      one interpretation but violates another, then the test passes but the implementation
-      violates the intended scenario.
-    impact: >
-      Hollow test coverage — tests pass but the underlying intent is not verified.
-      Defects that violate the second interpretation are invisible to the test suite.
-    mitigation: >
-      Scenario structure discipline: scenarios.md Rule 1 (given/when/then format with
-      binary-testable then clauses) prevents ambiguous then clauses at authoring time;
-      scenario review gate before synthesis rejects ambiguous scenarios before tests
-      are synthesized.
-  - scenario: >
-      Given a defect where fix-it proposes a fix that patches the symptom without
-      completing the 5-whys RCA, when the fix is merged, then the root cause recurs
-      at the next feature addition.
-    impact: >
-      Defect reopens; the same root cause is fixed multiple times independently —
-      methodology decays. Solo-dev impact: every recurrence costs full investigation
-      time with no team to distribute the load.
-    mitigation: >
-      fix-it enforces 5-whys RCA before proposing any fix; the RCA template is a
-      required output before fix-it enters the implementation step; a shallow RCA
-      (fewer than 3 why levels) is a blocking failure that requires the developer
-      to deepen the analysis before proceeding.
-  - scenario: >
-      Given a fix validated by a regression test, when the same behavior is changed
-      by a later feature addition, then the regression test is not updated and the
-      defect resurfaces in the new context.
-    impact: >
-      Reopened defect with no updated regression test — fix-it loop breaks. The
-      original fix was correct but the regression test did not account for future
-      feature interactions.
-    mitigation: >
-      Regression test linked to defect in STM; check-drift includes regression test
-      staleness detection; any merge that touches the same code paths as a linked
-      regression test triggers a review flag.
-  - scenario: >
-      Given a repeated defect pattern occurring across multiple issues, when fix-it
-      treats each occurrence as an independent defect, then the same root cause is
-      fixed multiple times without recognizing the pattern.
-    impact: >
-      Methodology decay — the same root cause masquerades as different defects.
-      Pattern recognition is absent until a human reviewer notices the pattern.
-    mitigation: >
-      Defect-history check in fix-it: before beginning RCA, fix-it searches the
-      defect history for similar patterns and surfaces any matches; the pattern
-      library curation is tracked as a post-v1 Advanced enhancement.
+failure_conditions:
+  - "A play is rebuilt with a new intent.yaml version but the associated evals are not regenerated, causing evals to pass against the old intent while failing against the new intent"
+  - "A synthesized test has an ambiguous then clause (multiple valid interpretations), causing the test to pass against an implementation that violates the intended scenario"
+  - "fix-it proposes a fix that patches the symptom without completing the 5-whys RCA, causing the root cause to recur at the next feature addition"
+  - "A fix is validated by a regression test but a later feature addition changes the same behavior without updating the regression test, causing the defect to resurface"
+  - "A repeated defect pattern occurs across multiple issues but fix-it treats each occurrence as an independent defect without recognizing the pattern"
 
 constraints:
   performance:
@@ -277,3 +204,51 @@ kb_source:
     - "Fixing symptom before completing RCA — fix-it is designed to block this"
     - "Ambiguous scenario authoring that produces passing-but-wrong synthesized tests"
     - "Skipping RCA for 'quick fixes' — quick fixes without RCA are the primary source of reopened defects"
+
+expectation:
+  vetted:
+    status: approved
+    approved_by: "human-review-migration-#390"
+    approved_at: "2026-05-27"
+  success_scenarios:
+    - id: S1
+      persona: "software engineer building or rebuilding any Garura play with a valid intent.yaml and a locked epic"
+      given: "evals-creator runs as part of /create-play --build"
+      then: "a step eval file exists for every play step and a scenario eval file exists for every success and failure scenario in the intent, with all evals passing on their canonical traces"
+      measure: "evals-creator exit code 0; step eval file count equals play step count in intent.yaml; scenario eval count equals success_scenario count + failure_condition count from the epic; all evals pass when run against the canonical play trace captured at build time"
+    - id: S2
+      persona: "software engineer who has filed a defect against a Garura play using the garura:capture workflow"
+      given: "fix-it completes the RCA-driven fix"
+      then: "a regression test is linked to the defect in STM and the fix does not reopen within the same milestone window in ≥ 95% of cases"
+      measure: "regression test file exists in STM linked to the defect issue number; fix-it exit code 0; defect reopening rate < 5% measured across all defects closed by fix-it in a 30-day window; tracked via defect reopen events in the issue tracker"
+  recovery:
+    - id: REC1
+      for_failure_condition: "A play is rebuilt with a new intent.yaml version but the associated evals are not regenerated, causing evals to pass against the old intent while failing against the new intent"
+      trigger: "CI reports eval pass on the old intent but the play exhibits changed behavior; or /create-play --rebuild exits without running evals-creator after an intent change"
+      direction: "evals-creator is invoked in /create-play --rebuild alongside the play recompilation; a rebuilt play with unapplied eval updates is a blocking CI failure until evals are regenerated; when triggered, run /create-play --rebuild to force eval regeneration before proceeding"
+      handoff: autonomous
+      derivable_at_l4: true
+    - id: REC2
+      for_failure_condition: "A synthesized test has an ambiguous then clause (multiple valid interpretations), causing the test to pass against an implementation that violates the intended scenario"
+      trigger: "a defect is found in production that was covered by a passing synthesized test; or a code review identifies a test that passes but does not actually verify the intended behavior"
+      direction: "Scenario structure discipline: scenarios.md Rule 1 (given/when/then format with binary-testable then clauses) prevents ambiguous then clauses at authoring time; scenario review gate before synthesis rejects ambiguous scenarios before tests are synthesized; when triggered, update the scenario's then clause to be unambiguous and re-synthesize the tests"
+      handoff: human
+      derivable_at_l4: false
+    - id: REC3
+      for_failure_condition: "fix-it proposes a fix that patches the symptom without completing the 5-whys RCA, causing the root cause to recur at the next feature addition"
+      trigger: "the same defect reopens at the next feature addition; or a code review identifies that the fix addressed the symptom but not the root cause"
+      direction: "fix-it enforces 5-whys RCA before proposing any fix; the RCA template is a required output before fix-it enters the implementation step; a shallow RCA (fewer than 3 why levels) is a blocking failure that requires the developer to deepen the analysis before proceeding; when triggered retroactively, re-open the defect and run a full 5-whys RCA before applying a new fix"
+      handoff: human
+      derivable_at_l4: false
+    - id: REC4
+      for_failure_condition: "A fix is validated by a regression test but a later feature addition changes the same behavior without updating the regression test, causing the defect to resurface"
+      trigger: "the original defect reopens after a feature addition; or check-drift surfaces a regression test that no longer matches the current implementation"
+      direction: "Regression test linked to defect in STM; check-drift includes regression test staleness detection; any merge that touches the same code paths as a linked regression test triggers a review flag; when triggered, update the regression test to cover the new behavior and re-run to verify the fix still holds"
+      handoff: human
+      derivable_at_l4: false
+    - id: REC5
+      for_failure_condition: "A repeated defect pattern occurs across multiple issues but fix-it treats each occurrence as an independent defect without recognizing the pattern"
+      trigger: "a developer or reviewer notices the same root cause appearing in multiple closed defects; or a pattern analysis reveals multiple defects with the same 5-whys root"
+      direction: "Defect-history check in fix-it: before beginning RCA, fix-it searches the defect history for similar patterns and surfaces any matches; the pattern library curation is tracked as a post-v1 Advanced enhancement; when triggered manually, search the defect history for similar patterns and consolidate the root cause analysis before applying fixes across all affected issues"
+      handoff: human
+      derivable_at_l4: false

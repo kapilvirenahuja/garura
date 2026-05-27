@@ -9,6 +9,7 @@
 # task_id: specify-product-stage-5-generate
 # created_at: 2026-04-18T03:00:00Z
 # reconciled_at: 2026-04-18T06:00:00Z  (EE-F004/EE-F005 reclassified LIVE → PARTIAL per user Stage-1/2 authoritative input)
+# migrated_at: 2026-05-27  (schema migration #390 — singular intent→intents[], failure_scenarios→failure_conditions, success_scenarios moved to expectation block)
 # kb_source_file: .garura/product/research/engineering-experience.md
 # enriched_capabilities_path: .garura/product/scope/enriched-capabilities.yaml
 
@@ -32,10 +33,11 @@ problem_statement: >
   AI-generated commits from Droids carry no authorship trailer, violating the
   ai-usage-traceability compliance category.
 
-intent: >
-  Ensure every component update is reflected in Claude Code within 30s of /sync-claude
-  with zero drift, Factory Droid runs capture governance signals on 100% of executions,
-  and a Codex CLI adapter delivers deterministic CI-mode behavior for script-driven workflows.
+intents:
+  - >
+    Ensure every component update is reflected in Claude Code within 30s of /sync-claude
+    with zero drift, Factory Droid runs capture governance signals on 100% of executions,
+    and a Codex CLI adapter delivers deterministic CI-mode behavior for script-driven workflows.
 
 intent_lock:
   locked_at: "2026-04-18T05:00:00Z"
@@ -106,61 +108,10 @@ epic_status:
   delivered_pct: 33
   total_features: 3
 
-success_scenarios:
-  - scenario: >
-      Given a developer who has modified a play source file in core/components/, when
-      they run /sync-claude, then every modified component is available in Claude Code
-      within 30s and the sync status output shows 0 unexpected changes and 0 errors.
-    evidence: >
-      /sync-claude exit code 0. Modified components appear in ~/.claude/ with matching
-      checksums. Sync duration < 30s measured from invocation to completion. Status
-      output shows a diff of changed files and a "0 unexpected changes" summary.
-  - scenario: >
-      Given a Factory Droid run executing any core Garura play in a CI pipeline, when
-      the run completes, then the play's governance signals (AI-authorship identifier,
-      token count, invocation timestamp) are captured in the audit trail and retrievable
-      via the AG-F006 evidence export.
-    evidence: >
-      Governance signal record exists in the audit trail for 100% of Factory Droid play
-      executions. Record contains: AI-authorship identifier, token count, invocation
-      timestamp, play name. Verified by querying the audit trail after a Factory Droid
-      pilot run.
-
-failure_scenarios:
-  - scenario: >
-      Given a developer who has customized a component in ~/.claude/ locally, when
-      /sync-claude runs without conflict detection, then the customized component is
-      silently overwritten by the sync.
-    impact: >
-      Lost customization — solo-dev has no backup contributor and no automatic recovery
-      for the overwritten component. The developer loses trust in the sync pipeline.
-    mitigation: >
-      Conflict detection before sync: /sync-claude checksums all local components against
-      source before any write; any local modification triggers a Tether/Vanish gate
-      showing the diff before overwrite proceeds.
-  - scenario: >
-      Given a Factory Droid run where invocation-context capture is not implemented,
-      when the Droid produces AI-generated commits, then those commits carry no
-      AI-authorship trailer.
-    impact: >
-      Attribution gap breaks audit trail for all Droid-produced commits. This directly
-      violates the ai-usage-traceability compliance category ratchet. Solo-dev impact:
-      Factory Droid commits become indistinguishable from human commits in the audit trail.
-    mitigation: >
-      invocation-context capture implemented in sync-droids before Factory Droid
-      functionality is enabled for any production use; governance signal capture
-      is a blocking requirement for EE-F004 completion.
-  - scenario: >
-      Given a Codex CLI invocation of a Garura play in CI mode, when the play reaches
-      a Tether/Vanish gate, then the play hangs indefinitely waiting for user input
-      that never arrives.
-    impact: >
-      CI pipeline hangs indefinitely; the build never completes. Solo-dev impact:
-      blocked pipelines block all downstream deployments with no team to diagnose.
-    mitigation: >
-      Non-interactive mode flag in Codex CLI adapter; policy pre-approvals configured
-      before CI-mode plays run; any play reaching a Tether/Vanish gate in non-interactive
-      mode emits a structured failure immediately rather than waiting for input.
+failure_conditions:
+  - "A developer with a customized component in ~/.claude/ runs /sync-claude without conflict detection, causing the customized component to be silently overwritten"
+  - "A Factory Droid run does not have invocation-context capture implemented, causing AI-generated commits from Droids to carry no AI-authorship trailer"
+  - "A Codex CLI invocation of a Garura play in CI mode reaches a Tether/Vanish gate and hangs indefinitely waiting for user input"
 
 constraints:
   performance:
@@ -226,3 +177,39 @@ kb_source:
   experiential_warnings:
     - "Editing ~/.claude/ directly instead of source then sync-claude"
     - "Missing invocation-context capture for Factory Droid runs (attribution gap risk)"
+
+expectation:
+  vetted:
+    status: approved
+    approved_by: "human-review-migration-#390"
+    approved_at: "2026-05-27"
+  success_scenarios:
+    - id: S1
+      persona: "developer who has modified a play source file in core/components/"
+      given: "they run /sync-claude"
+      then: "every modified component is available in Claude Code within 30s and the sync status output shows 0 unexpected changes and 0 errors"
+      measure: "/sync-claude exit code 0; modified components appear in ~/.claude/ with matching checksums; sync duration < 30s measured from invocation to completion; status output shows a diff of changed files and a '0 unexpected changes' summary"
+    - id: S2
+      persona: "Factory Droid run executing any core Garura play in a CI pipeline"
+      given: "the run completes"
+      then: "the play's governance signals (AI-authorship identifier, token count, invocation timestamp) are captured in the audit trail and retrievable via the AG-F006 evidence export"
+      measure: "governance signal record exists in the audit trail for 100% of Factory Droid play executions; record contains: AI-authorship identifier, token count, invocation timestamp, play name; verified by querying the audit trail after a Factory Droid pilot run"
+  recovery:
+    - id: REC1
+      for_failure_condition: "A developer with a customized component in ~/.claude/ runs /sync-claude without conflict detection, causing the customized component to be silently overwritten"
+      trigger: "developer notices unexpected behavior change in Claude Code after sync; /sync-claude exit shows a modified component that the developer had customized"
+      direction: "Conflict detection before sync: /sync-claude checksums all local components against source before any write; any local modification triggers a Tether/Vanish gate showing the diff before overwrite proceeds; if already overwritten, restore from source and re-apply customizations"
+      handoff: human
+      derivable_at_l4: false
+    - id: REC2
+      for_failure_condition: "A Factory Droid run does not have invocation-context capture implemented, causing AI-generated commits from Droids to carry no AI-authorship trailer"
+      trigger: "git log shows Droid-produced commits without AI-authorship trailers; or audit trail query returns no governance signal records for Droid executions"
+      direction: "invocation-context capture must be implemented in sync-droids before Factory Droid functionality is enabled for any production use; governance signal capture is a blocking requirement for EE-F004 completion; when detected post-production, disable Factory Droid runs until invocation-context capture is implemented and backfill any missing trailer records manually"
+      handoff: human
+      derivable_at_l4: false
+    - id: REC3
+      for_failure_condition: "A Codex CLI invocation of a Garura play in CI mode reaches a Tether/Vanish gate and hangs indefinitely waiting for user input"
+      trigger: "CI pipeline run shows a hanging Garura play step with no activity after the expected completion time"
+      direction: "Non-interactive mode flag in Codex CLI adapter; policy pre-approvals configured before CI-mode plays run; any play reaching a Tether/Vanish gate in non-interactive mode emits a structured failure immediately rather than waiting for input; kill the hanging CI step and configure policy pre-approvals before re-running"
+      handoff: human
+      derivable_at_l4: false

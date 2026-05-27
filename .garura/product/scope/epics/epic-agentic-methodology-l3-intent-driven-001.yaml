@@ -9,6 +9,7 @@
 # task_id: specify-product-stage-5-generate
 # created_at: 2026-04-18T03:00:00Z
 # reconciled_at: 2026-04-18T06:00:00Z  (AM numbering + AM-F016 added per features.yaml reconciliation)
+# migrated_at: 2026-05-27  (schema migration #390 — singular intent→intents[], failure_scenarios→failure_conditions, success_scenarios moved to expectation block)
 # kb_source_files:
 #   - .garura/product/research/agentic-methodology.md (AM-F013, AM-F014, AM-F015, AM-F016)
 #   - .garura/product/research/work-intelligence.md (WI-F007)
@@ -49,10 +50,11 @@ problem_statement: >
   a persistent artifact chain. The concrete failure: a constraint referencing an unknown
   feature ID causes configure-capabilities to block with no clear recovery path.
 
-intent: >
-  Ensure 100% of specify-product runs produce intent epics that pass validate-intent-epics
-  with zero blocking violations on the first run, eliminating manual epic authoring for
-  software engineers and product managers operating at L3 delivery ambition.
+intents:
+  - >
+    Ensure 100% of specify-product runs produce intent epics that pass validate-intent-epics
+    with zero blocking violations on the first run, eliminating manual epic authoring for
+    software engineers and product managers operating at L3 delivery ambition.
 
 intent_lock:
   locked_at: "2026-04-18T05:00:00Z"
@@ -71,7 +73,7 @@ in_scope:
   - "AM-F014 Intent Inference at Advanced depth: intent-crafter/resolver agents produce schema-valid intent.yaml on ≥ 95% of runs; no TBD placeholders in mandatory fields"
   - "AM-F015 Scope Auto-Narrowing at Advanced depth: configure-capabilities produces scope.yaml with complete constraint_trace on 100% of specify-product Stage 3 runs; every CTC walked and its decision recorded"
   - "AM-F016 Epic Auto-Generation at Advanced depth: generate-intent-epics instantiates one schema-valid epic per enriched capability; 100% of generated epics pass validate-intent-epics"
-  - "WI-F007 Epic Decomposition at Advanced depth: each enriched capability produces exactly one intent epic traceable to a real KB feature ID; every epic has ≥ 2 success + ≥ 2 failure scenarios"
+  - "WI-F007 Epic Decomposition at Advanced depth: each enriched capability produces exactly one intent epic traceable to a real KB feature ID; every epic has ≥ 2 success scenarios + ≥ 2 failure conditions"
   - "Quantification regex enforcement on all constraint fields in generated epics"
   - "Cross-tree constraint walk completeness — zero CTCs skipped; every constraint recorded in constraint_trace including non-firing constraints"
 
@@ -149,7 +151,7 @@ features:
       - path: "core/components/memory/formats/intent-epic-schema.yaml"
         type: "schema"
     delta_remaining: null
-    intent_fit_rationale: "Decomposition enforces the ≥ 2 success + ≥ 2 failure scenario floor per capability, delivering intent-epic completeness."
+    intent_fit_rationale: "Decomposition enforces the ≥ 2 success scenario + ≥ 2 failure condition floor per capability, delivering intent-epic completeness."
 
 epic_status:
   live_count: 4
@@ -158,74 +160,11 @@ epic_status:
   delivered_pct: 80
   total_features: 5
 
-success_scenarios:
-  - scenario: >
-      Given a specify-product run for any 9-capability product scope with a valid enriched
-      capabilities file, when generate-intent-epics completes, then validate-intent-epics
-      reports 0 blocking violations across all 9 generated epic files.
-    evidence: >
-      validate-intent-epics exits 0 on the first run for ≥ 95% of specify-product
-      executions in a 30-day window. Measured by the validate step's exit code recorded
-      in each run's status.json.
-  - scenario: >
-      Given a specify-product Stage 3 run against any product scope with cross-tree
-      constraints defined, when configure-capabilities completes, then scope.yaml contains
-      a constraint_trace section with one decision entry per CTC from the cross-tree-
-      constraints file — including every constraint that did not fire, with a documented
-      reason for non-firing.
-    evidence: >
-      constraint_trace entry count equals total CTC count from _cross-tree-constraints.yaml.
-      Every entry has a non-null decision field. Verified by counting entries in the
-      generated scope.yaml against the CTC file's constraint count.
-
-failure_scenarios:
-  - scenario: >
-      Given an intent schema that accepts TBD as a placeholder in mandatory fields,
-      when a developer submits an epic with TBD in a constraint field, then downstream
-      plays receive hollow artifacts with TBD values leaking into plans and designs.
-    impact: >
-      Design-exp and build-arch skills produce artifacts anchored to placeholder values
-      that silently fail when engineers try to implement against them. Solo-dev impact:
-      no reviewer catches TBD propagation before it reaches implementation.
-    mitigation: >
-      Quantification regex in validate-intent-epics catches any non-numeric constraint
-      value; no-TBD rule in validate-intent-epics catches placeholder tokens across
-      all string fields; the pipeline blocks on first violation.
-  - scenario: >
-      Given a cross-tree constraint that references a feature ID not found in any
-      domain-taxonomy file, when configure-capabilities walks that constraint, then
-      scope auto-narrowing fails with an orphan-reference error.
-    impact: >
-      specify-product Stage 3 blocks; the entire pipeline stalls until the KB inconsistency
-      is resolved. Solo-dev impact: no second contributor to triage the KB gap.
-    mitigation: >
-      validate-kb-extension pre-flight checks every feature ID in every constraint
-      before configure-capabilities runs; any dangling reference is a blocking failure
-      emitted before the constraint walk begins.
-  - scenario: >
-      Given a generated epic that is missing a mandatory field, when validate-intent-epics
-      runs, then the pipeline blocks and the developer must fix the specific field before
-      proceeding.
-    impact: >
-      Pipeline stalls at Stage 5; developer must manually inspect the epic file and
-      identify the missing field from the validator output. Solo-dev impact: every stall
-      is a solo context-switch with no team to help triage.
-    mitigation: >
-      Template completeness check in generate-intent-epics before write: every mandatory
-      field is verified non-null before the file is written; structured failure emitted
-      with field-level detail if derivation fails.
-  - scenario: >
-      Given a generated epic whose kb_source.capability points to a feature ID that has
-      been deprecated or renamed in the domain-taxonomy, when validate-intent-epics runs
-      the traceability check, then the epic fails with dangling_kb_source.
-    impact: >
-      Epic traceability breaks; the audit trail from epic to KB feature is severed.
-      Downstream build-arch and design-exp cannot trace their architectural decisions
-      back to the KB source.
-    mitigation: >
-      validate-kb-extension pre-flight verifies all feature IDs in scope.yaml against
-      the current domain files before generate-intent-epics runs; stale IDs are surfaced
-      before epic writing begins.
+failure_conditions:
+  - "Intent schema accepts TBD as a placeholder in mandatory fields, allowing downstream plays to receive hollow artifacts with TBD values leaking into plans and designs"
+  - "A cross-tree constraint references a feature ID not found in any domain-taxonomy file, causing scope auto-narrowing to fail with an orphan-reference error"
+  - "A generated epic is missing a mandatory field, blocking the pipeline at Stage 5 and requiring manual inspection to identify the specific field"
+  - "A generated epic's kb_source.capability points to a feature ID deprecated or renamed in the domain-taxonomy, severing the audit trail from epic to KB feature"
 
 constraints:
   performance:
@@ -294,3 +233,45 @@ kb_source:
     - "Inlining implementation details in intent.yaml"
     - "Missing profile fields that cross-tree constraints depend on"
     - "Editing generated epics without re-validating against the schema"
+
+expectation:
+  vetted:
+    status: approved
+    approved_by: "human-review-migration-#390"
+    approved_at: "2026-05-27"
+  success_scenarios:
+    - id: S1
+      persona: "software engineer or product manager operating at L3 delivery ambition"
+      given: "a specify-product run for any 9-capability product scope with a valid enriched capabilities file"
+      then: "validate-intent-epics reports 0 blocking violations across all 9 generated epic files on the first run"
+      measure: "validate-intent-epics exits 0 on the first run for ≥ 95% of specify-product executions in a 30-day window, measured by the validate step's exit code recorded in each run's status.json"
+    - id: S2
+      persona: "software engineer or product manager running specify-product Stage 3"
+      given: "a specify-product Stage 3 run against any product scope with cross-tree constraints defined"
+      then: "scope.yaml contains a constraint_trace section with one decision entry per CTC from the cross-tree-constraints file, including every constraint that did not fire with a documented reason for non-firing"
+      measure: "constraint_trace entry count equals total CTC count from _cross-tree-constraints.yaml; every entry has a non-null decision field; verified by counting entries in the generated scope.yaml against the CTC file's constraint count"
+  recovery:
+    - id: REC1
+      for_failure_condition: "Intent schema accepts TBD as a placeholder in mandatory fields, allowing downstream plays to receive hollow artifacts with TBD values leaking into plans and designs"
+      trigger: "validate-intent-epics reports placeholder_value violations; design-exp or build-arch artifacts contain TBD-anchored values that fail implementation"
+      direction: "Quantification regex in validate-intent-epics catches any non-numeric constraint value; no-TBD rule catches placeholder tokens across all string fields; pipeline blocks on first violation before downstream consumption"
+      handoff: autonomous
+      derivable_at_l4: true
+    - id: REC2
+      for_failure_condition: "A cross-tree constraint references a feature ID not found in any domain-taxonomy file, causing scope auto-narrowing to fail with an orphan-reference error"
+      trigger: "configure-capabilities returns orphan_reference error; specify-product Stage 3 stalls with no clear recovery path shown to the user"
+      direction: "validate-kb-extension pre-flight checks every feature ID in every constraint before configure-capabilities runs; any dangling reference is a blocking failure emitted before the constraint walk begins, surfacing the specific missing ID and its referencing constraint"
+      handoff: human
+      derivable_at_l4: false
+    - id: REC3
+      for_failure_condition: "A generated epic is missing a mandatory field, blocking the pipeline at Stage 5 and requiring manual inspection to identify the specific field"
+      trigger: "validate-intent-epics reports missing_field violations with field-level detail; pipeline stalls at Stage 5"
+      direction: "Template completeness check in generate-intent-epics verifies every mandatory field is non-null before the file is written; structured failure emitted with field-level detail if derivation fails, so the cycle-back to generate-intent-epics includes the specific field and its derivation gap"
+      handoff: autonomous
+      derivable_at_l4: true
+    - id: REC4
+      for_failure_condition: "A generated epic's kb_source.capability points to a feature ID deprecated or renamed in the domain-taxonomy, severing the audit trail from epic to KB feature"
+      trigger: "validate-intent-epics reports dangling_kb_source violations; downstream build-arch and design-exp cannot trace architectural decisions back to the KB source"
+      direction: "validate-kb-extension pre-flight verifies all feature IDs in scope.yaml against the current domain files before generate-intent-epics runs; stale IDs are surfaced before epic writing begins, requiring the user to update the domain taxonomy or the capability reference"
+      handoff: human
+      derivable_at_l4: false

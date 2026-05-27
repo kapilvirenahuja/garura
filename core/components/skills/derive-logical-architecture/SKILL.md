@@ -37,7 +37,7 @@ Receive from the tech-architect agent. All paths resolve against `{product_base}
 
 - Parse `scope.yaml` → selected capability list with IDs and names.
 - Parse `enriched-capabilities.yaml` → per-capability business rules, invariants, and constraint notes.
-- Glob `{epics_dir}/*.yaml` → every intent epic with `constraints`, `success_scenarios`, `failure_scenarios`, and business rules.
+- Glob `{epics_dir}/*.yaml` → every intent epic with `constraints`, `failure_conditions`, `expectation.success_scenarios`, `expectation.recovery`, and business rules.
 - Parse `quality-profile.yaml` → ISO 25010 characteristics with relevance and targets; security profile; compliance flags.
 - Read `design-spec.md` → screen inventory summary, interaction patterns, user flow descriptions.
 - Glob `{screens_dir}/*.md` → state counts per capability for complexity estimation.

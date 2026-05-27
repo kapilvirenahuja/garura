@@ -46,13 +46,17 @@ For every epic, run these checks in order and collect violations per field:
 **Mandatory fields present and non-empty (rules/features.md Rule 1):**
 - `id`, `domain`, `capability`
 - `problem_statement` (string, length >= 80 characters to catch one-liners) (rules/features.md Rule 6)
-- `intent` (string, length >= 20 characters, contains a measurable word or number) (rules/features.md Rule 7)
+- `intents` (list, length >= 1; every entry is a string length >= 20 characters and contains a measurable word or number) (rules/epics.md Rule 1). Each entry is validated independently — one failing entry fails the whole epic. Violation tag: `intents[N].missing_field` for missing entry, `intents[N].subsystem_actor` for disallowed subject.
+- `failure_conditions` (list, length >= 2; every entry is a plain string, no nested sub-fields) (rules/epics.md Rule 1). Violation: `scenario_count_below_min` when < 2 entries.
 - `appetite` (string matching `/\d+\s*(week|day|month)s?/i`)
 - `in_scope` (list, length >= 1, every entry length >= 15 characters)
 - `anti_goals` (list, length >= 1)
 - `must_not_break` (list, length >= 1) (rules/epics.md Rule 4)
-- `success_scenarios` (list, length >= 2, every entry has `scenario` and `evidence`)
-- `failure_scenarios` (list, length >= 2, every entry has `scenario`, `impact`, `mitigation`)
+- `expectation` (object, present) — the generated expectation block. Verify:
+  - `expectation.vetted` (object, present) with `status` field
+  - `expectation.success_scenarios` (list, length >= 2; every entry has `id`, `persona`, `given`, `then`, `measure`)
+  - `expectation.recovery` (list; exactly one entry per `failure_conditions[]` entry; every entry has `id`, `for_failure_condition`, `trigger`, `direction`, `handoff`, `derivable_at_l4`)
+  - `expectation.vetted.status` must be `approved` for the epic to be valid; `pending` generates `expectation_not_vetted` violation (blocking)
 - `business_rules` (list, length >= 1)
 - `hypothesis` (string, contains all three phrases: "We believe that", "result in", "We will know this is true when") (rules/features.md Rule 3)
 - `assumptions_requiring_validation` (list, length >= 1)
@@ -61,6 +65,11 @@ For every epic, run these checks in order and collect violations per field:
 - `foundation_investment` (boolean, present — true or false) (rules/epics.md Rule 7)
 - `kb_source.capability` (string, present)
 - `kb_source.rules_applied` (list, may be empty but key must be present)
+
+**REMOVED fields (fail with `unknown_field` violation if present):**
+- `intent` (singular string) — removed in #390; replaced by `intents[]`
+- `success_scenarios` at top level — removed in #390; now lives under `expectation.success_scenarios[]`
+- the old top-level cause-list field (removed in #390) — replaced by `failure_conditions[]` (causes) + `expectation.recovery[]` (mitigations)
 
 **Constraint quantification:**
 - `constraints.performance` must match regex `\d+\s*(ms|s|rps|%|qps|MB|GB|ops)` (case insensitive).
@@ -84,13 +93,13 @@ These checks need the full epic batch. Run them after per-epic validation.
 - For each epic, assert `domain` holds exactly one value. Multi-value `domain` is a violation.
 - If `cross_cutting_justification` is empty, assert every `in_scope` item's implicit domain matches the epic's top-level `domain`. Violation category: `multi_module_scope`.
 
-**Vertical slice (rules/epics.md Rule 1):** three checks.
+**Vertical slice (rules/epics.md Rule 1):** three checks, all applied per-entry in `intents[]`.
 
-1. **Horizontal layer intent** — grep the `intent` field for the legacy pattern `(set up|build out|create)\s+(db|database|schema|api|backend|infrastructure|pipeline)` without an accompanying user outcome. Match = violation `horizontal_layer_intent`.
+1. **Horizontal layer intent** — for each entry in `intents[]`, grep for the legacy pattern `(set up|build out|create)\s+(db|database|schema|api|backend|infrastructure|pipeline)` without an accompanying user outcome. Match = violation `horizontal_layer_intent` on that entry.
 
-2. **Subsystem actor** — parse the `intent` field to find its grammatical subject. If the subject is in the subsystem disallow-list {analyst, improver, judge, scorer, orchestrator, dispatcher, worker, pipeline, parser, validator, resolver, matcher, compiler, transformer, agent (as "the {adjective} agent"), skill, plugin, adapter, catalog, store, vault, ledger, index, registry, database, schema, system, service, module, handler, endpoint, queue, cache, worker pool, backend, frontend, infrastructure}, the epic fails with violation `subsystem_actor`. The intent must be authored with a named persona or a canonical role (user, admin, developer, operator, reviewer) as the grammatical subject.
+2. **Subsystem actor** — for each entry in `intents[]`, parse the entry's grammatical subject. If the subject is in the subsystem disallow-list {analyst, improver, judge, scorer, orchestrator, dispatcher, worker, pipeline, parser, validator, resolver, matcher, compiler, transformer, agent (as "the {adjective} agent"), skill, plugin, adapter, catalog, store, vault, ledger, index, registry, database, schema, system, service, module, handler, endpoint, queue, cache, worker pool, backend, frontend, infrastructure}, the entry fails with violation `intents[N].subsystem_actor` (where N is the zero-based index). The intent entry must have a named persona or a canonical role (user, admin, developer, operator, reviewer) as the grammatical subject.
 
-3. **Non-observable outcome** — grep the first success_scenarios[0].then string for terminal verbs indicating internal system behavior rather than user-observable state change: {produce, return, emit, write, persist, compute, normalize, parse, validate} when used as the TERMINAL verb without an accompanying user observation. Example violation: "then the analyst produces a structured problem list" (terminal "produces", no user observation). Example PASS: "then the user sees an analyst problem list in the review panel within 3 seconds of submitting" (user observes the output). Violation category: `non_observable_outcome`.
+3. **Non-observable outcome** — grep each `expectation.success_scenarios[].then` string for terminal verbs indicating internal system behavior rather than user-observable state change: {produce, return, emit, write, persist, compute, normalize, parse, validate} when used as the TERMINAL verb without an accompanying user observation. Example violation: "then the analyst produces a structured problem list" (terminal "produces", no user observation). Example PASS: "then the user sees an analyst problem list in the review panel within 3 seconds of submitting" (user observes the output). Violation category: `non_observable_outcome`.
 
 **Provenance tracking (rules/features.md Rule 8):**
 - Every epic must carry a top-level `provenance` block with `source`, `source_quote`, `confidence`. Missing block = violation `missing_provenance`.
@@ -105,7 +114,7 @@ These checks need the full epic batch. Run them after per-epic validation.
   - `compliance == []` but constraint names HIPAA / PCI-DSS / GDPR controls → `profile_compliance_mismatch`
 
 **Should-language scan (rules/epics.md Rule 5, rules/scenarios.md Rule 2):**
-- For every epic's `success_scenarios[]`, grep the `scenario` string (and any nested `then` text) for the blacklist: `\b(should|smooth|intuitive|seamless|better|user-friendly)\b`. Match = violation `should_language`.
+- For every epic's `expectation.success_scenarios[]`, grep the `then` string for the blacklist: `\b(should|smooth|intuitive|seamless|better|user-friendly)\b`. Match = violation `should_language`.
 
 **Mock de-mocking (rules/epics.md Rule 3):**
 - For every epic where `uses_mocks == true`, assert `demock_epic_ref` is non-empty AND resolves to another epic id in the current batch. Missing = violation `unreplaced_mock`.
@@ -132,28 +141,31 @@ summary:
   by_category:
     # Field-level checks (features.md Rule 1)
     missing_field: <int>
+    unknown_field: <int>             # Removed fields (intent singular, success_scenarios top-level, removed cause-list field) still present
     unquantified_constraint: <int>
     placeholder_value: <int>
     dangling_kb_source: <int>
     scenario_count_below_min: <int>
     hypothesis_format: <int>
+    # Expectation block checks (#390 ICE model)
+    expectation_not_vetted: <int>    # expectation.vetted.status != approved (blocking)
     # Rule-level checks (epics.md + features.md + scenarios.md)
     multi_module_scope: <int>
     horizontal_layer_intent: <int>
-    subsystem_actor: <int>           # NEW — Rule 1 (actor test)
-    non_observable_outcome: <int>    # NEW — Rule 1 (outcome test)
+    subsystem_actor: <int>           # Per-entry in intents[] — violation tag: intents[N].subsystem_actor
+    non_observable_outcome: <int>    # Per expectation.success_scenarios[].then
     should_language: <int>
     unreplaced_mock: <int>
     dependency_cycle: <int>
     dangling_dependency: <int>
     missing_foundation_flag: <int>
     # Provenance + justification (features.md Rules 8 + 9; product.md Rule 11)
-    missing_provenance: <int>        # NEW
-    unsourced_constraint: <int>      # NEW
-    unconfirmed_inference: <int>     # NEW
-    profile_scale_mismatch: <int>    # NEW
-    profile_team_mismatch: <int>     # NEW
-    profile_compliance_mismatch: <int> # NEW
+    missing_provenance: <int>
+    unsourced_constraint: <int>
+    unconfirmed_inference: <int>
+    profile_scale_mismatch: <int>
+    profile_team_mismatch: <int>
+    profile_compliance_mismatch: <int>
   warnings:
     overstated_foundation: <int>
 epics:
@@ -164,9 +176,12 @@ epics:
       - field: constraints.performance
         category: unquantified_constraint
         detail: "Value 'fast' does not match quantification regex"
-      - field: success_scenarios[0].scenario
+      - field: expectation.success_scenarios[0].then
         category: should_language
         detail: "Contains blacklisted word 'smooth' — replace with observable outcome"
+      - field: expectation.vetted.status
+        category: expectation_not_vetted
+        detail: "expectation.vetted.status is 'pending' — human must approve at the Tether checkpoint before this epic passes validation"
       - field: depends_on
         category: dependency_cycle
         detail: "Cycle detected: EPIC-A → EPIC-B → EPIC-A"

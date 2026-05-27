@@ -66,7 +66,7 @@ Given intent and constraints, YOU decide:
 
 The specify output is your primary input. Read selectively:
 
-1. **Stage 1 (synthesize-personas):** Load intent epics one at a time. For each, extract user types from the `success_scenarios` and `failure_scenarios` sections. The `problem_statement` is also a rich source of persona context.
+1. **Stage 1 (synthesize-personas):** Load intent epics one at a time. For each, extract user types from the `expectation.success_scenarios` and `failure_conditions`/`expectation.recovery` sections. The `problem_statement` is also a rich source of persona context.
 2. **Stage 2 (generate-screen-inventory):** Load `scope.yaml` for the full capability list. For each capability, load the corresponding enriched capability block (from `enriched-capabilities.yaml`) and the KB `ux.wireframe_hints` from the relevant domain-taxonomy file.
 3. **Stage 3 (map-user-flows):** Load the persona file produced in Stage 1 plus all intent epics. For each scenario (success and failure), trace a flow.
 4. **Stage 4 (generate-wireframes):** Load screens one at a time. Pull the KB `ux` prose for component-level recommendations.

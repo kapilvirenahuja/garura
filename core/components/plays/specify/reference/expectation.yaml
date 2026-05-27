@@ -21,13 +21,13 @@ success_scenarios:
       SaaS with HIPAA compliance and high security level
     then: >
       Can derive per-epic acceptance criteria for the engineering team
-      directly from each epic's success_scenarios and failure_scenarios
-      without consulting any other source.
+      directly from each epic's expectation.success_scenarios and
+      failure_conditions without consulting any other source.
     measure: >
-      Every intent epic in the epics directory contains success_scenarios and
-      failure_scenarios sections populated with scenario / evidence and
-      scenario / impact / mitigation sub-fields such that per-epic acceptance
-      criteria can be derived from those sections alone.
+      Every intent epic in the epics directory contains an expectation block with
+      success_scenarios (populated with id/persona/given/then/measure sub-fields)
+      and a failure_conditions list at the intent level, such that per-epic
+      acceptance criteria can be derived from those sections alone.
 
   - id: S2
     persona: Technical Architect
@@ -63,15 +63,18 @@ success_scenarios:
   - id: S4
     persona: Product Manager
     given: >
-      The failure_scenarios sections of every intent epic
+      The failure_conditions list and expectation.recovery entries of every
+      intent epic
     then: >
       Can enumerate the error-handling, edge-case, and unhappy-path work
       that the implementation must cover — no unhappy path is silently
-      skipped, because the validator would have blocked an epic with empty
-      failure_scenarios.
+      skipped, because the validator would have blocked an epic with fewer
+      than two failure_conditions.
     measure: >
-      Every intent epic's failure_scenarios list contains at least 2 entries,
-      each with scenario, impact, and mitigation sub-fields populated.
+      Every intent epic's failure_conditions list contains at least 2 cause
+      strings, and expectation.recovery contains at least one recovery entry per
+      failure condition, each with for_failure_condition, trigger, direction, and
+      handoff sub-fields populated.
 
   - id: S5
     persona: Engineering Lead
@@ -177,13 +180,16 @@ recovery:
     derivable_at_l4: true
 
   - id: REC4
-    for_failure: F4                 # fewer than two scenarios
+    for_failure: F4                 # fewer than two entries / unapproved expectation
     trigger: >
-      An intent epic has fewer than two entries in success_scenarios or fewer
-      than two entries in failure_scenarios.
+      An intent epic has fewer than two entries in failure_conditions, or fewer
+      than two entries in expectation.success_scenarios, or
+      expectation.vetted.status is not "approved".
     direction: >
-      Every epic must carry at least two success and two failure scenarios;
-      re-generate the affected epics to meet the minimum scenario counts.
+      Every epic must carry at least two failure_conditions and at least two
+      expectation.success_scenarios, with expectation.vetted.status set to
+      "approved" after the human Tether at the Epic Review checkpoint;
+      re-generate or re-approve the affected epics to meet these requirements.
     handoff: autonomous
     derivable_at_l4: true
 
