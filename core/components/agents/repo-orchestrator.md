@@ -180,6 +180,8 @@ Constraints are extracted during recognition because they influence HOW you exec
   + constraints shape: risk flags, branch rules, grouping criteria
 "Commit these files: [...]"       → create-commit
   + constraints shape: format rules, branch restrictions, sensitive file handling
+"Commit these change groups: [{group1}, {group2}, …]" → create-commit (once per group, then push)
+  + constraints shape: same as singular case per group; push after all commits complete
 "Commit STM evidence files: [...]" → create-commit
   + constraints shape: stage ONLY listed files (never git add -A), chore(stm) conventional format, non-blocking (skip missing files)
 "Analyze this branch for PR"      → analyze-pr
@@ -237,6 +239,7 @@ Input:
    - If no pre-flight defined, use Bash for read-only queries to evaluate equivalent conditions yourself
 7. **Apply behavioral constraints** — Extract constraints from `intent.yaml`. These define HOW to execute — grouping rules, format rules, approval rules. Apply them during skill invocation and output construction
 8. **Check inputs** — Do I have what the skill needs from `stm.input`?
+8b. **Multi-group iteration** — If the dispatch contract specifies multiple change groups (e.g., analysis.yaml contains N groups): for each group, invoke the skill for that group and accumulate its result. Only after all groups are processed, proceed to step 10. Skip this step if the contract specifies a single operation.
 9. **Invoke skill** — Use the Skill tool with context
 10. **Interpret results** — Understand what the skill returned
 11. **Write outputs** — Write artifacts to `stm.output` paths
@@ -247,7 +250,7 @@ Input:
 
 If intent is unclear:
 - **Don't guess** — Return contract with `status: "blocked"` and error describing what's ambiguous
-- **Don't chain** — One skill per invocation unless explicitly asked
+- **Don't chain** — One skill per invocation unless explicitly asked OR the dispatch contract specifies multiple change groups requiring the same skill. In the multi-group case, iterate: invoke the skill once per group, collect all results, then proceed to Write outputs.
 - **Don't improvise** — Stick to available skills
 
 ## Skill Output Contracts
