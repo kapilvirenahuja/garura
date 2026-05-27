@@ -69,9 +69,10 @@ constraints:
   - id: C6
     rule: >
       Every intent epic must carry all mandatory fields defined in intent-
-      epic-schema.yaml: id, domain, capability, problem_statement, intent,
-      appetite, in_scope (≥1 entry), anti_goals (≥1 entry), success_scenarios
-      (≥2 entries), failure_scenarios (≥2 entries), constraints (performance,
+      epic-schema.yaml: id, domain, capability, problem_statement, intents[]
+      (≥1 entry), appetite, in_scope (≥1 entry), anti_goals (≥1 entry),
+      failure_conditions (≥2 entries), expectation block (success_scenarios
+      ≥2 entries, recovery, vetted.status: approved), constraints (performance,
       security, accessibility, compliance), business_rules (≥1 entry),
       hypothesis, assumptions_requiring_validation (≥1 entry), dependencies
       (may be empty list), kb_source (capability, rules_applied, experiential
@@ -278,8 +279,9 @@ failure_conditions:
 
   - id: F4
     condition: >
-      Any intent epic has fewer than two entries in success_scenarios or
-      fewer than two entries in failure_scenarios.
+      Any intent epic has fewer than two entries in failure_conditions, or fewer
+      than two entries in expectation.success_scenarios, or expectation.vetted.status
+      is not "approved".
 
   - id: F5
     condition: >

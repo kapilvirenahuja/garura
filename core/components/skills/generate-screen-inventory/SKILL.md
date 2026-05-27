@@ -37,7 +37,7 @@ Resolve each input path by substituting `{product_base}` from the incoming JSON 
 
 - Parse `scope.yaml` and build the list of selected capabilities.
 - Parse `enriched-capabilities.yaml` for business rules per capability.
-- Glob `{epics_dir}/*.yaml` and parse each epic (we need its success_scenarios, failure_scenarios, and business_rules).
+- Glob `{epics_dir}/*.yaml` and parse each epic (we need its `expectation.success_scenarios`, `failure_conditions`, `expectation.recovery`, and `business_rules`).
 - Read `personas.md` and extract persona IDs with their capability mappings.
 - For each capability, read its KB block from the relevant domain-taxonomy file (grep for the feature ID heading and parse the block — use the `Depth Spectrum` and `Signals` sections for layout hints, and the UX-flavored prose in `Tradeoffs` for component cues).
 

@@ -8,6 +8,7 @@
 # skill: generate-intent-epics v0.2.0
 # task_id: specify-product-stage-5-generate
 # created_at: 2026-04-18T03:00:00Z
+# migrated_at: 2026-05-27  (schema migration #390 — singular intent→intents[], failure_scenarios→failure_conditions, success_scenarios moved to expectation block)
 # kb_source_file: .garura/product/research/agentic-methodology.md
 # enriched_capabilities_path: .garura/product/scope/enriched-capabilities.yaml
 
@@ -30,10 +31,11 @@ problem_statement: >
   The concrete failure: when an intent.yaml changes upstream, downstream scenarios are not
   updated — tests pass against stale specs silently, with no second reviewer on a solo project.
 
-intent: >
-  Ensure 100% of intent epics pass validate-intent-epics schema validation before the
-  spec-lock gate, and check-drift detects ≥ 90% of spec-vs-implementation divergences
-  post-merge within the same session.
+intents:
+  - >
+    Ensure 100% of intent epics pass validate-intent-epics schema validation before the
+    spec-lock gate, and check-drift detects ≥ 90% of spec-vs-implementation divergences
+    post-merge within the same session.
 
 intent_lock:
   locked_at: "2026-04-18T05:00:00Z"
@@ -51,7 +53,7 @@ in_scope:
   - "AM-F010 Maturity Ladder Engine at Advanced depth: per-capability level declaration, per-capability climbing enforcement, level-up transition with zero schema-breaking changes in ≥ 95% of transitions"
   - "AM-F011 Persistent Memory Substrate at Advanced depth: STM→LTM promotion workflow completion; 100% of memory writes conform to folder whitelist"
   - "AM-F012 Spec-to-Test Continuity at Advanced depth: spec-lock gate enforcement (validate-intent-epics blocks non-schema-valid epics), check-drift scheduled run detecting ≥ 90% of spec-vs-implementation drift"
-  - "Minimum 2 success + 2 failure scenarios per capability — validator enforces this gate before lock"
+  - "Minimum 2 success scenarios + 2 failure conditions per capability — validator enforces this gate before lock"
   - "Per-capability level drift monitoring: level drift below 10% of all active capabilities"
 
 anti_goals:
@@ -110,61 +112,10 @@ epic_status:
   delivered_pct: 33
   total_features: 3
 
-success_scenarios:
-  - scenario: >
-      Given an intent epic authored for any Garura v1 capability, when the developer
-      invokes the spec-lock gate (/specify-product Stage 5 validate step), then
-      validate-intent-epics exits 0 with 0 blocking violations in 100% of runs.
-    evidence: >
-      validate-intent-epics exit code 0 on every locked epic in a 30-day window.
-      Tracked by CI evidence artifacts produced by the validate step — any non-zero
-      exit triggers a blocking failure recorded in the play's status.json.
-  - scenario: >
-      Given a spec previously locked and an implementation branch that diverges from it,
-      when check-drift runs post-merge on that branch, then ≥ 90% of spec-vs-implementation
-      divergences are surfaced as actionable findings in the drift report within 5 minutes.
-    evidence: >
-      Drift detection precision ≥ 90% measured across pilot runs where divergences were
-      artificially introduced and check-drift was run. Each detected divergence produces
-      a finding entry in the drift report with a specific field reference.
-
-failure_scenarios:
-  - scenario: >
-      Given a team that has declared L3 delivery ambition, when they continue shipping
-      without sealed intent artifacts (epics not validated before lock), then the
-      lock-gate trust collapses and downstream skills accept partial intents producing
-      shallow outputs.
-    impact: >
-      Downstream skills (generate-intent-epics, validate-intent-epics) receive partial
-      intents and produce output that silently passes validation but fails downstream
-      design and implementation checks. Solo-dev impact: no peer review to catch missing
-      intent seals before they block the pipeline.
-    mitigation: >
-      Lock-gate enforcement is hard: validate-intent-epics must exit 0 before any
-      downstream Stage 5/6 skill can proceed. The play halts on non-zero exit with
-      explicit failure evidence.
-  - scenario: >
-      Given a manual STM→LTM promotion, when the promotion copies artifacts without
-      the canonical canonicalization pass, then silent drift occurs between STM evidence
-      and LTM canonical content.
-    impact: >
-      LTM loses ground truth; reviewers cannot trust LTM content. Solo-dev impact:
-      all promotion decisions rest on one contributor — no second reviewer catches
-      premature or missed promotions.
-    mitigation: >
-      distill and capture-learning plays enforce canonicalization before promotion.
-      The AG-F010 promotion workflow gap is tracked as a known v1 limitation;
-      manual promotions are explicitly discouraged in CLAUDE.md.
-  - scenario: >
-      Given an upstream intent.yaml change, when check-drift is not run before the
-      next feature implementation, then tests pass against stale scenarios that no
-      longer reflect the revised intent.
-    impact: >
-      False confidence: tests green, spec stale. The defect surfaces at the next
-      spec-review cycle, not at the time of the change.
-    mitigation: >
-      check-drift scheduled post-merge run in the merge-pr play; propagation gap
-      documented as a v1 known limitation with a scheduled check as mitigation.
+failure_conditions:
+  - "A team declares L3 delivery ambition and continues shipping without sealed intent artifacts, causing the lock-gate trust to collapse and downstream skills to accept partial intents producing shallow outputs"
+  - "A manual STM→LTM promotion copies artifacts without the canonical canonicalization pass, causing silent drift between STM evidence and LTM canonical content"
+  - "An upstream intent.yaml change occurs and check-drift is not run before the next feature implementation, causing tests to pass against stale scenarios that no longer reflect the revised intent"
 
 constraints:
   performance:
@@ -194,7 +145,7 @@ business_rules:
   - "Mandatory when industry=developer-tools and methodology in product idea (AM-F010) — maturity ladder is the backbone of Garura's differentiation"
   - "Mandatory for any cross-session AI methodology product (AM-F011) — persistent memory is the architectural differentiator vs Copilot/Cursor/Windsurf"
   - "Mandatory for L2+ projects (AM-F012) — spec-to-test chain is the core L2 promise"
-  - "Minimum 2 success + 2 failure scenarios per capability — validator enforces this before lock"
+  - "Minimum 2 success scenarios + 2 failure conditions per capability — validator enforces this before lock"
   - "Per-capability level drift must stay below 10% of all active capabilities"
   - "check-drift detects ≥ 90% of spec-vs-implementation divergences — enforcement via scheduled post-merge run"
 
@@ -231,3 +182,39 @@ kb_source:
     - "Writing STM artifacts into LTM prematurely"
     - "Bypassing schema validation at write time"
     - "Editing downstream artifacts without re-validating upstream"
+
+expectation:
+  vetted:
+    status: approved
+    approved_by: "human-review-migration-#390"
+    approved_at: "2026-05-27"
+  success_scenarios:
+    - id: S1
+      persona: "developer invoking the spec-lock gate (/specify-product Stage 5 validate step)"
+      given: "an intent epic authored for any Garura v1 capability"
+      then: "validate-intent-epics exits 0 with 0 blocking violations in 100% of runs"
+      measure: "validate-intent-epics exit code 0 on every locked epic in a 30-day window; tracked by CI evidence artifacts produced by the validate step — any non-zero exit triggers a blocking failure recorded in the play's status.json"
+    - id: S2
+      persona: "developer running check-drift post-merge on a branch that diverges from a previously locked spec"
+      given: "a spec previously locked and an implementation branch that diverges from it"
+      then: "≥ 90% of spec-vs-implementation divergences are surfaced as actionable findings in the drift report within 5 minutes"
+      measure: "drift detection precision ≥ 90% measured across pilot runs where divergences were artificially introduced and check-drift was run; each detected divergence produces a finding entry in the drift report with a specific field reference"
+  recovery:
+    - id: REC1
+      for_failure_condition: "A team declares L3 delivery ambition and continues shipping without sealed intent artifacts, causing the lock-gate trust to collapse and downstream skills to accept partial intents producing shallow outputs"
+      trigger: "validate-intent-epics exits non-zero during Stage 5; or downstream design/implementation artifacts contain shallow content derived from unsealed intents"
+      direction: "Lock-gate enforcement is hard: validate-intent-epics must exit 0 before any downstream Stage 5/6 skill can proceed; the play halts on non-zero exit with explicit failure evidence identifying the specific field violations requiring remediation"
+      handoff: autonomous
+      derivable_at_l4: true
+    - id: REC2
+      for_failure_condition: "A manual STM→LTM promotion copies artifacts without the canonical canonicalization pass, causing silent drift between STM evidence and LTM canonical content"
+      trigger: "LTM content reviewer notices drift between STM evidence files and promoted LTM content; or a downstream skill produces output inconsistent with expected LTM canonical state"
+      direction: "distill and capture-learning plays enforce canonicalization before promotion; manual promotions are explicitly discouraged in CLAUDE.md; the AG-F010 promotion workflow gap is tracked as a known v1 limitation requiring human remediation when triggered"
+      handoff: human
+      derivable_at_l4: false
+    - id: REC3
+      for_failure_condition: "An upstream intent.yaml change occurs and check-drift is not run before the next feature implementation, causing tests to pass against stale scenarios that no longer reflect the revised intent"
+      trigger: "test suite passes but a spec review reveals stale scenario references; or check-drift surfaces divergences in a delayed run after implementation has already proceeded"
+      direction: "check-drift scheduled post-merge run in the merge-pr play prevents this by detecting drift immediately after merge; propagation gap is documented as a v1 known limitation with scheduled check as mitigation; when triggered, requires human review of test-vs-spec alignment and scenario updates"
+      handoff: human
+      derivable_at_l4: false

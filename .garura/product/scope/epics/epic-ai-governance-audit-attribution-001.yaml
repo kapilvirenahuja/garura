@@ -8,6 +8,7 @@
 # skill: generate-intent-epics v0.2.0
 # task_id: specify-product-stage-5-generate
 # created_at: 2026-04-18T03:00:00Z
+# migrated_at: 2026-05-27  (schema migration #390 — singular intent→intents[], failure_scenarios→failure_conditions, success_scenarios moved to expectation block)
 # kb_source_file: .garura/product/research/ai-governance.md
 # enriched_capabilities_path: .garura/product/scope/enriched-capabilities.yaml
 # RATCHET NOTE: compliance.categories['ai-usage-traceability'] fires a ratchet on
@@ -34,11 +35,12 @@ problem_statement: >
   every unattributed AI commit represents a 100% attribution gap for that commit with no
   human-authored commits to triangulate from.
 
-intent: >
-  Ensure 100% of play-produced commits carry an AI-authorship commit trailer and every
-  inferred decision is recorded in a decision manifest with tier-rationale, making the
-  AI-vs-human attribution chain auditable on demand for compliance officers reviewing
-  a solo-dev Garura-managed project.
+intents:
+  - >
+    Ensure 100% of play-produced commits carry an AI-authorship commit trailer and every
+    inferred decision is recorded in a decision manifest with tier-rationale, making the
+    AI-vs-human attribution chain auditable on demand for compliance officers reviewing
+    a solo-dev Garura-managed project.
 
 intent_lock:
   locked_at: "2026-04-18T05:00:00Z"
@@ -112,76 +114,11 @@ epic_status:
   delivered_pct: 0
   total_features: 3
 
-success_scenarios:
-  - scenario: >
-      Given a developer running any Garura play that produces a commit (ship, commit-code,
-      create-commit, or any evidence-committing play), when the commit lands in the repository,
-      then the commit message contains a valid AI-authorship trailer in 100% of play-produced
-      commits within a 30-day window.
-    evidence: >
-      git log --format='%B' for the 30-day window shows an AI-authorship trailer on every
-      play-produced commit. Trailer format matches the canonical format defined in the
-      ship play's commit spec. Zero play-produced commits missing a trailer found by
-      the attribution audit script.
-  - scenario: >
-      Given a specify-product run (or any play that makes inferred decisions about capability
-      selection, depth, or constraint application), when the run completes, then a
-      decision-manifest.yaml exists at the expected path with one entry per inferred decision,
-      and every entry has a non-null tier, grounding_source, and recommendation field.
-    evidence: >
-      decision-manifest.yaml present at the play-specified output path. Entry count equals
-      the count of inferred decisions tracked in the play's decision log. Every entry has
-      tier != null, grounding_source.kind != null, and recommendation.length > 0. Zero
-      silently resolved decisions found by the DSD audit.
-
-failure_scenarios:
-  - scenario: >
-      Given a developer running a Garura play that produces a commit, when the commit hook
-      is not invoked (hook not installed or hook misconfigured), then the play-produced
-      commit lands in the repository without an AI-authorship trailer.
-    impact: >
-      Attribution gap breaks audit trail. Solo-dev impact: with a solo contributor,
-      every commit missing a trailer represents a 100% gap in AI-vs-human attribution
-      for that commit — no other commits to triangulate from. Compliance ratchet violation.
-    mitigation: >
-      Commit hook enforcement: ship and commit-code plays verify the hook is installed
-      before the first commit attempt; a missing hook is a blocking failure, not a warning.
-      Hook installation is part of the first-run onboarding (EE-F012 bootstrap).
-  - scenario: >
-      Given a developer who resolves an inferred decision during a play run without
-      writing it to the decision-manifest.yaml, when the play completes, then the
-      decision exists only in the conversation history.
-    impact: >
-      Audit trail gap — Decision Surfacing Discipline (Defect 23) is violated. The
-      compliance officer reviewing the audit trail cannot find the decision because
-      it was never written to a durable artifact.
-    mitigation: >
-      DSD rule enforced in agent system prompt: every inferred decision goes to
-      decision-manifest.yaml BEFORE the primary artifact write; the skill write order
-      in generate-intent-epics (and all other decision-producing skills) writes the
-      manifest first, then the primary artifacts.
-  - scenario: >
-      Given a compliance officer requesting an audit bundle for a Garura-managed project,
-      when the audit bundle is generated, then symlinked artifacts are not resolved and
-      the bundle is incomplete.
-    impact: >
-      Incomplete bundle — the auditor receives a partial artifact set that may invalidate
-      the audit. Solo-dev impact: the developer must manually reconstruct the missing
-      artifacts, which is a time-intensive recovery.
-    mitigation: >
-      Symlink resolution policy in the audit bundle generator: all symlinks are resolved
-      to their target files before bundle packaging; the bundle manifest lists resolved
-      paths only; no dangling symlinks in the bundle.
-  - scenario: >
-      Given attribution data in evidence files that can be modified post-hoc, when an
-      auditor inspects the attribution chain, then tampered evidence cannot be detected.
-    impact: >
-      Audit invalidated. v1 does not have tamper-evident storage — this is a known v1 gap.
-      The auditor must trust the evidence files are unmodified.
-    mitigation: >
-      Tamper-evident storage is the Advanced depth target for AG-F004/F005 (post-v1,
-      when external regulations enter scope). v1 documents this gap explicitly in the
-      audit bundle's limitations section.
+failure_conditions:
+  - "A commit hook is not invoked (hook not installed or misconfigured), causing a play-produced commit to land in the repository without an AI-authorship trailer"
+  - "A developer resolves an inferred decision during a play run without writing it to the decision-manifest.yaml, leaving the decision only in conversation history and breaking the audit trail"
+  - "A compliance officer requests an audit bundle and symlinked artifacts are not resolved, producing an incomplete bundle that may invalidate the audit"
+  - "Attribution data in evidence files is modified post-hoc and tampered evidence cannot be detected because v1 does not have tamper-evident storage"
 
 constraints:
   performance:
@@ -253,3 +190,45 @@ kb_source:
     - "Silent resolution of inferred decisions without writing decision manifest (violates Defect 23)"
     - "Relying on file-tree browsing for audit instead of bundle generation"
     - "Assuming AI-authored commits are auto-tagged — requires explicit commit hook enforcement"
+
+expectation:
+  vetted:
+    status: approved
+    approved_by: "human-review-migration-#390"
+    approved_at: "2026-05-27"
+  success_scenarios:
+    - id: S1
+      persona: "developer running any Garura play that produces a commit (ship, commit-code, create-commit, or any evidence-committing play)"
+      given: "the commit lands in the repository"
+      then: "the commit message contains a valid AI-authorship trailer in 100% of play-produced commits within a 30-day window"
+      measure: "git log --format='%B' for the 30-day window shows an AI-authorship trailer on every play-produced commit; trailer format matches the canonical format; zero play-produced commits missing a trailer found by the attribution audit script"
+    - id: S2
+      persona: "compliance officer or software engineer reviewing a specify-product run or any inferred-decision-producing play"
+      given: "the run completes"
+      then: "a decision-manifest.yaml exists at the expected path with one entry per inferred decision, and every entry has a non-null tier, grounding_source, and recommendation field"
+      measure: "decision-manifest.yaml present at the play-specified output path; entry count equals the count of inferred decisions tracked in the play's decision log; every entry has tier != null, grounding_source.kind != null, and recommendation.length > 0; zero silently resolved decisions found by the DSD audit"
+  recovery:
+    - id: REC1
+      for_failure_condition: "A commit hook is not invoked (hook not installed or misconfigured), causing a play-produced commit to land in the repository without an AI-authorship trailer"
+      trigger: "git log shows a play-produced commit missing the AI-authorship trailer; or ship/commit-code play pre-commit validation detects hook not installed"
+      direction: "Ship and commit-code plays verify the hook is installed before the first commit attempt; a missing hook is a blocking failure, not a warning; hook installation is part of the first-run onboarding (EE-F012 bootstrap) and must be reinstalled if missing"
+      handoff: human
+      derivable_at_l4: false
+    - id: REC2
+      for_failure_condition: "A developer resolves an inferred decision during a play run without writing it to the decision-manifest.yaml, leaving the decision only in conversation history and breaking the audit trail"
+      trigger: "DSD audit finds decisions in conversation history with no corresponding decision-manifest.yaml entry; or a play completes with primary artifacts written but no manifest file at the expected path"
+      direction: "DSD rule enforced in agent system prompt: every inferred decision goes to decision-manifest.yaml BEFORE the primary artifact write; the skill write order in generate-intent-epics and all other decision-producing skills writes the manifest first, then the primary artifacts; when a gap is detected, the manifest must be backfilled before the audit bundle is generated"
+      handoff: autonomous
+      derivable_at_l4: true
+    - id: REC3
+      for_failure_condition: "A compliance officer requests an audit bundle and symlinked artifacts are not resolved, producing an incomplete bundle that may invalidate the audit"
+      trigger: "audit bundle manifest lists symlink paths rather than resolved file contents; auditor finds missing artifacts in the bundle"
+      direction: "Symlink resolution policy in the audit bundle generator resolves all symlinks to their target files before bundle packaging; the bundle manifest lists resolved paths only; when a generation error occurs, the developer must re-run bundle generation with symlink resolution enabled before delivering to the auditor"
+      handoff: autonomous
+      derivable_at_l4: true
+    - id: REC4
+      for_failure_condition: "Attribution data in evidence files is modified post-hoc and tampered evidence cannot be detected because v1 does not have tamper-evident storage"
+      trigger: "auditor reports evidence file contents inconsistent with git commit log; or an internal review detects evidence file modification timestamps later than the originating commit"
+      direction: "v1 documents this gap explicitly in the audit bundle's limitations section; tamper-evident storage is the Advanced depth target for AG-F004/F005 (post-v1, when external regulations enter scope); when triggered, requires human investigation of the modification and git history to reconstruct the original evidence"
+      handoff: human
+      derivable_at_l4: false

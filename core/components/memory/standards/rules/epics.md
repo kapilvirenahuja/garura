@@ -17,10 +17,10 @@ Mocks are acceptable for phased delivery — an epic can mock external dependenc
 
 ### The actor test
 
-The `intent` field's grammatical subject must be a human — a persona from `personas.md` or a canonical role (user, admin, developer, operator). If the subject is a subsystem, agent, or internal component, the epic is horizontal and must either be rewritten or merged into a parent vertical.
+Every entry in the `intents[]` list has a grammatical subject that must be a human — a persona from `personas.md` or a canonical role (user, admin, developer, operator). If the subject of ANY entry is a subsystem, agent, or internal component, the epic is horizontal and must either be rewritten or merged into a parent vertical. Each entry in `intents[]` is independently validated — one failing entry fails the whole epic.
 
 **Correct actors:** prosumer user, admin, developer, operator, reviewer, team lead, compliance officer, stakeholder
-**Incorrect actors (never valid subjects of an epic `intent`):**
+**Incorrect actors (never valid subjects of any entry in `intents[]`):**
 - `analyst`, `improver`, `judge`, `scorer`, `orchestrator`, `dispatcher`, `worker`
 - `pipeline`, `parser`, `validator`, `resolver`, `matcher`, `compiler`, `transformer`
 - `agent` (when used as "the {adjective} agent")
@@ -31,7 +31,7 @@ The `intent` field's grammatical subject must be a human — a persona from `per
 
 ### The outcome test
 
-The `then` clause of the primary success scenario must describe an **observable** change in the user's state — something a reviewer can point at and say "this happened." Internal data outputs (JSON schemas, parsed tuples, normalized scores) are NOT observable outcomes. They are implementation details that should roll up into a parent epic whose outcome IS user-observable.
+The `then` clause of each `expectation.success_scenarios[]` entry must describe an **observable** change in the user's state — something a reviewer can point at and say "this happened." Internal data outputs (JSON schemas, parsed tuples, normalized scores) are NOT observable outcomes. They are implementation details that should roll up into a parent epic whose outcome IS user-observable.
 
 **Correct outcomes:**
 - "user sees their profile dashboard within 2 seconds"
@@ -49,9 +49,9 @@ The `then` clause of the primary success scenario must describe an **observable*
 
 `validate-intent-epics` runs TWO checks on every epic:
 
-1. **Subsystem actor detection.** Grep the `intent` field for any of the words in the component disallow-list above as the grammatical subject. Any match is a `subsystem_actor` violation.
+1. **Subsystem actor detection.** For each entry in `intents[]`, grep the entry's grammatical subject for any of the words in the component disallow-list above. Any match in any entry is a `intents[N].subsystem_actor` violation (where N is the zero-based index of the failing entry).
 
-2. **Observable outcome detection.** Grep the primary success_scenarios[0].then clause against a human-state disallow-list: `produce`, `return`, `emit`, `write`, `persist`, `compute`, `normalize`, `parse`, `validate` (as the terminal verb — these describe system behavior, not user-observable change). Allow them only when the scenario ALSO names a user action that observes the outcome. Any violation is `non_observable_outcome`.
+2. **Observable outcome detection.** Grep each `expectation.success_scenarios[].then` clause against a human-state disallow-list: `produce`, `return`, `emit`, `write`, `persist`, `compute`, `normalize`, `parse`, `validate` (as the terminal verb — these describe system behavior, not user-observable change). Allow them only when the scenario ALSO names a user action that observes the outcome. Any violation is `intents[N].non_observable_outcome`.
 
 Both checks are blocking. An epic that fails either is NOT an epic; it is a horizontal layer that must be merged into a parent vertical (via `configure-capabilities`'s vertical-vs-component classification) or dropped from the top-level list.
 
@@ -109,14 +109,14 @@ Common scope creep patterns to guard against:
 
 **Success scenarios must be binary testable by a reviewer.**
 
-The `success_scenarios` field uses given/when/then format. Each scenario must be something a reviewer can execute and get a definitive pass or fail. No ambiguity.
+The `expectation.success_scenarios[]` field (in the generated expectation block) uses given/when/then format. Each scenario must be something a reviewer can execute and get a definitive pass or fail. No ambiguity. The language rules below apply to every `expectation.success_scenarios[].then` clause — success scenarios live in the expectation block, not at the top level of the epic file.
 
 **Correct:** "Given a registered user, when they enter valid credentials, then they see their profile dashboard within 2 seconds"
 **Incorrect:** "The login experience should be smooth and intuitive"
 
 The word "should" is a red flag. Success scenarios use "then [observable outcome]" — something you can point to and say "this happened" or "this did not happen."
 
-**Enforcement:** `validate-intent-epics` greps each `success_scenarios[].then` for the words `should`, `smooth`, `intuitive`, `seamless`, `better` — these produce `should_language` violations.
+**Enforcement:** `validate-intent-epics` greps each `expectation.success_scenarios[].then` for the words `should`, `smooth`, `intuitive`, `seamless`, `better` — these produce `should_language` violations.
 
 ## Rule 6: Dependency Discipline
 
@@ -162,11 +162,13 @@ The `intent-epic-schema.yaml` must carry these fields to support enforcement:
 
 | Rule | Field | Notes |
 |------|-------|-------|
-| 1 | `intent` | Must describe user-observable outcome |
+| 1 | `intents[]` | List; every entry must describe a user-observable outcome; each entry validated independently |
+| 1 | `failure_conditions[]` | List of strings (plain cause statements); minimum 2; no nested impact/mitigation |
 | 2 | `domain` | Exactly one domain value |
 | 2 (exception) | `cross_cutting_justification` | Optional; required when domain spans boundaries |
 | 3 | `uses_mocks` + `demock_epic_ref` | Optional; required when mocks are used |
 | 4 | `in_scope`, `anti_goals`, `must_not_break` | All three required, all non-empty |
-| 5 | `success_scenarios[].then` | Binary-testable language |
+| 5 | `expectation.success_scenarios[].then` | Binary-testable language; lives in the generated expectation block |
 | 6 | `depends_on` | List of epic IDs; must be acyclic across the epics directory |
 | 7 | `foundation_investment` | Boolean; required true when ≥2 incoming depends_on |
+| all | `expectation.vetted.status` | Must be `approved` for a valid epic; `pending` means expectation is generated but not yet human-reviewed |

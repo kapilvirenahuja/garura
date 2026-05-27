@@ -34,7 +34,7 @@ Resolve each input path by substituting `{product_base}` from the incoming JSON 
 
 - Read `personas.md` → persona list with capability mapping.
 - Glob `{screens_dir}/*.md` → parse each screen's frontmatter (id, capability, name) and `## Navigation` section (entry/exit points).
-- Glob `{epics_dir}/*.yaml` → parse each epic's `success_scenarios` and `failure_scenarios`.
+- Glob `{epics_dir}/*.yaml` → parse each epic's `expectation.success_scenarios` and `failure_conditions` (intent-layer cause strings) plus `expectation.recovery` (recovery paths).
 
 ### 2. Build the flow graph
 
@@ -46,17 +46,18 @@ For each (persona, capability) pair, assemble a directed graph of screens:
 
 ### 3. For each scenario, derive a flow
 
-Walk the `success_scenarios` and `failure_scenarios` of each epic:
+Walk the `expectation.success_scenarios` and `expectation.recovery` entries of each epic:
 
 **Success scenario → happy-path flow:**
-- Pick the persona that matches the scenario's described actor.
-- Trace from the persona's typical entry point through the screens that satisfy the scenario's outcome.
+- Use `expectation.success_scenarios[].persona` as the driving actor.
+- Trace from the persona's typical entry point through the screens that satisfy the scenario's `then` outcome.
 - Produce a Mermaid diagram.
 
-**Failure scenario → recovery flow:**
-- Start from the screen where the failure manifests (error state).
+**Failure condition → recovery flow:**
+- Match each `failure_conditions[]` cause string to its corresponding `expectation.recovery[]` entry via `for_failure_condition`.
+- Start from the screen where the failure manifests (error state, derived from the `trigger` field).
 - Trace the recovery path: error → retry action → success screen OR alternative recovery screen.
-- If the epic specifies a specific recovery (from the `Mitigation:` sub-field), prefer that path.
+- Use `expectation.recovery[].direction` as the recovery guidance (replaces the old Mitigation sub-field).
 
 ### 3b. Emit decision manifest
 
@@ -70,7 +71,7 @@ Record every inferred decision produced during Steps 2 and 3. Assign tier at run
 |-------------|---------------|-----------------------|
 | `D-muf-001` | `persona-scenario-assignment` | For each success scenario, which persona is identified as the driving actor based on text similarity to persona job stories (Step 3) |
 | `D-muf-002` | `screen-sequence-trace` | For each success scenario, the ordered sequence of screens traced from entry point to scenario completion (Step 3) |
-| `D-muf-003` | `recovery-path-design` | For each failure scenario, the recovery screen sequence designed from the error state to resolution (including any inferred intermediate screens when the mitigation field is vague) (Step 3) |
+| `D-muf-003` | `recovery-path-design` | For each failure condition, the recovery screen sequence designed from the error state to resolution (including any inferred intermediate screens when the expectation.recovery[].direction field is vague) (Step 3) |
 
 ```yaml
 schema_version: "1.0"
@@ -101,7 +102,7 @@ decisions:
 id: FLOW-user-login-happy-path
 persona: end-user
 capability: UM-F001
-source_scenario: EPIC-user-login-001/success_scenarios[0]
+source_scenario: EPIC-user-login-001/expectation.success_scenarios[0]
 flow_type: success
 ---
 
@@ -138,14 +139,14 @@ And for a recovery flow:
 id: FLOW-user-login-lockout-recovery
 persona: end-user
 capability: UM-F001
-source_scenario: EPIC-user-login-001/failure_scenarios[0]
+source_scenario: EPIC-user-login-001/expectation.recovery[0]
 flow_type: recovery
 ---
 
 # Login — Lockout Recovery
 
-**Failure scenario:** Account locked with no visible recovery path.
-**Mitigation:** Always show forgot-password and contact-support links on the locked-out screen.
+**Failure condition:** Account locked with no visible recovery path.
+**Recovery direction:** Always show forgot-password and contact-support links on the locked-out screen.
 
 ## Flow
 
@@ -177,10 +178,10 @@ flows:
   success_flows: <int>
   recovery_flows: <int>
   coverage:
-    success_scenarios_total: <int>
+    success_scenarios_total: <int>   # count of expectation.success_scenarios[] across all epics
     success_scenarios_with_flow: <int>
-    failure_scenarios_total: <int>
-    failure_scenarios_with_recovery: <int>
+    failure_conditions_total: <int>   # count of failure_conditions[] strings across all epics
+    failure_conditions_with_recovery: <int>  # count with a corresponding expectation.recovery[] entry and a flow
     orphan_scenarios: []  # must be empty
 decision_manifest:
   path: <written path>
@@ -189,8 +190,8 @@ decision_manifest:
 
 ## Constraints
 
-- NEVER skip a success scenario. Every success scenario across every epic has at least one flow referencing it.
-- NEVER skip a failure scenario. Every failure scenario has at least one recovery flow.
+- NEVER skip a success scenario. Every `expectation.success_scenarios[]` entry across every epic has at least one flow referencing it.
+- NEVER skip a failure condition. Every `failure_conditions[]` entry has at least one recovery flow derived from the matching `expectation.recovery[]` entry.
 - NEVER reference screens that don't exist in `screens_dir`. Every screen ID in every flow must resolve.
 - NEVER produce flows without `source_scenario` frontmatter — that's how traceability is maintained.
 - NEVER use free-form prose diagrams. Always use Mermaid `flowchart` syntax so the diagrams are renderable.

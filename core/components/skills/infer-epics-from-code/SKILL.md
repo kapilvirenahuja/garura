@@ -26,9 +26,9 @@ version tags (version-labeled milestones mark historical epic boundaries),
 and ADR titles (ADRs typically correspond to epic-scope decisions).
 
 Epics authored from code are **MINIMAL intent-epic stubs**. Fields like
-`success_scenarios`, `failure_scenarios`, `hypothesis`, `intent_lock`, and
+`expectation.success_scenarios`, `failure_conditions`, `hypothesis`, `intent_lock`, and
 the features ledger are NOT inferable from code alone — asserting them would
-be fabrication, not inference. This skill marks scenario fields with
+be fabrication, not inference. This skill marks expectation fields with
 `knowledge_gap: true` and leaves them for /garura:enrich to surface to stakeholders.
 Nothing is filled in speculatively; a gap is recorded as a gap.
 
@@ -111,7 +111,7 @@ For each surviving candidate, emit one YAML file to
   else `[]`.
 - `business_rules`: rules traceable to KB entries or code-evidenced
   invariants (e.g., enforcing middleware); else `[]`.
-- `success_scenarios` / `failure_scenarios`: marked `knowledge_gap: true`
+- `expectation.success_scenarios` / `failure_conditions`: marked `knowledge_gap: true`
   with a `note` pointing /garura:enrich at the gap. NEVER populated from code.
 - `evidence_paths`: scan-index pointers and file paths that drove the boundary.
 
@@ -148,18 +148,25 @@ epic:
     - "<capability-id>"
   constraints: []        # evidenced only; empty if no rate-limit/SLO config found
   business_rules: []     # evidenced only; empty if no code-invariant or KB hit
-  success_scenarios:
-    knowledge_gap: true
-    note: "Not inferable from code alone. Stakeholder input required at /garura:enrich."
-  failure_scenarios:
-    knowledge_gap: true
-    note: "Not inferable from code alone. Stakeholder input required at /garura:enrich."
+  intents:
+    - knowledge_gap: true
+      note: "Not inferable from code alone. Stakeholder input required at /garura:enrich."
+  failure_conditions:
+    - "knowledge_gap: Not inferable from code alone. Stakeholder input required at /garura:enrich."
+  expectation:
+    vetted:
+      status: pending
+      approved_by: null
+      approved_at: null
+    success_scenarios: []
+    recovery: []
   evidence_paths:
     - "<path into scan index or repo>"
 ```
 
-Comment header in every file: `# Minimal intent-epic stub. Scenarios are
-knowledge gaps, not placeholders — /garura:enrich must surface them to stakeholders.`
+Comment header in every file: `# Minimal intent-epic stub. intents[] and failure_conditions are
+knowledge gaps, not placeholders — /garura:enrich must surface them to stakeholders.
+expectation block is empty stub — draft-epic-expectation populates it after /garura:enrich.`
 
 ### Decision manifest — `decision-manifest-infer-epics.yaml`
 

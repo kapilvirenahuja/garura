@@ -66,7 +66,7 @@ Walk every epic's `kb_source.experiential_warnings` list. Dedupe. For each uniqu
   description: "<the experiential warning>"
   source_epics: [<list of epic IDs that carry this warning>]
   severity: high | medium | low  # inferred from how many epics cite it (3+ = high)
-  mitigation: "<extract from the epic's failure_scenarios if the warning matches one; else 'requires design review'>"
+  mitigation: "<extract from the epic's expectation.recovery[].direction if the warning matches a failure condition; else 'requires design review'>"
 ```
 
 ### 5. Derive the security profile

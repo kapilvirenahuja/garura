@@ -9,6 +9,7 @@
 # task_id: specify-product-stage-5-generate
 # created_at: 2026-04-18T03:00:00Z
 # reconciled_at: 2026-04-18T06:00:00Z  (EO-F002/EO-F004 reclassified PLANNED → PARTIAL per user Stage-1/2 authoritative input)
+# migrated_at: 2026-05-27  (schema migration #390 — singular intent→intents[], failure_scenarios→failure_conditions, success_scenarios moved to expectation block)
 # kb_source_file: .garura/product/research/engineering-observability.md
 # enriched_capabilities_path: .garura/product/scope/enriched-capabilities.yaml
 
@@ -32,10 +33,11 @@ problem_statement: >
   on a solo-dev project, while high coverage percentages mask shallow test assertions
   that let defects through to production.
 
-intent: >
-  Ensure every PR on a Garura-managed project receives a quality-check report (coverage
-  delta, lint violations, security scan) in < 3 minutes, with quality-check running
-  on ≥ 95% of supported stacks and security posture available per project.
+intents:
+  - >
+    Ensure every PR on a Garura-managed project receives a quality-check report (coverage
+    delta, lint violations, security scan) in < 3 minutes, with quality-check running
+    on ≥ 95% of supported stacks and security posture available per project.
 
 intent_lock:
   locked_at: "2026-04-18T05:00:00Z"
@@ -105,77 +107,11 @@ epic_status:
   delivered_pct: 0
   total_features: 3
 
-success_scenarios:
-  - scenario: >
-      Given a PR submitted on any Garura-managed project using a supported stack,
-      when quality-check runs in CI, then coverage delta and lint violations are surfaced
-      in the PR as reviewable findings within 3 minutes of CI run start, and quality-check
-      exits with a deterministic pass or fail in ≥ 95% of supported stack runs.
-    evidence: >
-      quality-check exit code is deterministic (0 = pass, non-0 = fail with findings)
-      in ≥ 95% of CI runs across supported stacks in a 30-day window. Coverage delta
-      appears in the PR review surface within 3 minutes of CI trigger. Measured by
-      CI run timestamps and PR comment timestamps.
-  - scenario: >
-      Given a Garura-managed project with npm dependencies, when the security scanner
-      runs in CI, then a severity-tagged vulnerability list is available in the posture
-      dashboard within 5 minutes of the scan completing, showing only critical and high
-      severity items by default (medium/low filtered to a collapsed view).
-    evidence: >
-      Security posture dashboard for the project shows the vulnerability list within 5
-      minutes of scan completion. Dashboard default view contains only critical and high
-      items. Severity tagging covers all findings (critical/high/medium/low). Measured
-      by dashboard load time after scan completion.
-
-failure_scenarios:
-  - scenario: >
-      Given a coverage tool whose output format changes in an npm dependency update,
-      when quality-check runs with the new format, then the adapter fails to parse the
-      coverage output and quality-check silently exits 0 with no coverage data.
-    impact: >
-      Missing quality signal — coverage disappears from PRs without anyone noticing
-      on a solo-dev project. False confidence: green CI with no actual coverage data.
-      Solo-dev impact: no second engineer to notice the signal went silent.
-    mitigation: >
-      Stack-specific adapter tests verify coverage parsing on each CI run; format-change
-      detection emits a warning (not a silent pass) when coverage output is not parseable;
-      the quality-check step fails explicitly on parse error rather than silently succeeding.
-  - scenario: >
-      Given a developer facing lint-noise fatigue from low-value lint rules, when they
-      disable a lint rule globally in the configuration, then the lint signal degrades
-      and subsequent PRs silently allow the suppressed issue type.
-    impact: >
-      Signal quality degrades; lint becomes theater rather than a real quality gate.
-      Suppressed rules are indistinguishable from rules that were never configured.
-    mitigation: >
-      Disable-comment requires a documented justification string; global rule disables
-      require a decision-manifest entry; CI flags any new global disable without
-      a justification comment as a lint policy violation.
-  - scenario: >
-      Given a security scanner that produces 200 findings including low-severity CVEs
-      in transitive dependencies, when all findings are surfaced to the developer,
-      then the developer becomes overwhelmed and begins ignoring the security signal entirely.
-    impact: >
-      High-severity CVEs are lost in noise. Solo-dev lacks a security team to triage
-      separately — scanner noise overwhelm causes the developer to treat the signal
-      as background noise.
-    mitigation: >
-      Severity filtering + policy baseline: dashboard default view shows only critical
-      and high items; the policy threshold blocks PRs only on critical findings;
-      medium/low findings are available in an expandable view but do not block progress.
-  - scenario: >
-      Given a coverage percentage that is high (e.g., 85%) but achievable through
-      covering only the happy path, when a developer ships a feature with shallow
-      assertions, then the coverage signal provides false confidence that the
-      implementation is well-tested.
-    impact: >
-      Defects slip through covered-but-empty test cases. The coverage signal is
-      misleading — a high percentage does not indicate meaningful scenario coverage.
-    mitigation: >
-      Coverage delta (not absolute percentage) is the primary surfaced metric per PR;
-      mutation testing is documented as a post-v1 planned enhancement for coverage
-      masking detection; developers are warned in the quality-check output that
-      high coverage does not guarantee scenario coverage.
+failure_conditions:
+  - "A coverage tool output format changes in an npm dependency update and quality-check fails to parse the new format, silently exiting 0 with no coverage data"
+  - "A developer facing lint-noise fatigue disables a lint rule globally without a documented justification, causing subsequent PRs to silently allow the suppressed issue type"
+  - "A security scanner produces 200 findings including low-severity CVEs in transitive dependencies, overwhelming the developer and causing them to ignore the security signal entirely"
+  - "A coverage percentage is high (e.g., 85%) but achieved by covering only the happy path, providing false confidence that the implementation is well-tested"
 
 constraints:
   performance:
@@ -238,3 +174,45 @@ kb_source:
     - "Chasing coverage percentage rather than scenario coverage — high % can mask shallow assertions"
     - "Disabling lint rules instead of fixing root cause"
     - "Treating security scan output as a complete prioritization rather than a raw findings list"
+
+expectation:
+  vetted:
+    status: approved
+    approved_by: "human-review-migration-#390"
+    approved_at: "2026-05-27"
+  success_scenarios:
+    - id: S1
+      persona: "developer submitting a PR on any Garura-managed project using a supported stack"
+      given: "quality-check runs in CI"
+      then: "coverage delta and lint violations are surfaced in the PR as reviewable findings within 3 minutes of CI run start, and quality-check exits with a deterministic pass or fail in ≥ 95% of supported stack runs"
+      measure: "quality-check exit code is deterministic (0 = pass, non-0 = fail with findings) in ≥ 95% of CI runs across supported stacks in a 30-day window; coverage delta appears in the PR review surface within 3 minutes of CI trigger; measured by CI run timestamps and PR comment timestamps"
+    - id: S2
+      persona: "engineering lead reviewing security posture on a Garura-managed project with npm dependencies"
+      given: "the security scanner runs in CI"
+      then: "a severity-tagged vulnerability list is available in the posture dashboard within 5 minutes of the scan completing, showing only critical and high severity items by default"
+      measure: "security posture dashboard for the project shows the vulnerability list within 5 minutes of scan completion; dashboard default view contains only critical and high items; severity tagging covers all findings (critical/high/medium/low); measured by dashboard load time after scan completion"
+  recovery:
+    - id: REC1
+      for_failure_condition: "A coverage tool output format changes in an npm dependency update and quality-check fails to parse the new format, silently exiting 0 with no coverage data"
+      trigger: "quality-check exits 0 but no coverage delta appears in the PR; or stack-specific adapter test fails during CI with a parse error on the coverage output"
+      direction: "Stack-specific adapter tests verify coverage parsing on each CI run; format-change detection emits a warning (not a silent pass) when coverage output is not parseable; the quality-check step fails explicitly on parse error rather than silently succeeding; when triggered, update the adapter to handle the new format before re-enabling the stack"
+      handoff: autonomous
+      derivable_at_l4: true
+    - id: REC2
+      for_failure_condition: "A developer facing lint-noise fatigue disables a lint rule globally without a documented justification, causing subsequent PRs to silently allow the suppressed issue type"
+      trigger: "CI flags a new global disable without a justification comment; or a lint policy violation appears in the quality-check output"
+      direction: "Disable-comment requires a documented justification string; global rule disables require a decision-manifest entry; CI flags any new global disable without a justification comment as a lint policy violation; when triggered, the developer must add a justification comment or re-enable the rule"
+      handoff: human
+      derivable_at_l4: false
+    - id: REC3
+      for_failure_condition: "A security scanner produces 200 findings including low-severity CVEs in transitive dependencies, overwhelming the developer and causing them to ignore the security signal entirely"
+      trigger: "developer reports signal fatigue; or security posture dashboard shows hundreds of findings with no filtering applied"
+      direction: "Severity filtering + policy baseline: dashboard default view shows only critical and high items; the policy threshold blocks PRs only on critical findings; medium/low findings are available in an expandable view but do not block progress; configure the policy threshold to critical/high-only before enabling the security scanner for a new project"
+      handoff: autonomous
+      derivable_at_l4: true
+    - id: REC4
+      for_failure_condition: "A coverage percentage is high (e.g., 85%) but achieved by covering only the happy path, providing false confidence that the implementation is well-tested"
+      trigger: "a defect is found in production that was covered by a passing test with shallow assertions; or a code review identifies a scenario that tests touch but do not actually verify"
+      direction: "Coverage delta (not absolute percentage) is the primary surfaced metric per PR; mutation testing is documented as a post-v1 planned enhancement for coverage masking detection; developers are warned in the quality-check output that high coverage does not guarantee scenario coverage; when triggered, add scenario-specific test cases for the uncovered behavior"
+      handoff: human
+      derivable_at_l4: false
