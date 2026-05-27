@@ -1,8 +1,14 @@
+issue:
+  number: 390
+  title: "[ENH] Align product-layer epics with the ICE model — split the intent-epic schema, rewrite generate-intent-epics, and allow multiple intents per epic"
+  labels:
+    - enhancement
+  type: enhancement
+  url: https://github.com/kapilvirenahuja/garura/issues/390
+  state: open
+  created: true
+  closed: false
+  parent_issue: null
+  type_hint: feature
+  completed_at: "2026-05-27"
 status: completed
-type: bug
-title: "[BUG] repo-orchestrator drops bundled multi-commit dispatches (commits one, then stops)"
-url: "https://github.com/kapilvirenahuja/garura/issues/377"
-number: 377
-labels:
-  - bug
-completed_at: "2026-05-25T00:00:00Z"

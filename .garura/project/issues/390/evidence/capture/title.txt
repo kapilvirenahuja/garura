@@ -1,1 +1,1 @@
-[BUG] repo-orchestrator drops bundled multi-commit dispatches (commits one, then stops)
+[ENH] Align product-layer epics with the ICE model — split the intent-epic schema, rewrite generate-intent-epics, and allow multiple intents per epic

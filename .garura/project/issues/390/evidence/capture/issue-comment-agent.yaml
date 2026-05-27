@@ -1,6 +1,6 @@
 status: dispatched
-dispatched_at: "2026-05-25T00:00:00Z"
+dispatched_at: "2026-05-27T00:00:00Z"
 task_id: file-github-issue
-type: bug
-issue_number: 377
-issue_url: "https://github.com/kapilvirenahuja/garura/issues/377"
+type: enhancement
+issue_number: 390
+issue_url: "https://github.com/kapilvirenahuja/garura/issues/390"
