@@ -1,0 +1,127 @@
+judge_report:
+  timestamp: "2026-05-27T00:00:00Z"
+  eval_source: "core/components/plays/enhance/reference/evals/solution-rating.yaml"
+  total_evals: 4
+  passed: 4
+  failed: 0
+  pass_rate: "100%"
+  overall: "PASS"
+  overall_confidence: 0.87
+
+  category_breakdown:
+    contract_boundary: { total: 1, passed: 1, failed: 0 }
+    intent_propagation: { total: 1, passed: 1, failed: 0 }
+    agent_boundary: { total: 1, passed: 1, failed: 0 }
+    confidence_aggregation: { total: 1, passed: 1, failed: 0 }
+
+  results:
+    - eval_id: "ER-1"
+      status: "PASS"
+      category: "contract_boundary"
+      priority: "blocker"
+      evidence: |
+        Checked two skill boundaries:
+
+        Boundary 1: /specify Step 9b → epic-expectation-crafter.
+        The dispatch contract passes 7 fields: intent_path, stm_base, product_base,
+        stm.input.epics_dir, stm.input.rules_path, stm.output.decision_manifests_dir,
+        task_id. The agent Input Contract table at
+        core/components/agents/epic-expectation-crafter.md declares all 7 with correct
+        required/optional annotations. No undeclared field. No required field missing.
+
+        Boundary 2: epic-expectation-crafter Step 4 → draft-epic-expectation.
+        The agent passes epic_path (required), rules_path (optional), and conditionally
+        decision_manifest_path (optional). The skill Input Contract table at
+        core/components/skills/draft-epic-expectation/SKILL.md declares all three with
+        correct required/optional annotations. No undeclared field. No required field missing.
+
+        The approach.yaml flagged decision_manifest_path as a field to verify. It is
+        declared in the skill's Input Contract as an optional field (row 3 of the Input
+        table). The crafter's prose Step 4 conditions its inclusion on
+        stm.output.decision_manifests_dir being set — consistent with optional status.
+
+    - eval_id: "ER-2"
+      status: "PASS"
+      category: "intent_propagation"
+      priority: "blocker"
+      evidence: |
+        Checked all agent-to-agent handoffs in the enhancement:
+
+        Handoff 1: generate-intent-epics (writes epic YAML files with intent block and
+        expectation stub) → draft-epic-expectation. The skill's Input Contract declares
+        epic_path (required), which points to the file that generate-intent-epics writes.
+        The crafter agent's Step 2 reads each file before invoking the skill. Not an orphan.
+
+        Handoff 2: draft-epic-expectation (writes populated expectation block back into
+        each epic file; writes per-epic decision manifests) → /specify Step 9c. Step 9c
+        explicitly reads "each per-epic decision manifest written by draft-epic-expectation"
+        (specify/SKILL.md line 534). The expectation blocks in the epic files are consumed
+        by validate-intent-epics (Step 10) via epics_dir. Both artifacts have declared
+        downstream consumers.
+
+        No artifact produced by any agent in this enhancement is an orphan with zero
+        declared downstream consumers.
+
+    - eval_id: "ER-3"
+      status: "PASS"
+      category: "agent_boundary"
+      priority: "blocker"
+      evidence: |
+        Checked every agent and skill touched or created by this enhancement for stale
+        boundary statements:
+
+        epic-expectation-crafter (new): NEVER list created fresh and consistent with the
+        new rules — prohibits setting vetted.status: approved (only human does),
+        prohibits hand-authoring expectation blocks inline, prohibits modifying intents[]
+        or failure_conditions[]. No stale contradictions.
+
+        draft-epic-expectation (new): Boundaries section prohibits setting vetted.status:
+        approved, prohibits modifying anything outside expectation block, prohibits
+        applying play-layer generation rules. All consistent with the enhancement's intent.
+
+        generate-intent-epics: Updated NEVER list explicitly prohibits writing
+        success_scenarios at top level and writing the old cause-list field (failure_scenarios).
+        Both prohibitions align with the new rules introduced by this enhancement. No stale
+        contradictions.
+
+        validate-intent-epics: NEVER list updated to match new shape — reads
+        expectation.success_scenarios[], failure_conditions, expectation.recovery. No stale
+        references to the old top-level success_scenarios or failure_scenarios fields.
+
+        Downstream consumers (map-user-flows, generate-screen-inventory,
+        derive-quality-profile-from-epics, infer-epics-from-code): All updated to read
+        expectation.success_scenarios, failure_conditions, and expectation.recovery. Zero
+        instances of a NEVER/MUST NOT statement that contradicts the new field paths.
+
+        specify/SKILL.md: SCE-1 and SCE-4 scenario evals updated to reference
+        expectation.success_scenarios[], expectation.recovery[], and failure_conditions[].
+        No stale references to the removed top-level fields.
+
+        No agent boundary statement found that contradicts any constraint or rule
+        introduced by this enhancement.
+
+    - eval_id: "ER-4"
+      status: "PASS"
+      category: "confidence_aggregation"
+      priority: "blocker"
+      evidence: |
+        ER-1 PASS (no blocker concern). ER-2 PASS (no blocker concern). ER-3 PASS
+        (no blocker concern). Cap condition does not apply. Overall confidence computed
+        from quality across all three per-area assessments:
+
+        - Contract boundaries: fully declared, no missing required fields, no undeclared
+          fields at either boundary checked.
+        - Intent propagation: all artifacts produced by the enhancement have declared
+          downstream consumers; no orphaned outputs.
+        - Agent boundaries: no stale prohibition found in any touched or created agent
+          or skill; all NEVER/MUST NOT statements align with the new rules.
+        - All 9 epic files migrated to new schema shape (intents[], failure_conditions,
+          expectation block with vetted.status: approved).
+        - No failure_scenarios references remain in component source files (grep returned
+          zero hits in skills/, agents/, plays/).
+        - SCE-1 and SCE-4 updated to reference expectation.recovery and failure_conditions.
+
+        overall_confidence: 0.87 — well above the 0.55 cap threshold and the 0.60 gate
+        (C15). No blocker cap applies.
+
+  plaintext_deleted: false

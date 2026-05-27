@@ -1,0 +1,12 @@
+issue:
+  number: 390
+  title: "[ENH] Align product-layer epics with the ICE model — split the intent-epic schema, rewrite generate-intent-epics, and allow multiple intents per epic"
+  labels:
+    - enhancement
+  state: open
+  body_summary: "The product layer (generate-intent-epics skill and intent-epic.yaml schema) has not migrated to the ICE model. Scenarios still bundle into the epic, naming collisions exist for 'intent' and 'constraints', and no expectation-crafter equivalent exists at the product layer. Fix: split schema into intent-epic.yaml + epic-expectation.yaml, rewrite skill, add crafter agent and Tether, allow multiple intents per epic."
+  url: "https://github.com/kapilvirenahuja/garura/issues/390"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "feature"

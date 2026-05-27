@@ -1,0 +1,144 @@
+quality_report:
+  timestamp: "2026-05-27T00:00:00Z"
+  overall: "FAIL"
+  issue: "390"
+  branch: "enhance/390-ice-product-epics"
+
+  gates:
+    - name: build
+      description: "All YAML files parse cleanly (garura has no compiled build step)"
+      status: "PASS"
+      command: "python3 -c \"import yaml; yaml.safe_load(open(f))\" for each file"
+      exit_code: 0
+      evidence: |
+        All 9 epic YAML files parse: PASS
+          .garura/product/scope/epics/epic-agentic-methodology-component-arch-001.yaml
+          .garura/product/scope/epics/epic-agentic-methodology-l2-spec-driven-001.yaml
+          .garura/product/scope/epics/epic-agentic-methodology-l3-intent-driven-001.yaml
+          .garura/product/scope/epics/epic-ai-governance-audit-attribution-001.yaml
+          .garura/product/scope/epics/epic-engineering-experience-cli-slash-commands-001.yaml
+          .garura/product/scope/epics/epic-engineering-experience-first-run-onboarding-001.yaml
+          .garura/product/scope/epics/epic-engineering-experience-ide-integrations-001.yaml
+          .garura/product/scope/epics/epic-engineering-observability-quality-signals-001.yaml
+          .garura/product/scope/epics/epic-work-intelligence-intent-driven-verification-001.yaml
+        Schema file parses: PASS (core/components/memory/standards/schemas/intent-epic.yaml)
+        Reference YAML files parse: PASS
+          core/components/skills/generate-intent-epics/reference/intent.yaml
+          core/components/plays/specify/reference/intent.yaml
+          core/components/plays/specify/reference/expectation.yaml
+
+    - name: lint
+      description: "Component linter (node core/tools/lint-components/index.js) on all new and modified components"
+      status: "FAIL"
+      command: "node core/tools/lint-components/index.js --target core/components --output json"
+      exit_code: 1
+      violations: 1
+      pre_existing_violations: 5
+      evidence: |
+        NEW violation introduced by this PR (1 error, blocker):
+          file: core/components/skills/draft-epic-expectation/SKILL.md
+          rule: structural/frontmatter-parse-error
+          severity: error
+          message: "YAML parse error: bad indentation of a mapping entry at line 3, col 215.
+            The description field contains an unquoted colon — 'read-merge-write: reads' —
+            which YAML interprets as a new key-value pair. The description must be quoted."
+
+        Pre-existing violations in modified files (not introduced by this PR):
+          These 5 errors appear on HEAD (main branch) before this PR's changes, so they
+          are not regressions but are surfaced for completeness:
+          - core/components/skills/derive-quality-profile-from-epics/SKILL.md: missing ## Output (pre-existing)
+          - core/components/skills/generate-intent-epics/SKILL.md: missing ## Output (pre-existing)
+          - core/components/skills/generate-screen-inventory/SKILL.md: missing ## Output (pre-existing)
+          - core/components/skills/map-user-flows/SKILL.md: missing ## Output (pre-existing)
+          - core/components/skills/validate-intent-epics/SKILL.md: missing ## Output (pre-existing)
+
+        Linter-wide summary (full run): 66 errors, 1 warning
+        Of those, 1 error is new (introduced by this PR). All others are pre-existing.
+
+    - name: typecheck
+      description: "SKILL.md frontmatter present and parseable on all new/modified components"
+      status: "FAIL"
+      command: "head -1 SKILL.md | check for ---; python3 yaml.safe_load on frontmatter block"
+      exit_code: 1
+      violations: 1
+      evidence: |
+        New agent frontmatter: PASS
+          core/components/agents/epic-expectation-crafter.md — frontmatter parses; all required
+          fields present (name, domain, role, description, model, tools).
+
+        New skill frontmatter: FAIL
+          core/components/skills/draft-epic-expectation/SKILL.md — frontmatter is present (starts
+          with ---) but does NOT parse as valid YAML. The description value is unquoted and contains
+          a colon in "read-merge-write: reads the existing epic YAML", which YAML parses as a mapping
+          entry rather than a continuation of the description string.
+          Fix: wrap the description value in double quotes in the frontmatter.
+
+        All other modified SKILL.md files: PASS (frontmatter line 1 = "---" confirmed for all 7
+        modified skills and the specify play).
+
+    - name: tests
+      description: "Structural conformance checks on new/modified components and 9 migrated epic files"
+      status: "PASS"
+      command: "grep-based structural checks per T7 and T8 exit gates"
+      exit_code: 0
+      evidence: |
+        Epic migration (T7 exit gate):
+          - intents: [] present in all 9 epics: PASS
+          - expectation: block present in all 9 epics: PASS
+          - expectation.vetted.status: approved in all 9 epics: PASS
+          - failure_conditions: present in all 9 epics: PASS
+          - failure_scenarios: as YAML field — zero hits across all 9 epics: PASS
+            (the string "failure_scenarios" appears only in a comment-line annotation
+            noting the migration, not as a YAML key)
+
+        Downstream consumer update (T8 exit gate):
+          - derive-quality-profile-from-epics: reads expectation.recovery[].direction (PASS)
+          - map-user-flows: reads expectation.success_scenarios and failure_conditions (PASS)
+          - generate-screen-inventory: reads expectation.success_scenarios and failure_conditions (PASS)
+          - infer-epics-from-code: output template uses intents[], failure_conditions, expectation
+            stub with success_scenarios inside expectation block (PASS)
+          - failure_scenarios in core/components/skills/: zero hits (PASS)
+          - failure_scenarios in core/components/agents/: zero hits (PASS)
+          - failure_scenarios in core/components/plays/: zero hits (PASS)
+
+        New component conformance:
+          - epic-expectation-crafter: skill pool exclusively uses draft-epic-expectation (PASS)
+          - epic-expectation-crafter: NEVER sets vetted.status: approved invariant stated (PASS)
+          - draft-epic-expectation: user-invocable: false (PASS)
+          - draft-epic-expectation: output shape includes expectation.success_scenarios[],
+            expectation.recovery[], expectation.vetted.status: pending (PASS)
+
+        specify SKILL.md (T5 exit gate):
+          - Step 9b added referencing epic-expectation-crafter (PASS)
+          - SCE-1 references expectation.success_scenarios[] and expectation.recovery[] (PASS)
+          - SCE-4 references failure_conditions[] and expectation.recovery[] (PASS)
+          - Direct-edit deviation note (#390) present (PASS)
+
+        Cross-file reference check (old field names):
+          - "^intent:" in core/components/ — hits found only in PRE-EXISTING unmodified files
+            (intent-crafter.md, feature-steward.md, product-keeper.md, schemas/intent.yaml —
+            these are the play-layer intent schema and agents, not the epic schema; no changes
+            required or expected to those files by this PR)
+
+        Note: rules docs in core/components/memory/standards/rules/ (architecture.md, scenarios.md,
+        features.md, design.md) still reference the old field names "failure_scenarios" and
+        "success_scenarios" without the expectation. prefix. These were NOT in the impl-context.md
+        scope for T8. However, they are stale references that could mislead future implementors.
+        This is an observation, not a gate failure — the T8 exit gate (grep on skills/agents/plays)
+        was met.
+
+  vision_gate_violations:
+    - gate: lint
+      file: "core/components/skills/draft-epic-expectation/SKILL.md"
+      rule: "structural/frontmatter-parse-error"
+      severity: "error"
+      description: |
+        The SKILL.md description field in the frontmatter block contains an unquoted colon.
+        The text "read-merge-write: reads the existing epic YAML" is interpreted by YAML as a
+        new key "read-merge-write" rather than a continuation of the description value.
+        The fix is a one-line change: wrap the entire description value in double quotes in
+        the frontmatter (lines 3 of the file).
+
+  qp_source: "toolchain-detected (Node.js linter at core/tools/lint-components/index.js)"
+
+  pre_commit_hooks: "none (no .pre-commit-config.yaml, no .husky/)"

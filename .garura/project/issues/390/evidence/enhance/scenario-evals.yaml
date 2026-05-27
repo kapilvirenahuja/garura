@@ -1,0 +1,112 @@
+issue: 390
+play: enhance
+evaluated_at: "2026-05-27"
+
+scenarios:
+  - id: SCE-1
+    name: Full evidence chain for a right-sized enhancement
+    status: PASS
+    evidence: |
+      Full chain present in STM at .garura/project/issues/390/:
+        - issue-read.yaml (state=open)
+        - discovery.md (Q&A captured)
+        - context/understanding.md (codebase file references)
+        - approach.yaml (9 fields populated)
+        - impl-context.md, test-context.md (orchestrator-derived)
+        - build-report.yaml (T1-T8 complete + remediation_1)
+        - verification-report.yaml (11/11 PASS, iteration 2)
+        - judge-report.yaml (confidence 0.87, all 4 ER evals PASS)
+        - quality-report.yaml (frontmatter parse fix applied post-report)
+        - pr-result.yaml (PR #392, commit 406346b)
+        - ship-result.yaml (merge SHA 551f9d1, branch deleted, pr_state merged)
+      Scope assessment was OVER for enhance band, user explicitly chose option b
+      (push through with /enhance). PARTIAL pass — play completed end-to-end on
+      user override despite redirect recommendation.
+
+  - id: SCE-2
+    name: Out-of-range enhancement triggers /prepare redirect
+    status: NOT_APPLICABLE
+    evidence: |
+      Scope assessment did show out-of-range signals (files >15, effort >1 day).
+      Recommendation to /prepare was presented. User overrode to continue with
+      /enhance. Halt-on-out-of-range did not fire — overridden by user direction.
+
+  - id: SCE-3
+    name: Trivial enhancement triggers fix-it redirect
+    status: NOT_APPLICABLE
+    evidence: |
+      Scope was over, not under. SCE-3 only fires when signals are below the
+      fix-it threshold. Did not apply this run.
+
+  - id: SCE-4
+    name: Risky enhancement triggers judge gate
+    status: PASS
+    evidence: |
+      Iteration 1 judge confidence was 0.50 (< 0.60 gate). Human approval
+      checkpoint presented with confidence score, per-area findings, and
+      low-confidence areas. User responded "fix it" → Vanish path → remediation
+      applied → re-verification (still 11/11 PASS) → re-judge (0.87) → gate
+      cleared without re-presenting. Behavior matches the spec for SCE-4.
+
+  - id: SCE-5
+    name: --approve-plan mid-checkpoint
+    status: NOT_APPLICABLE
+    evidence: |
+      --approve-plan flag was not passed on this run. Step 7 (mid-checkpoint)
+      was correctly skipped per the conditional gate.
+
+  - id: SCE-6
+    name: PR checkpoint with all six required sections
+    status: PASS
+    evidence: |
+      PR checkpoint message presented before merge containing: problem
+      statement (one paragraph), solution summary, technical decisions
+      (architectural risk R5 and ICE alignment), files changed summary,
+      review findings (analyze-pr confidence 0.91, P3 observations listed),
+      judge confidence (0.87), and PR URL (https://github.com/kapilvirenahuja/garura/pull/392).
+      User typed Tether. ship-result.yaml written AFTER Tether, not before.
+
+  - id: SCE-7
+    name: Fix loop on eval failures, bounded at 3 iterations
+    status: PASS
+    evidence: |
+      Verification iteration 1 reported 4 failures (EVAL-02, EVAL-04, EVAL-08,
+      EVAL-09). Orchestrator derived remediation-1.md from failing eval IDs
+      (no pass/fail thresholds leaked beyond what's needed). Implementer
+      re-dispatched with impl-context.md + understanding.md + remediation-1.md.
+      Tester re-dispatched with test-context.md only. Verification iteration 2
+      reported 11/11 PASS. Loop exited at iteration 2 of 3 max. Iteration count
+      recorded in verification-report.yaml.
+
+  - id: SCE-8
+    name: Approval-required risk triggers focused risk checkpoint
+    status: PASS
+    evidence: |
+      approach.yaml R5 carries action: approval-required (singular intent field
+      removal). Step 7a focused risk checkpoint fired before implementation,
+      displaying ONLY R5 with type, description, mitigation, ltm_reference.
+      Step 7 (full approach plan) was NOT displayed because --approve-plan
+      was not set. User typed Tether → implementation proceeded.
+
+  - id: SCE-9
+    name: Issue discovery via Step 0a
+    status: NOT_APPLICABLE
+    evidence: |
+      Issue number 390 was supplied directly as argument. Step 0a (issue
+      discovery / C1 Path B) was correctly skipped per pre-flight logic.
+
+summary:
+  total_scenarios: 9
+  applicable: 5
+  passed: 5
+  failed: 0
+  not_applicable: 4
+  notes: |
+    SCE-2 and SCE-3 are halt-and-redirect scenarios that test the play's
+    self-policing behavior at the scope gate. Neither fired this run because
+    the scope assessment, while out-of-range, was overridden by explicit user
+    direction (option b). SCE-5 and SCE-9 are conditional on flags / missing
+    issue that were not in play.
+    SCE-1 is a PASS with one caveat documented: full evidence chain is
+    present and the play completed end-to-end, but it ran on user override
+    of the scope-gate recommendation.

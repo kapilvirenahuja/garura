@@ -1,0 +1,188 @@
+schema_version: "1.0"
+issue: 390
+pr_number: 392
+recorded_at: "2026-05-27T00:00:00Z"
+analysis_mode: pr-scoped
+
+pr:
+  title: "feat(epics): align product-layer epics with the ICE model (#390)"
+  base_branch: main
+  head_branch: enhance/390-ice-product-epics
+  files_changed: 31
+  commit_type: feat
+  commit_types_detected:
+    - feat
+
+context:
+  file_patterns_matched:
+    - agent_definitions  # core/components/agents/*.md (2 files: designer.md updated, epic-expectation-crafter.md new)
+    - skill_definitions  # core/components/skills/**/SKILL.md (11 files changed)
+    - play_definitions   # core/components/plays/specify/SKILL.md + reference YAML
+    - configuration      # *.yaml (epic files, schemas, intent.yaml files)
+    - documentation      # CLAUDE.md
+    - sync_required      # core/components/** changed (21 files)
+  branch_pattern: feature  # enhance/* matches feature pattern; no hotfix/release overrides apply
+
+checklist:
+  must_have:
+    - id: no-conflicts
+      item: "No merge conflicts"
+      trigger: "Universal rule — always applies"
+      status: PASS
+      evidence: "git merge-tree --write-tree main HEAD returned clean tree hash (bdac77c1); no conflict markers detected in diff"
+
+    - id: no-secrets
+      item: "No secrets committed"
+      trigger: "Universal rule — always applies"
+      status: PASS
+      evidence: "Pattern scan of diff additions found no password/secret/api_key/token/private_key patterns with bound values"
+
+    - id: agent-frontmatter
+      item: "New agent (epic-expectation-crafter) has valid frontmatter"
+      trigger: "core/components/agents/epic-expectation-crafter.md added"
+      status: PASS
+      evidence: "Frontmatter present with: name: epic-expectation-crafter, domain: expectation, role: epic-crafter, tools list (Read/Write/Glob/Grep/Skill), description, model: opus"
+
+    - id: agent-boundaries
+      item: "New agent has NEVER/ALWAYS boundaries"
+      trigger: "core/components/agents/epic-expectation-crafter.md added"
+      status: PASS
+      evidence: "## Boundaries section with ### NEVER (3 entries) and ### ALWAYS (6 entries) confirmed in diff"
+
+    - id: skill-frontmatter
+      item: "New skill (draft-epic-expectation) has valid frontmatter"
+      trigger: "core/components/skills/draft-epic-expectation/SKILL.md added"
+      status: PASS
+      evidence: "Frontmatter present with: name, description, user-invocable: false, model: sonnet, allowed-tools: Read/Write/Glob/Grep"
+
+    - id: skill-io
+      item: "New skill defines Input and Output"
+      trigger: "core/components/skills/draft-epic-expectation/SKILL.md added"
+      status: REVIEW
+      evidence: |
+        ## Input section present with documented fields (epic_path, rules_path, decision_manifest_path).
+        No ## Output section heading detected — the skill documents output shape inline (expectation_drafted YAML block) under the Process section rather than a named ## Output section. This is a minor structural deviation from the IO convention. Functional output contract is documented but does not use the conventional heading.
+      severity: P3
+
+    - id: play-frontmatter
+      item: "specify play frontmatter intact after changes"
+      trigger: "core/components/plays/specify/SKILL.md modified"
+      status: PASS
+      evidence: "Diff shows only additions to body sections (Step 9b, 9c, decision surfacing text); frontmatter block not touched"
+
+    - id: play-workflow
+      item: "specify play workflow section present"
+      trigger: "core/components/plays/specify/SKILL.md modified"
+      status: PASS
+      evidence: "Existing ## Workflow section confirmed present (grep returned 1 match); Steps 9b and 9c added within the existing workflow"
+
+    - id: play-checkpoint
+      item: "specify play checkpoint behavior maintained"
+      trigger: "core/components/plays/specify/SKILL.md modified"
+      status: PASS
+      evidence: "Step 9b wires epic-expectation-crafter which surfaces single Tether checkpoint; Step 9c surfaces decision manifest before Step 10 validation. Tether pattern preserved per EVAL-04."
+
+    - id: config-valid
+      item: "YAML configuration syntax valid"
+      trigger: "*.yaml files changed — 9 epic files + 3 schema/intent YAML files"
+      status: PASS
+      evidence: "Python yaml.safe_load passed on epic-agentic-methodology-component-arch-001.yaml, intent-epic.yaml schema, and generate-intent-epics reference/intent.yaml. All 9 migrated epics confirmed as valid YAML per EVAL-06 (validate-intent-epics 0 violations)."
+
+    - id: sync-claude
+      item: "Components synced with /sync-claude after merge"
+      trigger: "21 core/components/** files changed"
+      status: REVIEW
+      evidence: |
+        pr-result.yaml note: 'T9 (sync-claude) deferred — requires /sync-claude slash command, not executable by code-builder. Orchestrator must run /sync-claude after merge.'
+        This is a known deferred action, not a blocking issue — sync happens post-merge by orchestrator. PR is ready to merge; sync must follow.
+      severity: P3
+
+    - id: feat-documented
+      item: "Feature documented in CLAUDE.md (User-Facing Voice rule)"
+      trigger: "feat: commit type"
+      status: PASS
+      evidence: "CLAUDE.md updated with 14-line User-Facing Voice rule (Section 5) referencing canonical rule at core/components/memory/standards/rules/user-facing-voice.md. Schema changes documented in epic YAML migration comments."
+
+  nice_to_have:
+    - id: agent-naming
+      item: "New agent follows {domain}-{role} naming"
+      trigger: "core/components/agents/epic-expectation-crafter.md added"
+      status: PASS
+      evidence: "Name: epic-expectation-crafter. Pattern: {domain=epic}-{role=expectation-crafter}. Consistent with framework convention."
+
+    - id: skill-constraints
+      item: "New skill has constraints section"
+      trigger: "core/components/skills/draft-epic-expectation/SKILL.md added"
+      status: PASS
+      evidence: "## Boundaries section present with 6 explicit constraints (read-merge-write scope, vetted.status approval gate, 1:1 recovery:failure_conditions mapping, no intent-block mutation, epic-case-only scope)"
+
+    - id: play-agent-limit
+      item: "specify play respects L2 agent call limits (≤5)"
+      trigger: "core/components/plays/specify/SKILL.md modified"
+      status: PASS
+      evidence: "Step 9b adds one new agent invocation (epic-expectation-crafter). Existing agent budget not exceeded; new agent is a domain agent (not utility), counted within L2 budget."
+
+    - id: config-documented
+      item: "Configuration changes documented"
+      trigger: "*.yaml files changed"
+      status: PASS
+      evidence: "Every epic YAML carries a # migrated_at comment in its header documenting the schema migration reason (#390 — singular intent→intents[], failure_scenarios→failure_conditions, success_scenarios moved to expectation block)"
+
+    - id: feat-adr
+      item: "Significant feature has ADR"
+      trigger: "feat: commit with 31 files changed — schema-wide migration"
+      status: REVIEW
+      evidence: |
+        No new ADR added. The ICE model adoption at the play layer was not captured in an ADR (existing ADRs top out at 018). This migration extends ICE to the product layer (a substantial architectural decision). An ADR would improve traceability for future reviewers. Not blocking — the PR body documents the decision thoroughly.
+      severity: P4
+
+blocking_issues: []
+
+summary:
+  ready: true
+  confidence_score: 0.91
+  confidence_rationale: >
+    All universal must-have rules pass (no conflicts, no secrets). Both new components
+    (agent + skill) pass frontmatter, boundaries, and IO checks with one minor deviation:
+    draft-epic-expectation documents its output contract inline rather than under a named
+    ## Output heading (P3, non-blocking). The sync-claude deferral is expected and documented.
+    All 9 migrated epics are schema-valid per internal evals. The feat-adr gap is logged
+    as a P4 observation. No blocking issues identified.
+  blocking_count: 0
+  p3_count: 2
+  p4_count: 1
+
+findings:
+  - id: F1
+    severity: P3
+    category: structural
+    item: skill-io
+    description: >
+      draft-epic-expectation/SKILL.md has no ## Output section heading. Output contract
+      is documented inline in the Process section as a YAML block example. The quality
+      rule (skill-io) expects an ## Output section. Functionally complete, but structurally
+      inconsistent with other skills in the codebase.
+    recommendation: "Add ## Output section heading above the output YAML block in SKILL.md."
+    blocking: false
+
+  - id: F2
+    severity: P3
+    category: operational
+    item: sync-claude
+    description: >
+      21 core/components/ files changed. /sync-claude must run post-merge to propagate
+      the new agent and skill to ~/.claude/. Deferred intentionally per pr-result.yaml
+      note — orchestrator owns this step.
+    recommendation: "Run /sync-claude immediately after PR is merged."
+    blocking: false
+
+  - id: F3
+    severity: P4
+    category: traceability
+    item: feat-adr
+    description: >
+      Extending the ICE model to the product-layer epic schema is an architectural
+      decision with framework-wide impact. No ADR was written. The PR body captures
+      the rationale but an ADR would make this decision discoverable long-term.
+    recommendation: "Consider filing an ADR (019) documenting the product-layer ICE extension post-merge."
+    blocking: false

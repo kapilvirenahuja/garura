@@ -1,0 +1,405 @@
+iteration: 2
+total_evals: 11
+passed: 11
+failed: 0
+
+evals:
+  - eval_id: EVAL-01
+    status: PASS
+    evidence: |
+      Parsed core/components/memory/standards/schemas/intent-epic.yaml (421 lines).
+
+      Top-level `intents:` key: PRESENT (line 55) — defined as a list with minimum 1 entry.
+        intents:                               # REQUIRED. List of measurable end-state strings.
+          - <string>
+
+      Top-level `failure_conditions:` key: PRESENT (line 65) — defined as a list of strings.
+        failure_conditions:                    # REQUIRED. Minimum 2 entries. List of strings.
+          - <string>
+
+      `expectation:` key: PRESENT (line 218) — nested map with sub-keys:
+        - expectation.vetted (object with status enum: not_generated | pending | approved)
+        - expectation.success_scenarios (list; lines 227-237; each entry has id/persona/given/then/measure)
+        - expectation.recovery (list; lines 238-254; each entry has id/for_failure_condition/trigger/direction/handoff/derivable_at_l4)
+
+      Singular `intent:` key at root: ABSENT — not present in the schema.
+      Top-level `failure_scenarios:` key: ABSENT — not present in the schema.
+
+      Schema comment (line 221): "not_generated: generate-intent-epics stub"
+      Schema comment (line 222): "pending: draft-epic-expectation has run"
+      Schema comment (line 223): "approved: human approved at Tether"
+
+      All EVAL-01 assertions hold.
+
+  - eval_id: EVAL-02
+    status: PASS
+    evidence: |
+      Inspected core/components/skills/generate-intent-epics/SKILL.md.
+
+      `intents:` key written (lines 88-90): PRESENT — plural list form with example:
+        intents:
+          - "B2B admin reduces onboarding time from 14 days to 5 days..."
+
+      `failure_conditions:` key written (lines 100-105): PRESENT — plain list of strings.
+        Constraint (line 106): "Do NOT write success_scenarios at the top level."
+
+      Top-level `success_scenarios:`: NOT written.
+        Constraint (line 221): "NEVER write success_scenarios at the top level of an epic file."
+
+      Top-level `failure_scenarios:`: NOT written.
+        Constraint (line 222): "NEVER write the removed top-level cause-list field (the old
+        underscore-named field, discontinued in #390)."
+
+      Expectation stub vetted.status (lines 113-122):
+        expectation:
+          vetted:
+            status: not_generated   ← CORRECT: matches schema ("not_generated: generate-intent-epics stub")
+            approved_by: null
+            approved_at: null
+          success_scenarios: []
+          recovery: []
+
+      grep -n "not_generated" SKILL.md output:
+        115:    status: not_generated
+
+      The stub correctly uses not_generated. EVAL-02 PASS.
+
+  - eval_id: EVAL-03
+    status: PASS
+    evidence: |
+      Inspected core/components/skills/draft-epic-expectation/SKILL.md.
+
+      success_scenarios structure (Step 3, lines 53-60): each entry has
+        id: S{N} (sequential, 1-based)
+        persona: named actor from the intent entry
+        given: pre-condition implied by the intent entry's context
+        then: binary-testable observable outcome (forbidden words enforced)
+        measure: concrete binary signal
+
+      Minimum 2 success scenarios required (line 60):
+        "Minimum 2 success scenarios across all intents[] entries."
+
+      recovery structure (Step 4, lines 64-73): exactly one entry per failure_conditions[] entry.
+      Each entry has:
+        id: REC{N} (sequential, 1-based)
+        for_failure_condition: verbatim failure condition string
+        trigger: observable symptom
+        direction: directional recovery guidance (not code)
+        handoff: autonomous | human (per autonomous-vs-human test in rules)
+        derivable_at_l4: boolean
+
+      vetted.status stamping (Step 5, lines 77-79):
+        vetted.status: pending
+        vetted.approved_by: null
+        vetted.approved_at: null
+
+      Boundary (line 155): "One recovery entry per failure condition — no more, no fewer."
+      Line 83: "Never emit vetted.status: approved — only a human sets that at the Tether checkpoint."
+
+      All EVAL-03 structural assertions hold.
+
+  - eval_id: EVAL-04
+    status: PASS
+    evidence: |
+      Inspected core/components/agents/epic-expectation-crafter.md and
+      core/components/plays/specify/SKILL.md.
+
+      Single Tether: the crafter agent does NOT present its own Tether. It generates
+      drafts with vetted.status: pending and returns artifact paths/counts to the play.
+      The play presents ONE Tether at Step 12 covering both blocks together.
+
+      Crafter agent (line 37): "validated by a human at the single Tether checkpoint in /specify."
+      Crafter agent (line 80): "The caller (the /specify play) presents the drafted expectation
+        blocks at the single Tether checkpoint for human validation."
+      Crafter agent boundaries (line 96): "Never set vetted.status: approved — only a human does,
+        at the Tether checkpoint."
+
+      Step 12 checkpoint (specify SKILL.md lines 610-635): ONE checkpoint presenting:
+        - Per-epic one-line summary: id, capability, intent, appetite (intent block)
+        - Failure conditions per epic: {count range} — recovery entries: {count range} (expectation block)
+        - Expectation vetted status: all pending (human approval at this checkpoint)
+
+      Both blocks are visible at Step 12 before the user types Tether.
+      No second separate Tether exists for the expectation block alone.
+
+      Post-Tether write-back (Step 12a, specify SKILL.md lines 636-651):
+        "When the user types Tether at Step 12, the play iterates every *.yaml file under
+        {product_base}/scope/epics/ and sets the following fields on each epic's expectation.vetted block:
+          expectation:
+            vetted:
+              status: approved
+              approved_by: human
+              approved_at: '<ISO 8601 timestamp of the Tether response>'"
+        "Write each updated epic file back atomically (read-merge-write)."
+
+      After Tether: vetted.status is set to approved. Codified in Step 12a. EVAL-04 PASS.
+
+  - eval_id: EVAL-05
+    status: PASS
+    evidence: |
+      Inspected core/components/skills/validate-intent-epics/SKILL.md.
+
+      NEW shape passing behavior (lines 46-67):
+        - intents (list, length >= 1; every entry validated independently)
+        - failure_conditions (list, length >= 2; plain strings, no nested sub-fields)
+        - expectation block present with:
+            expectation.vetted.status == "approved"
+            expectation.success_scenarios >= 2 entries (each with id/persona/given/then/measure)
+            expectation.recovery: exactly one entry per failure_conditions[] entry
+        A new-shape epic with all these fields passes validation.
+
+      OLD shape rejection (lines 69-72) — REMOVED fields check emits unknown_field violation:
+        - "intent (singular string) — removed in #390; replaced by intents[]"
+        - "success_scenarios at top level — removed in #390; now lives under expectation.success_scenarios[]"
+        - "the old top-level cause-list field (removed in #390)"
+
+      Missing `intents` key → violation category: missing_field (line 49).
+      expectation.vetted.status = "pending" or "not_generated" → violation category:
+        expectation_not_vetted (line 59): "expectation.vetted.status must be approved for the
+        epic to be valid; pending generates expectation_not_vetted violation (blocking)"
+
+      Violation summary output (line 144): unknown_field: <int> — covers singular intent,
+        top-level success_scenarios, removed cause-list field.
+
+      Both assertions confirmed: new shape passes; old shape fails with missing_field (for
+      missing intents) and expectation_not_vetted (for non-approved status) and unknown_field
+      (for removed fields present). EVAL-05 PASS.
+
+  - eval_id: EVAL-06
+    status: PASS
+    evidence: |
+      Command: ls .garura/product/scope/epics/*.yaml | wc -l
+      Output: 9
+
+      Files found:
+        1. epic-agentic-methodology-component-arch-001.yaml
+        2. epic-agentic-methodology-l2-spec-driven-001.yaml
+        3. epic-agentic-methodology-l3-intent-driven-001.yaml
+        4. epic-ai-governance-audit-attribution-001.yaml
+        5. epic-engineering-experience-cli-slash-commands-001.yaml
+        6. epic-engineering-experience-first-run-onboarding-001.yaml
+        7. epic-engineering-experience-ide-integrations-001.yaml
+        8. epic-engineering-observability-quality-signals-001.yaml
+        9. epic-work-intelligence-intent-driven-verification-001.yaml
+
+      For all 9 files, grep confirmed:
+        `intents:` key (top-level list): PRESENT in all 9
+        `failure_conditions:` key (top-level list): PRESENT in all 9
+        `expectation.vetted.status: approved`: PRESENT in all 9
+            approved_by: "human-review-migration-#390"
+            approved_at: "2026-05-27"
+
+      Top-level `^intent:` (singular): ABSENT in all 9 (grep returned CLEAN for all)
+      Top-level `^failure_scenarios:`: ABSENT in all 9 (grep returned CLEAN for all)
+      Top-level `^success_scenarios:`: ABSENT in all 9 (grep returned CLEAN for all)
+
+      success_scenarios entries per epic (id prefix S):
+        component-arch: 2, l2-spec-driven: 2, l3-intent-driven: 2,
+        ai-governance: 2, cli-slash-commands: 2, first-run-onboarding: 2,
+        ide-integrations: 2, quality-signals: 2, intent-driven-verification: 2
+
+      recovery entries per epic (id prefix REC) vs failure_conditions count:
+        component-arch: 4 REC / 4 FC — match
+        l2-spec-driven: 3 REC / 3 FC — match
+        l3-intent-driven: 4 REC / 4 FC — match
+        ai-governance: 4 REC / 4 FC — match
+        cli-slash-commands: 4 REC / 4 FC — match
+        first-run-onboarding: 4 REC / 4 FC — match
+        ide-integrations: 3 REC / 3 FC — match
+        quality-signals: 4 REC / 4 FC — match
+        intent-driven-verification: 5 REC / 5 FC — match
+
+      All 9 epics have intents (plural), failure_conditions, expectation.vetted.status: approved,
+      and zero stale top-level fields. Validator would receive status: passed, failed_epics: 0
+      for structural checks. EVAL-06 PASS.
+
+  - eval_id: EVAL-07
+    status: PASS
+    evidence: |
+      Inspected core/components/plays/specify/SKILL.md.
+
+      Condition 1 — crafter agent in Stage 5 (Step 9b):
+        grep -n "epic-expectation-crafter" specify/SKILL.md
+        Line 519: "Agent epic-expectation-crafter discovers all epic YAML files in epics_dir,
+          invokes draft-epic-expectation once per file..."
+        Step 9b is within Phase: Execution — Epic Generation + Validation (Stage 5).
+
+      Condition 2 — decision manifest surfaced:
+        Step 9c (lines 528-538): "Read each per-epic decision manifest written by
+          draft-epic-expectation. Run the tier-batched surfacing flow."
+        "Expect entries for success-scenario-phrasing (D-dee-001) and
+          recovery-handoff-routing (D-dee-003)."
+
+      Condition 3 — SCE evals reference expectation.recovery (not failure_scenarios):
+        SCE-1 (line 705): "...recovery[] (each entry having id/for_failure_condition/trigger/
+          direction/handoff/derivable_at_l4)... The top-level failure_conditions[] list
+          contains the plain cause strings from which recovery[] entries were generated."
+          → references expectation.recovery, NOT failure_scenarios. PASS.
+
+        SCE-4 (line 711): "...AND the expectation.recovery[] list contains exactly one entry
+          per failure_conditions[] entry, each with for_failure_condition, trigger, direction,
+          handoff, and derivable_at_l4 populated."
+          → references expectation.recovery[] and failure_conditions[]. No failure_scenarios. PASS.
+
+      All three EVAL-07 conditions hold.
+
+  - eval_id: EVAL-08
+    status: PASS
+    evidence: |
+      Command run (verbatim):
+        grep -rn "failure_scenarios" core/components/skills/ core/components/agents/ core/components/plays/
+
+      Output: (no output — zero matches)
+
+      Second run without exclusion flags to confirm zero:
+        grep -r "failure_scenarios" core/components/skills/ core/components/agents/ core/components/plays/
+
+      Output: (no output — zero matches)
+
+      The previously failing enrich-capabilities/SKILL.md hit is resolved in iteration 2.
+      The previously failing generate-intent-epics/reference/intent.yaml hit is resolved.
+      The previously failing specify/reference/intent.yaml and reference/expectation.yaml hits are resolved.
+
+      Zero grep hits in component source. EVAL-08 PASS.
+
+  - eval_id: EVAL-09
+    status: PASS
+    evidence: |
+      Command run (verbatim):
+        grep -rn "^intent:" core/components/skills/ core/components/agents/ core/components/plays/
+
+      Output (all hits):
+        core/components/skills/generate-intent-epics/reference/intent.yaml:11:intent: >
+        core/components/skills/manage-features/reference/intent.yaml:11:intent: >
+        core/components/agents/intent-crafter.md:99:intent: <string>
+        core/components/agents/product-keeper.md:96:intent: { goal: "configure capabilities", ... }
+        core/components/agents/feature-steward.md:69:intent: { goal: "draft features spec...", ... }
+        core/components/plays/design/reference/intent.yaml:11:intent: >
+        core/components/plays/capture/reference/intent.yaml:8:intent: >
+        core/components/plays/validate/reference/intent.yaml:1:intent: >
+        core/components/plays/define/reference/intent.yaml:11:intent: >
+        core/components/plays/prepare/reference/intent.yaml:2:intent: >
+        core/components/plays/reap/reference/intent.yaml:12:intent: >
+        core/components/plays/check-drift/reference/intent.yaml:1:intent: >
+        core/components/plays/commit-code/reference/intent.yaml:1:intent: >
+        core/components/plays/distill/reference/intent.yaml:2:intent: >
+        core/components/plays/algorithm/reference/intent.yaml:5:intent: >
+        core/components/plays/decode/reference/intent.yaml:17:intent: >
+        core/components/plays/craft-ice/reference/intent.yaml:10:intent: >
+        core/components/plays/fix-it/reference/intent.yaml:2:intent: >
+        core/components/plays/review-pr/reference/intent.yaml:2:intent: >
+        core/components/plays/arch/reference/intent.yaml:11:intent: >
+        core/components/plays/implement/reference/intent.yaml:1:intent: >
+        core/components/plays/codify/reference/intent.yaml:13:intent: >
+        core/components/plays/enrich/reference/intent.yaml:8:intent: >
+        core/components/plays/enhance/reference/intent.yaml:1:intent: |
+        core/components/plays/start-feature-planning/reference/intent.yaml:1:intent: >
+        core/components/plays/merge-pr/reference/intent.yaml:1:intent: >
+        core/components/plays/ship/reference/intent.yaml:1:intent: >
+        core/components/plays/start-feature/reference/intent.yaml:1:intent: >
+        core/components/plays/create-pr/reference/intent.yaml:1:intent: >
+        core/components/plays/specify/reference/intent.yaml:10:intent: >
+        core/components/plays/refactor/reference/intent.yaml:1:intent: >
+
+      Command run:
+        grep -rn "  intent:" core/components/skills/ core/components/agents/ core/components/plays/ \
+          | grep -v "reference/intent.yaml" | grep -v "reference/expectation.yaml"
+
+      Output:
+        skills/generate-feature-expectation/SKILL.md:82:  intent: <intent_path>
+        skills/draft-play-expectation/SKILL.md:67:  intent: <intent_path>
+        skills/draft-product-spec/schemas/features.yaml:60:    intent:
+        skills/author-intent-yaml/SKILL.md:46:   intent: >
+
+      Classification of all hits (per test-context.md instruction to note framework-layer ICE
+      vs. genuine epic field references):
+
+      ALL hits are framework-layer ICE references or different schema contexts — NONE are
+      the old product epic singular `intent:` field:
+
+        reference/intent.yaml files (all plays + generate-intent-epics + manage-features):
+          These are the play-layer ICE triple files. `intent:` here is the ICE top-level
+          field defining the play's own intent statement — a completely different schema
+          from the product epic schema. This is the canonical framework-layer ICE reference.
+
+        intent-crafter.md (line 99): `intent: <string>` is a schema example inside a section
+          titled "Intent YAML Schema" — the agent authors intent.yaml files. This is the
+          play-layer intent field, not an epic field.
+
+        product-keeper.md (line 96): `intent: { goal: "configure capabilities", ... }` is an
+          agent internal contract object for intent recognition — not a product epic field.
+
+        feature-steward.md (line 69): same pattern — agent internal contract object.
+
+        generate-feature-expectation/SKILL.md (line 82): `intent: <intent_path>` is an input
+          path parameter in the output artifact schema (generated_from.intent = path to the
+          play intent.yaml). Different schema, not an epic field.
+
+        draft-play-expectation/SKILL.md (line 67): same — generated_from.intent = path reference.
+
+        draft-product-spec/schemas/features.yaml (line 60): `intent:` is an IDD field within
+          the features.yaml schema (not the epic schema). The features schema predates the
+          ICE migration and uses its own structure.
+
+        author-intent-yaml/SKILL.md (line 46): the skill that AUTHORS intent.yaml files —
+          naturally contains `intent: >` as an output template. This is the canonical tool
+          for writing ICE intent files.
+
+      Zero genuine product epic singular `intent:` references remain anywhere in component
+      source skills, agents, or plays. All hits are legitimate framework-layer ICE usage.
+      EVAL-09 PASS.
+
+  - eval_id: EVAL-10
+    status: PASS
+    evidence: |
+      Inspected core/components/skills/derive-quality-profile-from-epics/SKILL.md.
+
+      Command: grep -n "failure_scenarios" derive-quality-profile-from-epics/SKILL.md
+      Output: (no output — zero hits)
+
+      Command: grep -n "expectation\.recovery" derive-quality-profile-from-epics/SKILL.md
+      Output:
+        Line 69: mitigation: "<extract from the epic's expectation.recovery[].direction if
+          the warning matches a failure condition; else 'requires design review'>"
+
+      The `expectation.recovery[].direction` path is used as the SOURCE for the risk
+      register's mitigation field. The `mitigation:` key on line 69 is the OUTPUT field
+      name in the quality profile's risk register — it is populated FROM expectation.recovery[].direction,
+      not from a legacy failure_scenarios[].mitigation path.
+
+      No reference to `failure_scenarios[].mitigation` anywhere in the file.
+      The correct path `expectation.recovery[].direction` is present (line 69).
+
+      EVAL-10 PASS: correct path present, old path absent.
+
+  - eval_id: EVAL-11
+    status: PASS
+    evidence: |
+      Inspected core/components/skills/map-user-flows/SKILL.md.
+
+      grep -n "success_scenarios\|failure_scenarios" map-user-flows/SKILL.md output:
+        Line 37: parse each epic's `expectation.success_scenarios` and `failure_conditions`
+          (intent-layer cause strings) plus `expectation.recovery` (recovery paths).
+        Line 49: Walk the `expectation.success_scenarios` and `expectation.recovery` entries.
+        Line 52: Use `expectation.success_scenarios[].persona` as the driving actor.
+        Line 105: source_scenario: EPIC-user-login-001/expectation.success_scenarios[0]
+        Line 181: success_scenarios_total: <int>  # count of expectation.success_scenarios[] across all epics
+        Line 193: NEVER skip a success scenario. Every `expectation.success_scenarios[]` entry...
+        Line 194: NEVER skip a failure condition. Every `failure_conditions[]` entry has at
+          least one recovery flow derived from the matching `expectation.recovery[]` entry.
+
+      All references use `expectation.success_scenarios` (nested path under expectation block).
+      No top-level `success_scenarios` as an epic field. No `failure_scenarios` reference.
+
+      Inspected core/components/skills/generate-screen-inventory/SKILL.md.
+
+      grep -n "success_scenarios\|failure_scenarios" generate-screen-inventory/SKILL.md output:
+        Line 40: parse each epic (we need its `expectation.success_scenarios`, `failure_conditions`,
+          `expectation.recovery`, and `business_rules`).
+
+      One hit — uses `expectation.success_scenarios` (nested path). No top-level
+      `success_scenarios` as an epic field. No `failure_scenarios` reference.
+
+      Both skills use `expectation.success_scenarios` (correct nested path).
+      Neither references top-level `success_scenarios` as an epic field.
+      EVAL-11 PASS.

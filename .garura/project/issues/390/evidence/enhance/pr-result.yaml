@@ -1,0 +1,32 @@
+schema_version: "1.0"
+issue: 390
+recorded_at: "2026-05-27T00:00:00Z"
+
+pr:
+  number: 392
+  url: "https://github.com/kapilvirenahuja/garura/pull/392"
+  title: "feat(epics): align product-layer epics with the ICE model (#390)"
+  state: open
+  base_branch: main
+  head_branch: enhance/390-ice-product-epics
+
+commit:
+  sha: "406346b7af874a7336e5e7e77bd5dd6120ac01b9"
+  short_sha: "406346b"
+  message: "feat(epics): align product-layer epics with the ICE model (#390)"
+  files_changed: 31
+  insertions: 1179
+  deletions: 824
+
+verification:
+  evals_passed: 11
+  evals_total: 11
+  judge_confidence: 0.87
+  judge_threshold: 0.60
+  judge_gate: passed
+
+notes:
+  - "T9 (sync-claude) deferred — requires /sync-claude slash command, not executable by code-builder. Orchestrator must run /sync-claude after merge."
+  - "T8 scope expanded from 4 to 9 consumer files to achieve zero failure_scenarios grep hits."
+  - "User-Facing Voice rule added to CLAUDE.md at user request during play — not in original issue scope."
+  - "evidence.record=false in config — no STM evidence files written by ship sub-plays."

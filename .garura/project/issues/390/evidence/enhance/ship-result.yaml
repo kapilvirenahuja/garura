@@ -1,0 +1,7 @@
+pr_number: 392
+merge_sha: 551f9d172e27843b7bf016ffbd007205d5234ec5
+branch_deleted: true
+pr_state: merged
+base_branch: main
+feature_branch: enhance/390-ice-product-epics
+merged_at: "2026-05-27"
