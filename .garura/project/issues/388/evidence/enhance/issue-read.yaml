@@ -1,0 +1,11 @@
+issue:
+  number: 388
+  title: "Update Intent doctrine: 5 elements → 3, move Success Scenarios to Expectations"
+  labels: []
+  state: "open"
+  body_summary: "The Intent doctrine in Garura needs to reflect the updated model documented in the just-shipped article. The model we have been carrying in Garura describes Intent as five elements: goal, constraints, success scenarios, failure scenarios, con"
+  url: "https://github.com/kapilvirenahuja/garura/issues/388"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: null

@@ -1,0 +1,224 @@
+problem_statement: >
+  The framework's runtime resolver and supporting agent prompts still treat
+  success scenarios as a field of Intent (`intent.yaml`), while every other
+  doctrine surface (philosophy doc, glossary, intent-crafter, schema skills,
+  KB rules, all 26 plays' reference/intent.yaml files) has already moved to
+  the three-element model with scenarios living in the Expectation layer.
+  The result is a doctrinal split: the docs teach three, but a load-bearing
+  agent still reads five. The fix closes that split and codifies the
+  builder-isolation rule as a first-class KB rule.
+
+solution_summary: >
+  Update `intent-resolver.md` so it reads success scenarios from the
+  Expectation artifact, not from intent.yaml. Introduce a new
+  `standards/rules/builder-isolation.md` rule file that codifies the
+  three-element model, the compartmentation contract (builder sees no
+  scenarios), the per-play HITL configuration as the Expectation-vetting
+  governor, and the constraint-vs-failure-condition decision rule with at
+  least one worked example. Cross-reference the new rule from intent-crafter
+  and intent-resolver so the rule is discoverable from the agents that
+  author and consume Intent.
+
+files_to_create:
+  - path: core/components/memory/standards/rules/builder-isolation.md
+    purpose: >
+      Codify the three-element Intent model, the compartmentation contract
+      (builder receives goal + constraints + Context only; validator receives
+      failure conditions + vetted Expectation.success_scenarios), the
+      per-play HITL configuration as the Expectation-vetting governor, and
+      the constraint-vs-failure-condition decision rule ("would knowing this
+      change how the builder writes code?") with at least one worked
+      example. References the originating article and #388.
+
+files_to_modify:
+  - path: core/components/agents/intent-resolver.md
+    change_summary: >
+      Stop reading `scenarios` from intent.yaml. Add an `expectation_path`
+      input field. Read `success_scenarios` from the Expectation artifact at
+      that path for Stage 6 (Scenario Validation) task generation. Update
+      the Identity / Core Principle / Input Contract / Step 1 / Step 2 /
+      Boundaries sections accordingly. Add a one-line cross-reference to
+      `standards/rules/builder-isolation.md`.
+  - path: core/components/agents/intent-crafter.md
+    change_summary: >
+      Add a one-line cross-reference to `standards/rules/builder-isolation.md`
+      under the agent's authoring guidance. No change to the deny-list, the
+      Q&A protocol, or the artifact this agent produces.
+
+connections: >
+  intent-resolver is consumed by every play that resolves an intent.yaml
+  into a task DAG. Changing its input contract is a NON-BREAKING extension
+  (expectation_path is a new optional input — when absent, the resolver
+  emits zero Stage 6 tasks rather than fabricating any from a missing
+  scenarios block). The new rule file is referenced from two agent prompts
+  but is not yet referenced from compiled play SKILL.md files; rebuilding
+  plays is explicitly out of scope per the issue's F6.
+
+tasks:
+  - id: T1
+    description: >
+      Author core/components/memory/standards/rules/builder-isolation.md
+      with sections: (1) The three-element Intent model. (2) The
+      compartmentation contract — builder inputs vs validator inputs.
+      (3) HITL configuration governs Expectation vetting (per-play). (4)
+      Constraint-vs-failure-condition decision rule + one worked example.
+      (5) Pointer-only line that Connections is the subject of a future
+      issue. (6) Provenance footer linking to the StormCaller article and
+      issue #388.
+  - id: T2
+    description: >
+      Modify core/components/agents/intent-resolver.md:
+        (a) Update Description (frontmatter line) and Identity to name the
+            three-element Intent triple plus a separate Expectation input.
+        (b) Update Core Principle bullet "DECOMPOSE intent constraints,
+            failure conditions, and scenarios" to remove "scenarios" from
+            the Intent decomposition and add a separate bullet for
+            decomposing Expectation.success_scenarios when an
+            expectation_path is provided.
+        (c) Extend Input Contract JSON with an "expectation_path" string
+            field (optional). Document that it is the path to the play's
+            Expectation artifact and that Stage 6 tasks derive from
+            Expectation.success_scenarios when present.
+        (d) Update Step 1 "Read Inputs" to drop scenarios from the
+            intent.yaml extraction list and add a step that reads
+            Expectation.success_scenarios from expectation_path when
+            provided.
+        (e) Update Step 2 "Scenarios become Stage 6 tasks" to source
+            scenarios from the Expectation artifact, not intent.yaml.
+        (f) Add a Boundaries entry that the resolver never reads
+            scenarios from intent.yaml.
+        (g) Add a one-line "See also" cross-reference to
+            standards/rules/builder-isolation.md near the top.
+  - id: T3
+    description: >
+      Modify core/components/agents/intent-crafter.md to add a one-line
+      cross-reference to standards/rules/builder-isolation.md, placed where
+      the agent's authoring guidance describes what Intent contains. Do not
+      change the deny-list, the Q&A flow, or the output schema.
+
+evals:
+  - id: E1
+    pass: >
+      core/components/memory/standards/rules/builder-isolation.md exists,
+      is non-empty, and contains all six required sections (three-element
+      Intent model; compartmentation contract; per-play HITL as vetting
+      governor; constraint-vs-failure-condition decision rule with at least
+      one worked example; one-line Connections pointer; provenance footer
+      referencing issue #388).
+    fail: >
+      The file does not exist, OR any of the six required sections is
+      missing or empty.
+  - id: E2
+    pass: >
+      A grep of core/components/agents/intent-resolver.md for the literal
+      substring "scenarios" inside any sentence that names intent.yaml as
+      the source returns zero matches; AND the Input Contract section
+      includes an "expectation_path" field; AND Step 1 reads
+      success_scenarios from the Expectation artifact when expectation_path
+      is provided; AND Step 2 sources Stage 6 tasks from
+      Expectation.success_scenarios.
+    fail: >
+      Any sentence in intent-resolver.md still names intent.yaml as the
+      source for scenarios, OR expectation_path is absent from the Input
+      Contract, OR Step 1/Step 2 still extract or use scenarios from
+      intent.yaml.
+  - id: E3
+    pass: >
+      core/components/agents/intent-resolver.md contains a "See also" line
+      pointing to core/components/memory/standards/rules/builder-isolation.md;
+      AND core/components/agents/intent-crafter.md contains an equivalent
+      pointer to the same file.
+    fail: >
+      Either agent file is missing the cross-reference to
+      builder-isolation.md.
+  - id: E4
+    pass: >
+      No compiled play SKILL.md under core/components/plays/*/SKILL.md and
+      no reference/intent.yaml fixture under
+      core/components/plays/*/reference/intent.yaml was modified by this
+      work.
+    fail: >
+      Any compiled SKILL.md or any reference/intent.yaml fixture shows a
+      modification in this work's diff.
+  - id: E5
+    pass: >
+      The new rule file mentions Connections at most once and only as a
+      one-line pointer that its surface is the subject of a future issue;
+      no other surface in this work's diff adds new Connections doctrine
+      beyond a pointer.
+    fail: >
+      Connections is described, defined, or expanded anywhere in this
+      work's diff beyond a single pointer line.
+  - id: E6
+    pass: >
+      The new rule file does NOT impose a global "human must approve" rule
+      for Expectation vetting; it explicitly names the per-play HITL
+      configuration as the vetting governor and notes that HITL-off plays
+      auto-approve and record it.
+    fail: >
+      The rule file states or implies a global human-approval requirement
+      for Expectation vetting.
+
+risks:
+  - description: >
+      intent-resolver's input contract changes shape (adds expectation_path).
+      Callers that don't pass it must continue to work.
+    mitigation: >
+      Document expectation_path as OPTIONAL. When absent, the resolver
+      emits zero Stage 6 tasks (rather than fabricating any from a missing
+      scenarios block). Update the Input Contract section to state this
+      explicitly.
+    type: technical
+    action: eval-driven
+    ltm_reference: null
+    generated_evals: [E2]
+  - description: >
+      The new rule file could be written to imply that compiled plays MUST
+      carry a runtime SE for scenario-leak detection, which would force
+      rebuilds of every play (out of scope per F6).
+    mitigation: >
+      Phrase the rule as doctrine ("the builder receives X; the validator
+      receives Y"). Add a single sentence that the play compiler is the
+      mechanism by which newly compiled plays carry the scenario-leak SE,
+      and that this issue does not rebuild existing plays.
+    type: architectural
+    action: eval-driven
+    ltm_reference: null
+    generated_evals: [E4]
+  - description: >
+      Connections is doctrinally adjacent. There is a risk the new rule
+      file expands the Connections discussion beyond the pointer scope the
+      issue mandates.
+    mitigation: >
+      Keep Connections to a single one-line pointer. Add an eval (E5)
+      that fails if more than one line of Connections doctrine is added.
+    type: business
+    action: eval-driven
+    ltm_reference: null
+    generated_evals: [E5]
+
+alternatives_considered:
+  - alternative: >
+      Modify only intent-resolver.md without introducing a new rule file.
+    rejection_reason: >
+      Leaves the builder-isolation rule scattered across agent prompts and
+      the StormCaller article with no single canonical surface inside the
+      framework. Future doctrine drift becomes more likely.
+  - alternative: >
+      Author the new rule file and ALSO rebuild every compiled play's
+      SKILL.md to carry a scenario-leak SE.
+    rejection_reason: >
+      Violates F6 (no compiled SKILL.md rebuilds in this scope) and
+      explodes the change surface from 3 files to ~26. The play compiler
+      is the right long-term mechanism to propagate the SE; this issue
+      stays at the doctrine layer.
+  - alternative: >
+      Write the rule directly into docs/philosophy/intent-driven-development.md
+      rather than as a new KB rule file under standards/rules/.
+    rejection_reason: >
+      The philosophy doc is a paradigm narrative, not a machine-checkable
+      rule surface. KB rule files are the canonical home for rules that
+      agents reference and that downstream tooling (linters, validators)
+      can grep. Co-locating with the existing standards/rules/ catalogue
+      keeps the rule discoverable and consistent with how other framework
+      rules are organized.

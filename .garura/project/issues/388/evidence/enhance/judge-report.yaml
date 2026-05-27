@@ -1,0 +1,88 @@
+judge_report:
+  timestamp: "2026-05-26T00:00:00Z"
+  eval_source: "core/components/plays/enhance/reference/evals/solution-rating.yaml"
+  total_evals: 4
+  passed: 4
+  failed: 0
+  pass_rate: "100%"
+  overall: "PASS"
+  overall_confidence: 0.87
+  overall_flag: "high"
+  category_breakdown:
+    contract_integrity: { total: 1, passed: 1, failed: 0 }
+    intent_propagation: { total: 1, passed: 1, failed: 0 }
+    agent_boundaries: { total: 1, passed: 1, failed: 0 }
+    confidence_aggregation: { total: 1, passed: 1, failed: 0 }
+  results:
+    - eval_id: "ER-1"
+      status: "PASS"
+      category: "contract_integrity"
+      priority: "blocker"
+      evidence: >
+        The enhancement adds one new field — `expectation_path` (optional string) — to
+        intent-resolver's Input Contract. No caller skill boundary was found that passes
+        undeclared fields or omits required fields. The field is explicitly documented as
+        optional, so callers that omit it continue to be valid. The two agent files modified
+        (intent-resolver.md, intent-crafter.md) and the one new file
+        (standards/rules/builder-isolation.md) involve no skill dispatch calls, only
+        authoring guidance and schema documentation. No undeclared or missing required fields
+        exist at any skill boundary introduced or touched by this enhancement.
+
+    - eval_id: "ER-2"
+      status: "PASS"
+      category: "intent_propagation"
+      priority: "blocker"
+      evidence: >
+        The enhancement produces one new artifact: builder-isolation.md. Its downstream
+        consumers are explicitly declared — both intent-resolver.md (line 34) and
+        intent-crafter.md (line 35) carry a "See also" cross-reference pointing to
+        `core/components/memory/standards/rules/builder-isolation.md`. The upstream artifact
+        is not an orphan; it has two declared downstream references. The `expectation_path`
+        addition to intent-resolver's input contract gives callers a declared hook to pass
+        the Expectation artifact; the resolver then explicitly reads `success_scenarios` from
+        that path in Step 1 and Step 2. No produced artifact is an orphan with zero downstream
+        consumers.
+
+    - eval_id: "ER-3"
+      status: "PASS"
+      category: "agent_boundaries"
+      priority: "blocker"
+      evidence: >
+        The enhancement introduces one new rule: success scenarios must be read from the
+        Expectation artifact, not intent.yaml. Checked agent boundaries for contradiction:
+        intent-resolver.md Boundaries / NEVER section now explicitly states "Read scenarios
+        from intent.yaml. Success scenarios live in the Expectation artifact at
+        `expectation_path`" (line 214) — consistent with the new rule, not contradicting it.
+        intent-crafter.md Boundaries / NEVER section includes "Author scenarios in the intent
+        — scenarios belong to the Expectation layer" (unchanged, already aligned).
+        builder-isolation.md itself introduces no boundaries that contradict either agent.
+        No stale prohibition found that directly contradicts a rule introduced by this
+        enhancement.
+
+    - eval_id: "ER-4"
+      status: "PASS"
+      category: "confidence_aggregation"
+      priority: "blocker"
+      evidence: >
+        ER-1, ER-2, and ER-3 all passed with no blocker concerns. The cap of ≤0.55 does
+        not apply. Overall confidence of 0.87 reflects clean contract boundaries, full
+        propagation chain, and consistent agent boundaries across all three areas.
+        All three delivered files (builder-isolation.md, intent-resolver.md,
+        intent-crafter.md) are present and match the approach.yaml specification.
+        The work is uncommitted (untracked/unstaged on feature/388-update-intent-doctrine)
+        but the content is fully verified against the evals.
+
+  plaintext_deleted: false
+  notes:
+    - >
+      Line 211 of intent-resolver.md reads "Invent tasks not traceable to intent elements
+      (constraints, failure conditions, scenarios) or workflow stages" — this uses the word
+      "scenarios" in a generic list but does NOT name intent.yaml as a source. The word
+      appears in a "do not invent" prohibition, not a read instruction. Not a violation of E2
+      or ER-1.
+    - >
+      builder-isolation.md contains exactly one Connections mention (line 24), scoped as
+      "its design is the subject of a future issue (TBD)". Passes E5 / ER-3 constraint.
+    - >
+      The files are locally modified but not yet committed. Judge evaluated working-tree
+      content, which is what the builder produced.

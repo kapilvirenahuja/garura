@@ -1,0 +1,227 @@
+name: "Intent doctrine — three elements, scenarios belong to Expectation (#388)"
+
+generated_from:
+  intent: .garura/project/issues/388/specs/intent.yaml
+  context: .garura/project/issues/388/context/context-bundle.md
+
+context_grounding: high
+
+vetted:
+  status: approved
+  approved_by: kapilvirenahuja
+  approved_at: "2026-05-26T17:25:00Z"
+  checkpoint: craft-ice
+  hitl: true
+
+success_scenarios:
+  - id: S1
+    persona: doctrine reader (a contributor learning what Intent is from philosophy docs, the glossary, and agent prompts)
+    given: >
+      They open any doctrine surface that teaches Intent — the IDD philosophy
+      document, the glossary, the intent-crafter agent prompt, the
+      author-intent-yaml skill, or KB rule files under
+      core/components/memory/standards/rules/.
+    then: >
+      They read the same three-element definition of Intent — goal, constraints,
+      failure conditions — and find success scenarios described as belonging to
+      the Expectation layer, generated from intent plus context.
+    measure: >
+      Every doctrine surface listed in the Context bundle (philosophy doc,
+      glossary, intent-crafter, intent-resolver, author-intent-yaml, KB rules)
+      defines Intent as exactly three elements; a grep for "five elements" or for
+      "scenarios" as a slot of Intent returns zero hits across those surfaces;
+      two readers picking any two of those surfaces find no disagreement.
+
+  - id: S2
+    persona: runtime agent that consumes intent.yaml (intent-resolver, building the task DAG for a play)
+    given: >
+      It is handed an intent.yaml that conforms to the clean triple (no
+      scenarios block) plus a pointer to the play's Expectation artifact.
+    then: >
+      It reads goal, constraints, and failure conditions from intent.yaml and
+      reads success scenarios from the Expectation artifact — never from
+      intent.yaml — when generating Stage 6 (scenario validation) tasks.
+    measure: >
+      intent-resolver.md no longer extracts a `scenarios` field from intent.yaml
+      in Step 1; its input contract accepts an `expectation_path`; the Stage 6
+      task-generation step reads `success_scenarios` from that Expectation
+      artifact; a grep of the resolver for "scenarios" inside intent.yaml
+      returns zero matches.
+
+  - id: S3
+    persona: reviewer at the craft-ice / create-play checkpoint, governed by the play's HITL setting
+    given: >
+      A play has just produced a generated Expectation (success_scenarios +
+      recovery) with vetted.status pending, and the play's HITL configuration
+      is either on or off.
+    then: >
+      When HITL is on the reviewer is asked to approve or reject the
+      Expectation; when HITL is off the play auto-approves per its configured
+      policy and records that it did. No play is forced to require human
+      approval simply because the doctrine moved scenarios to Expectation.
+    measure: >
+      Every doctrine surface that describes Expectation generation names the
+      per-play HITL configuration as the vetting governor; no surface states a
+      global "human must approve" rule; a play with HITL off can complete an
+      Expectation cycle without a human gate and the auto-approval is recorded
+      in evidence.
+
+  - id: S4
+    persona: builder agent in any play that consumes a play's intent
+    given: >
+      It is dispatched with a JSON contract assembled from the play's intent
+      and context.
+    then: >
+      Its contract carries goal, constraints, and context only; it never
+      receives failure conditions and never receives success scenarios; the
+      affected plays carry a step eval that scans the builder contract for
+      scenario leakage and fails the step if any leak is found.
+    measure: >
+      Each affected play's compiled SKILL.md documents the
+      builder-isolation rule in its agent contract section; each such play has
+      a step eval that scans the builder JSON contract for scenario fields and
+      asserts none are present; running those evals against a leaking contract
+      reports a failure, against a clean contract reports a pass.
+
+  - id: S5
+    persona: doctrine reader deciding whether a borderline rule belongs in constraints or failure conditions
+    given: >
+      They read the Intent-doctrine section that explains the partition between
+      constraints and failure conditions.
+    then: >
+      They find the decision rule stated plainly — "would knowing this change
+      how the builder writes code?" — together with at least one worked example
+      that walks an item through the rule and lands it on one side.
+    measure: >
+      The decision rule sentence appears verbatim in the canonical doctrine
+      document; at least one worked example is carried inline showing the rule
+      applied to a borderline item; two doctrine surfaces do not give
+      materially different definitions of the partition (verifiable by reading
+      both side by side).
+
+recovery:
+  - id: REC1
+    for_failure: F1
+    trigger: >
+      A doctrine document, agent prompt, schema validator, knowledge-base file,
+      or linter description is found still describing Intent as five elements
+      or listing success scenarios as part of Intent.
+    direction: >
+      Treat any surface that still teaches five elements or scenarios-as-Intent
+      as a doctrine drift; rewrite that surface to teach the three-element
+      model with scenarios named as Expectation, and remove the older framing
+      rather than layer the new one on top.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC2
+    for_failure: F2
+    trigger: >
+      A schema validator accepts a success_scenarios block inside intent.yaml
+      without flagging it as belonging to Expectation.
+    direction: >
+      Any schema validator that walks intent.yaml must reject or warn on a
+      scenarios block, naming Expectation as the correct home; the validator
+      should fail closed on the block rather than silently pass.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC3
+    for_failure: F3
+    trigger: >
+      The abstraction-layer linter fails to flag implementation-pattern tokens
+      that appear inside an Intent block.
+    direction: >
+      The abstraction linter must treat Intent blocks as in-scope for the
+      implementation-token deny-list; when implementation tokens appear inside
+      Intent, the linter must flag them with the same severity it uses for
+      other in-scope surfaces.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC4
+    for_failure: F4
+    trigger: >
+      An agent prompt, contract, or guidance document instructs or permits the
+      builder to read success scenarios.
+    direction: >
+      Agent contracts for builder roles must exclude success scenarios from the
+      builder's input set; any prompt that previously routed scenarios to the
+      builder must be rewritten so scenarios go only to the validator side.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC5
+    for_failure: F5
+    trigger: >
+      An affected play lacks a step eval that scans the builder contract for
+      scenario leakage.
+    direction: >
+      Every affected play must carry a step eval that inspects the builder
+      JSON contract and asserts no success_scenarios fields are present; a
+      missing eval is treated as a doctrine gap to close, not an optional add.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC6
+    for_failure: F6
+    trigger: >
+      A compiled play SKILL.md is rebuilt, or any reference/intent.yaml fixture
+      is modified, as part of this work.
+    direction: >
+      Hold the scope boundary: doctrine surfaces only. If a change would touch
+      a compiled SKILL.md or a reference/intent.yaml fixture, stop and route
+      that change to the deferred follow-on issue rather than absorbing it
+      here.
+    handoff: human
+    derivable_at_l4: false
+
+  - id: REC7
+    for_failure: F7
+    trigger: >
+      Doctrine text about Connections appears anywhere beyond the single
+      one-line pointer to a future issue.
+    direction: >
+      Connections is referenced exactly once, as a one-line pointer that names
+      a future issue; any longer treatment of Connections is removed and held
+      for that future issue.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC8
+    for_failure: F8
+    trigger: >
+      A play whose HITL setting is off is forced by the new doctrine text to
+      require human approval of a generated Expectation.
+    direction: >
+      Doctrine about Expectation vetting must defer to the per-play HITL
+      configuration; remove or rewrite any language that imposes a global
+      "human must approve" requirement, so HITL-off plays continue to
+      auto-approve and record it.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC9
+    for_failure: F9
+    trigger: >
+      A doctrine surface describes Expectation generation without naming the
+      per-play HITL configuration as the vetting governor.
+    direction: >
+      Wherever Expectation generation is described, the per-play HITL
+      configuration is named as the governor that decides whether vetting is
+      human-approved or auto-approved.
+    handoff: autonomous
+    derivable_at_l4: true
+
+  - id: REC10
+    for_failure: F10
+    trigger: >
+      Two doctrine surfaces give materially different definitions of what
+      counts as a constraint versus a failure condition.
+    direction: >
+      Reconcile to a single definition of the constraint-vs-failure-condition
+      partition — the "would knowing this change how the builder writes code"
+      rule — and rewrite any divergent surface to match; carry the worked
+      example consistently.
+    handoff: human
+    derivable_at_l4: false

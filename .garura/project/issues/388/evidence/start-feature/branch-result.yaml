@@ -1,0 +1,12 @@
+result:
+  success: true
+  branch:
+    name: "feature/388-update-intent-doctrine"
+    base_ref: "main"
+    pushed: true
+    tracking: "origin/feature/388-update-intent-doctrine"
+  worktree:
+    used: false
+    path: null
+    reason: "Working tree was clean (only untracked STM files which carry forward automatically)"
+  error: null

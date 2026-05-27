@@ -1,0 +1,42 @@
+timestamp: "2026-05-26T00:00:00Z"
+overall: PASS
+gates:
+  build:
+    status: SKIP
+    reason: >
+      Garura is a markdown-only framework component repo with no compiled
+      artefacts. No package.json build script, no Makefile, no transpilation
+      step exists at the project root. #388 changes are a new rules file and
+      two agent prompt edits — no build surface applies.
+  lint:
+    status: PASS
+    command: "node core/tools/lint-components/index.js"
+    exit_code: 1
+    evidence: >
+      lint-components exits 1 with 65 errors and 1 warning, but all violations
+      are pre-existing. Running the same command with #388 changes stashed
+      (git stash) produces an identical result: 65 errors, 1 warning. None of
+      the three files changed by #388
+      (core/components/agents/intent-crafter.md,
+      core/components/agents/intent-resolver.md,
+      core/components/memory/standards/rules/builder-isolation.md) appear in
+      the violation list. #388 introduces zero new lint violations.
+    pre_existing_violations:
+      errors: 65
+      warnings: 1
+    violations_introduced_by_388:
+      errors: 0
+      warnings: 0
+  typecheck:
+    status: SKIP
+    reason: >
+      No TypeScript source in the project root. The only JS present is the
+      lint-components tool under core/tools/, which has its own package.json
+      but no tsc configuration. #388 does not touch any JS files.
+  tests:
+    status: SKIP
+    reason: >
+      No test suite is configured for the doctrine surfaces that #388 modifies
+      (agent prompts, memory rules files). No package.json test script, no
+      vitest/jest config, and no test directory exist at the project root. The
+      only applicable structural checks are covered by lint-components above.
