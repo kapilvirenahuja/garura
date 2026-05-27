@@ -1,254 +1,119 @@
 # epic-work-intelligence-intent-driven-verification-001.yaml
-# Garura Platform — specify-product Stage 5: Intent Epic
-#
-# Provenance
-# play: specify-product
-# stage: 5-generate-intent-epics
-# agent: product-keeper
-# skill: generate-intent-epics v0.2.0
-# task_id: specify-product-stage-5-generate
-# created_at: 2026-04-18T03:00:00Z
-# reconciled_at: 2026-04-18T06:00:00Z  (WI-F010/F011/F012/F013 all LIVE per user Q4 authoritative decision)
-# migrated_at: 2026-05-27  (schema migration #390 — singular intent→intents[], failure_scenarios→failure_conditions, success_scenarios moved to expectation block)
-# kb_source_file: .garura/product/research/work-intelligence.md
-# enriched_capabilities_path: .garura/product/scope/enriched-capabilities.yaml
+# Garura Platform — Intent Epic (ICE shape per #397)
+# Migrated 2026-05-28 from the post-#390 single-file shape to the four-section ICE shape.
 
 id: "EPIC-work-intelligence-intent-driven-verification-001"
 domain: "work-intelligence"
 capability: "WI-F010"
 
-provenance:
-  source: brief_explicit
-  source_quote: "work-intelligence / intent-driven-verification (WI-F010/F011/F012/F013 all LIVE) — Stage-3 Q4 user inclusion decision"
-  confidence: high
+intent:
+  goal: >
+    A software engineer operating Garura at the intent-driven level (L3) gets intent-traceable
+    step evaluations on every play and scenario evaluations on every capability that pass on
+    canonical traces, and gets the fix-it play closing at least 95% of filed defects without
+    reopening within the same milestone window.
+  constraints:
+    - "The evaluations-creator skill completes evaluation generation for a full play in under 2 minutes."
+    - "The synthesized test suite runs in under 5 minutes for a single capability's test file."
+    - "OWASP ASVS Level 1 baseline — evaluation files and test synthesis outputs are internal artifacts; no external auth surface; test files written to project test directories under the memory folder whitelist."
+    - "WCAG 2.1 AA — applies to any user-interface rendering of test results or root-cause-analysis reports."
+    - "Audit trail — every defect resolution has root-cause-analysis evidence in short-term memory; the fix-it play closing without a root-cause-analysis artifact is a compliance defect."
+    - "Test synthesis covers at least one language ecosystem (Node and TypeScript) at launch; synthesized tests trace to scenarios in the intent epic and are executable out of the box."
+    - "Every defect filed against a Garura play has root-cause-analysis evidence before a fix is proposed; the 5-whys structure in the root-cause-analysis template is enforced by the fix-it play."
+    - "A regression test is mandatory on every fix — no fix-first-test-later; the regression test is required before the fix-it play marks the defect closed."
+    - "Test synthesis requires a compatible test runner (Jest, Vitest, or equivalent) present in the project."
+  failure_scenario:
+    - "A play is rebuilt with a new intent file but the associated evaluations are not regenerated — evaluations pass against the old intent while failing against the new intent."
+    - "A synthesized test has an ambiguous then clause with multiple valid interpretations — the test passes against an implementation that violates the intended scenario."
+    - "The fix-it play proposes a fix that patches the symptom without completing the 5-whys root-cause-analysis — the root cause recurs at the next feature addition."
+    - "A fix is validated by a regression test but a later feature addition changes the same behavior without updating the regression test — the defect resurfaces."
+    - "A repeated defect pattern occurs across multiple issues but the fix-it play treats each occurrence as an independent defect without recognizing the pattern."
 
-problem_statement: >
-  Test suites in AI-assisted development are written against the implementation, not the
-  original user intent — a defect can be fixed in a way that satisfies the code while
-  violating the original scenario that justified the feature. Without intent-driven eval
-  generation, evals drift from intent after an intent.yaml change: false positive passes
-  occur silently because evals validate stale scenarios. Market brief gap 4 confirms: no
-  AI coding tool connects intent behind a feature to test generation in a persistent artifact
-  chain (Linear, Jira, GitHub Projects — none ship spec-to-test continuity). On a solo
-  project with no second reviewer, a shallow RCA that fixes the symptom instead of the
-  root cause produces a defect that reopens at the next release — every recurrence costs
-  the solo contributor full investigation time with no team to share the load.
-
-intents:
-  - >
-    Ensure every Garura play has intent-traceable step evals and every capability has
-    scenario evals that pass on canonical traces, and fix-it closes ≥ 95% of filed defects
-    without reopening within the same milestone window.
-
-intent_lock:
-  locked_at: "2026-04-18T05:00:00Z"
-  intent_hash: "sha256:5774b4291a1af2f679be1a01bb9e044957dea7c38bdf5ea3562e646d92b26826"
-  locked_by: "specify-product-stage-5-validate"
-  immutability_note: >
-    Intent content is immutable after lock. Post-v1 drift requiring a scope change must
-    be handled via a Product-Drift successor epic, not by editing this intent block. The
-    features[] ledger and epic_status rollup below may evolve as capabilities move through
-    PLANNED → PARTIAL → LIVE; the intent itself is sealed.
-
-appetite: "2 weeks"
-
-in_scope:
-  - "WI-F010 Intent-Driven Eval Generation at Advanced depth: every play has step evals generated from intent.yaml; every capability has scenario evals covering success and failure scenarios; all evals pass on canonical traces"
-  - "WI-F011 Test Synthesis at Advanced depth: test synthesis for ≥ 1 language ecosystem (Node/TypeScript) at launch; synthesized tests trace to scenarios in the intent epic; tests are executable out-of-box without configuration"
-  - "WI-F012 RCA Template at Advanced depth: every defect filed against a Garura play has RCA evidence before a fix is proposed; 5-whys structure in RCA template enforced by fix-it"
-  - "WI-F013 Fix-It Loop Closure at Advanced depth: fix-it closes ≥ 95% of filed defects without reopening; mandatory regression test after every fix; loop evidence preserved across sessions"
-  - "Eval coverage sweep: audit all 42+ plays for step eval attachment; fill gaps in eval coverage"
-  - "Scenario eval audit: verify every capability in scope has scenario evals for ≥ 2 success and ≥ 2 failure scenarios"
-
-anti_goals:
-  - "Mutation testing — Advanced/Enterprise depth supplementary signal; post-v1; planned enhancement for coverage masking detection"
-  - "Cross-defect correlation and pattern library — Advanced depth for WI-F013; post-v1; defect-history correlation is a signal-driven (L4) feature"
-  - "Fleet-wide fix loop across multiple projects — Enterprise depth; post-v1 enterprise milestone"
-  - "Test synthesis for languages other than Node/TypeScript at launch — multi-language support is post-v1; v1 ships ≥ 1 language ecosystem"
-  - "Automated scenario generation from implementation (reverse-synthesis) — intent must drive tests, not the reverse; reverse-synthesis violates the intent-first principle"
-
-must_not_break:
-  - "EPIC-agentic-methodology-l3-intent-driven-001 — intent epics generated in Stage 5 are the source material for eval generation; changes to the epic schema that remove or rename scenario fields break eval generation"
-  - "EPIC-agentic-methodology-l2-spec-driven-001 — spec-lock gate and check-drift produce the locked specs that evals validate against; eval generation depends on the spec being locked and stable"
-  - "Existing fix-it play behavior — WI-F013 fix-it loop closure hardening must not regress the existing RCA workflow for defects already filed"
-
-foundation_investment: false
-
-features:
-  - id: "WI-F010"
-    name: "Intent-Driven Eval Generation"
-    status: "LIVE"
-    delivered_at: "2026-03-05"
-    evidence:
-      - path: "core/components/plays/create-play/"
-        type: "play"
-      - path: "core/components/skills/evals-creator/"
-        type: "skill"
-    delta_remaining: null
-    intent_fit_rationale: "Delivers the step-eval and scenario-eval generation that is the lead target of this intent."
-  - id: "WI-F011"
-    name: "Test Synthesis"
-    status: "LIVE"
-    delivered_at: "2026-04-10"
-    evidence:
-      - path: "core/components/plays/prepare-epic/"
-        type: "play"
-      - path: "core/components/plays/implement-epic/"
-        type: "play"
-      - path: "core/components/plays/validate-epic/"
-        type: "play"
-    delta_remaining: null
-    intent_fit_rationale: "Synthesized tests that trace to scenarios are delivered through the prepare-epic / implement-epic / validate-epic pipeline, completing the intent-to-test chain named in this epic's intent."
-  - id: "WI-F012"
-    name: "RCA Template (5-whys)"
-    status: "LIVE"
-    delivered_at: "2026-04-12"
-    evidence:
-      - path: "core/components/plays/fix-it/"
-        type: "play"
-      - path: "core/components/plays/enhance/"
-        type: "play"
-      - path: "core/components/memory/standards/rca-5-whys.md"
-        type: "standard"
-    delta_remaining: null
-    intent_fit_rationale: "RCA is now a first-class phase in both fix-it and enhance plays with the 5-whys template enforced before any fix or enhancement is proposed — the substrate that makes the 95% non-reopen target achievable."
-  - id: "WI-F013"
-    name: "Fix-It Loop Closure"
-    status: "LIVE"
-    delivered_at: "2026-02-28"
-    evidence:
-      - path: "core/components/plays/fix-it/"
-        type: "play"
-      - path: ".garura/project/issues/"
-        type: "artifact-substrate"
-    delta_remaining: null
-    intent_fit_rationale: "Directly delivers the ≥ 95% non-reopen target and mandatory regression-test discipline in this intent."
-
-epic_status:
-  live_count: 4
-  partial_count: 0
-  planned_count: 0
-  delivered_pct: 100
-  total_features: 4
-
-failure_conditions:
-  - "A play is rebuilt with a new intent.yaml version but the associated evals are not regenerated, causing evals to pass against the old intent while failing against the new intent"
-  - "A synthesized test has an ambiguous then clause (multiple valid interpretations), causing the test to pass against an implementation that violates the intended scenario"
-  - "fix-it proposes a fix that patches the symptom without completing the 5-whys RCA, causing the root cause to recur at the next feature addition"
-  - "A fix is validated by a regression test but a later feature addition changes the same behavior without updating the regression test, causing the defect to resurface"
-  - "A repeated defect pattern occurs across multiple issues but fix-it treats each occurrence as an independent defect without recognizing the pattern"
-
-constraints:
-  performance:
-    value: "evals-creator completes eval generation for a full play in < 2 minutes; synthesized test suite runs in < 5 minutes for a single capability's test file"
-    source_for_quantification:
-      source: kb_default
-      source_reference: "2-minute eval generation derived from developer create-play --rebuild workflow threshold; 5-minute test run derived from solo-dev CI threshold"
-      user_grounded: true
-      user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
-  security:
-    value: "OWASP ASVS Level 1 — eval files and test synthesis outputs are internal artifacts; no external auth surface; test files written to project test directories under STM whitelist rules"
-    source_for_quantification:
-      source: profile_nfr
-      source_reference: "profile.security_level=elevated maps to OWASP ASVS Level 1 for internal test-generation surfaces"
-  accessibility:
-    value: "WCAG 2.1 AA — eval output and fix-it reports are CLI text surfaces; AA constraint inherited for any UI rendering of test results or RCA reports"
-    source_for_quantification:
-      source: profile_nfr
-      source_reference: "profile.audience includes software-engineer; WCAG 2.1 AA is the org-wide baseline"
-  compliance:
-    - value: "audit-trail — every defect resolution must have RCA evidence in STM; fix-it closes without an RCA artifact is a compliance defect"
-      source_for_quantification:
-        source: profile_nfr
-        source_reference: "profile.compliance.categories includes 'audit-trail'; WI-F012 RCA evidence is part of the audit trail for production defects"
-
-business_rules:
-  - "Mandatory for L3+ — every play must have step evals generated from intent.yaml before the play ships (WI-F010)"
-  - "Mandatory for L3+ with test automation — synthesized tests must trace to scenarios; no test without a traceable scenario (WI-F011)"
-  - "Mandatory for L3+ production systems — every defect resolution goes through structured RCA before a fix is proposed (WI-F012)"
-  - "Mandatory (never excludable) — fix-it loop closure is required for every defect; the fix-it play is the only approved path for defect resolution (WI-F013)"
-  - "Regression test is mandatory on every fix — no fix-first-test-later; regression test is required before fix-it marks the defect as closed (WI-F013)"
-  - "5-whys structure in RCA template — fix-it enforces RCA depth before proposing any fix; shallow RCA is a blocking failure"
-
-hypothesis: >
-  We believe that ensuring every Garura play has intent-traceable step evals and scenario
-  evals for software engineers operating at L3 delivery ambition will result in evals passing
-  on canonical traces for 100% of plays with attached evals and fix-it closing ≥ 95% of
-  defects without reopening. We will know this is true when evals-creator exits 0 with full
-  coverage for every play in a 30-day window and the defect reopen rate measured by the
-  issue tracker stays below 5%.
-
-assumptions_requiring_validation:
-  - "Test synthesis for Node/TypeScript produces tests that are executable out-of-box on the Garura codebase — this assumes the synthesized tests use standard Node test runner conventions; non-standard runner configurations would require additional adapter work"
-  - "evals-creator can generate step evals for all 42+ existing plays without requiring manual scenario annotation — plays that lack explicit scenario declarations in their intent.yaml cannot be covered by automated eval generation"
-  - "fix-it's 95% non-reopen rate is achievable with 5-whys RCA enforcement — if root causes require architectural changes that are deferred, the defect will reopen regardless of RCA depth"
-
-dependencies:
-  - "Node/TypeScript test runner compatibility — WI-F011 test synthesis requires a compatible test runner (Jest, Vitest, or equivalent) present in the project"
-
-depends_on:
-  - "EPIC-agentic-methodology-l3-intent-driven-001"
-
-uses_mocks: false
-
-kb_source:
-  capability: "WI-F010"
-  rules_applied:
-    - "WI-F010 mandatory-conditional: any L3+ play; every play has step evals generated from intent.yaml"
-    - "WI-F011 mandatory-conditional: test automation exists; synthesized tests trace to scenarios"
-    - "WI-F012 mandatory-conditional: production systems; every defect has RCA evidence"
-    - "WI-F013 mandatory-default: never excludable; fix-it loop closure required for every defect"
-    - "5-whys RCA structure enforced by fix-it before fix proposal"
-    - "mandatory regression test: no fix without regression test linked in STM"
-  experiential_warnings:
-    - "Fixing symptom before completing RCA — fix-it is designed to block this"
-    - "Ambiguous scenario authoring that produces passing-but-wrong synthesized tests"
-    - "Skipping RCA for 'quick fixes' — quick fixes without RCA are the primary source of reopened defects"
-
-expectation:
+expectations:
   vetted:
     status: approved
-    approved_by: "human-review-migration-#390"
-    approved_at: "2026-05-27"
-  success_scenarios:
+    approved_by: "human-review-migration-#397"
+    approved_at: "2026-05-28"
+  success_scenario:
     - id: S1
-      persona: "software engineer building or rebuilding any Garura play with a valid intent.yaml and a locked epic"
-      given: "evals-creator runs as part of /create-play --build"
-      then: "a step eval file exists for every play step and a scenario eval file exists for every success and failure scenario in the intent, with all evals passing on their canonical traces"
-      measure: "evals-creator exit code 0; step eval file count equals play step count in intent.yaml; scenario eval count equals success_scenario count + failure_condition count from the epic; all evals pass when run against the canonical play trace captured at build time"
+      persona: "software engineer building or rebuilding any Garura play with a valid intent file and a locked epic"
+      given: "the evaluations-creator runs as part of the play build step"
+      then: "a step-evaluation file exists for every play step and a scenario-evaluation file exists for every success and failure scenario in the intent, with all evaluations passing on their canonical traces."
+      measure: "Evaluations-creator exit code 0; step-evaluation file count equals play step count in the intent file; scenario-evaluation count equals success scenario count plus failure scenario count from the epic; all evaluations pass against the canonical play trace captured at build time."
     - id: S2
-      persona: "software engineer who has filed a defect against a Garura play using the garura:capture workflow"
-      given: "fix-it completes the RCA-driven fix"
-      then: "a regression test is linked to the defect in STM and the fix does not reopen within the same milestone window in ≥ 95% of cases"
-      measure: "regression test file exists in STM linked to the defect issue number; fix-it exit code 0; defect reopening rate < 5% measured across all defects closed by fix-it in a 30-day window; tracked via defect reopen events in the issue tracker"
+      persona: "software engineer who has filed a defect against a Garura play using the capture workflow"
+      given: "the fix-it play completes the root-cause-analysis-driven fix"
+      then: "a regression test is linked to the defect in short-term memory and the fix does not reopen within the same milestone window in at least 95% of cases."
+      measure: "Regression test file exists in short-term memory linked to the defect issue number; fix-it play exit code 0; defect reopening rate under 5% measured across all defects closed by the fix-it play in a 30-day window; tracked via defect reopen events in the issue tracker."
   recovery:
     - id: REC1
-      for_failure_condition: "A play is rebuilt with a new intent.yaml version but the associated evals are not regenerated, causing evals to pass against the old intent while failing against the new intent"
-      trigger: "CI reports eval pass on the old intent but the play exhibits changed behavior; or /create-play --rebuild exits without running evals-creator after an intent change"
-      direction: "evals-creator is invoked in /create-play --rebuild alongside the play recompilation; a rebuilt play with unapplied eval updates is a blocking CI failure until evals are regenerated; when triggered, run /create-play --rebuild to force eval regeneration before proceeding"
+      for_failure_scenario: "A play is rebuilt with a new intent file but the associated evaluations are not regenerated — evaluations pass against the old intent while failing against the new intent."
+      trigger: "Continuous integration reports an evaluation pass on the old intent but the play exhibits changed behavior; or the play rebuild step exits without running the evaluations-creator after an intent change."
+      direction: "The evaluations-creator runs in the play rebuild step alongside the play recompilation; a rebuilt play with unapplied evaluation updates is a blocking continuous-integration failure until evaluations are regenerated; when triggered, run the rebuild step to force evaluation regeneration before proceeding."
       handoff: autonomous
       derivable_at_l4: true
     - id: REC2
-      for_failure_condition: "A synthesized test has an ambiguous then clause (multiple valid interpretations), causing the test to pass against an implementation that violates the intended scenario"
-      trigger: "a defect is found in production that was covered by a passing synthesized test; or a code review identifies a test that passes but does not actually verify the intended behavior"
-      direction: "Scenario structure discipline: scenarios.md Rule 1 (given/when/then format with binary-testable then clauses) prevents ambiguous then clauses at authoring time; scenario review gate before synthesis rejects ambiguous scenarios before tests are synthesized; when triggered, update the scenario's then clause to be unambiguous and re-synthesize the tests"
+      for_failure_scenario: "A synthesized test has an ambiguous then clause with multiple valid interpretations — the test passes against an implementation that violates the intended scenario."
+      trigger: "A defect is found in production that was covered by a passing synthesized test; or a code review identifies a test that passes but does not actually verify the intended behavior."
+      direction: "Scenario structure discipline: the scenarios rule (given, when, then format with binary-testable then clauses) prevents ambiguous then clauses at authoring time; the scenario review gate before synthesis rejects ambiguous scenarios before tests are synthesized; when triggered, update the scenario's then clause to be unambiguous and re-synthesize the tests."
       handoff: human
       derivable_at_l4: false
     - id: REC3
-      for_failure_condition: "fix-it proposes a fix that patches the symptom without completing the 5-whys RCA, causing the root cause to recur at the next feature addition"
-      trigger: "the same defect reopens at the next feature addition; or a code review identifies that the fix addressed the symptom but not the root cause"
-      direction: "fix-it enforces 5-whys RCA before proposing any fix; the RCA template is a required output before fix-it enters the implementation step; a shallow RCA (fewer than 3 why levels) is a blocking failure that requires the developer to deepen the analysis before proceeding; when triggered retroactively, re-open the defect and run a full 5-whys RCA before applying a new fix"
+      for_failure_scenario: "The fix-it play proposes a fix that patches the symptom without completing the 5-whys root-cause-analysis — the root cause recurs at the next feature addition."
+      trigger: "The same defect reopens at the next feature addition; or a code review identifies that the fix addressed the symptom but not the root cause."
+      direction: "The fix-it play enforces 5-whys root-cause-analysis before proposing any fix; the root-cause-analysis template is a required output before the fix-it play enters the implementation step; a shallow root-cause-analysis (fewer than 3 why levels) is a blocking failure that requires the developer to deepen the analysis before proceeding; when triggered retroactively, re-open the defect and run a full 5-whys analysis before applying a new fix."
       handoff: human
       derivable_at_l4: false
     - id: REC4
-      for_failure_condition: "A fix is validated by a regression test but a later feature addition changes the same behavior without updating the regression test, causing the defect to resurface"
-      trigger: "the original defect reopens after a feature addition; or check-drift surfaces a regression test that no longer matches the current implementation"
-      direction: "Regression test linked to defect in STM; check-drift includes regression test staleness detection; any merge that touches the same code paths as a linked regression test triggers a review flag; when triggered, update the regression test to cover the new behavior and re-run to verify the fix still holds"
+      for_failure_scenario: "A fix is validated by a regression test but a later feature addition changes the same behavior without updating the regression test — the defect resurfaces."
+      trigger: "The original defect reopens after a feature addition; or drift detection surfaces a regression test that no longer matches the current implementation."
+      direction: "The regression test is linked to the defect in short-term memory; drift detection includes regression-test staleness detection; any merge that touches the same code paths as a linked regression test triggers a review flag; when triggered, update the regression test to cover the new behavior and re-run to verify the fix still holds."
       handoff: human
       derivable_at_l4: false
     - id: REC5
-      for_failure_condition: "A repeated defect pattern occurs across multiple issues but fix-it treats each occurrence as an independent defect without recognizing the pattern"
-      trigger: "a developer or reviewer notices the same root cause appearing in multiple closed defects; or a pattern analysis reveals multiple defects with the same 5-whys root"
-      direction: "Defect-history check in fix-it: before beginning RCA, fix-it searches the defect history for similar patterns and surfaces any matches; the pattern library curation is tracked as a post-v1 Advanced enhancement; when triggered manually, search the defect history for similar patterns and consolidate the root cause analysis before applying fixes across all affected issues"
+      for_failure_scenario: "A repeated defect pattern occurs across multiple issues but the fix-it play treats each occurrence as an independent defect without recognizing the pattern."
+      trigger: "A developer or reviewer notices the same root cause appearing in multiple closed defects; or a pattern analysis reveals multiple defects with the same 5-whys root."
+      direction: "A defect-history check inside the fix-it play searches the defect history for similar patterns before beginning root-cause-analysis and surfaces any matches; the pattern library curation is tracked as a post-version-1 advanced enhancement; when triggered manually, search the defect history for similar patterns and consolidate the root cause analysis before applying fixes across all affected issues."
       handoff: human
       derivable_at_l4: false
+
+connections:
+  before_chain:
+    intents:
+      - "EPIC-agentic-methodology-l3-intent-driven-001"
+  after:
+    intents: []
+  peers:
+    intents:
+      - "EPIC-agentic-methodology-l2-spec-driven-001"
+  dependency_check: "All before_chain epics carry expectations.vetted.status: approved and post_implementation.status: delivered before this epic begins."
+
+provenance:
+  source:
+    kind: brief_explicit
+    quote: "work-intelligence / intent-driven-verification (WI-F010/F011/F012/F013 all LIVE) — Stage-3 Q4 user inclusion decision"
+    confidence: high
+  appetite: "2 weeks"
+  business_rules:
+    - "Mandatory for L3 and above — every play has step evaluations generated from its intent file before the play ships."
+    - "Mandatory for L3 and above with test automation — synthesized tests trace to scenarios; no test without a traceable scenario."
+    - "Mandatory for L3 and above production systems — every defect resolution goes through structured root-cause-analysis before a fix is proposed."
+    - "Mandatory (never excludable) — the fix-it loop closure is required for every defect; the fix-it play is the only approved path for defect resolution."
+    - "A regression test is mandatory on every fix — no fix-first-test-later; the regression test is required before the fix-it play marks the defect closed."
+    - "The 5-whys structure in the root-cause-analysis template — the fix-it play enforces root-cause-analysis depth before proposing any fix; a shallow analysis is a blocking failure."
+  kb_source:
+    capability: "WI-F010"
+    rules_applied:
+      - "WI-F010 mandatory-conditional — any L3 and above play; every play has step evaluations generated from its intent file."
+      - "WI-F011 mandatory-conditional — test automation exists; synthesized tests trace to scenarios."
+      - "WI-F012 mandatory-conditional — production systems; every defect has root-cause-analysis evidence."
+      - "WI-F013 mandatory-default — never excludable; fix-it loop closure required for every defect."
+      - "5-whys root-cause-analysis structure enforced by the fix-it play before fix proposal."
+      - "Mandatory regression test — no fix without a regression test linked in short-term memory."
+    experiential_warnings:
+      - "Fixing the symptom before completing root-cause-analysis — the fix-it play is designed to block this."
+      - "Ambiguous scenario authoring that produces passing-but-wrong synthesized tests."
+      - "Skipping root-cause-analysis for quick fixes — quick fixes without root-cause-analysis are the primary source of reopened defects."
+  uses_mocks: false
+  demock_epic_ref: null
+  foundation_investment: false

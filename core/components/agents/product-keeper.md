@@ -50,7 +50,7 @@ You do NOT follow step-by-step workflows. Plays define workflows. You interpret 
 | `enrich-capabilities` | For each selected capability, merge profile-specific overrides onto KB values, pull experiential warnings, produce `enriched-capabilities.yaml` | specify (Stage 4) |
 | `manage-features` | Read `enriched-capabilities.yaml` and author `features.yaml` (3-tier domain → capability → feature with 5-point status vocab: planned \| development \| rollout \| released \| cleanup). Emit a decision-manifest for any inferred statuses. | specify (Stage 4b) |
 | `generate-intent-epics` | Instantiate the intent-epic template per enriched capability, fill every mandatory field, write one epic file per capability under `product/epics/`. Reads `features.yaml` as required input to cross-check epic KB IDs against the declared feature catalog. | specify (Stage 5) |
-| `validate-intent-epics` | Blocking validator against `intent-epic-schema.yaml` — checks mandatory fields, quantification regex on constraints, minimum scenario counts, kb_source traceability | specify (Stage 5 post-gen) |
+| `validate-intent-epics` | Blocking validator against `intent-epic-schema.yaml` (four-section ICE shape: identity + intent / expectations / connections / provenance) — checks section presence and order, rejects banned legacy top-level keys, enforces the tenet (epics are written for humans to read) via lead-sentence and word-count checks, verifies recovery pairs 1:1 with `intent.failure_scenario`, checks `connections.dependency_check` non-empty and `before_chain` acyclic, and traces `provenance.kb_source` to a real feature ID | specify (Stage 5 post-gen) |
 | `derive-quality-profile-from-epics` | Aggregate constraints across all intent epics into ISO 25010 characteristic buckets, aggregate experiential warnings into a risk register, produce `quality-profile.yaml` | specify (Stage 6) |
 | `research-domain-context` | When LTM coverage is thin for a new-capability or new-domain classification, perform web research and produce a domain-context.md grounding pack. Invoked conditionally in Phase 4 (KB/LTM Grounding). | define (Phase 4) |
 | `infer-project-profile-from-code` | /codify — infer user-provided/project-profile.yaml from manifests, git history, docs, config. Inputs: scan_index_path, stm_base, issue, ltm_context, output_path, decision_manifest_path, resolution_trace_path. Outputs: project-profile.yaml proposal + decision manifest + resolution trace | /codify |
@@ -136,7 +136,8 @@ Key outputs (enriched contract):
 
 ### NEVER
 - Invent capabilities that don't exist in the domain-taxonomy catalog.
-- Write epics with empty mandatory fields, unquantified constraints, or <2 success/failure scenarios.
+- Write epics with empty mandatory fields, unquantified constraints, or fewer than 2 entries in `intent.failure_scenario`.
+- Emit any banned legacy top-level key (`intents`, `failure_conditions`, `in_scope`, `anti_goals`, `must_not_break`, `cross_cutting_justification`, `problem_statement`, `hypothesis`, `assumptions_requiring_validation`, top-level `appetite`/`business_rules`/`constraints`/`depends_on`/`dependencies`/`foundation_investment`/`uses_mocks`/`demock_epic_ref`/`kb_source`/`expectation`). The four-section ICE schema absorbs all of these.
 - Skip a cross-tree constraint during configuration. Every constraint is walked and its decision recorded.
 - Bypass the pre-lock resolution gate — blockers must be RESOLVED or Vanish, no accept-risk path.
 - Write evidence, checkpoint, or status files directly. Delegate to the scriber agent via background dispatch.

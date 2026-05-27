@@ -1,277 +1,113 @@
 # epic-agentic-methodology-l3-intent-driven-001.yaml
-# Garura Platform — specify-product Stage 5: Intent Epic
-#
-# Provenance
-# play: specify-product
-# stage: 5-generate-intent-epics
-# agent: product-keeper
-# skill: generate-intent-epics v0.2.0
-# task_id: specify-product-stage-5-generate
-# created_at: 2026-04-18T03:00:00Z
-# reconciled_at: 2026-04-18T06:00:00Z  (AM numbering + AM-F016 added per features.yaml reconciliation)
-# migrated_at: 2026-05-27  (schema migration #390 — singular intent→intents[], failure_scenarios→failure_conditions, success_scenarios moved to expectation block)
-# kb_source_files:
-#   - .garura/product/research/agentic-methodology.md (AM-F013, AM-F014, AM-F015, AM-F016)
-#   - .garura/product/research/work-intelligence.md (WI-F007)
-# enriched_capabilities_path: .garura/product/scope/enriched-capabilities.yaml
+# Garura Platform — Intent Epic (ICE shape per #397)
+# Migrated 2026-05-28 from the post-#390 single-file shape to the four-section ICE shape.
+# Cross-cutting: covers agentic-methodology features AM-F013/F014/F015/F016 plus work-intelligence WI-F007
+# (Epic Decomposition), governed by the agentic-methodology domain per Stage 3 Q2 decision.
 
 id: "EPIC-agentic-methodology-l3-intent-driven-001"
 domain: "agentic-methodology"
 capability: "AM-F013"
 
-cross_cutting_justification: >
-  This epic covers features from agentic-methodology (AM-F013 Intent Compilation,
-  AM-F014 Intent Inference, AM-F015 Scope Auto-Narrowing, AM-F016 Epic Auto-Generation)
-  and work-intelligence (WI-F007 Epic Decomposition). WI-F007 was reclassified from
-  work-intelligence/backlog-lifecycle to agentic-methodology/l3-intent-driven per
-  user Q2 decision in Stage 3 (see scope.yaml capability_classification_changes).
-  The product scope explicitly names "L3 Intent-Driven" as a cross-file capability
-  that encompasses the intent compilation, intent inference, scope narrowing, epic
-  generation pipeline, and epic decomposition as a unified L3 substrate.
-  Single-module-scope does not apply because WI-F007 is methodology substrate (not
-  backlog tooling) and its KB source file is work-intelligence.md while its
-  operational capability is agentic-methodology. Ownership is delineated:
-  AM-F013/F014/F015/F016 are owned by the agentic-methodology domain; WI-F007
-  retains its KB source in work-intelligence.md but is governed by this epic.
+intent:
+  goal: >
+    A software engineer or product manager operating Garura at the intent-driven level (L3) gets
+    every intent epic produced by a spec run through schema validation on the first try, with
+    zero blocking violations and no manual epic authoring.
+  constraints:
+    - "Epic generation completes all nine epics within 5 minutes."
+    - "Epic validation completes the full batch within 2 minutes."
+    - "OWASP ASVS Level 1 baseline — epic files are internal artifacts; no external auth surface; files land in the project memory folder whitelist."
+    - "WCAG 2.1 AA — applies to any user-interface rendering of epic content."
+    - "Audit trail — every spec run produces a decision manifest capturing every inferred decision with a tier rationale; zero silent resolutions."
+    - "Intent files reject placeholder tokens — quantification regex must pass on all constraint fields."
+    - "Every cross-tree constraint is walked and recorded — non-firing constraints are recorded with their non-firing reason; zero cross-tree constraints skipped."
+  failure_scenario:
+    - "The intent schema accepts a placeholder token in a mandatory field — downstream plays receive hollow artifacts with placeholder values leaking into plans and designs."
+    - "A cross-tree constraint references a feature identifier not found in any domain file — scope auto-narrowing fails with an orphan-reference error and the spec run stalls with no clear recovery path."
+    - "A generated epic is missing a mandatory field — the pipeline blocks at the spec validation stage and requires manual inspection to identify the specific field."
+    - "A generated epic points its capability identifier at a feature that has been deprecated or renamed in the domain catalog — the audit trail from epic back to KB feature is severed."
 
-provenance:
-  source: brief_explicit
-  source_quote: "agentic-methodology / l3-intent-driven (PARTIAL → MOSTLY LIVE after WI-F007 inclusion) — Stage-3 user input + Q2"
-  confidence: high
-
-problem_statement: >
-  Even teams using spec-driven methods hand-author epics that drift from their KB capability
-  definitions — missing cross-tree constraints, using TBD placeholder values, and producing
-  shallow scenarios that fail downstream validation. Without intent compilation (AM-F013),
-  intent inference (AM-F014), scope auto-narrowing with explicit constraint walking (AM-F015),
-  and capability-to-epic automation (AM-F016 + WI-F007), every specify-product run relies on
-  manual selection that misses constraints and produces shallow epics. Market brief gap 4
-  confirms: no AI coding tool connects the intent behind a feature to test generation in
-  a persistent artifact chain. The concrete failure: a constraint referencing an unknown
-  feature ID causes configure-capabilities to block with no clear recovery path.
-
-intents:
-  - >
-    Ensure 100% of specify-product runs produce intent epics that pass validate-intent-epics
-    with zero blocking violations on the first run, eliminating manual epic authoring for
-    software engineers and product managers operating at L3 delivery ambition.
-
-intent_lock:
-  locked_at: "2026-04-18T05:00:00Z"
-  intent_hash: "sha256:2e55c1e1644c06d13682de5257e43eeb6bcd22f931d0e279a00d28aeb94ae546"
-  locked_by: "specify-product-stage-5-validate"
-  immutability_note: >
-    Intent content is immutable after lock. Post-v1 drift requiring a scope change must
-    be handled via a Product-Drift successor epic, not by editing this intent block. The
-    features[] ledger and epic_status rollup below may evolve as capabilities move through
-    PLANNED → PARTIAL → LIVE; the intent itself is sealed.
-
-appetite: "2 weeks"
-
-in_scope:
-  - "AM-F013 Intent Compilation at Advanced depth: /create-play compiles intent.yaml into executable plays; every Garura play is a compiled artifact from its reference/intent.yaml"
-  - "AM-F014 Intent Inference at Advanced depth: intent-crafter/resolver agents produce schema-valid intent.yaml on ≥ 95% of runs; no TBD placeholders in mandatory fields"
-  - "AM-F015 Scope Auto-Narrowing at Advanced depth: configure-capabilities produces scope.yaml with complete constraint_trace on 100% of specify-product Stage 3 runs; every CTC walked and its decision recorded"
-  - "AM-F016 Epic Auto-Generation at Advanced depth: generate-intent-epics instantiates one schema-valid epic per enriched capability; 100% of generated epics pass validate-intent-epics"
-  - "WI-F007 Epic Decomposition at Advanced depth: each enriched capability produces exactly one intent epic traceable to a real KB feature ID; every epic has ≥ 2 success scenarios + ≥ 2 failure conditions"
-  - "Quantification regex enforcement on all constraint fields in generated epics"
-  - "Cross-tree constraint walk completeness — zero CTCs skipped; every constraint recorded in constraint_trace including non-firing constraints"
-
-anti_goals:
-  - "Enterprise intent history or learned routing — requires security_level=high or critical; post-v1 L4/L5 roadmap horizon"
-  - "Automated upstream intent-propagation to downstream test cases — detection (check-drift) not propagation; propagation automation is a post-v1 planned gap"
-  - "Persona-specific intent decomposition — multi-persona epic splitting is post-v1; v1 produces one epic per capability regardless of persona count"
-  - "Real-time intent inference during development (as opposed to at specify-product time) — post-v1 signal-driven feature"
-
-must_not_break:
-  - "EPIC-agentic-methodology-component-arch-001 — three-layer hierarchy and evidence substrate; this epic adds automation layers on top of the substrate"
-  - "EPIC-agentic-methodology-l2-spec-driven-001 — spec-lock gate and check-drift; the L3 epic generates the artifacts that the L2 gate validates; the gate must remain functional"
-  - "Existing scope.yaml constraint_trace format — downstream skills (enrich-capabilities, generate-intent-epics, derive-quality-profile-from-epics) parse this format; field renames are breaking changes"
-
-foundation_investment: false
-
-features:
-  - id: "AM-F013"
-    name: "Intent Compilation"
-    status: "LIVE"
-    delivered_at: "2026-02-15"
-    evidence:
-      - path: "core/components/plays/create-play/"
-        type: "play"
-      - path: "core/components/memory/standards/schemas/intent-epic.yaml"
-        type: "schema"
-      - path: "core/components/plays/{play}/reference/intent.yaml"
-        type: "artifact"
-    delta_remaining: null
-    intent_fit_rationale: "Intent Compilation is the substrate — every play that participates in the L3 pipeline is a compiled intent artifact; without it, none of the rest works."
-  - id: "AM-F014"
-    name: "Intent Inference"
-    status: "PARTIAL"
-    delivered_at: null
-    evidence:
-      - path: "core/components/agents/intent-crafter.md"
-        type: "agent"
-      - path: "core/components/agents/intent-resolver.md"
-        type: "agent"
-    delta_remaining: "Intent inference produces schema-valid intent.yaml but still requires user grounding for mid/low confidence decisions; cross-play intent matching (the L4 boundary) not yet shipped; full ≥ 95% unaided pass rate not yet measured over 30-day window."
-    intent_fit_rationale: "Inference is the upstream of the epic generation pipeline; without it, manual epic authoring persists."
-  - id: "AM-F015"
-    name: "Scope Auto-Narrowing"
-    status: "LIVE"
-    delivered_at: "2026-03-20"
-    evidence:
-      - path: "core/components/skills/configure-capabilities/"
-        type: "skill"
-      - path: "core/components/memory/knowledge/domain/_cross-tree-constraints.yaml"
-        type: "kb"
-      - path: ".garura/product/scope/scope.yaml"
-        type: "artifact"
-    delta_remaining: null
-    intent_fit_rationale: "Delivers the CTC walk and constraint_trace completeness target in this epic's intent."
-  - id: "AM-F016"
-    name: "Epic Auto-Generation"
-    status: "LIVE"
-    delivered_at: "2026-04-10"
-    evidence:
-      - path: "core/components/skills/generate-intent-epics/"
-        type: "skill"
-      - path: "core/components/skills/validate-intent-epics/"
-        type: "skill"
-      - path: ".garura/product/scope/epics/"
-        type: "artifact"
-    delta_remaining: null
-    intent_fit_rationale: "Directly produces the one-epic-per-capability output that validate-intent-epics must pass — the core deliverable of this intent."
-  - id: "WI-F007"
-    name: "Epic Decomposition"
-    status: "LIVE"
-    delivered_at: "2026-04-10"
-    evidence:
-      - path: "core/components/skills/generate-intent-epics/"
-        type: "skill"
-      - path: "core/components/memory/formats/intent-epic-schema.yaml"
-        type: "schema"
-    delta_remaining: null
-    intent_fit_rationale: "Decomposition enforces the ≥ 2 success scenario + ≥ 2 failure condition floor per capability, delivering intent-epic completeness."
-
-epic_status:
-  live_count: 4
-  partial_count: 1
-  planned_count: 0
-  delivered_pct: 80
-  total_features: 5
-
-failure_conditions:
-  - "Intent schema accepts TBD as a placeholder in mandatory fields, allowing downstream plays to receive hollow artifacts with TBD values leaking into plans and designs"
-  - "A cross-tree constraint references a feature ID not found in any domain-taxonomy file, causing scope auto-narrowing to fail with an orphan-reference error"
-  - "A generated epic is missing a mandatory field, blocking the pipeline at Stage 5 and requiring manual inspection to identify the specific field"
-  - "A generated epic's kb_source.capability points to a feature ID deprecated or renamed in the domain-taxonomy, severing the audit trail from epic to KB feature"
-
-constraints:
-  performance:
-    value: "generate-intent-epics completes all 9 epics in < 5 minutes; validate-intent-epics full batch completes in < 2 minutes"
-    source_for_quantification:
-      source: kb_default
-      source_reference: "derived from solo-dev usability threshold — single specify-product run should complete in < 15 minutes total across all stages"
-      user_grounded: true
-      user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
-  security:
-    value: "OWASP ASVS Level 1 — epic YAML files are internal artifacts; no external auth surface; files written to STM folder whitelist paths only"
-    source_for_quantification:
-      source: profile_nfr
-      source_reference: "profile.security_level=elevated maps to OWASP ASVS Level 1 for internal artifact-generation surfaces"
-  accessibility:
-    value: "WCAG 2.1 AA — epic content is consumed via YAML files and CLI validator output; AA constraint inherited for any UI rendering of epic content"
-    source_for_quantification:
-      source: profile_nfr
-      source_reference: "profile.audience includes designers and PMs; WCAG 2.1 AA is the org-wide baseline"
-  compliance:
-    - value: "audit-trail — every specify-product run produces a decision-manifest.yaml capturing all inferred decisions with tier-rationale; zero silent resolutions"
-      source_for_quantification:
-        source: profile_nfr
-        source_reference: "profile.compliance.categories includes 'audit-trail'; AG-F005 decision provenance mandatory for L3+"
-
-business_rules:
-  - "Mandatory when delivery_ambition.roadmap_horizon >= L3 (AM-F013) — intent compilation machinery is required for the L3 pipeline"
-  - "Mandatory when delivery_ambition.roadmap_horizon >= L3 (AM-F014) — intent inference is required to produce schema-valid intent.yaml"
-  - "Mandatory for any specify-product run (AM-F015) — scope auto-narrowing is the configure-capabilities execution itself"
-  - "Mandatory for any specify-product run at L3+ (AM-F016) — epic auto-generation is the generate-intent-epics skill execution"
-  - "Mandatory for any L3+ product (WI-F007) — epic decomposition: one intent epic per enriched capability, every field KB-sourced"
-  - "Intent schema: no TBD values — quantification regex must pass on all constraint fields; placeholder tokens are blocking violations"
-  - "Every cross-tree constraint must be walked and recorded — non-firing constraints are recorded with their non-firing reason; zero CTCs skipped"
-
-hypothesis: >
-  We believe that automating intent compilation, intent inference, scope narrowing, and
-  epic generation for software engineers and product managers operating at L3 delivery
-  ambition will result in every specify-product run producing epics that pass
-  validate-intent-epics with zero blocking violations on the first run. We will know
-  this is true when validate-intent-epics exits 0 on the first run for ≥ 95% of
-  specify-product executions in a 30-day window.
-
-assumptions_requiring_validation:
-  - "The enriched-capabilities pipeline produces sufficient structured data for generate-intent-epics to fill every mandatory epic field without user intervention — this assumes the KB research files for all 9 capabilities are complete enough to derive all mandatory fields"
-  - "The constraint_trace format in scope.yaml is stable enough for downstream skills to parse reliably — any format change is a breaking change for enrich-capabilities, generate-intent-epics, and derive-quality-profile-from-epics"
-  - "validate-intent-epics covers all the blocking failure modes that would cause downstream design or implementation stalls — if there are undiscovered validation rules, epics that look valid now may fail later"
-
-dependencies: []
-
-depends_on:
-  - "EPIC-agentic-methodology-l2-spec-driven-001"
-
-uses_mocks: false
-
-kb_source:
-  capability: "AM-F013"
-  rules_applied:
-    - "AM-F013 mandatory-conditional: delivery_ambition.roadmap_horizon >= L3 (Intent Compilation)"
-    - "AM-F014 mandatory-conditional: delivery_ambition.roadmap_horizon >= L3 (Intent Inference)"
-    - "AM-F015 mandatory-default: any specify-product run (Scope Auto-Narrowing)"
-    - "AM-F016 mandatory-default: any specify-product run at L3+ (Epic Auto-Generation)"
-    - "WI-F007 mandatory-conditional: any L3+ product; kb_source in work-intelligence.md"
-    - "no-TBD rule: placeholder tokens are blocking violations in validate-intent-epics"
-    - "constraint_trace completeness: every CTC walked and recorded including non-firing"
-  experiential_warnings:
-    - "Inlining implementation details in intent.yaml"
-    - "Missing profile fields that cross-tree constraints depend on"
-    - "Editing generated epics without re-validating against the schema"
-
-expectation:
+expectations:
   vetted:
     status: approved
-    approved_by: "human-review-migration-#390"
-    approved_at: "2026-05-27"
-  success_scenarios:
+    approved_by: "human-review-migration-#397"
+    approved_at: "2026-05-28"
+  success_scenario:
     - id: S1
-      persona: "software engineer or product manager operating at L3 delivery ambition"
-      given: "a specify-product run for any 9-capability product scope with a valid enriched capabilities file"
-      then: "validate-intent-epics reports 0 blocking violations across all 9 generated epic files on the first run"
-      measure: "validate-intent-epics exits 0 on the first run for ≥ 95% of specify-product executions in a 30-day window, measured by the validate step's exit code recorded in each run's status.json"
+      persona: "software engineer or product manager operating at the intent-driven level (L3)"
+      given: "a spec run for a nine-capability product scope with a valid enriched-capabilities file"
+      then: "the validator reports zero blocking violations across all nine generated epic files on the first run."
+      measure: "Validator exits 0 on the first run for at least 95% of spec runs in a 30-day window — measured by the validation step's exit code recorded in each run's status file."
     - id: S2
-      persona: "software engineer or product manager running specify-product Stage 3"
-      given: "a specify-product Stage 3 run against any product scope with cross-tree constraints defined"
-      then: "scope.yaml contains a constraint_trace section with one decision entry per CTC from the cross-tree-constraints file, including every constraint that did not fire with a documented reason for non-firing"
-      measure: "constraint_trace entry count equals total CTC count from _cross-tree-constraints.yaml; every entry has a non-null decision field; verified by counting entries in the generated scope.yaml against the CTC file's constraint count"
+      persona: "software engineer or product manager running the capability-configuration step"
+      given: "a spec run against any product scope with cross-tree constraints defined"
+      then: "the scope file carries a constraint trace with one decision entry per cross-tree constraint, including every constraint that did not fire and a documented reason for non-firing."
+      measure: "Constraint-trace entry count equals total cross-tree constraint count from the constraints file; every entry has a non-null decision field; verified by counting entries against the constraints file count."
   recovery:
     - id: REC1
-      for_failure_condition: "Intent schema accepts TBD as a placeholder in mandatory fields, allowing downstream plays to receive hollow artifacts with TBD values leaking into plans and designs"
-      trigger: "validate-intent-epics reports placeholder_value violations; design-exp or build-arch artifacts contain TBD-anchored values that fail implementation"
-      direction: "Quantification regex in validate-intent-epics catches any non-numeric constraint value; no-TBD rule catches placeholder tokens across all string fields; pipeline blocks on first violation before downstream consumption"
+      for_failure_scenario: "The intent schema accepts a placeholder token in a mandatory field — downstream plays receive hollow artifacts with placeholder values leaking into plans and designs."
+      trigger: "The validator reports placeholder-value violations; or downstream design and architecture artifacts contain placeholder-anchored values that fail implementation."
+      direction: "The quantification regex in the validator catches any non-numeric constraint value; the no-placeholder rule catches placeholder tokens across all string fields; the pipeline blocks on the first violation before downstream consumption."
       handoff: autonomous
       derivable_at_l4: true
     - id: REC2
-      for_failure_condition: "A cross-tree constraint references a feature ID not found in any domain-taxonomy file, causing scope auto-narrowing to fail with an orphan-reference error"
-      trigger: "configure-capabilities returns orphan_reference error; specify-product Stage 3 stalls with no clear recovery path shown to the user"
-      direction: "validate-kb-extension pre-flight checks every feature ID in every constraint before configure-capabilities runs; any dangling reference is a blocking failure emitted before the constraint walk begins, surfacing the specific missing ID and its referencing constraint"
+      for_failure_scenario: "A cross-tree constraint references a feature identifier not found in any domain file — scope auto-narrowing fails with an orphan-reference error and the spec run stalls with no clear recovery path."
+      trigger: "The capability-configuration step returns an orphan-reference error; the spec run stalls with no clear recovery path shown to the user."
+      direction: "A pre-flight check verifies every feature identifier in every constraint before capability-configuration runs; any dangling reference is a blocking failure surfaced before the constraint walk, naming the specific missing identifier and its referencing constraint."
       handoff: human
       derivable_at_l4: false
     - id: REC3
-      for_failure_condition: "A generated epic is missing a mandatory field, blocking the pipeline at Stage 5 and requiring manual inspection to identify the specific field"
-      trigger: "validate-intent-epics reports missing_field violations with field-level detail; pipeline stalls at Stage 5"
-      direction: "Template completeness check in generate-intent-epics verifies every mandatory field is non-null before the file is written; structured failure emitted with field-level detail if derivation fails, so the cycle-back to generate-intent-epics includes the specific field and its derivation gap"
+      for_failure_scenario: "A generated epic is missing a mandatory field — the pipeline blocks at the spec validation stage and requires manual inspection to identify the specific field."
+      trigger: "The validator reports missing-field violations with field-level detail; the pipeline stalls at the spec validation stage."
+      direction: "The template completeness check inside epic generation verifies every mandatory field is non-null before the file is written; a structured failure with field-level detail is emitted if derivation fails, so the cycle-back to epic generation carries the specific field and its derivation gap."
       handoff: autonomous
       derivable_at_l4: true
     - id: REC4
-      for_failure_condition: "A generated epic's kb_source.capability points to a feature ID deprecated or renamed in the domain-taxonomy, severing the audit trail from epic to KB feature"
-      trigger: "validate-intent-epics reports dangling_kb_source violations; downstream build-arch and design-exp cannot trace architectural decisions back to the KB source"
-      direction: "validate-kb-extension pre-flight verifies all feature IDs in scope.yaml against the current domain files before generate-intent-epics runs; stale IDs are surfaced before epic writing begins, requiring the user to update the domain taxonomy or the capability reference"
+      for_failure_scenario: "A generated epic points its capability identifier at a feature that has been deprecated or renamed in the domain catalog — the audit trail from epic back to KB feature is severed."
+      trigger: "The validator reports dangling kb_source violations; downstream architecture and design steps cannot trace decisions back to the KB source."
+      direction: "The KB-extension pre-flight verifies all feature identifiers in the scope file against the current domain files before epic generation runs; stale identifiers surface before epic writing begins, requiring the user to update the domain catalog or the capability reference."
       handoff: human
       derivable_at_l4: false
+
+connections:
+  before_chain:
+    intents:
+      - "EPIC-agentic-methodology-l2-spec-driven-001"
+  after:
+    intents:
+      - "EPIC-work-intelligence-intent-driven-verification-001"
+  peers:
+    intents: []
+  dependency_check: "All before_chain epics carry expectations.vetted.status: approved and post_implementation.status: delivered before this epic begins."
+
+provenance:
+  source:
+    kind: brief_explicit
+    quote: "agentic-methodology / l3-intent-driven (PARTIAL → MOSTLY LIVE after WI-F007 inclusion) — Stage-3 user input + Q2; cross-cutting scope spans agentic-methodology and work-intelligence per the L3 Intent-Driven product-scope item."
+    confidence: high
+  appetite: "2 weeks"
+  business_rules:
+    - "Mandatory when delivery_ambition.roadmap_horizon is at or above L3 — intent compilation machinery is required for the L3 pipeline."
+    - "Mandatory when delivery_ambition.roadmap_horizon is at or above L3 — intent inference is required to produce a schema-valid intent file."
+    - "Mandatory for any spec run — scope auto-narrowing is the capability-configuration execution itself."
+    - "Mandatory for any spec run at L3 and above — epic auto-generation is the epic-generation skill execution."
+    - "Mandatory for any L3 and above product — epic decomposition produces one intent epic per enriched capability, every field traceable to a KB source."
+    - "Intent schema rejects placeholder values — quantification regex must pass on all constraint fields; placeholder tokens are blocking violations."
+    - "Every cross-tree constraint is walked and recorded — non-firing constraints are recorded with their non-firing reason; zero constraints skipped."
+  kb_source:
+    capability: "AM-F013"
+    rules_applied:
+      - "AM-F013 mandatory-conditional — delivery_ambition.roadmap_horizon at or above L3 (Intent Compilation)."
+      - "AM-F014 mandatory-conditional — delivery_ambition.roadmap_horizon at or above L3 (Intent Inference)."
+      - "AM-F015 mandatory-default — any spec run (Scope Auto-Narrowing)."
+      - "AM-F016 mandatory-default — any spec run at L3 and above (Epic Auto-Generation)."
+      - "WI-F007 mandatory-conditional — any L3 and above product; KB source in work-intelligence."
+      - "No-placeholder rule — placeholder tokens are blocking violations in the validator."
+      - "Constraint-trace completeness — every cross-tree constraint walked and recorded including non-firing."
+    experiential_warnings:
+      - "Inlining implementation details in the intent file."
+      - "Missing profile fields that cross-tree constraints depend on."
+      - "Editing generated epics without re-validating against the schema."
+  uses_mocks: false
+  demock_epic_ref: null
+  foundation_investment: false

@@ -1,6 +1,6 @@
 ---
 name: draft-epic-expectation
-description: "Generate the Expectation block (success_scenarios + recovery) for a product-layer intent epic by reading its intent block and applying the epic-expectation generation rules. Performs a read-merge-write — reads the existing epic YAML (written by generate-intent-epics), populates the stub expectation block, and writes back atomically. Produces expectation block with vetted.status pending — a human approves it at the specify Tether checkpoint."
+description: "Generate the Expectations block (success_scenario + recovery) for a product-layer intent epic by reading its intent block and applying the epic-expectation generation rules. Performs a read-merge-write — reads the existing epic YAML (written by generate-intent-epics), populates the stub expectations block, and writes back atomically. Produces expectations block with vetted.status pending — a human approves it at the specify Tether checkpoint."
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write, Glob, Grep
@@ -8,13 +8,13 @@ allowed-tools: Read, Write, Glob, Grep
 
 # draft-epic-expectation
 
-Generates the Expectation block for a **product-layer intent epic** from its intent triple (`intents[]`, `failure_conditions[]`). The companion to `generate-intent-epics` on the Expectation side of ICE at the product layer.
+Generates the Expectations block for a **product-layer intent epic** from its intent triple (`intent.goal`, `intent.constraints`, `intent.failure_scenario`). The companion to `generate-intent-epics` on the Expectation side of ICE at the product layer.
 
-This skill is the **epic case** — distinct from `draft-play-expectation` (play layer) and `generate-feature-expectation` (runtime feature layer). It reads an epic YAML file that already has the intent block and stub expectation block written by `generate-intent-epics`, populates `success_scenarios` and `recovery`, and writes back atomically.
+This skill is the **epic case** — distinct from `draft-play-expectation` (play layer) and `generate-feature-expectation` (runtime feature layer). It reads an epic YAML file that already has the intent block and stub `expectations:` block written by `generate-intent-epics`, populates `success_scenario` and `recovery`, and writes back atomically.
 
 ## Purpose
 
-Take an epic YAML file's intent block (`intents[]`, `failure_conditions[]`) and produce a complete `expectation:` block — `success_scenarios` and `recovery` — so the intent stays the clean triple while the testable and recoverable parts live in the expectation block. The output is a draft: `vetted.status: pending` until a human approves it at the Tether checkpoint in `/specify`.
+Take an epic YAML file's intent block (`intent.goal`, `intent.failure_scenario`) and produce a complete `expectations:` block — `success_scenario` and `recovery` — so the intent stays the clean triple while the testable and recoverable parts live in the expectations block. The output is a draft: `vetted.status: pending` until a human approves it at the Tether checkpoint in `/specify`.
 
 ## Input
 
@@ -33,42 +33,42 @@ Read the file at `rules_path`. Every decision below — what counts as a success
 ### 2. Read the epic file
 
 Read the full epic YAML at `epic_path`. Locate the intent block fields:
-- `intents[]` — list of intent statements (one per distinct user/outcome)
-- `failure_conditions[]` — plain list of cause strings
+- `intent.goal` — one-sentence user-observable end-state (string)
+- `intent.failure_scenario` — plain list of failure cause strings (≥ 2 entries)
 
-Also locate the stub expectation block (written by `generate-intent-epics`):
+Also locate the stub expectations block (written by `generate-intent-epics`):
 ```yaml
-expectation:
+expectations:
   vetted:
     status: pending
     approved_by: null
     approved_at: null
-  success_scenarios: []
+  success_scenario: []
   recovery: []
 ```
 
 If the stub is missing, halt with `status: failed, reason: missing_expectation_stub`.
 
-### 3. Generate `success_scenarios`
+### 3. Generate `success_scenario`
 
-Derive one success scenario per distinct consumer/outcome combination across all entries in `intents[]`. For each entry:
+Derive one or more success scenarios from `intent.goal` plus any additional consumer/outcome angles implied by it. For each scenario:
 - `id`: `S{N}` (sequential, 1-based)
-- `persona`: the named actor from the intent entry (the grammatical subject)
-- `given`: the pre-condition implied by the intent entry's context
-- `then`: the observable outcome stated in the intent entry, expressed as a binary-testable "user can point to this and say it happened" statement. Forbidden words in `then`: `should`, `smooth`, `intuitive`, `seamless`, `better`, `user-friendly`, `fast` (without a number), `improved` (without a measurement).
-- `measure`: the observable, binary signal a reviewer uses to verify this scenario. Must be concrete and point-at-able.
+- `persona`: the named actor from `intent.goal` (the grammatical subject — persona or canonical role)
+- `given`: the pre-condition implied by `intent.goal`'s context
+- `then`: the observable outcome stated in `intent.goal`, expressed as a binary-testable "user can point to this and say it happened" statement. ≤ 30 words. Forbidden words in `then`: `should`, `smooth`, `intuitive`, `seamless`, `better`, `user-friendly`, `feels`, `fast` (without a number), `improved` (without a measurement).
+- `measure`: the observable, binary signal a reviewer uses to verify this scenario. Must be concrete and point-at-able (number, percentage, count, duration, presence/absence check, or named event).
 
-Minimum 2 success scenarios across all `intents[]` entries. If `intents[]` has only one entry but yields one scenario, derive a second scenario from a different persona/context angle if the rules permit; otherwise surface `D-dee-002` as a low-confidence decision.
+Minimum 1 success scenario. When `intent.goal` cleanly implies more than one persona/context angle, emit one entry per angle. Surface `D-dee-002` as a low-confidence decision when the count expansion is not directly supported by the goal text.
 
 Record decision `D-dee-001` for each scenario's phrasing choices (see Decision Manifest section).
 
 ### 4. Generate `recovery`
 
-Produce exactly one recovery entry per entry in `failure_conditions[]`. No more, no fewer. For each failure condition string:
-- `id`: `REC{N}` (sequential, 1-based, matching the failure_conditions index)
-- `for_failure_condition`: the failure condition string verbatim (copy exactly, do not paraphrase)
-- `trigger`: the failure condition as an observable symptom — what a reviewer would see or measure when this condition occurs
-- `direction`: the inverse of the failure condition, expressed as directional guidance for resolving or mitigating it. Not implementation code, not a ticket number — a human-readable recovery direction.
+Produce exactly one recovery entry per entry in `intent.failure_scenario`. No more, no fewer. For each failure-scenario string:
+- `id`: `REC{N}` (sequential, 1-based, matching the failure_scenario index)
+- `for_failure_scenario`: the failure-scenario string verbatim (copy exactly, do not paraphrase)
+- `trigger`: the failure scenario as an observable symptom — what a reviewer would see or measure when this condition occurs
+- `direction`: the inverse of the failure scenario, expressed as directional guidance for resolving or mitigating it. Not implementation code, not a ticket number — a human-readable recovery direction.
 - `handoff`: apply the autonomous-vs-human test from the rules. `autonomous` when the recovery direction can be executed by an L4 agent without human judgment; `human` when a person must make a decision or take an action.
 - `derivable_at_l4`: `true` when `handoff: autonomous`; `false` when `handoff: human`.
 
@@ -76,7 +76,7 @@ Record decision `D-dee-003` for each handoff routing (see Decision Manifest sect
 
 ### 5. Stamp provenance
 
-Set in the expectation block:
+Set in the expectations block:
 - `vetted.status: pending`
 - `vetted.approved_by: null`
 - `vetted.approved_at: null`
@@ -85,7 +85,7 @@ Never emit `vetted.status: approved` — only a human sets that at the Tether ch
 
 ### 6. Write back atomically (read-merge-write)
 
-Merge the populated `success_scenarios` and `recovery` into the existing epic file's `expectation:` block, replacing the empty stubs. Write the entire file back to `epic_path`. Every other field in the file (identity, intent block, boundaries, constraints, business rules, validation, dependencies, KB traceability) must be preserved verbatim — do not alter anything outside the `expectation:` block.
+Merge the populated `success_scenario` and `recovery` into the existing epic file's `expectations:` block, replacing the empty stubs. Write the entire file back to `epic_path`. Every other field in the file (identity, intent block, connections, provenance) must be preserved verbatim — do not alter anything outside the `expectations:` block.
 
 ### 7. Emit decision manifest
 
@@ -95,9 +95,9 @@ Write `decision-manifest.yaml` alongside the primary artifact (to the same direc
 
 | decision_id | decision_type | What is being decided |
 |-------------|---------------|-----------------------|
-| `D-dee-001` | `success-scenario-phrasing` | How each `intents[]` entry is mapped to observable-outcome language in the `then` clause; which persona and pre-condition are derived for `given`; what the binary `measure` signal is |
-| `D-dee-002` | `scenario-count-expansion` | When `intents[]` has fewer entries than the minimum scenario count, how the additional scenarios are derived from alternate personas or context angles |
-| `D-dee-003` | `recovery-handoff-routing` | For each failure condition, whether `handoff` is `autonomous` or `human` per the autonomous-vs-human test; the `derivable_at_l4` value |
+| `D-dee-001` | `success-scenario-phrasing` | How `intent.goal` is mapped to observable-outcome language in the `then` clause; which persona and pre-condition are derived for `given`; what the binary `measure` signal is |
+| `D-dee-002` | `scenario-count-expansion` | When `intent.goal` implies more than one persona/context angle but the support is indirect, how the additional scenarios are derived |
+| `D-dee-003` | `recovery-handoff-routing` | For each `intent.failure_scenario` entry, whether `handoff` is `autonomous` or `human` per the autonomous-vs-human test; the `derivable_at_l4` value |
 
 ```yaml
 schema_version: "1.0"
@@ -141,19 +141,19 @@ decision_manifest:
 | What failed | Cause | Return |
 |-------------|-------|--------|
 | Epic file missing/unreadable | I/O | `status: failed, reason: missing_epic` |
-| Epic has no `intents[]` or empty list | Malformed epic | `status: failed, reason: no_intents` |
-| Epic has no `failure_conditions[]` or fewer than 2 entries | Malformed epic | `status: failed, reason: insufficient_failure_conditions` (recovery cannot be fully generated) |
-| Expectation stub missing from epic file | `generate-intent-epics` was not run first | `status: failed, reason: missing_expectation_stub` |
+| Epic has no `intent.goal` or empty string | Malformed epic | `status: failed, reason: no_goal` |
+| Epic has no `intent.failure_scenario` or fewer than 2 entries | Malformed epic | `status: failed, reason: insufficient_failure_scenarios` (recovery cannot be fully generated) |
+| Expectations stub missing from epic file | `generate-intent-epics` was not run first | `status: failed, reason: missing_expectation_stub` |
 | Rules file missing | I/O | `status: failed, reason: missing_rules` |
 | Epic file unwritable | I/O | `status: failed, reason: output_write_error` |
 
 ## Boundaries
 
 - Reads `epic_path` and `rules_path`; writes ONLY back to `epic_path` (read-merge-write) and the decision manifest.
-- Modifies ONLY the `expectation:` block — every other field in the epic YAML is preserved verbatim.
+- Modifies ONLY the `expectations:` block — every other field in the epic YAML is preserved verbatim.
 - Never sets `vetted.status: approved` — only a human does at the Tether checkpoint.
-- One recovery entry per failure condition — no more, no fewer.
-- Never edits `intents[]`, `failure_conditions[]`, or any other intent-block field.
+- One recovery entry per `intent.failure_scenario` entry — no more, no fewer.
+- Never edits `intent.goal`, `intent.constraints`, `intent.failure_scenario`, `connections`, `provenance`, or any other field outside `expectations`.
 - Never applies play-layer or feature-layer generation rules — this is the epic case only.
 
 ## Version
