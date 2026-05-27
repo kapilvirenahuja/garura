@@ -79,7 +79,7 @@ enriched_capabilities:
           source_reference: "kb.user-management.UM-F001.success_criteria[0]"
           surfaced_at_checkpoint: true
       - ...
-    failure_conditions:
+    failure_scenario:
       - "..."
       - "..."
     experiential_warnings:
@@ -147,7 +147,7 @@ decision_manifest:
 - NEVER modify the KB catalog — this skill is read-only on domain-taxonomy.
 - ALWAYS honor depth caps from cross-tree constraints.
 - ALWAYS ratchet security / compliance business rules UP when the profile demands it, even if depth says otherwise.
-- ALWAYS include every KB section's data (business_rules, success_criteria, failure_conditions, experiential_warnings) in the enriched record. Note: the KB markdown uses the section heading "Failure Scenarios" — enrich-capabilities reads that section and emits its cause strings as `failure_conditions` (plain strings) in the enriched record.
+- ALWAYS include every KB section's data (business_rules, success_criteria, failure_scenario, experiential_warnings) in the enriched record. Note: the KB markdown uses the section heading "Failure Scenarios" — enrich-capabilities reads that section and emits its cause strings as `failure_scenario` (plain strings) in the enriched record, matching the new epic schema vocabulary.
 - Read feature blocks selectively via grep — do not bulk-load whole domain files.
 - NEVER commit an inferred decision to the primary artifact (enriched-capabilities.yaml) without recording it in `decision-manifest.yaml` first.
 - NEVER tag a decision `tier: high` unless the `grounding_source.kind` is `kb_path` AND the referenced KB file exists.

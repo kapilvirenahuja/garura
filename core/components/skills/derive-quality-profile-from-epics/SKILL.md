@@ -50,23 +50,23 @@ ISO 25010 defines 9 top-level characteristics. Initialize each as an empty aggre
 
 Glob `{epics_dir}/epic-*.yaml`. For each:
 
-- **Performance constraints** (`constraints.performance` → `performance_efficiency`). Parse the number + unit; if multiple epics have comparable targets, keep the strictest. Record the epic ID that sourced the target.
-- **Security constraints** (`constraints.security` → `security`). Collect the named standards into a set; if any epic names `NIST 800-63B AAL3`, the product profile's security characteristic inherits that as the floor.
-- **Accessibility constraints** (`constraints.accessibility` → `interaction_capability`). Take the strictest WCAG level across all epics (AAA > AA > A).
-- **Compliance constraints** (`constraints.compliance` → routed by type: HIPAA/PCI-DSS/SOX → `security` + `safety`; GDPR → `security` + `interaction_capability`). Record each regulation.
-- **Business rules** containing reliability language ("lockout", "retry", "failover") → `reliability`.
-- **Hypothesis + success criteria** → `functional_suitability` (measurable outcomes prove functional correctness).
+- **Performance constraints** (matched from `intent.constraints[]` entries naming latency, throughput, or capacity → `performance_efficiency`). Parse the number + unit; if multiple epics have comparable targets, keep the strictest. Record the epic ID that sourced the target.
+- **Security constraints** (matched from `intent.constraints[]` entries naming named security standards → `security`). Collect the named standards into a set; if any epic names `NIST 800-63B AAL3`, the product profile's security characteristic inherits that as the floor.
+- **Accessibility constraints** (matched from `intent.constraints[]` entries referencing WCAG → `interaction_capability`). Take the strictest WCAG level across all epics (AAA > AA > A).
+- **Compliance constraints** (matched from `intent.constraints[]` entries naming regulations → routed by type: HIPAA/PCI-DSS/SOX → `security` + `safety`; GDPR → `security` + `interaction_capability`). Record each regulation.
+- **Business rules** from `provenance.business_rules[]` containing reliability language ("lockout", "retry", "failover") → `reliability`.
+- **`expectations.success_scenario[]` measures** → `functional_suitability` (measurable outcomes prove functional correctness).
 
 ### 4. Build the risk register
 
-Walk every epic's `kb_source.experiential_warnings` list. Dedupe. For each unique warning, create a risk entry:
+Walk every epic's `provenance.kb_source.experiential_warnings` list. Dedupe. For each unique warning, create a risk entry:
 
 ```yaml
 - id: RISK-<seq>
   description: "<the experiential warning>"
   source_epics: [<list of epic IDs that carry this warning>]
   severity: high | medium | low  # inferred from how many epics cite it (3+ = high)
-  mitigation: "<extract from the epic's expectation.recovery[].direction if the warning matches a failure condition; else 'requires design review'>"
+  mitigation: "<extract from the epic's expectations.recovery[].direction if the warning matches a failure_scenario entry; else 'requires design review'>"
 ```
 
 ### 5. Derive the security profile

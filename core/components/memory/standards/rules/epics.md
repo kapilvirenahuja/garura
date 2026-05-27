@@ -1,174 +1,120 @@
 # Epic Rules
 
-Canonical rules governing how intent epics are structured, scoped, and delivered. Every skill that creates, refines, or validates epics loads this file and enforces these rules against its output.
+Seven rules for intent epics. Every skill that creates, refines, or validates epics loads this file and enforces these rules against its output.
 
 Consumers: `generate-intent-epics`, `validate-intent-epics`, `prepare`, `feature-steward`, `tech-designer`.
 
-## Rule 1: Vertical Slice Delivery
+The schema these rules apply to is `core/components/memory/standards/schemas/intent-epic.yaml`. Field names in this file refer to that schema.
 
-**Every epic must deliver end-to-end testable user value.**
+## Tenet (non-negotiable): Epics are written for humans to read
 
-An epic is not a horizontal layer (e.g., "set up the database" or "build the API"). It is a vertical slice through the stack that a user can interact with and a reviewer can verify. When the epic is complete, a user should be able to perform a meaningful action and see a meaningful result.
+This is a tenet, not a guideline. It is non-negotiable. It overrides every rule below when they conflict. An epic that violates this tenet is rejected — no exceptions, no warnings, no "we'll clean it up later."
 
-Mocks are acceptable for phased delivery — an epic can mock external dependencies or downstream services — but the user-facing flow must be complete. A mock payment gateway is fine if the checkout flow works end to end. A database schema with no UI is not a vertical slice.
+Every epic is read by a human first — a product owner, a reviewer, an engineer picking it up. If a human cannot open the file and understand what is being built, for whom, and why, the epic has failed before any tool touches it. This is the bar. Nothing else matters until this bar is cleared.
 
-**Correct:** "User can register, log in, and see their profile dashboard"
-**Incorrect:** "Set up user database schema and API endpoints"
+Binding consequences:
 
-### The actor test
+- Every sentence in `intent.goal`, `intent.constraints`, `intent.failure_scenario`, every `expectations.success_scenario`, every `expectations.recovery`, and every `provenance.business_rules` entry is written in plain language a non-technical reader can follow. No field-name soup, no schema jargon, no acronym walls without expansion.
+- Lead with the user and the outcome — what changes for them, what they see, what they can now do. File paths, component names, framework identifiers, and schema field names never appear in the lead of any sentence inside the epic.
+- An epic that requires a glossary to read is wrong. Rewrite it before approval. Do not approve and "explain in review" — that is a violation.
+- When the same idea can be said simply or technically, say it simply. Always.
+- A reviewer who approves an epic that violates this tenet has themselves violated the tenet. The approval does not stand.
 
-Every entry in the `intents[]` list has a grammatical subject that must be a human — a persona from `personas.md` or a canonical role (user, admin, developer, operator). If the subject of ANY entry is a subsystem, agent, or internal component, the epic is horizontal and must either be rewritten or merged into a parent vertical. Each entry in `intents[]` is independently validated — one failing entry fails the whole epic.
+The validator catches what it can mechanically — taste words, jargon density, acronym usage. The rest is the reviewer's hard gate. This tenet is not subject to "judgement calls in edge cases." Edge cases default to rewrite, not accept.
 
-**Correct actors:** prosumer user, admin, developer, operator, reviewer, team lead, compliance officer, stakeholder
-**Incorrect actors (never valid subjects of any entry in `intents[]`):**
-- `analyst`, `improver`, `judge`, `scorer`, `orchestrator`, `dispatcher`, `worker`
-- `pipeline`, `parser`, `validator`, `resolver`, `matcher`, `compiler`, `transformer`
-- `agent` (when used as "the {adjective} agent")
-- `skill`, `plugin`, `adapter`
-- `catalog`, `store`, `vault`, `ledger`, `index`, `registry`, `database`, `schema`
-- `system`, `service`, `module`, `handler`, `endpoint`, `queue`, `cache`, `worker pool`
-- `backend`, `frontend`, `infrastructure`
+## Rule 1: Every epic must deliver end-to-end testable user value
 
-### The outcome test
+An epic is a vertical slice a user can interact with and a reviewer can verify end to end. It is never a horizontal layer like "set up the database" or "build the API."
 
-The `then` clause of each `expectation.success_scenarios[]` entry must describe an **observable** change in the user's state — something a reviewer can point at and say "this happened." Internal data outputs (JSON schemas, parsed tuples, normalized scores) are NOT observable outcomes. They are implementation details that should roll up into a parent epic whose outcome IS user-observable.
+The subject of `intent.goal` must be a person — a named persona or a canonical role (user, admin, developer, operator). Not a subsystem, agent, service, pipeline, validator, or store.
 
-**Correct outcomes:**
-- "user sees their profile dashboard within 2 seconds"
-- "Stripe webhook payment.succeeded is received within 5s of checkout submit"
-- "admin sees the newly-added vital in the next hypothesis creation form"
-- "user wakes up to a Crypt view showing 18 completed cycles with accepted / rejected / skipped statuses"
+The `then` of every `expectations.success_scenario[]` entry must describe something a reviewer can observe — a screen, a state change the user sees, an event the user triggers. Internal data outputs (a JSON written, a row persisted, a score computed) are not observable outcomes.
 
-**Incorrect outcomes (silent implementation):**
-- "the analyst produces a structured problem list" → internal data, not observable
-- "the plugin returns normalized scores" → internal data, not observable
-- "the trace row is written with the chained hash" → implementation detail
-- "the verdict is computed and persisted" → implementation detail
+**Correct:** "Engineering leader sees their five-pillar leader view within 2 seconds of opening it."
+**Incorrect:** "The analyzer produces a structured scorecard."
 
-### Enforcement
+## Rule 2: Each epic is owned by exactly one domain module
 
-`validate-intent-epics` runs TWO checks on every epic:
+An epic sits inside one domain — User Management OR Payments OR Commerce — never across two. Cross-module needs are expressed by linking to another epic via `connections.before_chain.intents[]`, not by expanding the epic's scope.
 
-1. **Subsystem actor detection.** For each entry in `intents[]`, grep the entry's grammatical subject for any of the words in the component disallow-list above. Any match in any entry is a `intents[N].subsystem_actor` violation (where N is the zero-based index of the failing entry).
+`domain` carries exactly one value. The epic's goal, constraints, and success scenarios all belong to that one domain.
 
-2. **Observable outcome detection.** Grep each `expectation.success_scenarios[].then` clause against a human-state disallow-list: `produce`, `return`, `emit`, `write`, `persist`, `compute`, `normalize`, `parse`, `validate` (as the terminal verb — these describe system behavior, not user-observable change). Allow them only when the scenario ALSO names a user action that observes the outcome. Any violation is `intents[N].non_observable_outcome`.
+**Exception.** When the product scope explicitly names a cross-cutting capability (e.g., "Platform Configuration" spanning pricing, categories, and flags), the epic may cross domain boundaries. In that case the epic must say so in `provenance.source.quote` by naming the cross-cutting scope item. Inferred cross-cutting is not allowed — only an explicit product-scope item counts.
 
-Both checks are blocking. An epic that fails either is NOT an epic; it is a horizontal layer that must be merged into a parent vertical (via `configure-capabilities`'s vertical-vs-component classification) or dropped from the top-level list.
+## Rule 3: Every epic ships in two implementation parts — mocks first, then real integration
 
-## Rule 2: Single Module Scope
+Every epic forces two delivery parts. Part one ships the full user-facing flow with mocks for external dependencies — mock payment gateway, stub notification service, hardcoded data. Part two replaces every mock with the real integration.
 
-**Each epic is owned by exactly one domain module.**
+This is mandatory, not optional. An epic that says "no mocks needed" is either wrong about its dependencies or is being scoped as part two only. An epic that ships mocks with no part two is incomplete.
 
-An epic sits within User Management OR Payments OR Commerce — never across multiple modules. Cross-module dependencies are expressed via `depends_on` in the epic schema, not by expanding the epic's scope.
+Both parts must be visible on the roadmap:
 
-This aligns with the module boundaries defined in `knowledge/domain-taxonomy/`. If the domain taxonomy defines User Management and Payments as separate modules, an epic cannot span both. It can depend on features from another module, but the epic's scope, ownership, and success criteria belong to one module.
+- The mock-first epic sets `provenance.uses_mocks: true` and `provenance.demock_epic_ref: <id of the integration epic>`.
+- The integration epic is a separate epic in the same roadmap, and the mock-first epic's `connections.after.intents[]` lists it.
 
-**Correct:** "Payments epic depends on User Management epic for authenticated sessions"
-**Incorrect:** "Epic covers user registration AND payment processing"
+A reviewer scanning the roadmap should be able to trace every mock to the epic that retires it. A mock without a retirement epic is a roadmap gap.
 
-**Enforcement:** `validate-intent-epics` rejects epics whose `domain` spans more than one value or whose `in_scope` items reference features from multiple domains.
+## Rule 4: Strictly follow the schema
 
-### Exception: Explicitly Scoped Cross-Cutting Capabilities
+Every epic file must match `intent-epic-schema.yaml` exactly. The four sections appear in this order:
 
-When the product scope explicitly names a cross-cutting capability (e.g., "Platform Configuration" covering pricing bands, category management, and feature flags across multiple modules), the scoping agent MAY create a horizontal epic with a `cross_cutting_justification` field explaining:
-1. Which product scope item this epic owns
-2. Why single-module-scope does not apply (the capability is explicitly cross-cutting in the product vision)
-3. Which module boundaries it crosses and how ownership is delineated
+1. `intent` (`goal`, `constraints`, `failure_scenario`)
+2. `expectations` (`vetted`, `success_scenario`, `recovery`)
+3. `connections` (`before_chain`, `after`, `peers`, `dependency_check`)
+4. `provenance` (last section — `source`, `appetite`, `business_rules`, `kb_source`, `uses_mocks`, `demock_epic_ref`, `foundation_investment`)
 
-This exception applies ONLY when the cross-cutting capability is an explicit, named item in the product scope — not when the agent infers cross-cutting needs. The product vision is the authority; the rule is the default.
+Identity (`id`, `domain`, `capability`) sits above the four sections at the top of the file.
 
-## Rule 3: Mocks as Phased Delivery
+No top-level keys may exist outside this shape. Specifically banned (legacy): `problem_statement`, `hypothesis`, `assumptions_requiring_validation`, `in_scope`, `anti_goals`, `must_not_break`, `cross_cutting_justification`, top-level `constraints`, top-level `failure_conditions`, top-level `intents`, top-level `expectation`, top-level `dependencies`, top-level `depends_on`, top-level `appetite`.
 
-**Every mock introduced must be replaced in a subsequent epic.**
+`expectations.recovery` carries exactly one entry per `intent.failure_scenario` entry — no more, no fewer.
 
-When an epic uses mocks (mock payment gateway, stub notification service, hardcoded data), the roadmap must include a de-mocking epic that replaces mocks with real integrations. Mocks are a delivery strategy, not a permanent state.
+`expectations.vetted.status` must equal `approved` for the epic to pass validation. `pending` or `not_generated` is rejected.
 
-The roadmap should make de-mocking visible — a reviewer looking at the roadmap should be able to trace every mock to the epic that replaces it. If a mock has no planned replacement, either the mock is actually the final implementation (rename it) or the roadmap has a gap.
+## Rule 5: Success scenarios must be testable as true or false
 
-**Correct:** "Epic F2 mocks payment gateway → Epic F5 integrates Stripe"
-**Incorrect:** "Epic uses mock data" (with no follow-up epic to replace it)
+Every `expectations.success_scenario[].then` and every `expectations.success_scenario[].measure` is binary — a reviewer can execute it and get pass or fail, with no judgement call in the middle.
 
-## Rule 4: Scope Boundaries
+Banned words in `then` and `measure`: `should`, `smooth`, `intuitive`, `seamless`, `better`, `user-friendly`, `feels`. These describe taste, not state.
 
-**Every epic must define `in_scope`, `anti_goals` (out of scope), and `must_not_break`.**
+Required shape in `measure`: a number, a percentage, a count, a duration, a presence/absence check, or a named event observed. "p95 under 500ms," "100% of loads render the five-pillar layout," "the Stripe webhook payment.succeeded is received within 5s of submit" — all valid. "The view is smooth" — not valid.
 
-These three fields from the epic schema are not optional. They prevent scope creep, make review decisions tractable, and protect existing functionality.
+**Correct:** "Given a registered user, when they enter valid credentials, then they see the profile dashboard within 2 seconds." Measure: "Profile dashboard renders within 2 seconds on p95 of authenticated loads."
+**Incorrect:** "The login experience should be intuitive." Measure: "Users find it easy."
 
-- **in_scope** — what this epic explicitly delivers. Be specific about capabilities, interactions, and outputs.
-- **anti_goals** — what is explicitly excluded. Name the natural scope creep risks. If reviewers will ask "does this include X?", put X in anti_goals.
-- **must_not_break** — existing capabilities this epic cannot regress. For foundational epics with no predecessors: "None at this stage — foundational epic."
+## Rule 6: Every epic must declare how its dependencies are checked
 
-Common scope creep patterns to guard against:
-- "While we're touching auth, let's also add..." — if it's not in_scope, it's a separate epic
-- "We need this for the demo" — if the demo is a separate epic, the feature belongs there
-- "It's just a small change" — small changes that cross module boundaries are still cross-module
+Dependencies are declared via `connections.before_chain.intents[]` — a list of epic ids that must be delivered before this epic can start.
 
-**Enforcement:** `validate-intent-epics` rejects epics with empty / missing `must_not_break`, and epics whose `anti_goals` section reads as an afterthought (fewer than 1 concrete entry).
+Two things are mandatory:
 
-## Rule 5: Success Verifiability
+- **Explicit listing.** Every epic this one depends on appears in `before_chain.intents[]`. No implicit ordering. If E3 assumes E1 is done but does not list E1, the dependency is invisible.
+- **Dependency check.** `connections.dependency_check` is a non-empty string stating how a reviewer or the pipeline verifies the listed dependencies are satisfied before this epic begins. Examples: "All `before_chain` epics carry `expectations.vetted.status: approved` and `post_implementation.status: delivered`." Or: "The leader-role rendering from EPIC-XP-F002-002 must respond under 1 second on either deployment shape."
 
-**Success scenarios must be binary testable by a reviewer.**
+No circular dependencies. If E1 depends on E2 and E2 depends on E1, the validator rejects both — they should be merged or re-scoped, not chained.
 
-The `expectation.success_scenarios[]` field (in the generated expectation block) uses given/when/then format. Each scenario must be something a reviewer can execute and get a definitive pass or fail. No ambiguity. The language rules below apply to every `expectation.success_scenarios[].then` clause — success scenarios live in the expectation block, not at the top level of the epic file.
+## Rule 7: Foundation epics are marked, sequenced first, prioritised P1
 
-**Correct:** "Given a registered user, when they enter valid credentials, then they see their profile dashboard within 2 seconds"
-**Incorrect:** "The login experience should be smooth and intuitive"
+A foundation epic is shared infrastructure that two or more other epics depend on — auth, database setup, CI/CD pipeline, design system. It does not deliver direct user value on its own but unblocks epics that do.
 
-The word "should" is a red flag. Success scenarios use "then [observable outcome]" — something you can point to and say "this happened" or "this did not happen."
+An epic is a foundation epic when it has two or more incoming `before_chain` references from other epics. Foundation epics set `provenance.foundation_investment: true`, land in the earliest delivery bucket, and carry P1 priority. Without that, downstream epics cannot begin and the whole roadmap stalls.
 
-**Enforcement:** `validate-intent-epics` greps each `expectation.success_scenarios[].then` for the words `should`, `smooth`, `intuitive`, `seamless`, `better` — these produce `should_language` violations.
+The validator flags any epic with two or more incoming `before_chain.intents[]` references that does not carry `provenance.foundation_investment: true`.
 
-## Rule 6: Dependency Discipline
-
-**`depends_on` uses epic IDs only. No circular dependencies.**
-
-Epic dependencies are explicit — they reference other epic IDs from the same roadmap. Circular dependencies (E1 depends on E2, E2 depends on E1) are scoping failures, not dependency chains. If two epics are mutually dependent, they should be merged or re-scoped.
-
-No implicit ordering. If Epic E3 assumes Epic E1 is complete but doesn't declare `depends_on: [E1]`, the dependency is invisible and the execution order is fragile.
-
-**Correct:** `depends_on: [EPIC-user-login-001, EPIC-user-registration-001]` — explicit, traceable, acyclic
-**Incorrect:** "This should be done after the auth epic" (implicit, not in schema)
-
-**Enforcement:** `validate-intent-epics` runs a cycle check across the epics directory. Any cycle is a `dependency_cycle` violation and fails the batch.
-
-## Rule 7: Foundation Investments
-
-**Foundation epics must be marked `foundation_investment: true`, placed in the earliest bucket, and given P1 priority.**
-
-A foundation epic is shared infrastructure that enables multiple other epics — authentication, database setup, CI/CD pipeline, design system. It doesn't deliver direct user value but is a prerequisite for epics that do.
-
-Marking criteria for `foundation_investment: true`:
-- The epic enables 2+ other epics (has ≥2 incoming `depends_on` references)
-- Without it, those downstream epics cannot begin
-- It delivers infrastructure, not user-facing features
-
-Foundation epics go in the earliest bucket with `P1` priority because nothing else can start until they're done. Delaying foundation work creates a bottleneck that delays the entire roadmap.
-
-**Enforcement:** `validate-intent-epics` flags any epic with ≥2 incoming depends_on references that lacks `foundation_investment: true` as a `missing_foundation_flag` violation.
-
-## Relationship to Domain Taxonomy
-
-Rule 2 (Single Module Scope) aligns with the module boundaries defined in `knowledge/domain-taxonomy/`. The taxonomy defines which modules exist (user-management, payments, commerce, search, personalization, plus STM-research-sourced domains when the pipeline extends the catalog). Epics respect these boundaries — one epic per module.
-
-## Relationship to Project Profiling
-
-- PP-6 (Delivery Ambition) influences phasing and how aggressively mocks are used (Rule 3). A POC (PP-6 = 1) will mock heavily; a market-ready product (PP-6 >= 3) should minimize mocks.
-- PP-3 (Persona Complexity) influences epic decomposition — a multi-persona product may need persona-specific features within an epic, but the epic still stays within one module (Rule 2).
-- NFR dimensions influence which features appear in epics via agent reasoning over the domain taxonomy, but do not change epic structure rules.
-
-## Schema Fields Required by These Rules
-
-The `intent-epic-schema.yaml` must carry these fields to support enforcement:
+## Schema fields these rules depend on
 
 | Rule | Field | Notes |
 |------|-------|-------|
-| 1 | `intents[]` | List; every entry must describe a user-observable outcome; each entry validated independently |
-| 1 | `failure_conditions[]` | List of strings (plain cause statements); minimum 2; no nested impact/mitigation |
-| 2 | `domain` | Exactly one domain value |
-| 2 (exception) | `cross_cutting_justification` | Optional; required when domain spans boundaries |
-| 3 | `uses_mocks` + `demock_epic_ref` | Optional; required when mocks are used |
-| 4 | `in_scope`, `anti_goals`, `must_not_break` | All three required, all non-empty |
-| 5 | `expectation.success_scenarios[].then` | Binary-testable language; lives in the generated expectation block |
-| 6 | `depends_on` | List of epic IDs; must be acyclic across the epics directory |
-| 7 | `foundation_investment` | Boolean; required true when ≥2 incoming depends_on |
-| all | `expectation.vetted.status` | Must be `approved` for a valid epic; `pending` means expectation is generated but not yet human-reviewed |
+| 1 | `intent.goal` | Subject is a persona or canonical role; expectations.success_scenario[].then is observable |
+| 2 | `domain` | Exactly one value; cross-cutting requires explicit product-scope quote in provenance.source.quote |
+| 3 | `provenance.uses_mocks`, `provenance.demock_epic_ref`, `connections.after.intents[]` | Mock-first epics name their integration epic; integration epic appears in `after` |
+| 4 | (whole schema) | Four-section order; no legacy keys; recovery 1:1 with failure_scenario; vetted.status == approved |
+| 5 | `expectations.success_scenario[].then`, `expectations.success_scenario[].measure` | Binary language, no taste words, measure carries a number/event/presence check |
+| 6 | `connections.before_chain.intents[]`, `connections.dependency_check` | Explicit listing; non-empty check string; acyclic across the epics directory |
+| 7 | `provenance.foundation_investment` | Required `true` when incoming `before_chain` count ≥ 2 |
+
+## Relationship to project profiling
+
+- PP-6 (Delivery Ambition) drives how aggressively Rule 3 is applied. A POC mocks heavily and may defer integration epics; a market-ready product must ship the integration epic alongside the mock epic.
+- PP-3 (Persona Complexity) influences epic decomposition — a multi-persona product may split a capability into per-persona epics, each still owned by one domain (Rule 2).
+- NFR dimensions shape the contents of `intent.constraints` but do not change the rules above.

@@ -1,12 +1,13 @@
-# Intent Epic Schema — Canonical Contract
+# Intent Epic Schema — Canonical Contract (ICE shape, per #397)
 #
-# This is the shape of a single intent epic — the output of /specify's
-# epic generation step. Every intent epic produced by the pipeline must conform.
+# An intent epic is shaped to match the play-layer ICE model. Four sections,
+# in this exact order: intent, expectations, connections, provenance.
+# Identity (id, domain, capability) sits above the four sections at the top
+# of the file.
 #
-# Enforcement: validate-intent-epics skill (built in 214.5) is a blocking
-# validator. It refuses to write epics that violate this schema. The calling
-# play halts on validation failure and cycles back to generate-intent-epics
-# for a fix.
+# Enforcement: validate-intent-epics is a blocking validator. It refuses to
+# write epics that violate this schema. The calling play (specify) halts on
+# validation failure and cycles back to generate-intent-epics for a fix.
 
 # ──────────────────────────────────────────────────────────────────────────
 # Identity
@@ -25,396 +26,175 @@ capability: <string>                   # Specific feature ID from the domain fil
                                        # Must match a real feature ID in the referenced domain.
 
 # ──────────────────────────────────────────────────────────────────────────
-# Provenance (Rule 8 — features.md)
+# 1. Intent — the clean triple
 # ──────────────────────────────────────────────────────────────────────────
+# One epic carries one intent. Epics that look like they want more than one
+# goal belong in separate epics linked via the `connections` section below.
 
-provenance:                            # REQUIRED per rules/features.md Rule 8
-  source: <enum>                       # brief_explicit | brief_inferred |
-                                       # rule_derived | research_supplemental |
-                                       # profile_default | assumption
-  source_quote: <string>               # Verbatim brief text, OR 'CTC-NNN' for rule_derived,
-                                       # OR 'profile.<field>' for profile_default,
-                                       # OR 'needs_user_grounding' for assumption
-  confidence: <enum>                   # high | medium | low
-                                       # NOTE: assumption-sourced capabilities with confidence=low
-                                       # are NEVER valid in the scope body; they live in
-                                       # assumptions_requiring_validation until user grounds them.
+intent:
+  goal: <string>                       # REQUIRED. One sentence — the user-observable
+                                       # end-state this epic delivers. Commander's Intent
+                                       # format. Must name a persona or canonical role
+                                       # as the actor and an observable outcome.
+                                       # Example: "Engineering leader extracts a credible
+                                       # savings number within 2 minutes of opening the
+                                       # leader view at least 80% of the time."
 
-# ──────────────────────────────────────────────────────────────────────────
-# WHAT — problem + intent triple
-# ──────────────────────────────────────────────────────────────────────────
+  constraints:                         # REQUIRED. List of strings. Things the goal must
+                                       # respect — NFRs, policies, hard limits. Plain
+                                       # sentences, not nested fields. Numeric values
+                                       # should carry their number inline.
+                                       # Example: "p95 login under 500ms at 10K concurrent."
+    - <string>
 
-problem_statement: <string>            # REQUIRED. A specific story showing why the
-                                       # status quo fails, backed by data from
-                                       # market research or user context.
-                                       # NOT "users need better login" but
-                                       # "enterprise customers average 14 days to
-                                       # first value because onboarding requires
-                                       # 23 manual configuration steps."
-
-intents:                               # REQUIRED. List of measurable end-state strings.
-  - <string>                           # Each entry is one sentence using Commander's Intent
-                                       # format. Minimum 1 entry. Each entry >= 20 characters
-                                       # and must contain a measurable word or number.
-                                       # Example: "Reduce enterprise time-to-first-
-                                       # value from 14 days to 5 days."
-                                       # Every entry is independently validated by the actor
-                                       # test and outcome test (rules/epics.md Rule 1).
-                                       # One failing entry fails the whole epic.
-
-failure_conditions:                    # REQUIRED. Minimum 2 entries. List of strings.
-  - <string>                           # Each entry names a failure mode — what could go
-                                       # wrong with this epic's intent. Plain string, no
-                                       # nested fields. Impact and mitigation move to the
-                                       # expectation.recovery block.
-                                       # Example: "Schema accepts TBD as a placeholder in
-                                       # mandatory fields, allowing hollow artifacts into
-                                       # the pipeline."
+  failure_scenario:                    # REQUIRED. Minimum 2 entries. List of strings.
+                                       # Each entry names a way the goal could fail —
+                                       # the catch-net. One recovery entry below pairs
+                                       # with each failure_scenario entry.
+                                       # Example: "Leader view ships as the Simulator only
+                                       # — the five-pillar shape goes missing."
+    - <string>
 
 # ──────────────────────────────────────────────────────────────────────────
-# BOUNDARIES — appetite + scope
+# 2. Expectations — generated, vetted at Tether
 # ──────────────────────────────────────────────────────────────────────────
+# The expectations block is generated by draft-epic-expectation from the
+# intent above. It is NEVER hand-authored. vetted.status starts as pending;
+# a human sets approved at the single Tether checkpoint in /specify.
 
-appetite: <string>                     # REQUIRED. Time-box, not estimate.
-                                       # Shape Up semantics: fixed time, variable scope.
-                                       # Example: "2 weeks" | "6 weeks"
-
-in_scope:                              # REQUIRED. What this epic covers.
-  - <string>                           # Minimum 1 entry. Each entry is a clear
-                                       # capability or behavior included.
-                                       # Example: "Email/password authentication"
-
-anti_goals:                            # REQUIRED. Explicit exclusions — "no-gos".
-  - <string>                           # Minimum 1 entry. Each entry is something
-                                       # this epic explicitly will NOT deliver.
-                                       # Example: "No social login in v1"
-                                       # Shape Up's Anti-Goals prevent scope creep.
-
-must_not_break:                        # REQUIRED per rules/epics.md Rule 4.
-  - <string>                           # Existing capabilities this epic cannot regress.
-                                       # May contain a single entry reading
-                                       # "None — foundational epic" for foundation work.
-                                       # Example: "Existing login flow must continue
-                                       # working for users without MFA enrolled"
-
-cross_cutting_justification: <string>  # OPTIONAL. Required ONLY when this epic crosses
-                                       # domain boundaries (see rules/epics.md Rule 2
-                                       # exception). Names the product.scope item the
-                                       # epic owns, why single-module-scope doesn't
-                                       # apply, and how ownership is delineated across
-                                       # the modules it touches.
-
-# ──────────────────────────────────────────────────────────────────────────
-# CONSTRAINTS — quantified
-# ──────────────────────────────────────────────────────────────────────────
-
-constraints:                           # REQUIRED. All sub-fields must be quantified AND sourced.
-                                       # Per rules/features.md Rule 9, every numeric value must
-                                       # cite its source_for_quantification. Values tagged
-                                       # kb_default or assumption are surfaced at the capability-
-                                       # configuration checkpoint for user confirmation BEFORE
-                                       # landing in an intent epic.
-  performance:
-    value: <string>                    # MUST contain a number + unit
-                                       # Example: "p95 login < 500ms at 10K concurrent"
-    source_for_quantification:
-      source: <enum>                   # brief | profile_nfr | kb_default | assumption
-      source_reference: <string>       # Verbatim brief quote, OR 'profile.nfr_scale=2',
-                                       # OR 'kb.user-management.UM-F001.success_criteria[0]',
-                                       # OR 'needs_user_grounding' for assumption
-  security:
-    value: <string>                    # MUST reference a named standard or control
-                                       # Example: "OWASP ASVS Level 2, argon2id hashing"
-    source_for_quantification:
-      source: <enum>                   # brief | profile_nfr | kb_default | assumption
-      source_reference: <string>       # Reference per the performance rules
-  accessibility:
-    value: <string>                    # MUST specify a WCAG level
-                                       # Example: "WCAG 2.1 AA"
-    source_for_quantification:
-      source: <enum>                   # brief | profile_nfr | kb_default | assumption
-      source_reference: <string>
-  compliance:                          # MAY be empty list if no compliance mandates
-    - value: <string>                  # Each entry names a specific regulation
-                                       # Example: "HIPAA audit trail for all auth events"
-      source_for_quantification:
-        source: <enum>
-        source_reference: <string>
-
-# ──────────────────────────────────────────────────────────────────────────
-# BUSINESS RULES — from KB, profile-adjusted
-# ──────────────────────────────────────────────────────────────────────────
-
-business_rules:                        # REQUIRED. Minimum 1 entry.
-  - <string>                           # Each entry is a rule derived from the KB
-                                       # capability definition, with profile-specific
-                                       # overrides applied.
-                                       # Example: "Lock after 3 failed attempts
-                                       # (30min cooldown) — HIGH security profile"
-
-# ──────────────────────────────────────────────────────────────────────────
-# VALIDATION — hypothesis + assumptions
-# ──────────────────────────────────────────────────────────────────────────
-
-hypothesis: <string>                   # REQUIRED. Testable belief using the format:
-                                       # "We believe that {action} for {persona}
-                                       # will result in {outcome}. We will know
-                                       # this is true when {measurable signal}."
-
-assumptions_requiring_validation:      # REQUIRED. Minimum 1 entry.
-  - <string>                           # Beliefs the team holds that could invalidate
-                                       # the approach if wrong.
-                                       # Example: "80%+ of target users have corporate
-                                       # email with SSO capability"
-
-dependencies:                          # REQUIRED. May be empty list.
-  - <string>                           # Cross-team, external vendor, or data
-                                       # dependencies that create risk.
-                                       # Example: "Email service for password reset"
-
-depends_on:                            # REQUIRED per rules/epics.md Rule 6.
-  - <string>                           # May be empty list. Each entry is another
-                                       # EPIC id from the same product scope. The
-                                       # validator runs a cycle check across all
-                                       # epics — circular depends_on is a blocking
-                                       # violation.
-                                       # Example: ["EPIC-user-login-001"]
-
-foundation_investment: <boolean>       # REQUIRED per rules/epics.md Rule 7. Default
-                                       # false. Set true when this epic is shared
-                                       # infrastructure enabling 2+ other epics.
-                                       # The validator flags any epic with ≥2
-                                       # incoming depends_on references that does
-                                       # NOT carry foundation_investment: true.
-
-uses_mocks: <boolean>                  # OPTIONAL. Default false. Set true when this
-                                       # epic relies on mocks for phased delivery
-                                       # (see rules/epics.md Rule 3).
-
-demock_epic_ref: <string>              # OPTIONAL. Required when uses_mocks == true.
-                                       # The EPIC id of the follow-up epic that
-                                       # replaces the mocks with real integrations.
-
-# ──────────────────────────────────────────────────────────────────────────
-# KB TRACEABILITY — every epic traces to source
-# ──────────────────────────────────────────────────────────────────────────
-
-kb_source:                             # REQUIRED.
-  capability: <string>                 # Feature ID in domain-taxonomy
-                                       # Must match the `capability` field above.
-                                       # Example: "UM-F001"
-  rules_applied:                       # List of specific KB rules that shaped this
-    - <string>                         # epic. Example: "lockout-high-security"
-  experiential_warnings:               # MAY be empty. Warnings lifted from the
-    - <string>                         # feature's `Experiential` section.
-
-# ──────────────────────────────────────────────────────────────────────────
-# EXPECTATION — generated by draft-epic-expectation, approved at Tether
-# ──────────────────────────────────────────────────────────────────────────
-# This block is written by the draft-epic-expectation skill from the intent
-# triple above. It is NEVER hand-authored. vetted.status starts as pending;
-# only a human sets approved at the single-Tether checkpoint in /specify.
-
-expectation:
+expectations:
   vetted:
     status: <enum>                     # not_generated | pending | approved
-                                       # not_generated: generate-intent-epics stub
-                                       # pending: draft-epic-expectation has run
-                                       # approved: human approved at Tether
     approved_by: <actor>               # OPTIONAL. Set only when status == approved.
     approved_at: <ISO-8601>            # OPTIONAL. Set only when status == approved.
 
-  success_scenarios:                   # REQUIRED when status != not_generated.
-    - id: <string>                     # S1, S2, ... Sequential identifier.
-      persona: <string>                # Named persona or canonical role (user, admin, etc.)
-      given: <string>                  # Precondition — system + user state before the action
-      then: <string>                   # Observable outcome — what the user sees/experiences.
-                                       # Must use binary-testable language. No "should",
-                                       # "smooth", "intuitive", "seamless", "better".
-      measure: <string>                # Observable, binary-testable metric. Compiled into
-                                       # the scenario eval. Example: "login success rate
-                                       # > 95% on first attempt over 30-day window"
+  success_scenario:                    # REQUIRED when status != not_generated.
+                                       # Minimum 1 entry. Binary-testable outcomes.
+    - id: <string>                     # S1, S2, ... Sequential.
+      persona: <string>                # Named persona or canonical role.
+      given: <string>                  # Precondition — system + user state before the action.
+      then: <string>                   # Observable outcome. Binary-testable. No
+                                       # "should", "smooth", "intuitive", "seamless", "better".
+      measure: <string>                # Binary-testable metric. Compiled into the
+                                       # scenario eval.
 
   recovery:                            # REQUIRED when status != not_generated.
-                                       # One entry per failure_condition above — no more,
-                                       # no fewer.
-    - id: <string>                     # REC1, REC2, ... Sequential identifier.
-      for_failure_condition: <string>  # The failure_condition string this entry addresses.
-                                       # Matches a string from the failure_conditions list.
-      trigger: <string>                # Observable symptom — what the user or system sees
-                                       # when the failure condition manifests.
-      direction: <string>              # Directional guidance — the inverse of the failure,
-                                       # written as guidance not code. Not implementation.
+                                       # Exactly one entry per intent.failure_scenario entry —
+                                       # no more, no fewer.
+    - id: <string>                     # REC1, REC2, ... Sequential.
+      for_failure_scenario: <string>   # The failure_scenario string this entry addresses.
+      trigger: <string>                # Observable symptom when the failure manifests.
+      direction: <string>              # Directional guidance — inverse of the failure,
+                                       # guidance not code.
       handoff: <enum>                  # autonomous | human
-                                       # autonomous: system can recover without human action
-                                       # human: requires human decision or intervention
-                                       # Applied per the autonomous-vs-human test in
-                                       # expectation-generation.md rules.
-      derivable_at_l4: <boolean>       # true when handoff=autonomous (L4 can generate the
-                                       # fix); false when handoff=human.
+      derivable_at_l4: <boolean>       # true when handoff == autonomous, else false.
 
 # ──────────────────────────────────────────────────────────────────────────
-# Validation rules (enforced by validate-intent-epics skill)
+# 3. Connections — how this epic relates to other epics
 # ──────────────────────────────────────────────────────────────────────────
-#
-# validate-intent-epics loads `core/components/memory/standards/rules/epics.md`,
-# `rules/features.md`, and `rules/scenarios.md` as its authoritative rule source
-# and enforces:
-#
-#   1. MANDATORY FIELDS (rules/features.md Rule 1):
-#      id, domain, capability, problem_statement, intents (list, length >= 1,
-#      every entry length >= 20 and contains a measurable word or number),
-#      failure_conditions (list of strings, length >= 2),
-#      appetite, in_scope (>=1), anti_goals (>=1), must_not_break (>=1),
-#      expectation.success_scenarios (>=2, every entry has id/persona/given/then/measure),
-#      expectation.vetted.status (must be "approved"; "pending" or "not_generated"
-#      emits violation category "expectation_not_vetted"),
-#      constraints (all 4 sub-fields), business_rules (>=1), hypothesis,
-#      assumptions_requiring_validation (>=1), dependencies (key present),
-#      depends_on (key present), foundation_investment (boolean present),
-#      kb_source.capability, kb_source.rules_applied (may be empty list).
-#
-#   2. QUANTIFICATION regex on constraints (rules/features.md Rule 2):
-#      performance   matches /\d+\s*(ms|s|rps|%|qps|MB|GB|ops)/i
-#      security      matches a named standard: OWASP, NIST, PCI-DSS, SOC2,
-#                    ISO 27001, bcrypt, argon2, SAML, OAuth2, etc.
-#      accessibility matches /WCAG\s*\d+(\.\d+)?\s*(A|AA|AAA)/i
-#      compliance    each entry matches a regulation, or list may be empty.
-#
-#   3. COUNT thresholds (rules/features.md Rule 4, rules/scenarios.md Rule 5):
-#      expectation.success_scenarios   length >= 2
-#      failure_conditions              length >= 2 (list of strings)
-#      in_scope, anti_goals, must_not_break, business_rules   length >= 1
-#
-#   4. TRACEABILITY (rules/features.md Rule 5):
-#      kb_source.capability must equal the `capability` field.
-#      kb_source.capability must exist as a feature ID in the referenced
-#      domain file — either LTM (core/components/memory/knowledge/domain-
-#      taxonomy/{domain}.md) OR STM research ({product_base}/kb-
-#      research/{domain}.md) when kb_source.provisional == true.
-#
-#   5. HYPOTHESIS format (rules/features.md Rule 3):
-#      hypothesis must contain all three phrases: "We believe that",
-#      "result in", "We will know this is true when".
-#
-#   6. VERTICAL SLICE (rules/epics.md Rule 1):
-#      Three checks run per entry in intents[] (every entry is independently
-#      validated — one failing entry fails the whole epic):
-#      (a) Actor test — each intents[N] entry's grammatical subject must be a
-#          named persona (from personas.md) or a canonical role (user, admin,
-#          developer, operator). Disallow-list of subsystem/component names
-#          as actor: analyst, improver, judge, scorer, pipeline, parser,
-#          validator, agent (when used adjectivally), skill, plugin, adapter,
-#          catalog, store, vault, ledger, registry, service, handler, worker.
-#          Violation category: `subsystem_actor` tagged as `intents[N].subsystem_actor`.
-#      (b) Outcome test — `expectation.success_scenarios[0].then` must describe
-#          an observable change in user state. Disallow-list of system-behavior
-#          terminal verbs: produce, return, emit, write, persist, compute,
-#          normalize, parse, validate (unless paired with a user observation).
-#          Violation category: `non_observable_outcome` tagged as
-#          `intents[N].non_observable_outcome`.
-#      Also still catches the legacy regex for "set up the database / api /
-#      pipeline" — violation category `horizontal_layer_intent`.
-#
-#   7. SINGLE MODULE SCOPE (rules/epics.md Rule 2):
-#      `domain` must hold exactly one value. If `cross_cutting_justification`
-#      is non-empty, the epic may reference features from multiple domains
-#      in `in_scope`; otherwise all in_scope entries must belong to the
-#      single `domain`. Violation category: `multi_module_scope`.
-#
-#   8. MOCK DE-MOCKING (rules/epics.md Rule 3):
-#      If `uses_mocks == true`, `demock_epic_ref` must be non-empty and
-#      must resolve to another EPIC id in the same epics directory.
-#      Violation category: `unreplaced_mock`.
-#
-#   9. SUCCESS VERIFIABILITY (rules/epics.md Rule 5, rules/scenarios.md Rule 2):
-#      Every expectation.success_scenarios[].then string is greped for the
-#      blacklist {should, smooth, intuitive, seamless, better, user-friendly}.
-#      Any match is a violation. Category: `should_language`.
-#
-#  10. DEPENDENCY DISCIPLINE (rules/epics.md Rule 6):
-#      Load every epic in the epics directory. Build the depends_on graph.
-#      Run a topological sort. Any cycle is violation category
-#      `dependency_cycle`.
-#
-#  11. FOUNDATION INVESTMENT (rules/epics.md Rule 7):
-#      Count the incoming depends_on references per epic. Any epic with
-#      ≥2 incoming references that does NOT carry `foundation_investment:
-#      true` is violation category `missing_foundation_flag`.
-#
-#  12. PLACEHOLDER DETECTION (rules/features.md Rule 1):
-#      Scan every string value for TBD, to be determined, unclear, ???,
-#      "to do", lone trailing "?". Violation category: `placeholder_value`.
-#
-#  13. PROVENANCE TRACKING (rules/features.md Rule 8):
-#      Every epic must carry a top-level `provenance` block with source,
-#      source_quote, and confidence. Violation category: `missing_provenance`.
-#      Epics with `provenance.source == "assumption"` are rejected from the
-#      scope body — they must live in `assumptions_requiring_validation`
-#      until user grounding occurs. Violation category: `unconfirmed_inference`.
-#
-#  14. CONSTRAINT JUSTIFICATION (rules/features.md Rule 9):
-#      Every constraint entry (performance, security, accessibility, each
-#      compliance list entry) must carry a `source_for_quantification`
-#      block. Violation category: `unsourced_constraint`.
-#      Cross-check numeric values against the project profile — e.g., a
-#      concurrent-sessions target > 1000 on a profile with nfr_scale < 3
-#      flags `profile_mismatch`.
-#
-#  15. AGGRESSIVE QUESTIONING (rules/product.md Rule 11):
-#      Values with source_for_quantification.source in {kb_default, assumption}
-#      are surfaced at the capability-configuration checkpoint. If they still
-#      appear in an intent epic's constraints after the checkpoint without
-#      user grounding (source having been updated to brief / profile_nfr),
-#      they are a violation category `unconfirmed_inference`.
-#
-#  16. EXPECTATION VETTING (new):
-#      expectation.vetted.status must equal "approved". If "pending" or
-#      "not_generated", emit violation category `expectation_not_vetted`.
-#      The expectation block is generated by draft-epic-expectation and
-#      approved at the single Tether checkpoint in /specify before
-#      validate-intent-epics runs.
-#
-# On any violation, validate-intent-epics returns a structured failure with
-# per-field error messages. The calling play (specify) halts and
-# cycles back to generate-intent-epics with the error context.
+# Replaces the legacy depends_on / dependencies / foundation_investment soup
+# with three explicit relations. Each relation is a list of epic ids.
+
+connections:
+  before_chain:                        # Epics that MUST be delivered before this one.
+                                       # Directional. The validator runs a cycle check
+                                       # across before_chain edges; any cycle is a
+                                       # blocking violation.
+    intents:                           # List of EPIC ids.
+      - <string>                       # Example: "EPIC-user-login-001"
+
+  after:                               # Epics that depend on this one being delivered
+                                       # first. Mirror of before_chain on the consumer
+                                       # side — declared for readability and bidirectional
+                                       # checks.
+    intents:
+      - <string>
+
+  peers:                               # Epics that ship in the same envelope or that
+                                       # share a slice but have no ordering requirement.
+                                       # Declared so reviewers can see the cluster.
+    intents:
+      - <string>
+
+  dependency_check: <string>           # REQUIRED per epics.md Rule 6. Non-empty string
+                                       # stating how a reviewer or the pipeline verifies
+                                       # the before_chain epics are satisfied before this
+                                       # epic can start.
+                                       # Example: "All before_chain epics carry
+                                       # expectations.vetted.status: approved AND
+                                       # post_implementation.status: delivered."
 
 # ──────────────────────────────────────────────────────────────────────────
-# POST-IMPLEMENTATION — written by capture-learning Mode 2
+# 4. Provenance — neutral context, last section
 # ──────────────────────────────────────────────────────────────────────────
-# This section is OPTIONAL at epic creation time. It is populated by
-# capture-learning after the prepare→implement→validate trinity completes.
-# validate-intent-epics MUST NOT reject epics missing this section.
+# Everything that grounds the intent — where it came from, what KB rules
+# shaped it, what business rules apply, what time-box bounds it. This is the
+# LAST section of every epic and never appears before the three sections
+# above.
 
-post_implementation:                   # OPTIONAL. Written by capture-learning.
-  status: <enum>                       # delivered | partial | deferred | cancelled
-  delivered_scope:                     # What was actually implemented.
-    - <string>                         # Each entry maps to an in_scope item.
-  deferred_items:                      # In-scope items NOT delivered in this epic.
-    - item: <string>                   # The in_scope entry that was deferred.
-      reason: <string>                 # Why it was deferred.
-      follow_up: <string>             # Issue/epic ID for the follow-up, or null.
-  scope_additions:                     # Items implemented that were NOT in in_scope.
-    - item: <string>                   # What was added.
-      justification: <string>          # Why it was necessary.
-  hypothesis_result:                   # Was the hypothesis validated?
-    validated: <boolean>               # true | false | null (inconclusive)
-    evidence: <string>                 # How we know — metric, observation, test result.
-  assumptions_validated:               # Which assumptions were confirmed or invalidated.
-    - assumption: <string>             # From assumptions_requiring_validation.
-      result: <enum>                   # confirmed | invalidated | inconclusive
-      evidence: <string>              # Supporting data.
-  constraints_met:                     # Were quantified constraints actually met?
-    performance: <string>              # Actual measured value vs target.
-    security: <string>                 # Compliance status.
-    accessibility: <string>            # Compliance status.
-  lessons:                             # Key learnings from this epic.
-    - <string>                         # Reusable insight for future epics.
-  completed_at: <string>              # ISO-8601 timestamp of epic completion.
-  capture_learning_run: <string>       # Issue number of the capture-learning run.
+provenance:
+  source:                              # REQUIRED. Where the intent originates.
+    kind: <enum>                       # brief_explicit | brief_inferred | rule_derived |
+                                       # research_supplemental | profile_default | assumption
+    quote: <string>                    # Verbatim brief text, OR 'CTC-NNN' for rule_derived,
+                                       # OR 'profile.<field>' for profile_default,
+                                       # OR 'needs_user_grounding' for assumption.
+    confidence: <enum>                 # high | medium | low
+
+  appetite: <string>                   # REQUIRED. Time-box, not estimate.
+                                       # Shape Up semantics: fixed time, variable scope.
+                                       # Example: "6 weeks"
+
+  business_rules:                      # REQUIRED. Minimum 1 entry. List of strings.
+                                       # Rules lifted from the KB capability definition,
+                                       # with profile-specific overrides applied.
+    - <string>
+
+  kb_source:                           # REQUIRED. Traces the epic to its KB feature.
+    capability: <string>               # Feature ID in domain-taxonomy. Must equal the
+                                       # top-level `capability` field.
+    rules_applied:                     # KB rules that shaped the intent.
+      - <string>
+    experiential_warnings:             # MAY be empty. Warnings lifted from the feature's
+                                       # `Experiential` section in the KB.
+      - <string>
+
+  uses_mocks: <boolean>                # REQUIRED per epics.md Rule 3. Default false.
+                                       # Set true when this epic ships the mock-first
+                                       # part of the two-part delivery.
+
+  demock_epic_ref: <string>            # REQUIRED when uses_mocks == true. The EPIC id
+                                       # of the integration epic that replaces the mocks
+                                       # with real integrations. The integration epic
+                                       # must also appear in connections.after.intents[].
+
+  foundation_investment: <boolean>     # REQUIRED per epics.md Rule 7. Default false.
+                                       # Set true when this epic is shared infrastructure
+                                       # that two or more other epics depend on (i.e., it
+                                       # has ≥2 incoming connections.before_chain refs).
+                                       # Foundation epics are sequenced earliest and
+                                       # carry P1 priority.
+
+# ──────────────────────────────────────────────────────────────────────────
+# Validation rules (enforced by validate-intent-epics)
+# ──────────────────────────────────────────────────────────────────────────
+# Rules will be re-derived from the rewritten epics.md after the user's
+# review of the rules file. The validator will be updated to read the new
+# shape: intent.goal (string), intent.constraints, intent.failure_scenario,
+# expectations.success_scenario, expectations.recovery (1:1 with
+# failure_scenario), expectations.vetted.status == "approved",
+# connections.before_chain.intents (no cycles), and provenance presence.
+#
+# Until the rules review is complete, the validator MUST refuse epics that
+# carry any of the legacy top-level keys (intents[], failure_conditions,
+# in_scope, anti_goals, must_not_break, problem_statement, hypothesis,
+# assumptions_requiring_validation, dependencies, depends_on,
+# foundation_investment, expectation, constraints at top level) — these
+# belong inside the four sections above or are deleted entirely.
 
 # Related:
-# - docs/adr/017-folder-whitelist.md (ADR that motivates the new schemas)
-# - core/components/memory/standards/rules/kb-extension.md (KB file structure)
-# - core/components/plays/specify/ (consumer — built in 214.5)
-# - core/components/plays/capture-learning/ (producer of post_implementation)
+# - core/components/memory/standards/rules/epics.md (rules — under review)
+# - core/components/skills/generate-intent-epics/ (producer)
+# - core/components/skills/validate-intent-epics/ (validator)
+# - core/components/skills/draft-epic-expectation/ (generates expectations)
+# - docs/philosophy/intent-driven-development.md (the ICE doctrine)
