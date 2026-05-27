@@ -329,12 +329,18 @@ Bash is available for operations **not covered by skills**:
 
 | Forbidden | Use Instead |
 |-----------|-------------|
-| `gh issue create`, `gh issue view` | `manage-issue` skill |
-| `gh issue list` | `manage-issue` skill |
-| `gh issue close` | `manage-issue` skill (action: close) |
-| `gh api` (for issues) | `manage-issue` skill |
+| `gh issue create`, `gh issue view` | `manage-issue` skill (routes through `platform-adapter`) |
+| `gh issue list` | `manage-issue` skill (routes through `platform-adapter`) |
+| `gh issue close` | `manage-issue` skill (action: close, routes through `platform-adapter`) |
+| `gh api` (for issues) | `manage-issue` skill (routes through `platform-adapter`) |
+| `glab issue create`, `glab issue view` | `manage-issue` skill (routes through `platform-adapter`) |
+| `glab issue list` | `manage-issue` skill (routes through `platform-adapter`) |
+| `glab issue close` | `manage-issue` skill (action: close, routes through `platform-adapter`) |
+| `glab api` (for issues) | `manage-issue` skill (routes through `platform-adapter`) |
 
 **Rule:** If a skill can do it, use the skill. Bash is for gaps only.
+
+**All code-host operations must route through the `platform-adapter` skill** (via `manage-issue`). Never invoke `gh` or `glab` directly for issue operations.
 
 ## Memory
 

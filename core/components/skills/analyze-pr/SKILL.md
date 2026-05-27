@@ -35,20 +35,13 @@ If `pr_number` was not provided:
 
 ### 0a. Read PR State (PR-scoped mode only)
 
-Preflight: verify gh CLI is available and authenticated.
+Invoke the `platform-adapter` skill with `verb: diff-pr` and `args: {pr_number: {pr_number}}` to fetch the unified diff.
 
-```bash
-gh auth status
-```
+Invoke the `platform-adapter` skill with `verb: view-pr` and `args: {pr_number: {pr_number}}` to fetch PR metadata (number, title, body, files, commits, baseRefName/target_branch, headRefName/source_branch).
 
-If gh is unavailable or unauthenticated, halt with error: "PR-scoped mode requires gh CLI. Run `gh auth login` and retry."
+If the adapter returns a non-zero exit code, halt with error: "PR-scoped mode requires a configured platform CLI. Check platform configuration and authentication."
 
-```bash
-gh pr diff {pr_number}
-gh pr view {pr_number} --json number,title,body,files,commits,baseRefName,headRefName
-```
-
-Use the `files` list from `gh pr view` as the changed files list (equivalent of `git diff --name-only`). Use the diff from `gh pr diff` for content analysis. Use commit messages from the `commits` array for commit type analysis.
+Use the `files` list from the view-pr response as the changed files list (equivalent of `git diff --name-only`). Use the diff from the diff-pr response for content analysis. Use commit messages from the `commits` array for commit type analysis. Access the target branch via `baseRefName` (GitHub) or `target_branch` (GitLab) as appropriate for the active platform.
 
 Proceed to Step 2 with the PR-derived data.
 

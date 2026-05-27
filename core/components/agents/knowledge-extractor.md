@@ -311,7 +311,7 @@ The play tells you which phase to run via `stm.input.phase` (`pre_review` or `po
 
 **Input:**
 - `mode` — must be `"fast"`
-- `pr_diff` — merged PR diff content (from `gh pr diff {pr_number}`)
+- `pr_diff` — merged PR diff content (from `platform-adapter diff-pr {pr_number}`)
 - `stm_base` — path to `{stm_base}/{issue}/` (issue STM root)
 - `product_base` — path to product LTM root (read-only reference)
 - `issue_body` — issue description text (for signal context)

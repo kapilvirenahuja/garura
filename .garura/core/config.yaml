@@ -11,6 +11,14 @@ github:
   owner: kapilvirenahuja   # GitHub account handle (from repo URL), not the display name
   name: garura             # repo name (lowercase, as in the URL)
 
+# Schema documentation: uncomment and populate to switch to GitLab.
+# GitLab owner is a group path (may be nested, e.g. dx_innovations/phoenix).
+# The adapter URL-encodes the full path when building API calls (slashes → %2F).
+#gitlab:
+#  host: gitlab.com            # or your self-hosted GitLab hostname
+#  owner: your-group/subgroup  # group path (nested groups allowed)
+#  name: your-project          # project name (as in the URL)
+
 # Source of truth locations
 components:
   skills: ./core/components/skills/

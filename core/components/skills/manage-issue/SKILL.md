@@ -39,11 +39,7 @@ Receive from agent:
 
 ### Action: `read`
 
-Fetch issue details:
-
-```bash
-gh issue view {issue_number} --json number,title,labels,state,body,url
-```
+Invoke the `platform-adapter` skill with `verb: view-issue` and `args: {issue_number: {issue_number}}`.
 
 Parse and return structured output.
 
@@ -51,16 +47,7 @@ Parse and return structured output.
 
 1. Load template from: `~/.garura/core/memory/standards/templates/github-issue.md`
 2. Construct issue body from description using template format
-3. Create the issue:
-
-```bash
-gh issue create \
-  --title "{title}" \
-  --body "{body}" \
-  --label "{labels}" \
-  --assignee "@me"
-```
-
+3. Invoke the `platform-adapter` skill with `verb: create-issue` and `args: {title: {title}, body: {body}, labels: {labels}, assignee: "@me"}`.
 4. If `parent_issue_number` is provided, attach as sub-issue (see Sub-Issue Attachment below)
 
 ### Action: `list`
@@ -69,24 +56,11 @@ Return a filtered, sorted list of open issues for candidate selection. GitHub's 
 
 **Step 1 — Query labeled candidates:**
 
-```bash
-gh issue list \
-  --state open \
-  --label "enhancement" \
-  --search "no:assignee" \
-  --json number,title,updatedAt,labels,state \
-  --limit 10
-```
+Invoke the `platform-adapter` skill with `verb: list-issues` and `args: {state: "open", query: "no:assignee label:enhancement", limit: 10}`.
 
 **Step 2 — Query unlabeled candidates:**
 
-```bash
-gh issue list \
-  --state open \
-  --search "no:assignee no:label" \
-  --json number,title,updatedAt,labels,state \
-  --limit 10
-```
+Invoke the `platform-adapter` skill with `verb: list-issues` and `args: {state: "open", query: "no:assignee no:label", limit: 10}`.
 
 **Step 3 — Merge and sort:**
 
@@ -128,80 +102,33 @@ If both queries return zero results, `candidate_count` is `0` and `candidates` i
 
 1. If `issue_number` is provided → perform `read` action
 2. If only `description` is provided:
-   a. Search for matching issues:
-      ```bash
-      gh issue list --search "{description}" --json number,title,labels,state,url --limit 5
-      ```
+   a. Search for matching issues: Invoke the `platform-adapter` skill with `verb: list-issues` and `args: {state: "open", query: "{description}", limit: 5}`.
    b. If a matching open issue is found → return it
    c. If no match → perform `create` action
 3. If `parent_issue_number` is provided, attach as sub-issue after resolve/create
 
 ### Action: `comment`
 
-1. Verify issue exists and is open:
-
-```bash
-gh issue view {issue_number} --json number,title,state,url
-```
-
+1. Invoke the `platform-adapter` skill with `verb: view-issue` and `args: {issue_number: {issue_number}}` to verify the issue exists and is open.
 2. If issue does not exist or is closed → return output with `commented: false` and reason.
-3. Post the comment:
-
-```bash
-gh issue comment {issue_number} --body "{body}"
-```
-
+3. Invoke the `platform-adapter` skill with `verb: comment-issue` and `args: {issue_number: {issue_number}, body: {body}}`.
 4. Return output with `commented: true` and the comment URL.
 
 ### Action: `close`
 
-1. Verify issue exists and is open:
-
-```bash
-gh issue view {issue_number} --json number,title,state,url
-```
-
+1. Invoke the `platform-adapter` skill with `verb: view-issue` and `args: {issue_number: {issue_number}}` to verify the issue exists and is open.
 2. If issue is already closed → return output with `closed: false` (no action taken)
-3. Close the issue:
-
-```bash
-gh issue close {issue_number} --reason {reason}
-```
-
-If `comment` is provided, add it:
-
-```bash
-gh issue close {issue_number} --reason {reason} --comment "{comment}"
-```
-
-4. Verify closure:
-
-```bash
-gh issue view {issue_number} --json number,title,state,url
-```
-
+3. Invoke the `platform-adapter` skill with `verb: close-issue` and `args: {issue_number: {issue_number}, reason: {reason}, comment: {comment}}`. Pass `comment` only when provided. Note: on GitLab, the `reason` argument is silently ignored by the adapter.
+4. Invoke the `platform-adapter` skill with `verb: view-issue` and `args: {issue_number: {issue_number}}` to verify closure.
 5. Return output with `closed: true`
 
 ### Sub-Issue Attachment
 
 When `parent_issue_number` is provided and an issue is created or resolved:
 
-```bash
-# Get the child issue's internal ID (NOT the issue number)
-CHILD_ID=$(gh api /repos/{owner}/{repo}/issues/{child_number} --jq '.id')
+Invoke the `platform-adapter` skill with `verb: attach-sub-issue` and `args: {child_number: {child_number}, parent_number: {parent_number}}`.
 
-# Attach as sub-issue to parent
-gh api /repos/{owner}/{repo}/issues/{parent_number}/sub_issues \
-  -X POST -F sub_issue_id="$CHILD_ID"
-```
-
-**Important:** The `sub_issue_id` field requires the issue's internal numeric `id` from the API, NOT the issue number visible in the URL.
-
-Derive `{owner}/{repo}` from the remote:
-
-```bash
-gh repo view --json nameWithOwner --jq '.nameWithOwner'
-```
+**Important:** On GitHub, the adapter uses the issue's internal numeric `id` (not the visible issue number) for the sub-issue attachment. On GitLab, parent/child hierarchy is not supported — the adapter falls back to a related-issues link, which creates a peer "relates to" link only. See `memory/tools/gitlab/adapter.md` for caveats.
 
 ## Output
 
@@ -211,7 +138,7 @@ Produce output using template: `templates/issue-output.md`
 
 ## Reference
 
-Load GitHub CLI and API reference from: `reference/github-issue.md`
+Platform-specific CLI and API reference: `reference/github-issue.md` (GitHub). This file is retained as a delegation pointer — the executable command translations now live in `core/components/skills/platform-adapter/reference/{platform}/verbs.md`. Do NOT add a `gitlab-issue.md` sibling here; GitLab translations are in the adapter's reference layer.
 
 ## Constraints
 
@@ -219,7 +146,7 @@ Load GitHub CLI and API reference from: `reference/github-issue.md`
 - NEVER close issues unless action is explicitly `close`
 - NEVER modify issue state unless explicitly requested in the action
 - NEVER assign to anyone other than `@me` on create
-- ALWAYS use `gh` CLI for issue operations, not raw API calls (except for sub-issues)
+- ALWAYS route all issue operations through the `platform-adapter` skill — never call `gh` or `glab` directly
 - ALWAYS verify issue exists after creation
 
 ## Version

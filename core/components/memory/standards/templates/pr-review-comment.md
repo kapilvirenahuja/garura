@@ -47,8 +47,8 @@ Consumers: `review-pr`.
 ## Update Behavior
 
 The `review-pr` play searches PR comments for the `<!-- review-pr:marker -->` sentinel:
-- Found → update in place via `gh api repos/{owner}/{repo}/issues/comments/{comment_id} -X PATCH`
-- Not found → post new comment via `gh pr comment`
+- Found → update in place via `platform-adapter update-comment` (verb: `update-comment`, args: `{comment_id, body}`)
+- Not found → post new comment via `platform-adapter comment-pr` (verb: `comment-pr`, args: `{pr_number, body}`)
 
 ## Related
 

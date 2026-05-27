@@ -41,7 +41,7 @@ Consumers: `fix-it` (primary), any future play that produces `rca.yaml` + `desig
 
 | Field | Source | Notes |
 |-------|--------|-------|
-| `@{user}` | `git config user.name` or `gh api user -q .login` | Prefer GitHub login for @ mentions |
+| `@{user}` | `git config user.name` or `platform-adapter view-user` (verb: `view-user`) | Prefer platform login for @ mentions |
 | `{ISO-8601 timestamp}` | System time at approval | UTC, e.g. `2026-04-19T10:12:43Z` |
 | `{play-name}` | Invoking play slug | e.g. `fix-it`, `address-qa-findings` |
 | `{stm_base}` | `.garura/core/config.yaml` → `stm.base-path` | Never hardcode |
@@ -75,11 +75,11 @@ Rationale — append vs edit: editing the original comment loses the approval-ti
 
 ## CLI Command
 
-Posted via `manage-issue` skill or directly by the agent dispatched with `run_in_background: true`:
+Posted via `manage-issue` skill (which routes through the `platform-adapter` skill with `verb: comment-issue`) or directly by the agent dispatched with `run_in_background: true`:
 
-```bash
-gh issue comment {issue_number} --body "{rendered_template}"
-```
+Invoke the `platform-adapter` skill with `verb: comment-issue` and `args: {issue_number: {issue_number}, body: "{rendered_template}"}`.
+
+> **Legacy reference:** The backing CLI command on GitHub is `gh issue comment {issue_number} --body "{rendered_template}"`; on GitLab it is `glab issue note {issue_number} --message "{rendered_template}"`. Use the adapter rather than calling CLI directly.
 
 ## Related Templates
 

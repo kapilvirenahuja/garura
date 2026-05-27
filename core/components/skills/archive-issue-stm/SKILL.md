@@ -36,13 +36,9 @@ If the directory does not exist, return output with `archived: false` and `reaso
 
 If `close_date` is provided, extract `YYYY-MM` from it.
 
-If not provided, fetch from GitHub:
+If not provided, invoke the `platform-adapter` skill with `verb: view-issue` and `args: {issue_number: {issue_number}}`. Extract the close date using `jq '.closedAt // .closed_at'` to handle both GitHub (`closedAt`) and GitLab (`closed_at`) field names.
 
-```bash
-gh issue view {issue_number} --json closedAt --jq '.closedAt'
-```
-
-If the issue is not closed (`closedAt` is null or empty), return output with `archived: false` and `reason: "Issue is not closed"`.
+If the issue is not closed (field is null or empty), return output with `archived: false` and `reason: "Issue is not closed"`.
 
 Extract `YYYY-MM` from the `closedAt` timestamp.
 
