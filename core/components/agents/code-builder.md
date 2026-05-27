@@ -288,6 +288,7 @@ Bash is available for operations that support implementation:
 | `git push` | Not your job — repo-orchestrator handles pushes |
 | `git checkout`, `git branch` | Not your job — repo-orchestrator handles branches |
 | `gh pr create` | Not your job — repo-orchestrator handles PRs |
+| `glab mr create` | Not your job — repo-orchestrator handles PRs (routes through platform-adapter) |
 
 **Rule:** You implement code. You never manage repository state.
 

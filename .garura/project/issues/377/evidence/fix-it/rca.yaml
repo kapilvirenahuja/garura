@@ -1,0 +1,70 @@
+issue_number: 377
+summary: >
+  When repo-orchestrator receives a multi-commit dispatch (N change groups + push),
+  it creates only the first commit and returns — because the agent's NEVER rule
+  explicitly forbids chaining skill invocations, and its Decision Framework has
+  no loop step, so the LLM stops after the first create-commit call.
+
+root_cause:
+  file: "core/components/agents/repo-orchestrator.md"
+  logic: >
+    The agent's Boundaries section (line 250) contains the rule
+    "Don't chain — One skill per invocation unless explicitly asked".
+    The Decision Framework (lines 230-244) defines a strictly linear flow:
+    step 9 "Invoke skill", step 10 "Interpret results", step 11 "Write outputs",
+    step 12 "Mark complete", step 13 "Return contract" — with no loop, no
+    "for each change group", no iteration construct of any kind.
+    The Intent→Skill Mapping table (line 181) shows
+    '"Commit these files: [...]" → create-commit' as a singular pattern
+    (one file list, one skill call), with no multi-group or batch pattern defined.
+  why_wrong: >
+    When a commit-code play dispatches a contract with N change groups, the agent
+    LLM reads the "Don't chain" NEVER rule as an explicit prohibition against
+    invoking create-commit more than once. Combined with the Decision Framework's
+    singular "Invoke skill" step (no iteration), the LLM invokes create-commit
+    for the first group and then proceeds directly to "Write outputs" →
+    "Return contract" — leaving all remaining groups and the push unexecuted.
+    The rule was written to prevent undisciplined skill chaining within a single
+    intent, but it has no carve-out for intentional multi-group iteration that
+    was explicitly requested in the dispatch contract.
+  line_range: "240-252"
+
+trace:
+  - step: >
+      Symptom: commit-code play dispatches repo-orchestrator with a contract
+      listing N change groups and a push. Agent returns after one commit.
+  - step: >
+      Play calls repo-orchestrator → agent enters Contract Processing Flow
+      (lines 99-106), reads intent.yaml, reads STM inputs including the
+      change groups list.
+  - step: >
+      Agent reaches Decision Framework step 9 (line 240): "Invoke skill —
+      Use the Skill tool with context". No prior step tells it to iterate;
+      it picks the first group and calls create-commit once.
+  - step: >
+      After create-commit returns, the agent follows step 10-13 linearly:
+      interpret → write outputs → mark complete → return contract.
+  - step: >
+      Root: the "Don't chain — One skill per invocation unless explicitly
+      asked" NEVER rule (line 250) is read as an absolute prohibition.
+      Even though the multi-group contract IS an explicit ask for N calls,
+      the Decision Framework provides no loop construct to express this —
+      so the LLM defaults to the safer, rule-conformant single-call path.
+
+blast_radius:
+  - path: "core/components/agents/repo-orchestrator.md"
+    role: "Agent definition — the only file that governs repo-orchestrator behavior"
+    change_needed: >
+      (1) Qualify the 'Don't chain' NEVER rule to carve out explicit multi-group
+      iteration: 'One skill per invocation unless explicitly asked OR the contract
+      specifies multiple groups requiring the same skill'. (2) Add a loop construct
+      to the Decision Framework between steps 8 and 9: 'For each group in contract,
+      invoke skill, collect result'. (3) Add a multi-group pattern to the
+      Intent→Skill Mapping table.
+  - path: "~/.claude/agents/repo-orchestrator.md"
+    role: "Deployed copy of the agent — synced from core/components/agents/ via /sync-claude"
+    change_needed: >
+      Must be resynced after core/components/agents/repo-orchestrator.md is fixed.
+      No direct edit — the source of truth is core/components/agents/.
+
+produced_at: "2026-05-27T00:00:00Z"

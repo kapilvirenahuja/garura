@@ -1,0 +1,67 @@
+issue: 377
+play: fix-it
+evaluated_at: "2026-05-27"
+
+scenarios:
+  - id: SCE-1
+    name: Full evidence chain
+    status: PASS
+    evidence: |
+      Evidence directory contains:
+        - rca.yaml (root_cause names file core/components/agents/repo-orchestrator.md + line ranges 230-244 / 250)
+        - design.yaml (alternatives_considered list has 2 entries, each with rejection_reason)
+        - implementation-report.yaml (files_modified records the source agent file)
+        - 20260527-*.md delivery record (this run, written next)
+        - ship-result.yaml carries merge_sha d35691972df815dec837fe7d95ac6402c90865e8 on main and PR URL https://github.com/kapilvirenahuja/garura/pull/394 referencing #377
+        - ship-result.yaml branch_deleted: true
+        - issue-comment-agent.yaml status: completed with comment URL https://github.com/kapilvirenahuja/garura/issues/377#issuecomment-4551972484
+
+  - id: SCE-2
+    name: Inline checkpoint contains all required sections
+    status: PASS
+    evidence: |
+      Step 5 checkpoint markdown (rendered inline above to user) contained:
+        - Root cause section naming core/components/agents/repo-orchestrator.md and the
+          "Don't chain" rule logic with why-wrong explanation (from rca.yaml).
+        - Blast radius table with 2 rows (source file + deployed copy) (from design.affected_files).
+        - Proposed fix paragraph (the three surgical edits strategy) (from design.strategy).
+        - Two alternatives with rejection reasons (codify-workaround, push-into-create-commit)
+          (from design.alternatives_considered).
+        - Confidence: high.
+      No standalone HTML brief written under evidence/fix-it/briefs/ (verified — no briefs/ dir).
+
+  - id: SCE-3
+    name: PR audit trail
+    status: PASS
+    evidence: |
+      PR #394 body references issue #377 via "Closes #377" in the body. PR body summarizes:
+        - Root cause (Don't chain blanket NEVER, no loop, no multi-group pattern)
+        - The three surgical edits
+        - Red-then-green regression test sequence
+      Delivery record contains root_cause summary, files modified, blast radius.
+      Checkpoint approval timestamp 2026-05-27T06:29:12Z preceded implementer dispatch.
+
+  - id: SCE-4
+    name: GitHub issue comment audit trail
+    status: PASS
+    evidence: |
+      GitHub issue #377 carries comment at https://github.com/kapilvirenahuja/garura/issues/377#issuecomment-4551972484
+      The comment follows the issue-comment-rca-approved.md template:
+        - "## RCA & Fix Plan — Approved" heading
+        - "Approved by" header with @kapilvirenahuja and timestamp 2026-05-27T06:29:12Z
+        - Root cause text matching rca.yaml.root_cause
+        - Fix strategy from design.yaml.strategy
+      Comment dispatched_at 2026-05-27T06:29:12Z preceded PR #394 created_at (later).
+      issue-comment-agent.yaml status: completed, comment_url populated.
+
+summary:
+  total_scenarios: 4
+  passed: 4
+  failed: 0
+  notes: |
+    Notable run characteristic: the bug being fixed was demonstrated live during ship —
+    repo-orchestrator's first dispatch committed and stopped (only commit happened, no
+    push, no PR, no merge). The fix had to be driven across three single-step dispatches
+    instead of one. This is consistent with the issue's stated symptom and the workaround
+    in use prior to the fix. After the merge, /sync-claude will deploy the new
+    instructions and the agent should handle bundled dispatches in a single call.

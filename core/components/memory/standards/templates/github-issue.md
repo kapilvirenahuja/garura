@@ -2,6 +2,8 @@
 
 Standard template for creating GitHub issues via `gh issue create`.
 
+> **Platform note:** For GitLab, use the `platform-adapter` skill with `verb: create-issue` instead of the `gh` CLI directly. See `memory/tools/gitlab/adapter.md` for GitLab-specific verb behaviour. This template remains the GitHub reference.
+
 ## Body Format
 
 ```markdown
@@ -59,3 +61,5 @@ gh issue create \
   --label "{label1},{label2}" \
   --assignee "@me"
 ```
+
+> **Adapter equivalent:** Invoke the `platform-adapter` skill with `verb: create-issue` and `args: {title, body, labels, assignee}`. The adapter dispatches to `gh issue create` (GitHub) or `glab issue create` (GitLab) based on `platform:` in `.garura/core/config.yaml`.

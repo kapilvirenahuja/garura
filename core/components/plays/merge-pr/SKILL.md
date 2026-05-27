@@ -69,11 +69,13 @@ platform=$(grep '^platform:' .garura/core/config.yaml | awk '{print $2}')
 # Halt if platform is unset
 
 # C2 + C4 — PR exists and is mergeable
-pr_info=$(gh pr view --json number,state,baseRefName,mergeable 2>/dev/null)
+# Fetch PR info: invoke platform-adapter skill, verb=view-pr, args={pr_number: ""} (auto-detect from current branch).
+# Assign returned JSON to pr_info.
 # Halt if no PR found for current branch
-# Halt if pr_info.state != "OPEN"
-# Halt if pr_info.mergeable == "CONFLICTING"
-pr_number=$(echo "$pr_info" | jq -r '.number')
+# Halt if pr_info.state != "OPEN" (GitHub) or pr_info.state != "opened" (GitLab)
+# Halt if pr_info.mergeable == "CONFLICTING" (GitHub) or merge conflicts detected (GitLab)
+# Access target branch via: baseRefName (GitHub) or target_branch (GitLab) — encoded in platform-adapter reference/gitlab/verbs.md
+# pr_number = pr_info.number (GitHub) or pr_info.iid (GitLab)
 ```
 
 **Resume check:** If `{stm_base}/{issue}/status/merge-pr.json` exists, resume — skip completed steps, reset any `in_progress` to pending, continue from first incomplete.

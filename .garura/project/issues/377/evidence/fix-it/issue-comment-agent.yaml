@@ -1,0 +1,10 @@
+status: completed
+dispatched_at: "2026-05-27T06:29:12Z"
+completed_at: "2026-05-27T06:29:12Z"
+task_id: issue-comment-dispatch
+template: core/components/memory/standards/templates/issue-comment-rca-approved.md
+issue_number: 377
+commented: true
+comment_url: "https://github.com/kapilvirenahuja/garura/issues/377#issuecomment-4551972484"
+approved_by: "@kapilvirenahuja"
+approval_timestamp: "2026-05-27T06:29:12Z"

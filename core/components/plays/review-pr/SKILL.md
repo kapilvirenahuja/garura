@@ -34,7 +34,7 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 
 | Agent | Domain | Phases | Role type |
 |---|---|---|---|
-| `repo-orchestrator` | Pre-flight: fetch PR diff/paths/body via `gh pr view` + `gh pr diff` | Pre-flight | Utility (exempt) |
+| `repo-orchestrator` | Pre-flight: fetch PR diff/paths/body via `platform-adapter view-pr` + `platform-adapter diff-pr` | Pre-flight | Utility (exempt) |
 | `tech-designer` | Resolve standards set + bind intent summary; emit `context.yaml` | Step 1 Context Load | Domain |
 | `quality-auditor` | Invoke `quality-check-scoped` against the diff; emit `findings.yaml` | Step 2 Scoped Quality Eval | Domain |
 | `tech-designer` | Compute confidence + routing decision; emit `confidence.yaml` | Step 3 Confidence & Routing | Domain |
@@ -104,7 +104,7 @@ Depends on: pre-flight
 }
 ```
 
-Agent runs `gh pr view {pr_number} --json number,title,body,author,headRefName,baseRefName,files` and `gh pr diff {pr_number}`. Writes `pr-meta.yaml` with PR metadata + `changed_paths[]`. Writes the unified diff to `diff.patch`.
+Agent invokes the `platform-adapter` skill with `verb: view-pr` and `args: {pr_number: {pr_number}}` to fetch PR metadata (number, title, body, author, headRefName/source_branch, baseRefName/target_branch, files). Agent also invokes the `platform-adapter` skill with `verb: diff-pr` and `args: {pr_number: {pr_number}}` to fetch the unified diff. Writes `pr-meta.yaml` with PR metadata + `changed_paths[]`. Writes the unified diff to `diff.patch`.
 
 ### Phase: Domain Analysis
 
@@ -340,11 +340,11 @@ Agent constructs the structured comment by loading `~/.garura/core/memory/standa
 
 > **Direct-edit deviation note (fix-it/#209):** Format pointer substitution only. Reconcile at next `/create-play --build review-pr` run.
 
-Agent searches PR comments for the `<!-- review-pr:marker -->` marker. If found, **updates in place** via `gh api repos/{owner}/{repo}/issues/comments/{comment_id} -X PATCH`. If not found, posts a new comment via `gh pr comment`.
+Agent searches PR comments for the `<!-- review-pr:marker -->` marker. If found, **updates in place**: invoke the `platform-adapter` skill with `verb: update-comment` and `args: {comment_id: {comment_id}, body: {body}}`. If not found, post a new comment: invoke the `platform-adapter` skill with `verb: comment-pr` and `args: {pr_number: {pr_number}, body: {body}}`.
 
 Routing actions:
-- `routing == block` → `gh pr review {pr_number} --request-changes --body "review-pr block"` AND `gh pr edit {pr_number} --add-reviewer {selected}`
-- `routing == escalate` → `gh pr edit {pr_number} --add-reviewer {selected}`
+- `routing == block` → invoke `platform-adapter` with `verb: request-changes` and `args: {pr_number: {pr_number}, body: "review-pr block"}` AND invoke `platform-adapter` with `verb: add-reviewer` and `args: {pr_number: {pr_number}, reviewer: {selected}}`
+- `routing == escalate` → invoke `platform-adapter` with `verb: add-reviewer` and `args: {pr_number: {pr_number}, reviewer: {selected}}`
 - `routing == pass` → no PR state change beyond the comment
 
 Emits `comment-record.yaml`:
@@ -355,7 +355,7 @@ review_action: request-changes | none
 reviewers_added: ["alice@org", "bob@org", "carol@org"]
 ```
 
-**Step 5 Eval — SE-8 (C8/F5/F6):** The PR comment posted to GitHub uses the structured template with P1/P2/P3 sections and the confidence score. If a prior review-pr comment exists, it is updated in place — `comment_id` matches the previous one. On P1 finding the PR is set to `request-changes`; on `block` or `escalate` the reviewers are added via `gh pr edit --add-reviewer`.
+**Step 5 Eval — SE-8 (C8/F5/F6):** The PR comment posted to the platform uses the structured template with P1/P2/P3 sections and the confidence score. If a prior review-pr comment exists, it is updated in place — `comment_id` matches the previous one. On P1 finding the PR is set to `request-changes` via `platform-adapter`; on `block` or `escalate` the reviewers are added via `platform-adapter add-reviewer`.
 
 ---
 
@@ -476,7 +476,7 @@ At Level 4, `intent-resolver` executes the autonomous entries (REC1, REC2, REC4,
 
 ## Pause and Resume
 
-**Issue detection:** Pre-flight derives `issue` from the current branch name (e.g., `feature/208-slug` → `208`). PR number is supplied as play argument or auto-detected from `gh pr view`.
+**Issue detection:** Pre-flight derives `issue` from the current branch name (e.g., `feature/208-slug` → `208`). PR number is supplied as play argument or auto-detected via the `platform-adapter view-pr` verb.
 
 **Status file:** `{stm_base}/{issue}/status/review-pr.json`
 

@@ -1,0 +1,68 @@
+resolution_trace:
+  protocol_version: "R1-R4"
+  invocation:
+    play: "fix-it"
+    issue: 377
+    task: "rca-and-design"
+    has_product_ltm: false
+    core_base: "~/.garura/core/memory/"
+    query_domains:
+      - agent-design
+      - agent-contracts
+      - skill-loops
+
+  r1_domains_identified:
+    - agent-design
+    - agent-contracts
+    - skill-loops
+
+  r2_project_scoped:
+    skipped: true
+    reason: "has_product_ltm=false — no project_base provided; .garura/product/architecture/ does not exist"
+
+  r3_core_scoped:
+    - domain: agent-design
+      resolved_from: core
+      source: "~/.garura/core/memory/knowledge/arch/agentic/agent-orchestration.md"
+      section: "Reference Architecture — Single Agent (ReAct) loop pattern"
+      authority: draft
+      value: >
+        Agent loop is the standard pattern: Think → Act → Observe → Repeat until done.
+        The repo-orchestrator's Decision Framework lacks the 'Repeat' step for multi-group
+        dispatch. The fix aligns with the ReAct loop pattern: iterate over groups,
+        invoke skill per group, collect results, then return.
+
+    - domain: agent-contracts
+      resolved_from: llm
+      source: null
+      section: null
+      authority: none
+      value: >
+        No core LTM file covers multi-commit contract semantics or how agents should
+        interpret a list of change groups. Resolved by LLM reasoning: a contract field
+        'change_groups: [list]' is an explicit multi-call request; the agent must iterate
+        over it rather than treating the list as a single scalar input.
+      ltm_gap_note: >
+        Candidate for learn-play: add agent-contracts knowledge to LTM covering how agents
+        should handle list-typed contract fields that imply iteration.
+
+    - domain: skill-loops
+      resolved_from: llm
+      source: null
+      section: null
+      authority: none
+      value: >
+        No core LTM file covers whether loop logic belongs in the agent or the skill.
+        Resolved by LLM reasoning + single-responsibility principle: create-commit is
+        intentionally single-commit (named in fix-it issue context). Loop logic belongs
+        in the agent, which has the multi-group context. Pushing the loop into the skill
+        would break its single-responsibility contract and make it stateful.
+      ltm_gap_note: >
+        Candidate for learn-play: add skill-loops knowledge covering loop-ownership
+        decisions in agent/skill architectures.
+
+  r4_fallbacks:
+    - domain: agent-contracts
+    - domain: skill-loops
+
+  produced_at: "2026-05-27T00:00:00Z"

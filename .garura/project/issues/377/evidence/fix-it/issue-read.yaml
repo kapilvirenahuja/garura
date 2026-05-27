@@ -1,0 +1,36 @@
+issue:
+  number: 377
+  title: "[BUG] repo-orchestrator drops bundled multi-commit dispatches (commits one, then stops)"
+  state: open
+  labels:
+    - bug
+  url: "https://github.com/kapilvirenahuja/garura/issues/377"
+  type_hint: fix
+  body: |
+    | Field | Value |
+    |-------|-------|
+    | **Type** | bug |
+    | **Severity** | medium |
+    | **Reported From** | issue #376 (ICE migration pilot) |
+    | **Date** | 2026-05-25 |
+
+    ### Problem
+
+    When `repo-orchestrator` is dispatched with a single contract asking it to create several commits (one per change group) and then push, it creates only the FIRST commit and returns — the remaining commits and the push never happen. The orchestrator then has to notice the partial result and re-dispatch the agent once per remaining commit.
+
+    Observed twice during issue #376, on two separate `/commit-code` runs: each time the agent reported a single commit and stopped, despite the dispatch instructing all commits plus the push. Driving it one commit per dispatch works reliably every time.
+
+    ### Root Cause
+
+    Likely in how `repo-orchestrator` iterates over change groups when invoking the `create-commit` skill — it appears to return after the first `create-commit` instead of looping through all groups in the contract.
+
+    ### Expected Behavior
+
+    A single dispatch instructing N commits + push should produce all N commits (each staging only its group's files) and then push the branch, in that one dispatch.
+
+    ### Impact
+
+    The `commit-code` play's Step 5 (`create-commits-and-push`) assumes `repo-orchestrator` creates all per-group commits and pushes in one dispatch. Because it doesn't, the play either leaves the commit sequence incomplete or forces the orchestrator to micro-manage each commit — which defeats the single-dispatch design and risks an incomplete, unpushed sequence if the partial return isn't caught. Workaround in use: dispatch one commit per call, verify git state between each, then a separate push dispatch. Medium severity — the commits themselves are correct, but the agent needs manual driving and can silently leave work undone.
+  created: false
+  closed: false
+  parent_issue: null

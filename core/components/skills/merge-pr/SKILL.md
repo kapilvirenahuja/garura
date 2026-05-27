@@ -24,35 +24,9 @@ Receive from caller (agent):
 
 ## Platform Dispatch
 
-This skill supports multiple git platforms. The platform is determined from project configuration, never hardcoded.
+This skill routes all platform operations through the `platform-adapter` skill. The adapter resolves the active platform from `.garura/core/config.yaml` and dispatches to the correct CLI.
 
-### 1. Read Platform
-
-```bash
-# Read from project config
-platform=$(grep '^platform:' .garura/core/config.yaml | awk '{print $2}')
-# Fallback
-platform=${platform:-github}
-```
-
-### 2. Load Platform Reference
-
-Load the platform-specific commands from the reference file:
-
-```
-reference/{platform}/merge.md
-```
-
-Available references:
-- `reference/github/merge.md` — GitHub via `gh` CLI
-- `reference/gitlab/merge.md` — GitLab via `glab` CLI
-- `reference/bitbucket/merge.md` — Bitbucket via `bb` CLI
-
-If the reference file for the configured platform does not exist, halt with structured failure — do not fall back silently.
-
-### 3. Use Platform Commands
-
-All git platform commands (merge, view, delete-branch) come from the loaded reference. The skill never hardcodes platform-specific CLI invocations.
+Supported platforms: `github` (via `gh`), `gitlab` (via `glab`). Bitbucket is not supported in this version — the adapter will return a structured failure if `platform=bitbucket` is configured.
 
 ## Process
 
@@ -65,17 +39,17 @@ If `pr_number` is not provided, detect the PR for the current branch:
 branch=$(git branch --show-current)
 ```
 
-Use the `find` command from the loaded platform reference to locate the PR for this branch.
+Invoke the `platform-adapter` skill with `verb: view-pr` and `args: {pr_number: ""}` (omit pr_number to auto-detect from current branch, per adapter's platform CLI behaviour).
 
 ### 2. Verify PR is Mergeable
 
-Use the `view` command from the loaded platform reference to check PR state. The PR must be open and not have merge conflicts.
+Invoke the `platform-adapter` skill with `verb: view-pr` and `args: {pr_number: {pr_number}}` to check PR state. Access `state` and `mergeable` (GitHub) or equivalent fields from the raw output. The PR must be open and not have merge conflicts.
 
 If the PR has merge conflicts, halt with structured failure (do not attempt resolution).
 
 ### 3. Merge PR
 
-Use the `merge` command from the loaded platform reference. Use the repository's default merge strategy — do not override.
+Invoke the `platform-adapter` skill with `verb: merge-pr` and `args: {pr_number: {pr_number}}`. The adapter uses the repository's default merge strategy — do not override.
 
 ### 4. Switch to Base Branch
 
@@ -125,8 +99,8 @@ Return structured result to caller:
 - NEVER override merge strategy — always use repository default
 - NEVER resolve merge conflicts — halt on conflict
 - NEVER ask for user input — return result to caller
-- NEVER hardcode platform-specific CLI commands — always load from reference
-- ALWAYS read platform from project config
+- NEVER hardcode platform-specific CLI commands — always route through platform-adapter
+- ALWAYS read platform from project config (handled by platform-adapter)
 - ALWAYS verify PR is mergeable before attempting merge
 - ALWAYS switch to base branch and pull after merge
 

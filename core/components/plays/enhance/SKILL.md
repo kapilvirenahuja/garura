@@ -730,7 +730,7 @@ Depends on: Step 12
 }
 ```
 
-Agent reads `pr_number` from `pr-result.yaml` (field: `pr_number`). Invokes `analyze-pr` skill passing `pr_number` so the skill uses PR-scoped mode (`gh pr diff` / `gh pr view`) instead of branch-diff. If `pr_number` is absent in `pr-result.yaml`, agent falls back to branch-diff mode and records a warning in `review-result.yaml`.
+Agent reads `pr_number` from `pr-result.yaml` (field: `pr_number`). Invokes `analyze-pr` skill passing `pr_number` so the skill uses PR-scoped mode (`platform-adapter diff-pr` / `platform-adapter view-pr`) instead of branch-diff. If `pr_number` is absent in `pr-result.yaml`, agent falls back to branch-diff mode and records a warning in `review-result.yaml`.
 
 ---
 

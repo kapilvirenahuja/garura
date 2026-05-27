@@ -397,8 +397,12 @@ Bash is available for operations **not covered by skills**:
 | `git status`, `git diff` (for analysis) | `analyze-changes` skill |
 | `git checkout -b`, `git branch` (for creation), `git worktree add` | `setup-branch` skill |
 | `gh pr merge`, `git checkout + git pull` (for merge lifecycle) | `merge-pr` skill |
+| `gh pr view`, `gh pr diff`, `gh pr comment`, `gh pr review`, `gh pr edit --add-reviewer` | `platform-adapter` skill (verbs: view-pr, diff-pr, comment-pr, request-changes, add-reviewer) |
+| `glab mr view`, `glab mr diff`, `glab mr note`, `glab mr update`, `glab api` | `platform-adapter` skill (same verb set — adapter handles platform routing) |
 
 **Rule:** If a skill can do it, use the skill. Bash is for read-only queries and gaps only.
+
+**All code-host operations must route through the `platform-adapter` skill.** Pass `verb` + `args` to the skill; never invoke `gh` or `glab` directly for PR or issue operations.
 
 ## Memory
 

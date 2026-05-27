@@ -1,0 +1,7 @@
+result:
+  status: merged
+  pr_number: 394
+  merge_sha: d35691972df815dec837fe7d95ac6402c90865e8
+  base_branch: main
+  branch_deleted: true
+  error: null
