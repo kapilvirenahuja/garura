@@ -1,406 +1,323 @@
 ---
 name: derive-physical-architecture
-description: Read logical-architecture.yaml and project-profile grounded tools to produce physical-architecture.yaml — every stack pick, deployment topology, data store, cache, queue, observability stack, auth infrastructure, and scaling strategy. Every slot names a specific product, never a category. Every decision carries source_type.
-version: 0.1.0
+description: Stage 4 skill of /arch. Builds the runtime physical architecture by mapping every logical component to one or more physical components, inheriting system_ref grounding from the inventory, picking specific deployment targets and resources, wiring comms with retry/idempotency stance, and naming a delivery mechanism for every NFR target in the refined quality profile. Mapping cardinality (1:1, N:1, 1:N) is recorded per physical component with rationale for non-trivial cases.
+version: 1.0.0
 user-invocable: false
 ---
 
 # derive-physical-architecture
 
-> **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest-derive-physical-architecture.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
+> **Decision Surfacing Discipline:** This skill emits a `decision-manifest-derive-physical-architecture.yaml` alongside its primary artifact. Every inferred decision — cardinality choice, deployment_target pick, resource sizing, comms protocol, retry/idempotency stance, NFR mechanism — is recorded with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
 
-Called by `tech-architect` during `arch` Stage 2. Produces `physical-architecture.yaml` at `{product_base}architecture/physical-architecture.yaml`.
+Called by `tech-architect` during `arch` Stage 4. Produces `physical-architecture.yaml` at `{product_base}architecture/physical-architecture.yaml` plus a decision manifest.
 
 ## Purpose
 
-Fill every "where it runs" slot with a specific, named product. logical-architecture.yaml is the structural anchor; this skill maps every component, context, and integration point onto real technology. Every slot must carry `source_type` to document how the selection was made — grounded tool pin, single KB candidate, multi-candidate user-approved, or agent default with user approval. `agent_default_unilateral` is a blocking failure.
+Build the runtime shape of the product. For every logical component, decide how it runs — where, on what resources, talking to whom, and with what mechanisms delivering the NFRs the refined quality profile describes. Physical components are NOT invented at physical-time; each is a runtime realization of an existing logical component and inherits its `system_ref` (and `sub_system_ref`) from the inventory grounding. The inventory-grounding chain — physical → logical → inventory — is the load-bearing trace that prevents architectural drift.
+
+**Differences from the prior version (model change in #403):**
+- `system_ref` now inherited from logical. Physical components NEVER invent systems.
+- New `logical_ref_cardinality` field per physical component (`one-to-one | many-to-one | one-to-many`) with required rationale for non-trivial mappings.
+- New `nfr_delivery[]` block per component — every refined-QP characteristic whose delivery falls in this component's scope appears here with mechanism. The prior separate `nfr-spec` artifact is gone; this block replaces it.
+- `comms[]` now carries `retry` and `idempotency` stance per outbound edge.
+- Cycle detection on the runtime graph: sync-only cycles forbidden, async edges break.
+- `layer` on each physical component MUST equal the linked logical component's layer.
 
 ## Input
 
-Receive from the tech-architect agent. All paths resolve against `{product_base}` and `{ltm_base}` supplied by the play via JSON contract.
+Receive from the `tech-architect` agent. All paths resolve against `{product_base}` and `{ltm_base}` supplied by the play via JSON contract.
 
-- `logical_architecture_path` (path, required) — `{product_base}architecture/logical-architecture.yaml` (from Stage 1; components, bounded contexts, integration points, and data model entities are the anchor)
-- `project_profile_path` (path, required) — `{product_base}user-provided/project-profile.yaml` (carries `grounded_tools` pins + PP/NFR dimensions: team_size, delivery_ambition, budget_sensitivity, timeline, compliance, nfr_*)
-- `quality_profile_path` (path, required) — `{product_base}specification/quality-profile.yaml` (NFR targets inform stack selection)
-- `epics_dir` (path, required) — `{product_base}scope/epics/` (performance constraints in epics drive tier selection)
-- `grounding_questions_path` (path, required) — `{product_base}user-provided/grounding-questions.md` (append target for multi-candidate ambiguities; read at start to re-use prior answers)
-- `ltm_architecture_path` (path, required) — `{ltm_base}knowledge/arch/` (KB candidate catalog for every slot)
-- `output_path` (string, required) — `{product_base}architecture/physical-architecture.yaml`
-- `decision_manifest_path` (path, required) — `{product_base}architecture/decision-manifest-derive-physical-architecture.yaml`
+- `logical_path` (path, required) — `{product_base}architecture/logical-architecture.yaml`. Stage 3 output.
+- `refined_qp_path` (path, required) — `{product_base}architecture/quality-profile.yaml`. Stage 2 output.
+- `inventory_dir` (path, required) — `{product_base}architecture/systems-inventory/`. Read for system Scale Profile and Tradeoffs to inform resource sizing and mechanism choice.
+- `project_profile_path` (path, required) — `{product_base}user-provided/project-profile.yaml`. `grounded_tools.physical[]` pins are authoritative; `compliance[]` flags constrain region/residency.
+- `kb_platforms_dir` (path, required) — `{ltm_base}components/memory/knowledge/arch/platforms/`. Cloud and on-prem platform candidates.
+- `kb_data_dir` (path, required) — `{ltm_base}components/memory/knowledge/arch/data/`. Data store candidates.
+- `kb_operations_dir` (path, required) — `{ltm_base}components/memory/knowledge/arch/operations/`. Observability, CI/CD, IaC, security infrastructure catalogs.
+- `flows_dir` (path, optional) — `{product_base}experience/flows/`. Traffic context for resource sizing.
+- `output_path` (string, required) — `{product_base}architecture/physical-architecture.yaml`.
+- `decision_manifest_path` (string, required) — `{product_base}architecture/decision-manifest-derive-physical-architecture.yaml`.
+- `grounding_questions_path` (string, required) — `{product_base}user-provided/grounding-questions.md`. Append-only for multi-candidate halts.
+
+## Output
+
+### Physical architecture
+
+YAML at `{output_path}`.
+
+```yaml
+components:
+  - id: order-orchestrator-fn               # kebab-case, unique within components[]
+    logical_ref: order-orchestrator         # MUST match a logical component id
+    logical_ref_cardinality: one-to-one | many-to-one | one-to-many
+    cardinality_rationale: |                # REQUIRED when cardinality != one-to-one; cites driver
+      {prose — e.g. "1:N for HA replication driven by refined QP reliability 99.9% target"}
+    system_ref: shopify-functions           # inherited from the linked logical component; MUST match inventory
+    sub_system_ref: null                    # inherited from logical when present
+    layer: process                          # MUST equal the linked logical component's layer
+    deployment_target:
+      kind: cloud-service | on-prem-class | saas | hybrid
+      name: AWS Lambda (Node.js 20 runtime, ARM64)   # SPECIFIC product, never a category
+      region: us-east-1
+      availability: multi-az | single-az | global-edge | on-prem-dc
+      source_type: project_profile_pin | kb_catalog_single_candidate | kb_catalog_multi_candidate_user_approved | agent_default_with_user_approval
+      source_citation: {pin slot | kb file path | grounding-question id | checkpoint id}
+    resources:
+      compute: { vcpu: 0.5, memory_mb: 512 }
+      storage: { kind: ephemeral | persistent, size_gb: 0.5 }
+      scaling:
+        kind: autoscale | fixed | scheduled
+        min: 0
+        max: 200
+        signal: concurrent-requests | cpu | rps | queue-depth | manual
+        rationale: {one line — citing QP target}
+    comms:
+      - to: inventory-api-svc               # another physical component id
+        protocol: HTTPS/1.1 | HTTPS/2 | gRPC | AMQP-0.9.1 | Kafka-protocol | S3-SigV4 | ...   # named specifically
+        sync_mode: sync | async | hybrid    # inherited from logical edge by default
+        retry:
+          policy: none | linear | exponential-backoff | dead-letter-queue
+          max_attempts: <int>
+          backoff_ms: <int>                 # initial; doubles per attempt for exponential
+        idempotency:
+          stance: not-required | required | conditional
+          key_header: {name when stance = required}
+          rationale: {one line — citing QP target or QP characteristic}
+    nfr_delivery:
+      - nfr_characteristic: reliability     # MUST match a characteristic in refined QP
+        target_reference: |                 # short citation of the refined QP target this mechanism delivers
+          {quote or paraphrase of refined QP characteristic.target}
+        mechanism: |                        # the specific mechanism — named, not abstract
+          AWS Lambda multi-AZ with provisioned concurrency 10, dead-letter SQS,
+          and async retry policy 3x exponential
+        rationale: |                        # how this mechanism delivers the target
+          {2-4 lines of prose}
+        source_type: ...
+        source_citation: ...
+      - nfr_characteristic: security
+        target_reference: "OWASP ASVS Level 2 per refined QP"
+        mechanism: |
+          IAM execution role with least-privilege policy; KMS-encrypted environment;
+          ALB WAF with OWASP managed rule set; VPC-only invocation
+        rationale: ...
+```
+
+**Validation rules baked into the schema:**
+- Every component's `logical_ref` matches a component id in `logical-architecture.yaml`.
+- Every component's `system_ref` matches the linked logical component's `system_ref` (and `sub_system_ref` if present).
+- Every component's `layer` equals the linked logical component's `layer`.
+- `logical_ref_cardinality` is one of the three values; `cardinality_rationale` is required when value is not `one-to-one`.
+- `deployment_target.name` is not a category term (deny-list check).
+- Every comms.to references a real physical component id.
+- Every nfr_delivery.nfr_characteristic matches a characteristic in the refined QP.
+
+### Decision manifest
+
+One YAML file at `{decision_manifest_path}` with entries for every inferred decision. Decision types: `cardinality`, `deployment_target`, `resources`, `comms_protocol`, `retry_policy`, `idempotency_stance`, `nfr_mechanism`.
+
+```yaml
+manifest:
+  skill: derive-physical-architecture
+  written_at: {ISO 8601 timestamp}
+  decisions:
+    - decision_id: PA-001
+      decision_type: cardinality | deployment_target | resources | comms_protocol | retry_policy | idempotency_stance | nfr_mechanism
+      component_id: order-orchestrator-fn
+      tier: high | mid | low
+      grounding_source:
+        kind: project_profile_pin | kb_catalog_single_candidate | kb_catalog_multi_candidate_user_approved | inventory_constraint | refined_qp_target | upstream_artifact | agent_default_with_user_approval
+        citation: {pin slot | kb file path | inventory file path | refined QP characteristic | grounding-question id | checkpoint id}
+      recommendation: {summarized decision}
+      alternatives_considered:
+        - option: {alt}
+          why_rejected: {one line}
+      agent_reasoning_summary: |
+        {2-4 line prose}
+      non_obvious: true | false
+      user_response: accept | override | orbit | pending
+      user_response_detail: {free text — null when pending}
+```
 
 ## Process
 
 ### 1. Read inputs
 
-- Parse `logical-architecture.yaml` → component list (IDs, types, responsibilities, depends_on), bounded contexts, integration points, data model entities.
-- Parse `project-profile.yaml` → `grounded_tools` map (authoritative pins), PP dimensions (team_size, delivery_ambition, budget_sensitivity, timeline), compliance flags, NFR numeric targets.
-- Parse `quality-profile.yaml` → performance targets, security level, observability depth, accessibility targets.
-- Glob `{epics_dir}/*.yaml` → per-epic performance constraints and scaling requirements.
-- Read `{grounding_questions_path}` at start — reuse any prior answers before generating new questions.
-- Read `{ltm_architecture_path}/_index.md` and the relevant per-category files. LTM is the primary candidate source; web research is a fallback only when no LTM file covers the slot.
+- Parse `logical_path` → list of logical components with id, layer, system_ref, sub_system_ref, capability_ids, inbound_edges, outbound_edges (with sync_mode).
+- Parse `refined_qp_path` → characteristics with targets and relevance.
+- Glob `inventory_dir/*.md` → parse frontmatter for each referenced system; read Scale Profile and Tradeoffs sections for resource and mechanism context.
+- Parse `project_profile_path` → `grounded_tools.physical[]`, `compliance[]`, `region_constraints[]`.
+- Glob `kb_platforms_dir`, `kb_data_dir`, `kb_operations_dir` → KB candidate sets per slot type.
 
 ### 2. Validate pre-conditions
 
-- Confirm `logical-architecture.yaml` is present and has a non-empty `components` section. Missing or empty → structured failure with `what_failed: missing_logical_architecture`.
-- Confirm `project-profile.yaml` is readable. Missing → structured failure.
-- Confirm `grounding-questions.md` is readable or creatable (may not exist yet — create if absent with header).
+- `logical_path` exists and parses cleanly.
+- `refined_qp_path` exists.
+- Every logical component's `system_ref` resolves to an inventory file. If any does NOT, halt with `what_failed: logical_system_ref_unresolved` — Stage 3 must re-run.
+- Required inputs exist OR documented stand-in exists.
 
-### 3. Enumerate physical slots and resolve via decision tree
+### 3. Decide cardinality per logical component
 
-Before composing the artifact, enumerate every slot that must be filled. For each slot, walk the decision tree in order:
+For each logical component, decide how many physical components implement it:
 
-**Slots to resolve:**
+- **one-to-one** by default. The simplest correct shape.
+- **one-to-many** when a refined-QP target forces replication, sharding, or tiered placement. Examples:
+  - Reliability target requires multi-region active-active → split into per-region physical components.
+  - Performance target requires read-replica fanout → one writer + N readers.
+  - Compliance requires data-residency partitioning → per-region physical components for the same logical role.
+- **many-to-one** when multiple logical components collapse into a single deployed surface. Justified only when:
+  - The logical components share transactional boundaries that span the collapse (a transactional commit must touch both).
+  - Operational simplicity at a tier where the QP targets do NOT require independent failure domains.
+  - A latency budget makes a network hop infeasible and the logical edge is sync.
+  - The collapsing components all share the same `system_ref` (you cannot collapse components grounded in different systems — that's an inventory boundary).
 
-| Slot | KB directory |
-|------|--------------|
-| system-level pattern | `arch/patterns/` |
-| frontend stack | `arch/stacks/frontend-*.md` |
-| backend stack | `arch/stacks/backend-*.md` |
-| data primary | `arch/data/relational.md`, `arch/data/nosql-*.md` |
-| data cache | `arch/data/nosql-keyvalue.md` |
-| message queue | `arch/data/messaging-queues.md` |
-| search | `arch/data/search-engines.md` |
-| vector store | `arch/data/vector-databases.md` (only if agentic/RAG in scope) |
-| observability | `arch/operations/observability.md` |
-| CI/CD | `arch/operations/ci-cd.md` |
-| containerization | `arch/operations/containerization.md` |
-| auth infrastructure | `arch/operations/security-infrastructure.md` |
-| platform / hosting | `arch/platforms/` |
-| deployment topology (environments, networks, runtime tiers) | derived from platform + components |
-| scaling strategy | derived from NFR targets + platform selection |
-| library pins | `arch/stacks/` per-stack library files |
+Every cardinality decision is recorded in the manifest with `decision_type: cardinality`. When cardinality != one-to-one, `cardinality_rationale` MUST cite an architectural driver (refined-QP target, project-profile pin, or inventory constraint).
 
-**Decision tree for every slot:**
+### 4. Pick deployment_target per physical component
 
-1. **grounded_tools_pin check.** Is there an entry in `project-profile.grounded_tools` that names this slot? If yes → use that exact value. Tag `source_type: grounded_tools_pin`. Cite `project-profile.grounded_tools.{slot_key}`. Done. This is the authoritative path — never override it.
-2. **KB candidate enumeration.** Open the relevant KB directory. Read every file's `When to Choose` / `When to Avoid` prose. Filter against project-profile dimensions (team_size, delivery_ambition, budget_sensitivity, timeline, compliance, nfr_*). Produce the legitimate candidate set.
-3. **Single candidate?** If filtering yields exactly one candidate → pick it. Tag `source_type: kb_catalog_single_candidate`. Cite the KB file and the dimensions that narrowed it. Create a manifest entry as `tier: high` (this is the D11 Phase A gap closure — single-candidate selections are NOT silently committed; they are recorded and surfaced as a batch-confirm flow). Done.
-4. **Multiple candidates?** Do NOT pick silently. Append a question to `{grounding_questions_path}` using the Q-arch-NNN format. The question lists the candidates, the dimension ambiguity, and the default you would pick if forced. Mark the slot `status: pending_user_approval`. The orchestrator surfaces unresolved questions at the next checkpoint. Once the user answers, tag the chosen candidate `source_type: kb_catalog_multi_candidate_user_approved` and cite the Q-arch-NNN id.
-5. **Zero candidates / slot outside KB catalog** (e.g., specific library or version pin). Propose a default with rationale and mark `pending_user_approval`. After user approval, tag `source_type: agent_default_with_user_approval`. NEVER commit this class unilaterally.
-6. **NEVER emit `source_type: agent_default_unilateral`.** Writing it is a blocking failure (F15).
+For each physical component:
 
-**Question format for `grounding-questions.md`:**
+1. **Pin check.** If `project_profile.grounded_tools.physical[]` carries an entry for the system_ref OR for the logical_ref id, use the pinned deployment_target. Decision tier `high`, source_type `project_profile_pin`.
+2. **KB candidate query.** Walk `kb_platforms_dir` and inventory's Scale Profile for candidates that fit the system_ref's hosting model (SaaS systems have only one deployment_target — the vendor's; self-hosted systems offer cloud / on-prem / hybrid choices).
+3. **Resolve by candidate count:**
+   - Single → use it, tier `high`, source_type `kb_catalog_single_candidate`.
+   - Multiple → halt the slot per C20: append `Q-arch-NNN` to grounding-questions or surface at the Stage 4 checkpoint. user_response pending. tier `mid`, source_type `kb_catalog_multi_candidate_user_approved`.
+   - Zero → enter agent-default mode, surface one-by-one per C19 LOW tier with explicit alternatives and rationale.
 
-```markdown
-### Q-arch-NNN — {slot name}
+`deployment_target.name` MUST be a specific product or class (AWS Lambda, AWS ECS Fargate, GCP Cloud Run, Azure App Service, Kubernetes 1.29 on EKS, on-prem VMware vSphere cluster, Salesforce SaaS, Stripe SaaS, etc.). Category terms ("a relational database", "a serverless platform") are a structural violation enforced at Step 9.
 
-**Context:** {one-sentence driver — which epic/quality-target/profile dimension forced this slot}
-**Candidates (from KB):**
-- {candidate A} — {one-line why it survives the filter}
-- {candidate B} — {one-line why it survives the filter}
-**Default if forced:** {candidate + rationale}
-**Blocking:** arch slot `{slot name}` — physical-architecture.yaml cannot ship until this is answered.
-```
+### 5. Size resources
 
-Append with a stable id (`Q-arch-001`, `Q-arch-002`, …) — never overwrite existing questions. Increment the counter from the last Q-arch-NNN already in the file.
+For each physical component, derive `resources.compute`, `resources.storage`, `resources.scaling`:
 
-**Halt behaviour.** When any slot has `pending_user_approval` or an unanswered Q-arch-NNN, still write a draft `physical-architecture.yaml` with each unresolved decision marked `status: pending_user_approval`, and return a non-empty `unresolved_slots` list in the output contract. Do not fabricate a pick to make the unresolved list empty.
+- Read refined QP performance characteristic targets (p95 latency, throughput RPS, concurrent users).
+- Read inventory system's Scale Profile section for the sweet-spot ranges.
+- Read flows (when available) for traffic shape.
+- Propose:
+  - Compute size aligned to per-instance throughput needed to meet the QP target at expected concurrency.
+  - Storage kind: `ephemeral` for stateless compute; `persistent` for data-bearing roles.
+  - Scaling: `autoscale` with signal aligned to the dominant load axis (rps, queue-depth, cpu) and bounds derived from QP scale target and budget pins.
 
-### 4. Compose physical-architecture.yaml sections
+Record one manifest entry per component with `decision_type: resources`. Tier:
+- `high` when the QP target is quantified and the KB Scale Profile maps cleanly.
+- `mid` when QP target requires interpretation (e.g., qualitative reliability without numbers).
+- `low` when neither — agent default; user must approve.
 
-**frontend_stack** — specific framework, version, and rendering strategy:
-```yaml
-frontend_stack:
-  choice: "Next.js 14 App Router"
-  version: "14.x"
-  source_type: kb_catalog_single_candidate
-  source_citation: "arch/stacks/frontend-react-nextjs.md — filter on team_size=4, delivery_ambition=MVP, nfr_performance=4 yielded one candidate"
-  rationale: "SSR + ISR covers p95 page load target; App Router co-located routing fits screen count from design"
-  drivers:
-    - "EPIC-commerce-catalog constraint: performance"
-    - "design-spec screen count: 45 screens / 3-5 states"
-  logical_components_served: [comp-web-frontend]
-```
+### 6. Wire comms per logical edge
 
-**backend_stack** — specific runtime, language version, framework:
-```yaml
-backend_stack:
-  choice: "Node.js 22 + Fastify 4"
-  source_type: grounded_tools_pin
-  source_citation: "project-profile.grounded_tools.backend_runtime"
-  rationale: "Pinned by project profile — team expertise and ecosystem continuity"
-  logical_components_served: [comp-auth-service, comp-api-gateway]
-```
+For each outbound edge from the linked logical component, create one entry in this physical component's `comms[]`:
 
-**data_stores** — one entry per data entity group, specific product and version:
-```yaml
-data_stores:
-  - id: ds-primary
-    purpose: "primary relational store for user, session, and order entities"
-    choice: "PostgreSQL 16"
-    hosting: "Neon (serverless Postgres)"
-    source_type: kb_catalog_single_candidate
-    source_citation: "arch/data/relational.md — filter on budget_sensitivity=medium, compliance=PCI yielded one candidate"
-    rationale: "ACID guarantees required by EPIC-payment-001 business rule BR-004; Neon removes ops overhead for team_size=4"
-    drivers: ["EPIC-payment-001 BR-004", "project-profile.team_size=4"]
-    logical_entities_served: [ent-user, ent-session, ent-order]
-```
+1. `to` = the physical component id implementing the logical edge's target. (When the target logical component has cardinality one-to-many, the physical edge fans out to all targets unless flows indicate a single-target affinity.)
+2. `protocol` — choose specifically. Inherit hints from the logical edge's sync_mode (sync → request-response protocols: HTTPS, gRPC; async → messaging or event protocols: AMQP, Kafka-protocol, SNS-SQS; hybrid → typically sync RPC + async event).
+3. `sync_mode` — carry forward from the logical edge.
+4. `retry`:
+   - When QP reliability target demands resilience: `exponential-backoff`, max_attempts 3-5.
+   - When the callee is idempotent and ops-cost matters: `dead-letter-queue` for failed messages.
+   - When neither: `none`.
+5. `idempotency.stance`:
+   - `required` whenever retry is non-`none` AND the operation is mutating.
+   - `conditional` when the operation is read-only or naturally idempotent (GETs, snapshot queries).
+   - `not-required` when neither.
 
-**cache** — specific product, version, and eviction policy:
-```yaml
-cache:
-  choice: "Redis 7 via Upstash"
-  source_type: kb_catalog_single_candidate
-  source_citation: "arch/data/nosql-keyvalue.md — single serverless Redis offering for team_size≤6"
-  rationale: "Session cache for MFA state and rate limiting per quality-profile.reliability target"
-  drivers: ["quality-profile.performance_efficiency target p95<500ms"]
-  logical_components_served: [comp-auth-service, comp-rate-limiter]
-```
+Record one manifest entry per comms decision (`decision_type: comms_protocol`, `retry_policy`, `idempotency_stance`).
 
-**queue** — specific product (omit if no async coupling justified):
-```yaml
-queue:
-  choice: "BullMQ 5 on Redis"
-  source_type: kb_catalog_single_candidate
-  source_citation: "arch/data/messaging-queues.md — filter on scale=small yielded BullMQ as lightweight embedded option"
-  rationale: "Email notification jobs and background data processing — EPIC-notification-001"
-  drivers: ["EPIC-notification-001 async_dispatch requirement"]
-```
+### 7. Name NFR delivery mechanisms
 
-**observability** — logging, metrics, tracing as named products:
-```yaml
-observability:
-  logs:
-    choice: "structured JSON to stdout → Axiom ingest"
-    source_type: kb_catalog_single_candidate
-    source_citation: "arch/operations/observability.md"
-    rationale: "Managed log aggregation with zero self-hosted ops; team_size=4"
-  metrics:
-    choice: "Prometheus exposition format + Grafana Cloud"
-    source_type: kb_catalog_single_candidate
-    source_citation: "arch/operations/observability.md"
-  traces:
-    choice: "OpenTelemetry SDK + Jaeger (self-hosted dev) → Grafana Tempo (prod)"
-    source_type: agent_default_with_user_approval
-    source_citation: "checkpoint:1 — user approved Grafana stack at Stage 1 checkpoint"
-```
+For each characteristic in the refined QP with `relevance != not_applicable`:
 
-**auth_infra** — specific auth product and protocol implementation:
-```yaml
-auth_infra:
-  choice: "NextAuth.js 5 (Auth.js) with OAuth2 providers + TOTP MFA"
-  source_type: kb_catalog_single_candidate
-  source_citation: "arch/operations/security-infrastructure.md"
-  rationale: "MFA required by CTC-001; TOTP via speakeasy library; OAuth2 for social login per EPIC-user-login-001"
-  drivers: ["CTC-001 MFA mandate", "EPIC-user-login-001 OAuth2 requirement"]
-```
+1. Determine which physical component(s) own delivery of this characteristic. Heuristics:
+   - **Performance** → entry-layer + process-layer components.
+   - **Reliability** → every layer; mechanisms specific to component role.
+   - **Security** → entry-layer (WAF, TLS termination, auth), process-layer (authz, input validation), data-layer (encryption-at-rest, KMS).
+   - **Maintainability / observability** → every component (logs, metrics, traces).
+   - **Compatibility / portability** → process-layer and integration boundaries.
+2. For each owning component, add one entry to `nfr_delivery[]`:
+   - `nfr_characteristic` matches the refined QP characteristic.
+   - `target_reference` quotes or paraphrases the refined QP target.
+   - `mechanism` names the specific architectural device delivering the target (e.g., "AWS Lambda multi-AZ with provisioned concurrency 10, dead-letter SQS, and async retry policy 3x exponential", NOT "use a resilient runtime").
+   - `rationale` ties mechanism to target.
 
-**platform_hosts** — per-environment hosting products:
-```yaml
-platform_hosts:
-  frontend: "Vercel"
-  backend: "Railway"
-  data: "Neon (serverless Postgres) + Upstash (Redis)"
-  source_type: kb_catalog_single_candidate
-  source_citation: "arch/platforms/managed-platforms.md — team_size≤6, delivery_ambition=MVP"
-```
+Every refined-QP characteristic with `relevance != not_applicable` MUST appear in at least one component's `nfr_delivery[]`. An unmapped target halts with `what_failed: nfr_target_unmapped`.
 
-**deployment_topology** — environments, network tiers, runtime components:
-```yaml
-deployment_topology:
-  environments:
-    - name: development
-      description: "local Docker Compose for backend; local Next.js dev server; Neon dev branch"
-    - name: preview
-      description: "per-PR Vercel preview deploy + Railway ephemeral environment + Neon branch"
-    - name: production
-      description: "Vercel prod + Railway prod + Neon prod + Upstash prod"
-  runtime_tiers:
-    - id: tier-web
-      type: web
-      logical_components: [comp-web-frontend]
-      host: Vercel
-    - id: tier-api
-      type: api
-      logical_components: [comp-auth-service, comp-api-gateway]
-      host: Railway
-    - id: tier-worker
-      type: worker
-      logical_components: [comp-notification-worker]
-      host: Railway
-    - id: tier-data
-      type: data
-      logical_components: [comp-user-profile-store, comp-order-store]
-      host: Neon + Upstash
-  networks:
-    - "Frontend (Vercel edge) → API (Railway) over HTTPS"
-    - "API → Data stores over private Railway network"
-```
+### 8. Cycle detection on the runtime graph
 
-**scaling_strategy** — named approach per runtime tier:
-```yaml
-scaling_strategy:
-  web: "Vercel automatic edge scaling — no config required"
-  api: "Railway horizontal scaling; autoscale to 3 replicas when CPU > 70%"
-  worker: "Railway min=1 max=3; queue depth-based autoscale"
-  data: "Neon autoscaling 0.25–4 CUs; Upstash per-request serverless"
-  rationale: "NFR: p99 availability=99.5% from quality-profile; autoscale covers burst without over-provisioning for team_size=4"
-  drivers: ["quality-profile.reliability target=99.5%", "project-profile.budget_sensitivity=medium"]
-```
+Build a directed graph from `comms[]`. Apply the same async-break rule as logical: a cycle that includes at least one edge with `sync_mode: async` is acceptable; a sync-only cycle is forbidden.
 
-**library_pins** — named libraries with versions per stack layer:
-```yaml
-library_pins:
-  - name: "Prisma 5"
-    layer: backend
-    purpose: "ORM and migration management for PostgreSQL data model"
-    source_type: kb_catalog_single_candidate
-    source_citation: "arch/stacks/backend-nodejs.md"
-  - name: "Zod 3"
-    layer: backend
-    purpose: "runtime schema validation at API boundary"
-    source_type: kb_catalog_single_candidate
-    source_citation: "arch/stacks/backend-nodejs.md"
-```
+When a sync-only cycle is detected, halt with `what_failed: runtime_sync_cycle` and structured details (cycle path, candidate breaks).
 
-### 5. Multi-candidate slot handling
-
-For every slot that produced multiple KB candidates and a Q-arch-NNN question:
-- Write the slot into the primary artifact with `status: pending_user_approval` and `question_id: Q-arch-NNN`.
-- Do not write a product name for unresolved slots — write `"{Q-arch-NNN}: awaiting user selection"`.
-- Append the question to `grounding-questions.md`.
-- Record the multi-candidate decision in the manifest as a `D-dpa-003` entry type.
-
-### 6. Assemble primary artifact
-
-Write `physical-architecture.yaml` to `{output_path}`:
-
-```yaml
-slug: "<from project_profile.name>"
-status: DRAFT
-created_at: "<ISO-8601>"
-play: arch
-skill: derive-physical-architecture
-upstream_artifacts:
-  logical_architecture_path: <echoed>
-  project_profile_path: <echoed>
-  quality_profile_path: <echoed>
-frontend_stack: ...
-backend_stack: ...
-data_stores: [...]
-cache: ...
-queue: ...
-observability: ...
-auth_infra: ...
-platform_hosts: ...
-deployment_topology: ...
-scaling_strategy: ...
-library_pins: [...]
-```
-
-### 7. Emit decision manifest
-
-Write `decision-manifest-derive-physical-architecture.yaml` to `{decision_manifest_path}` BEFORE writing the primary artifact.
-
-**Decisions to record** (decision_id prefix: `D-dpa-`):
-
-| decision_id | decision_type | What is being decided |
-|-------------|---------------|-----------------------|
-| `D-dpa-001` | `ltm-knowledge-loading` | Which LTM files are enumerated and read as the architecture candidate catalog for this run |
-| `D-dpa-002` | `single-candidate-kb-selection` | For each slot where KB filtering yielded exactly one candidate: the specific candidate chosen, the dimensions that narrowed the filter, and why other candidates were eliminated. Always `tier: high`. |
-| `D-dpa-003` | `multi-candidate-question-generation` | For each slot with multiple KB candidates: the candidates presented, the default proposed if forced, and the dimension ambiguity that prevented silent resolution. Records the Q-arch-NNN generated. |
-| `D-dpa-004` | `zero-candidate-default-proposal` | For each slot outside the KB catalog: the default proposed, the rationale, and that it is `pending_user_approval`. |
-| `D-dpa-005` | `grounded-tools-pin-application` | For each slot resolved by a grounded_tools pin: the pin value used, the slot key, and confirmation it matches the logical component. |
-| `D-dpa-006` | `stack-rationale-driver-pick` | Which driver (performance, team_size, ecosystem, compliance, cost) is the primary selection driver for each stack component. |
-| `D-dpa-007` | `deployment-topology-design` | Environment structure, network topology, and runtime tier assignment inferred from component types and platform selection. |
-| `D-dpa-008` | `scaling-strategy-selection` | The scaling approach for each runtime tier and the NFR/profile driver that justifies it. |
-| `D-dpa-009` | `library-pin-selection` | Which libraries are pinned per stack layer and the KB source or rationale. |
-| `D-dpa-010` | `observability-stack-composition` | Which logging, metrics, and tracing products are selected and how they compose into the observability tier. |
-| `D-dpa-011` | `auth-infra-selection` | The specific auth product, MFA mechanism, and OAuth2 provider configuration. |
-| `D-dpa-012` | `data-store-product-selection` | For each entity group, the specific data store product, version, and hosting choice. |
-| `D-dpa-013` | `cache-selection` | The cache product selected and the use cases it covers (session, rate limiting, hot-path, etc.). |
-| `D-dpa-014` | `queue-selection` | The queue product selected and the async use cases it covers. |
-| `D-dpa-015` | `platform-hosting-selection` | The managed hosting products selected per tier and the team-profile driver (team_size, budget, ops overhead). |
-
-```yaml
-schema_version: "1.0"
-skill: "derive-physical-architecture"
-generated_at: "{ISO8601}"
-decisions:
-  - decision_id: "D-dpa-002"
-    decision_type: "single-candidate-kb-selection"
-    tier: high   # always high — KB direct match with narrowing dimensions
-    grounding_source:
-      kind: kb_path
-      ref: "{KB file path that survived the filter}"
-      excerpt: "{When to Choose clause or filter dimension that selected this candidate}"
-    recommendation: "{the single surviving candidate and the slot it fills}"
-    alternatives_considered:
-      - alt: "{eliminated candidate}"
-        why_not: "{dimension that eliminated it}"
-    agent_reasoning_summary: "{2-3 sentence description of the filtering process}"
-    user_response: null
-    user_response_detail: null
-  # ... one entry per decision type, with additional entries per instance
-```
-
-### 8. Self-validation against constraints
+### 9. Validate output
 
 Before returning:
-- C3: verify every stack choice names a specific product with a version — no category terms. Any category term → structured failure with `what_failed: F2_category_term` and the offending slot.
-- C16: verify every decision entry in the manifest carries a `source_type` field. Missing source_type → structured failure with `what_failed: F15_missing_source_type`.
-- F15: verify no `source_type: agent_default_unilateral` appears anywhere in the artifact or manifest. If found → structured failure.
-- F16: verify no decision conflicts with a grounded_tools pin. If a slot covered by `project-profile.grounded_tools` uses a different value → structured failure with `what_failed: F16_grounded_tools_conflict`.
-- F17: verify no decision tagged `source_type: kb_catalog_single_candidate` where the KB actually offered multiple valid candidates. Requires re-checking the candidate filter.
-- F19: verify manifest has entries for all inferred decisions, with tier, grounding_source, recommendation, and alternatives_considered populated.
+- Schema rules from the Output section all hold.
+- Every component's `system_ref` matches the linked logical component's `system_ref` exactly. Mismatch → `what_failed: inventory_grounding_break`.
+- Every component's `layer` equals the linked logical component's `layer`.
+- `deployment_target.name` does NOT match the category-term deny-list (terms like "a database", "a queue", "an observability stack", "a frontend framework", "a CI system"). Hit → `what_failed: category_term_in_physical`.
+- Every refined-QP characteristic with relevance != not_applicable appears in at least one `nfr_delivery[]`. Miss → `what_failed: nfr_target_unmapped`.
+- Decision manifest complete with one entry per inferred decision.
 
-### 9. Return output contract
+## Output Contract
 
-```yaml
-physical_architecture:
-  path: <written path>
-  slots_filled: <int>
-  slots_resolved_grounded_tools_pin: <int>
-  slots_resolved_kb_single: <int>
-  slots_resolved_kb_multi_user_approved: <int>
-  slots_resolved_agent_default_user_approved: <int>
-  unresolved_slots:
-    - slot: <slot name>
-      question_id: <Q-arch-NNN>
-      status: pending_user_approval
-  grounding_questions_appended: <int>
-decision_manifest:
-  path: <written path>
-  decisions_recorded: <int>
+On success:
+
+```json
+{
+  "status": "success",
+  "skill": "derive-physical-architecture",
+  "outputs": {
+    "physical_path": "{product_base}architecture/physical-architecture.yaml",
+    "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-physical-architecture.yaml",
+    "component_count": <int>,
+    "comms_count": <int>,
+    "nfr_delivery_count": <int>,
+    "decisions_count": <int>,
+    "halted_slots": [
+      { "kind": "deployment_target | resources | comms_protocol | nfr_mechanism", "component_id": "...", "grounding_question_id": "Q-arch-NNN" }
+    ]
+  }
+}
 ```
 
-## Outputs
+On failure:
 
-```yaml
-outputs:
-  - path: "{product_base}architecture/physical-architecture.yaml"
-    required: true
-  - path: "{product_base}architecture/decision-manifest-derive-physical-architecture.yaml"
-    required: true
+```json
+{
+  "status": "failure",
+  "skill": "derive-physical-architecture",
+  "what_failed": "missing_input | logical_system_ref_unresolved | inventory_grounding_break | category_term_in_physical | runtime_sync_cycle | nfr_target_unmapped | cardinality_without_rationale | layer_mismatch | manifest_incomplete",
+  "details": "..."
+}
 ```
+
+## Evals
+
+| Eval | Failure Bound | Check |
+|------|---------------|-------|
+| PA-1 | F6 (physical missing fields / uses category) | Every component has logical_ref, system_ref, layer, deployment_target.kind, deployment_target.name; no name matches the category-term deny-list. |
+| PA-2 | F23 (physical system_ref not in inventory) | Every physical component's system_ref matches the linked logical component's system_ref exactly AND resolves to an inventory file id. |
+| PA-3 | F7 (cardinality without rationale or layer mismatch) | Every component with `logical_ref_cardinality != one-to-one` has a non-empty `cardinality_rationale`; every component's `layer` equals the linked logical component's `layer`. |
+| PA-4 | F8 (NFR without delivery mechanism) | Every refined-QP characteristic with `relevance != not_applicable` appears in at least one component's `nfr_delivery[]` with mechanism and rationale. |
+| PA-5 | F5 (runtime sync cycle) | The directed graph of `comms[]` edges, ignoring `sync_mode: async` edges, is acyclic. |
+| PA-6 | F16 (manifest missing/malformed) | Decision manifest exists with one entry per inferred decision; every entry has decision_id, decision_type, component_id, tier, grounding_source, recommendation, alternatives_considered. |
+| PA-7 | F13 (source_type discipline) | No decision has `grounding_source.kind: agent_default_unilateral`. |
+| PA-8 | C16 (KB read-only) | The skill wrote NO file under `kb_platforms_dir`, `kb_data_dir`, or `kb_operations_dir`. |
 
 ## Constraints
 
-- NEVER use category terms. Every technology is a named product with a version. "a relational database" is invalid; "PostgreSQL 16 on Neon" is valid.
-- NEVER commit a slot to a single product name when the KB catalog offered more than one legitimate candidate AND `grounded_tools` did not pin it AND the user has not answered the Q-arch question. Walk the decision tree in Step 3.
-- NEVER override a `project-profile.grounded_tools` pin. Pins are authoritative. Overriding is F16.
-- NEVER emit `source_type: agent_default_unilateral`. That tag is the validator's rejection target; writing it is F15.
-- NEVER silently commit a `kb_catalog_single_candidate` selection. Record in the manifest as `tier: high` and surface via the orchestrator's batch-confirm flow before physical-architecture.yaml is consumed downstream.
-- ALWAYS tag every decision with `source_type` and `source_citation`. A decision without these fields is a schema violation (C16).
-- ALWAYS ground technology choices in LTM architecture knowledge first. Use WebSearch only when LTM is silent on the slot.
-- ALWAYS reference logical component IDs when specifying which components a stack or data store serves. Physical is mapped to logical — logical is the anchor.
-- ALWAYS include `alternatives_considered` with at least one entry for every decision. If truly no alternative, state "none — only candidate" explicitly.
-- NEVER commit an inferred decision to physical-architecture.yaml without recording it in the decision manifest first.
-- NEVER tag a decision `tier: high` unless the `grounding_source.kind` is `kb_path` AND the referenced KB file exists.
+- Writes ONLY to `{output_path}`, `{decision_manifest_path}`, and (for multi-candidate halts) appends to `{grounding_questions_path}`.
+- Read-only on `logical_path`, `refined_qp_path`, `inventory_dir`, `project_profile_path`, every KB directory.
+- NEVER invents a system. `system_ref` inherited from logical; mismatch is structural violation.
+- NEVER changes the layer assigned in logical. Layer mismatch is structural violation.
+- NEVER names a category term in `deployment_target.name`, `comms.protocol`, or `nfr_delivery.mechanism`. Specific products only.
+- NEVER duplicates the refined-QP target text — references it via `target_reference` citation.
+- Respects C18/C19 surfacing tiers and C20 multi-candidate halt.
 
-## DSD Compliance (C18/C19)
+## Failure modes
 
-This skill emits a decision manifest alongside its primary artifact. Every inferred decision
-(not user-provided input) lands in the manifest with tier, grounding_source, recommendation,
-alternatives_considered, and user_response=null. The orchestrator walks the manifest after
-this skill completes and drives the tiered surfacing flow before downstream skills read the
-primary artifact. A manifest-free emission is a structural violation (F19).
-
-## Version
-
-| Field | Value |
-|-------|-------|
-| Version | 0.1.0 |
-| Category | architecture |
-| Created | 2026-04-15 |
-| Related | `core/components/agents/tech-architect.md`, `core/components/skills/derive-logical-architecture`, `core/components/skills/derive-nfr-spec`, `core/components/skills/validate-architecture-spec` |
+- `missing_input` — required input path absent and no stand-in.
+- `logical_system_ref_unresolved` — a logical component's system_ref does not resolve to inventory. Stage 3 must re-run.
+- `inventory_grounding_break` — a physical component's system_ref does not match the linked logical component's system_ref.
+- `category_term_in_physical` — deployment_target name, comms protocol, or nfr_delivery mechanism uses a category term instead of a specific product.
+- `runtime_sync_cycle` — directed comms graph (ignoring async edges) has a cycle.
+- `nfr_target_unmapped` — a refined-QP characteristic with `relevance != not_applicable` has no mapped nfr_delivery entry.
+- `cardinality_without_rationale` — a component with `logical_ref_cardinality != one-to-one` lacks `cardinality_rationale`.
+- `layer_mismatch` — a physical component's layer differs from the linked logical component's layer.
+- `manifest_incomplete` — decision manifest missing or any entry lacks required fields.

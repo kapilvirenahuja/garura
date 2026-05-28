@@ -1,333 +1,288 @@
 ---
 name: derive-logical-architecture
-description: Read locked specify and design output and produce a technology-agnostic logical architecture: bounded contexts, components with responsibilities, data model, capability-level API surface, integration points, and an ADR log. Every boundary, entity, and grouping decision lands in a decision manifest.
-version: 0.1.0
+description: Stage 3 skill of /arch. Builds the layered logical architecture for a product by selecting components from the systems inventory, placing each in a layer of the product-locked layer model, wiring edges with sync/async intent, detecting cycles, and validating end-to-end traceability of every selected capability from the user-facing entry layer to a serving component. Logical names systems by their inventory ID and role — never by product, runtime, language, protocol, or schema.
+version: 1.0.0
 user-invocable: false
 ---
 
 # derive-logical-architecture
 
-> **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest-derive-logical-architecture.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
+> **Decision Surfacing Discipline:** This skill emits a `decision-manifest-derive-logical-architecture.yaml` alongside its primary artifact. Every inferred decision — layer model selection (when not pinned), component placement, edge sync-mode, capability-to-component assignment — is recorded with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
 
-Called by `tech-architect` during `arch` Stage 1. Produces `logical-architecture.yaml` at `{product_base}architecture/logical-architecture.yaml`.
+Called by `tech-architect` during `arch` Stage 3. Produces `logical-architecture.yaml` at `{product_base}architecture/logical-architecture.yaml` plus a decision manifest.
 
 ## Purpose
 
-Transform locked specify and design artifacts into the technology-agnostic structural view of the system. This artifact is the anchor for every downstream arch skill — physical-architecture.yaml references component IDs from here, nfr-spec.yaml cites delivery mechanisms by component, and design-patterns.yaml scopes patterns by runtime tier declared here. Pure structure: no product names, no protocols, no wire formats, no programming languages.
+Build the layered, tech-agnostic structural view of the product. Every component IS a system or sub-system from the systems inventory written by Stage 1 — components are SELECTED, not invented. Every component lives in exactly one layer of the layer model that the play locks at Stage 3 opening. Cycles between components are forbidden. Every capability in scope has at least one end-to-end path through layers from the user-facing entry layer to a component whose system_ref serves it.
+
+This artifact is the anchor every later stage references. Physical components reference component IDs from here, tech-stack scopes pick to component IDs from here, and technical risks cite components and their edges. Logical is structure; tech and runtime detail belong elsewhere.
+
+**Differences from the prior version of this skill (model change in #403):**
+- Components are now SELECTED from inventory, not invented at logical-time. Every component has `system_ref` (and optional `sub_system_ref`) resolving to an inventory entry.
+- Every component now carries a `layer` field from the locked layer model.
+- The bounded-contexts primitive is removed — layers + system grounding cover the same need.
+- Edges carry sync_mode (sync | async | hybrid) as design intent.
+- Cycle detection is a hard validation gate.
+- End-to-end traceability is a hard validation gate.
+- ADRs are no longer embedded in an `adr_log` block — decision-manifest entries flagged non-obvious are the trail.
 
 ## Input
 
-Receive from the tech-architect agent. All paths resolve against `{product_base}` and `{ltm_base}` supplied by the play via JSON contract.
+Receive from the `tech-architect` agent. All paths resolve against `{product_base}` and `{ltm_base}` supplied by the play via JSON contract.
 
-- `scope_path` (path, required) — `{product_base}scope/scope.yaml`
-- `enriched_capabilities_path` (path, required) — `{product_base}scope/garura:enriched-capabilities.yaml`
-- `epics_dir` (path, required) — `{product_base}scope/epics/`
-- `quality_profile_path` (path, required) — `{product_base}specification/quality-profile.yaml`
-- `design_spec_path` (path, required) — `{product_base}experience/design-spec.md`
-- `screens_dir` (path, required) — `{product_base}experience/screens/`
-- `flows_dir` (path, required) — `{product_base}experience/flows/`
-- `personas_path` (path, required) — `{product_base}experience/personas.md`
-- `project_profile_path` (path, required) — `{product_base}user-provided/project-profile.yaml`
-- `output_path` (string, required) — `{product_base}architecture/logical-architecture.yaml`
-- `decision_manifest_path` (path, required) — `{product_base}architecture/decision-manifest-derive-logical-architecture.yaml`
+- `inventory_dir` (path, required) — `{product_base}architecture/systems-inventory/`. The set of systems and sub-systems components MUST be selected from.
+- `refined_qp_path` (path, required) — `{product_base}architecture/quality-profile.yaml`. Stage 2 output. May influence component splits when a QP target demands independent failure domains or scaling units.
+- `scope_path` (path, required) — `{product_base}scope/scope.yaml`. When missing under C1 soft pre-flight, read `{product_base}specification/capabilities-stand-in.yaml` instead.
+- `enriched_capabilities_path` (path, optional) — `{product_base}scope/garura:enriched-capabilities.yaml`.
+- `epics_dir` (path, required) — `{product_base}scope/epics/`.
+- `design_spec_path` (path, optional) — `{product_base}experience/design-spec.md`. Flow context for edge wiring.
+- `flows_dir` (path, optional) — `{product_base}experience/flows/`. User flows describe cross-component journeys.
+- `personas_path` (path, optional) — `{product_base}experience/personas.md`.
+- `project_profile_path` (path, required) — `{product_base}user-provided/project-profile.yaml`. `layer_model` pin authoritative; `grounded_tools.components[]` pins authoritative.
+- `kb_layer_models_dir` (path, required) — `{ltm_base}components/memory/knowledge/arch/layer-models/`. Blueprint layer models surfaced when no pin.
+- `output_path` (string, required) — `{product_base}architecture/logical-architecture.yaml`.
+- `decision_manifest_path` (string, required) — `{product_base}architecture/decision-manifest-derive-logical-architecture.yaml`.
+- `grounding_questions_path` (string, required) — `{product_base}user-provided/grounding-questions.md`. Append-only for multi-candidate halts.
+
+## Output
+
+### Logical architecture
+
+YAML at `{output_path}`.
+
+```yaml
+layer_model:
+  source: project_profile_pin | kb_blueprint | user_authored
+  source_citation: {profile slot | kb file path | checkpoint id}
+  layers:
+    - id: experience           # kebab-case
+      name: {Human-readable name}
+      role: |
+        {one or two lines describing what kind of components live in this layer}
+      order: 1                 # ascending from entry layer; integer
+      is_entry: true           # exactly ONE layer in the model has is_entry: true
+    - id: process
+      name: ...
+      role: ...
+      order: 2
+      is_entry: false
+    - id: systems
+      ...
+
+components:
+  - id: order-orchestrator     # kebab-case, unique within components[]
+    name: Order Orchestrator
+    layer: process              # MUST be one of layer_model.layers[].id
+    system_ref: shopify-functions  # MUST resolve to an inventory file id at {inventory_dir}{system_ref}.md
+    sub_system_ref: null        # when set, MUST resolve to a sub_systems[].id inside that inventory file
+    responsibilities:
+      - {one bullet per primary responsibility}
+    capability_ids:
+      - {capability_id from scope.selected_capabilities — at least one}
+    inbound_edges:
+      - from: web-experience    # another component id; the playload-bearing trace
+    outbound_edges:
+      - to: inventory-api
+        sync_mode: sync | async | hybrid
+        rationale: {one line — why this mode}
+    driver_epics:
+      - {epic id citing this component}
+    driver_capabilities:
+      - {capability id citing this component}
+```
+
+**Validation rules baked into the schema:**
+- Exactly one layer in `layer_model.layers[]` has `is_entry: true`.
+- `layer_model.layers[].order` values are unique positive integers.
+- Every component's `layer` matches a layer id in `layer_model.layers[]`.
+- Every component's `system_ref` matches a file id under `inventory_dir`. When `sub_system_ref` is non-null, it matches a `sub_systems[].id` inside that inventory file's frontmatter.
+- Every component has at least one `capability_id`.
+- Every inbound_edges.from references a real component id in this file.
+- Every outbound_edges.to references a real component id in this file. Self-edges are forbidden.
+
+### Decision manifest
+
+One YAML file at `{decision_manifest_path}` with entries for:
+- Layer model selection (when not pinned) — one entry, decision_type: `layer_model_selection`.
+- Each component placement — one entry per component, decision_type: `component_placement`.
+- Each outbound edge with sync_mode — one entry per edge, decision_type: `edge_sync_mode`.
+
+```yaml
+manifest:
+  skill: derive-logical-architecture
+  written_at: {ISO 8601 timestamp}
+  decisions:
+    - decision_id: LA-001
+      decision_type: layer_model_selection | component_placement | edge_sync_mode
+      tier: high | mid | low
+      grounding_source:
+        kind: project_profile_pin | kb_blueprint | upstream_artifact | user_direct_answer | agent_default_with_user_approval
+        citation: {profile slot | kb file path | upstream path | checkpoint id | grounding-question id}
+      recommendation: {summarized decision}
+      alternatives_considered:
+        - option: {alt}
+          why_rejected: {one line}
+      agent_reasoning_summary: |
+        {2-4 line prose}
+      non_obvious: true | false           # true when alternatives existed AND the choice narrows future paths (treats this entry as an ADR)
+      user_response: accept | override | orbit | pending
+      user_response_detail: {free text — null when pending}
+```
+
+Entries with `non_obvious: true` are the architectural decision record for downstream consumers. No separate `adr_log` block is emitted.
 
 ## Process
 
 ### 1. Read inputs
 
-- Parse `scope.yaml` → selected capability list with IDs and names.
-- Parse `enriched-capabilities.yaml` → per-capability business rules, invariants, and constraint notes.
-- Glob `{epics_dir}/*.yaml` → every intent epic with `constraints`, `failure_conditions`, `expectation.success_scenarios`, `expectation.recovery`, and business rules.
-- Parse `quality-profile.yaml` → ISO 25010 characteristics with relevance and targets; security profile; compliance flags.
-- Read `design-spec.md` → screen inventory summary, interaction patterns, user flow descriptions.
-- Glob `{screens_dir}/*.md` → state counts per capability for complexity estimation.
-- Glob `{flows_dir}/*.md` → user flows describing cross-component journeys.
-- Read `personas.md` → functional roles and their capability interactions.
-- Parse `project-profile.yaml` → compliance flags, integration requirements, data residency constraints, and any structural notes.
+- Glob `inventory_dir/*.md` → parse each frontmatter into a system catalog with id, capabilities_served, sub_systems[]. Reject if `inventory_dir` is empty (Stage 1 must run first).
+- Parse `refined_qp_path` → characteristic targets that may force component splits.
+- Parse `scope_path` (or stand-in) → selected_capabilities[].
+- Parse `enriched_capabilities_path` if present, every file under `epics_dir`, `design_spec_path` if present, every file under `flows_dir` if present, and `personas_path` if present.
+- Parse `project_profile_path` → check `layer_model` pin and `grounded_tools.components[]` pins.
+- Glob `kb_layer_models_dir/*.md` → blueprint layer models for surfacing if no pin.
 
 ### 2. Validate pre-conditions
 
-- Confirm all required input files exist and are readable. Missing input → structured failure with `what_failed: missing_input` and path.
-- Confirm `scope.yaml` carries a non-empty `selected_capabilities` list. Zero capabilities → structured failure with `what_failed: empty_scope`.
-- Confirm `scope.yaml` status is LOCKED (not DRAFT). DRAFT status → structured failure with `what_failed: upstream_not_locked`.
-- Confirm `design-spec.md` status is LOCKED. DRAFT status → structured failure with `what_failed: upstream_not_locked`.
+- `inventory_dir` is non-empty and at least one inventory file claims a capability in `selected_capabilities`. Otherwise → `what_failed: empty_inventory_for_scope`.
+- Required inputs exist OR documented stand-in exists.
 
-### 3. Enumerate logical decision slots
+### 3. Establish the layer model
 
-Before composing the primary artifact, enumerate every slot that requires an inferred structural decision:
+In order, take the first path that resolves:
 
-| Slot | Decision type |
-|------|---------------|
-| Bounded context identification | Which capabilities cluster into the same context boundary |
-| Component definition per capability | Name, responsibilities, owned state |
-| Component ownership boundaries | Which data / state each component owns; where boundaries are drawn |
-| Data model entities | Entities inferred from capability business rules and epic invariants |
-| PII field identification | Which entity fields are PII based on compliance flags and epic data-handling rules |
-| Entity relationships and invariants | Cardinality, integrity rules, TTL constraints |
-| API surface grouping | Which capability operations cluster into a named API group |
-| Integration point identification | Which external systems are implied by capability scope |
-| Integration risk and mitigation | Vendor lock-in risk, boundary isolation strategy |
-| ADR candidate identification | Decisions non-obvious enough to warrant a formal ADR |
+1. **Pin path.** If `project_profile.layer_model` carries an inline layers definition or a `kb_blueprint_ref`, use it. When a blueprint ref, copy the blueprint into `layer_model.layers[]` and tag `source: project_profile_pin`.
+2. **Single blueprint path.** When no pin but only one blueprint exists in `kb_layer_models_dir`, use it. Tag `source: kb_blueprint`, citation = blueprint file path.
+3. **Multi blueprint path.** When multiple blueprints exist and no pin, halt this slot. Append `Q-arch-NNN` to `grounding_questions_path` listing each blueprint's name and one-line summary. Tag a decision manifest entry `tier: mid`, `grounding_source.kind: kb_catalog_multi_candidate_user_approved`, `user_response: pending`. The orchestrator surfaces at Stage 3 checkpoint.
+4. **No blueprint path.** When no pin and no blueprints, halt with `what_failed: no_layer_model_source`. The user must author one or add a blueprint to KB — the skill does NOT fabricate a layer model.
 
-Every slot resolved by inference — not echoed verbatim from the upstream artifacts — produces a manifest entry.
+Once the model is in hand, validate: exactly one `is_entry: true`, unique `order` integers, all `id` values kebab-case.
 
-### 4. For each slot: classify grounding and build manifest entry
+### 4. Walk capabilities and select components
 
-Walk every slot identified in Step 3:
+For each capability in `selected_capabilities`, in order:
 
-1. **Direct echo from upstream.** If the decision is a verbatim read from an epic constraint or enriched-capabilities field (e.g., "TTL = 15 minutes idle" stated explicitly in a business rule), it is NOT an inferred decision — do not create a manifest entry. Echo it with a citation.
-2. **Inferred from context.** If the decision requires synthesis across multiple upstream signals, create a manifest entry. Assign tier based on grounding:
-   - `tier: high` — synthesized from explicit epic constraints, KB-grounded architectural patterns, or direct compliance flag requirements.
-   - `tier: mid` — synthesized by cross-referencing multiple upstream signals without a single authoritative source; context-built.
-   - `tier: low` — structural inference with no clear upstream driver. Must surface one-by-one before committing.
-3. For multi-candidate structure decisions (e.g., "should capability X share a bounded context with Y or have its own?"), record both candidates, the driver that distinguishes them, and the recommendation.
+1. **Pin check.** If `project_profile.grounded_tools.components[]` carries an entry for this capability with a component id and system_ref, use it. Skip the search.
+2. **Inventory match.** Find every inventory entry (system or sub-system) whose `capabilities_served` includes this capability id. For each match:
+   - Decide whether the match represents one component or several. A single system serving multiple capabilities through one cohesive surface = one component. A system whose sub_systems[] declare capability-distinct surfaces = one component per sub_system_ref (when those sub-systems serve different capabilities or carry materially different responsibilities).
+   - Assign each chosen component to a layer per role:
+     - Components whose system serves user-facing surfaces (web, mobile, channel) → entry layer.
+     - Components whose system is a system-of-record (ERP, CRM, identity, payment gateway) → systems-of-record layer (whichever is the bottom-most layer in the model).
+     - Components whose system orchestrates or composes other components → process / orchestration layer (middle of the model).
+     - Components whose system delivers cross-cutting concerns (auth, observability, search) → AOP or cross-cutting layer per the model.
+3. Record each placement as a decision-manifest entry. Tier resolution:
+   - `tier: high` when grounding is a pin or a single inventory match AND the role-to-layer mapping is unambiguous per the blueprint.
+   - `tier: mid` when role-to-layer mapping required agent reasoning (e.g., a system could plausibly sit in two layers).
+   - `tier: low` when multiple inventory entries serve the same capability and the agent had to pick AND the user hasn't been asked.
 
-### 5. Assemble logical-architecture.yaml
+### 5. Wire edges with sync_mode
 
-Compose the primary artifact with these sections:
+For each pair (caller-component, callee-component) implied by the design flows OR by the responsibility graph (caller depends on callee to fulfill its capability):
 
-**bounded_contexts** — named groupings of related capabilities:
-```yaml
-bounded_contexts:
-  - id: bc-identity
-    name: "Identity and Access"
-    capabilities_included: [UM-F001, UM-F004]
-    rationale: "These capabilities share the session and credential data model; grouping isolates auth from commerce logic per EPIC-user-login-001 constraint CTC-001."
-    driver: "EPIC-user-login-001 CTC-001 / quality-profile.security relevance=critical"
+- Add the caller's id to callee's `inbound_edges[]`.
+- Add the callee's id to caller's `outbound_edges[]` with `sync_mode` and `rationale`.
+- Sync_mode resolution:
+  - `sync` is the default for request-response within a single user-perceived transaction.
+  - `async` when the design flow shows fire-and-forget intent, when the callee is a write-side projection / event-sourced store, or when a QP target (independent failure domain, latency budget) demands decoupling.
+  - `hybrid` when the design flow has both a sync acknowledgement and an async follow-on (e.g., accept-then-process).
+- Record one decision-manifest entry per edge with sync_mode. Tier resolution:
+  - `tier: high` when the design flow explicitly indicates the mode.
+  - `tier: mid` when QP-derived (e.g., reliability target forces async).
+  - `tier: low` when neither — agent default; user must approve.
+
+### 6. Cycle detection
+
+Build a directed graph from outbound_edges[]. Run DFS from each component, tracking the recursion stack. Any back-edge is a cycle.
+
+When a cycle is detected:
+- Identify the cycle's component set and the offending edges.
+- Halt with `what_failed: cycle_detected` and structured details (cycle path, candidate breaks: remove edge A→B, split component X, convert edge A→B to async to break the synchronous-cycle restriction).
+- Per F5 (recovery REC5 is human-handoff), the orchestrator surfaces to the user with the candidate breaks — the skill does NOT pick the break unilaterally.
+
+Note: an async edge in a cycle is NOT a cycle for runtime purposes — physical can deliver an async edge such that the cycle is broken at runtime. The skill encodes this by treating any cycle that has at least one `sync_mode: async` edge in the path as acceptable at the logical level (it still counts as a logical edge, but the cycle alert is suppressed). Synchronous-only cycles halt.
+
+### 7. End-to-end traceability
+
+For each capability in `selected_capabilities`, run a graph traversal from every entry-layer component (components whose `layer.is_entry == true` and which lists the capability in `capability_ids[]`) along outbound_edges[] toward components that serve the capability. If no path reaches a component whose `system_ref` (or `sub_system_ref`) serves the capability, the capability is orphaned.
+
+A capability with no entry-layer component listing it is ALSO orphaned (no entry into the system for that capability).
+
+Orphans halt with `what_failed: capability_orphan` and a structured list per orphaned capability id.
+
+### 8. Write outputs
+
+Write `{output_path}` with `layer_model`, `components[]`, and the embedded edges. Write `{decision_manifest_path}` with one entry per decision recorded in Steps 3-5. All `user_response` start as `pending`.
+
+### 9. Validate output
+
+Before returning:
+- Schema rules from the Output section all hold (layer model, component fields, edge references).
+- No component name, responsibility, or rationale contains tech tokens. Run a deny-list check against: programming language names (JavaScript, Python, Go, etc.), product names (PostgreSQL, Redis, Kafka, etc.), protocol identifiers (REST, gRPC, MQTT, etc.), wire format identifiers (JSON, Protobuf, XML, etc.), and SDK / library names. Any hit → `what_failed: tech_token_in_logical`.
+- Decision manifest is complete (one entry per layer-model selection / component placement / edge sync_mode), every entry has all required fields.
+
+## Output Contract
+
+On success:
+
+```json
+{
+  "status": "success",
+  "skill": "derive-logical-architecture",
+  "outputs": {
+    "logical_path": "{product_base}architecture/logical-architecture.yaml",
+    "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-logical-architecture.yaml",
+    "layer_model": { "source": "...", "layer_count": <int> },
+    "component_count": <int>,
+    "edge_count": <int>,
+    "decisions_count": <int>,
+    "halted_slots": [
+      { "kind": "layer_model | capability_component | edge_sync_mode", "reference": "...", "grounding_question_id": "Q-arch-NNN" }
+    ]
+  }
+}
 ```
 
-**components** — one or more per selected capability, with tech-agnostic responsibilities:
-```yaml
-components:
-  - id: comp-auth-service
-    name: "authentication-service"
-    type: service
-    bounded_context: bc-identity
-    capabilities_served: [UM-F001]
-    responsibilities:
-      - "Verify credentials and issue sessions"
-      - "Enforce MFA gate per business rule UM-F001-BR-002"
-      - "Expire sessions at TTL defined in enriched capabilities"
-    owned_state: [session-record, credential-record]
-    depends_on: [comp-user-profile-store, comp-mfa-handler]
-    rationale: "Single responsibility boundary per EPIC-user-login-001; isolates session lifecycle so CTC-001 MFA enforcement is not scattered."
-    driver: "EPIC-user-login-001 constraints.security"
+On failure:
+
+```json
+{
+  "status": "failure",
+  "skill": "derive-logical-architecture",
+  "what_failed": "missing_input | empty_inventory_for_scope | no_layer_model_source | cycle_detected | capability_orphan | tech_token_in_logical | unresolved_system_ref | manifest_incomplete",
+  "details": "..."
+}
 ```
 
-**data_model** — entities, relationships, invariants. NO column types. NO storage engine. NO language-specific syntax:
-```yaml
-data_model:
-  entities:
-    - id: ent-user
-      name: "User"
-      primary_identifier: natural-key (email) or surrogate-key
-      pii_fields: [email, phone]
-      pii_source: "GDPR compliance flag in project-profile + UM-F001 business rule"
-      invariants:
-        - "email must be unique across all accounts"
-        - "account must not be activated without verified identity"
-      source: "UM-F001 enriched-capabilities business rules"
-    - id: ent-session
-      name: "Session"
-      owner: ent-user
-      ttl: "15 minutes idle, 8 hours absolute"
-      ttl_source: "EPIC-user-login-001 business_rules"
-  relationships:
-    - from: ent-user
-      to: ent-session
-      cardinality: one-to-many
-      invariant: "A user may hold at most 5 concurrent sessions (business rule UM-F001-BR-004)"
-```
+## Evals
 
-**api_surface** — capability-level operation groups. NO REST paths. NO HTTP verbs. NO GraphQL types:
-```yaml
-api_surface:
-  - id: api-auth-ops
-    name: "Authentication Operations"
-    capabilities_covered: [UM-F001]
-    operations:
-      - "initiate-login"
-      - "complete-mfa-challenge"
-      - "refresh-session"
-      - "terminate-session"
-    consumers: [comp-web-frontend]
-    rationale: "Design-exp flows show login as an entry gate for all user journeys; grouping these operations together ensures a single service boundary for session lifecycle."
-    driver: "design flows/authentication-flow.md"
-```
-
-**integration_points** — external contracts. NO wire formats. NO SDK method calls:
-```yaml
-integration_points:
-  - id: int-payment-processor
-    name: "payment-processor"
-    purpose: "process payment transactions and manage stored payment methods"
-    capability: CM-F003
-    interaction_pattern: "request-response (synchronous initiation, async confirmation)"
-    boundary_isolation: "PaymentGateway abstraction component — payment processor is not called directly from any other component"
-    risk: "vendor lock-in for tokenized card storage; potential PCI scope expansion"
-    mitigation: "Isolate behind PaymentGateway interface; alternative processors listed in ADR"
-    driver: "CM-F003 enriched-capabilities + project-profile.compliance PCI flag"
-```
-
-**component_capability_map** — explicit cross-reference satisfying C5:
-```yaml
-component_capability_map:
-  - capability_id: UM-F001
-    capability_name: "Login / Authentication"
-    serving_components: [comp-auth-service, comp-mfa-handler]
-    coverage: complete
-  # every selected capability from scope.yaml must appear here
-```
-
-**adr_log** — starts empty; populated as architectural decisions accumulate across subsequent skills. Non-obvious decisions (≥2 viable alternatives AND narrows a future path) are recorded here:
-```yaml
-adr_log:
-  - id: ADR-001
-    title: "Single bounded context for identity and access"
-    status: accepted
-    date: "{ISO8601}"
-    context: "UM-F001 and UM-F004 share the same session and credential model; two viable alternatives were to separate MFA into its own context or co-locate both under identity."
-    alternatives:
-      - "Separate MFA as its own bounded context (rejected: MFA is a sub-concern of authentication, not an independent business capability)"
-    decision: "Co-locate login and MFA under a single bc-identity bounded context"
-    rationale: "Avoids a distributed session check on every MFA challenge; complexity is bounded by the small capability set"
-    drivers: ["EPIC-user-login-001 CTC-001", "quality-profile.security"]
-    consequences:
-      positive: ["Single session-ownership point; easier audit trail"]
-      negative: ["Identity context grows if future capabilities are added to user management"]
-```
-
-### 6. Assemble primary artifact
-
-Write `logical-architecture.yaml` to `{output_path}` with top-level metadata:
-
-```yaml
-slug: "<from project_profile.name>"
-status: DRAFT
-created_at: "<ISO-8601>"
-play: arch
-skill: derive-logical-architecture
-upstream_artifacts:
-  scope_path: <echoed>
-  enriched_capabilities_path: <echoed>
-  epics_dir: <echoed>
-  quality_profile_path: <echoed>
-  design_spec_path: <echoed>
-bounded_contexts: [...]
-components: [...]
-data_model: [...]
-api_surface: [...]
-integration_points: [...]
-component_capability_map: [...]
-adr_log: [...]
-```
-
-### 7. Emit decision manifest
-
-Write `decision-manifest-derive-logical-architecture.yaml` to `{decision_manifest_path}` with all entries collected in Step 4. Write the manifest BEFORE writing the primary artifact — no inferred decision may appear in the primary artifact before it is recorded here.
-
-**Decisions to record** (decision_id prefix: `D-dla-`):
-
-| decision_id | decision_type | What is being decided |
-|-------------|---------------|-----------------------|
-| `D-dla-001` | `bounded-context-identification` | Which capabilities are grouped into the same context, and where context boundaries are drawn |
-| `D-dla-002` | `component-definition` | For each capability, which components are defined, their types, and their responsibility scope |
-| `D-dla-003` | `component-ownership-boundaries` | Which state each component owns and where the ownership boundary is drawn relative to neighboring components |
-| `D-dla-004` | `data-model-entity-design` | Entities inferred from capability business rules — which entities are first-class vs. sub-fields, primary identifier strategy |
-| `D-dla-005` | `pii-field-tagging` | Which entity fields are tagged PII and what handling obligation is inferred from compliance flags and epic rules |
-| `D-dla-006` | `entity-relationship-invariants` | Cardinality choices and integrity invariants inferred from business rules and epic failure scenarios |
-| `D-dla-007` | `api-surface-grouping` | Which capability operations cluster into a named API group and how group boundaries are drawn |
-| `D-dla-008` | `integration-point-identification` | Which external systems are implied by the capability scope and the boundary isolation strategy chosen |
-| `D-dla-009` | `integration-risk-mitigation` | For each integration, the risk identified and the boundary isolation approach |
-| `D-dla-010` | `adr-candidate-identification` | Which decisions are judged non-obvious enough to warrant an ADR — the threshold applied (≥2 alternatives + future-path narrowing) |
-| `D-dla-011` | `adr-rationale-synthesis` | For each ADR, which driver is the most compelling and why it outweighs the alternatives |
-
-```yaml
-schema_version: "1.0"
-skill: "derive-logical-architecture"
-generated_at: "{ISO8601}"
-decisions:
-  - decision_id: "D-dla-001"
-    decision_type: "bounded-context-identification"
-    tier: high | mid | low
-    grounding_source:
-      kind: kb_path | web_citation | none
-      ref: "{KB file path | URL | null}"
-      excerpt: "{optional short quote when kind=kb_path}"
-    recommendation: "{the bounded context grouping recommended}"
-    alternatives_considered:
-      - alt: "{alternative grouping}"
-        why_not: "{one-line dismissal reason}"
-    agent_reasoning_summary: "{2-3 sentence explanation}"
-    user_response: null
-    user_response_detail: null
-  # ... one entry per decision type, with additional entries for each individual decision instance
-```
-
-### 8. Self-validation against constraints
-
-Before returning, verify:
-- C3: scan `bounded_contexts`, `components`, `data_model`, `api_surface`, `integration_points` for any product name (e.g., "PostgreSQL", "React", "AWS"), protocol identifier (e.g., "REST", "HTTP", "gRPC"), wire format token (e.g., "JSON", "Protobuf"), schema column type (e.g., "VARCHAR", "UUID", "INTEGER"), or programming language identifier (e.g., "async", "class", "interface"). If any found → halt, return structured failure with `what_failed: F3_tech_token_in_logical` and the offending token.
-- C5: verify `component_capability_map` covers every capability in `scope.selected_capabilities`. Any capability with zero mapping entries → halt, return structured failure with `what_failed: F5_orphan_capability` and the capability ID.
-- C4: verify every component has a non-empty `driver` field citing an upstream artifact. Any component with empty driver → structured failure with `what_failed: F4_missing_driver`.
-- Decision manifest: verify every inferred decision (not verbatim-echoed fields) has a corresponding manifest entry. If any manifest entry is missing tier, grounding_source, recommendation, or alternatives_considered → structured failure with `what_failed: F19_manifest_incomplete`.
-
-### 9. Return output contract
-
-```yaml
-logical_architecture:
-  path: <written path>
-  bounded_contexts_count: <int>
-  components_count: <int>
-  capabilities_covered: <int>  # must equal scope.selected_capabilities count
-  entities_count: <int>
-  api_groups_count: <int>
-  integration_points_count: <int>
-  adr_entries: <int>
-  tech_agnostic_violations: 0  # must be 0 — any > 0 triggers F3
-  orphan_capabilities: 0       # must be 0 — any > 0 triggers F5
-decision_manifest:
-  path: <written path>
-  decisions_recorded: <int>
-```
-
-## Outputs
-
-```yaml
-outputs:
-  - path: "{product_base}architecture/logical-architecture.yaml"
-    required: true
-  - path: "{product_base}architecture/decision-manifest-derive-logical-architecture.yaml"
-    required: true
-```
+| Eval | Failure Bound | Check |
+|------|---------------|-------|
+| LA-1 | F3 (component missing system_ref/layer/capability_ids) | Every component has non-null `system_ref`, `layer` matching a layer in `layer_model.layers[]`, and at least one `capability_id`. |
+| LA-2 | F23 (system_ref not in inventory) | Every component's `system_ref` resolves to an inventory file id; non-null `sub_system_ref` resolves to a `sub_systems[].id` inside that file. |
+| LA-3 | F2 (logical contains tech tokens) | No component name, responsibility, edge rationale, or layer role text matches the tech-token deny-list. |
+| LA-4 | F5 (cycle in logical) | The graph of components and `outbound_edges[]` (counting any edge with `sync_mode: sync` and `sync_mode: hybrid` for graph purposes; ignoring `sync_mode: async` edges) is acyclic. |
+| LA-5 | F4 (capability without component or no E2E path) | Every selected capability has at least one entry-layer component listing it AND at least one graph path from that entry-layer component to a serving component. |
+| LA-6 | F21 (layer model issues) | `layer_model.layers[]` has exactly one `is_entry: true`, unique `order` values, kebab-case ids; every component's `layer` field matches a layer id. |
+| LA-7 | F16 (manifest missing/malformed) | Decision manifest exists with one entry per inferred decision (layer model selection when not pinned, component placement, edge sync_mode); every entry has decision_id, decision_type, tier, grounding_source, recommendation, alternatives_considered, non_obvious. |
+| LA-8 | F13 (source_type discipline) | No decision has `grounding_source.kind: agent_default_unilateral`. |
 
 ## Constraints
 
-- NEVER include any product name, protocol identifier, wire format token, schema column type, or programming language identifier in logical-architecture.yaml. This is the F3 gate — scan and halt if any implementation token is found.
-- NEVER skip a capability. Every entry in `scope.selected_capabilities` must appear in `component_capability_map` with at least one serving component. Orphan capability is an F5 violation.
-- NEVER cite a driver as "general best practice" or similar. Every driver must reference a specific epic ID, quality-profile field, compliance flag, or design artifact.
-- NEVER write outside `{output_path}` and `{decision_manifest_path}`. This skill does not append to grounding-questions.md (no multi-candidate stack picks here — that is physical-architecture territory).
-- NEVER commit an inferred decision to logical-architecture.yaml without recording it in the decision manifest first.
-- NEVER tag a decision `tier: high` unless the `grounding_source.kind` is `kb_path` AND the referenced KB file exists.
-- NEVER emit `source_type: agent_default_unilateral`. That tag exists only as a validator rejection target.
-- ALWAYS include `alternatives_considered` with at least one entry for every manifest decision. If genuinely no alternative, state "none — only candidate" explicitly.
-- ALWAYS include PII handling notes for every entity that has PII fields.
-- ALWAYS populate `adr_log` with at least a placeholder structure even if no ADRs are generated at this stage — downstream skills append to it.
-- ALWAYS verify tech-agnostic compliance (Step 8) before writing the primary artifact.
+- Writes ONLY to `{output_path}`, `{decision_manifest_path}`, and (for multi-candidate halts) appends to `{grounding_questions_path}`.
+- Read-only on `inventory_dir`, `refined_qp_path`, every scope/epics/design input, `project_profile_path`, and `kb_layer_models_dir`.
+- NEVER names a product, runtime, protocol, wire format, programming language, library, or schema column. Tech-token deny-list is enforced at Step 9.
+- NEVER invents a component. Every component MUST resolve to an inventory entry. If no inventory entry serves a needed capability, halt — return to Stage 1.
+- NEVER picks a cycle break unilaterally. Cycle detection halts with candidate breaks for user decision (F5 / REC5 human handoff).
+- NEVER picks a layer model unilaterally. No pin + no single blueprint = halt with candidate set for user pick (F21 / REC21 human handoff).
+- Respects C18/C19 surfacing tiers and C20 multi-candidate halt.
 
-## DSD Compliance (C18/C19)
+## Failure modes
 
-This skill emits a decision manifest alongside its primary artifact. Every inferred decision
-(not user-provided input) lands in the manifest with tier, grounding_source, recommendation,
-alternatives_considered, and user_response=null. The orchestrator walks the manifest after
-this skill completes and drives the tiered surfacing flow before downstream skills read the
-primary artifact. A manifest-free emission is a structural violation (F19).
-
-## Version
-
-| Field | Value |
-|-------|-------|
-| Version | 0.1.0 |
-| Category | architecture |
-| Created | 2026-04-15 |
-| Related | `core/components/agents/tech-architect.md`, `core/components/skills/derive-physical-architecture`, `core/components/skills/validate-architecture-spec` |
+- `missing_input` — required input path absent and no stand-in.
+- `empty_inventory_for_scope` — `inventory_dir` is empty or no inventory entry serves any selected capability.
+- `no_layer_model_source` — no pin and no blueprints in `kb_layer_models_dir`.
+- `cycle_detected` — synchronous-only cycle in the component graph.
+- `capability_orphan` — a selected capability has no entry-layer component OR no graph path from entry to a serving component.
+- `tech_token_in_logical` — component name, responsibility, edge rationale, or layer role text leaked a tech identifier.
+- `unresolved_system_ref` — a component's system_ref or sub_system_ref does not resolve to an inventory entry.
+- `manifest_incomplete` — decision manifest missing or any entry lacks required fields.
