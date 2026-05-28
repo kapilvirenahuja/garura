@@ -1,6 +1,6 @@
 ---
 name: validate-architecture-spec
-description: Blocking validator for the five-artifact arch output contract (logical-architecture, physical-architecture, nfr-spec, quality-vision, design-patterns) plus their five decision manifests. Enforces all 20 checks derived from arch intent.yaml constraints C1-C19 and failure conditions F1-F19.
+description: Blocking validator for the six-artifact arch output contract (refined quality-profile, systems-inventory, logical-architecture, physical-architecture, tech-stack, technical-risks) plus their decision manifests. Enforces 22 checks derived from arch intent.yaml constraints and the artifact-verifiable failure conditions (F1-F12, F14-F16, F20-F23).
 user-invocable: false
 model: haiku
 allowed-tools: Read, Write, Glob, Grep
@@ -8,437 +8,367 @@ allowed-tools: Read, Write, Glob, Grep
 
 # validate-architecture-spec
 
-Called by `tech-architect` after all five arch derive skills complete. Blocking validator — any blocker violation causes `status: failed` and the calling play cycles back to the relevant stage.
+Called by `tech-architect` after every /arch derive skill completes. Blocking validator — any blocker violation causes `status: failed` and the calling play cycles back to the relevant stage.
+
+This validator was rewritten for the model change in #403. The old shape enforced F1-F19 against five artifacts (logical, physical, nfr-spec, quality-vision, design-patterns). The new shape enforces against six artifacts (refined quality-profile, systems-inventory, logical, physical, tech-stack, technical-risks). The orchestrator-level failure conditions (F17 missing checkpoint, F18 whitelist bypass, F19 code emission, F24 hard-halt-on-missing-upstream) are NOT enforced here — they are play-orchestrator behaviors not artifact properties.
 
 ## Purpose
 
-Enforce the `arch` intent.yaml contract against the actual five-artifact output. Checks structural completeness, technology discipline, capability coverage, NFR delivery, quality vision, pattern coverage, decision-surfacing discipline, ADR completeness, and driver traceability across every artifact and every decision manifest.
+Enforce the /arch intent.yaml contract against the actual six-artifact output. Checks structural completeness, technology discipline, inventory grounding, layer model integrity, cycle absence, capability coverage, NFR delivery, pattern citation, risk shape, stage order, and decision-surfacing discipline across every artifact and every decision manifest.
 
 ## Input
 
-Receive from the tech-architect agent via JSON contract. All paths resolve against `{product_base}` unless stated otherwise.
+Receive from the `tech-architect` agent via JSON contract. All paths resolve against `{product_base}` unless stated otherwise.
 
-- `logical_architecture_path` (path, required) — `{product_base}architecture/logical-architecture.yaml`
-- `physical_architecture_path` (path, required) — `{product_base}architecture/physical-architecture.yaml`
-- `nfr_spec_path` (path, required) — `{product_base}architecture/nfr-spec.yaml`
-- `quality_vision_path` (path, required) — `{product_base}architecture/quality-vision.yaml`
-- `design_patterns_path` (path, required) — `{product_base}architecture/design-patterns.yaml`
+- `refined_qp_path` (path, required) — `{product_base}architecture/quality-profile.yaml`
+- `inventory_dir` (path, required) — `{product_base}architecture/systems-inventory/`
+- `logical_path` (path, required) — `{product_base}architecture/logical-architecture.yaml`
+- `physical_path` (path, required) — `{product_base}architecture/physical-architecture.yaml`
+- `tech_stack_path` (path, required) — `{product_base}architecture/tech-stack.yaml`
+- `risks_path` (path, required) — `{product_base}architecture/technical-risks.yaml`
+- `manifest_inventory_path` (path, required) — `{product_base}architecture/decision-manifest-derive-systems-inventory.yaml`
+- `manifest_refine_qp_path` (path, required) — `{product_base}architecture/decision-manifest-refine-quality-profile.yaml`
 - `manifest_logical_path` (path, required) — `{product_base}architecture/decision-manifest-derive-logical-architecture.yaml`
 - `manifest_physical_path` (path, required) — `{product_base}architecture/decision-manifest-derive-physical-architecture.yaml`
-- `manifest_nfr_path` (path, required) — `{product_base}architecture/decision-manifest-derive-nfr-spec.yaml`
-- `manifest_quality_vision_path` (path, required) — `{product_base}architecture/decision-manifest-derive-quality-vision.yaml`
-- `manifest_design_patterns_path` (path, required) — `{product_base}architecture/decision-manifest-derive-design-patterns.yaml`
-- `scope_path` (path, required) — `{product_base}scope/scope.yaml`
-- `quality_profile_path` (path, required) — `{product_base}specification/quality-profile.yaml`
-- `epics_dir` (path, required) — `{product_base}scope/epics/`
-- `project_profile_path` (path, required) — `{product_base}user-provided/project-profile.yaml`
-- `ltm_architecture_path` (path, required) — `{ltm_base}knowledge/arch/` (for V8 KB spot-check)
-- `output_path` (string, required) — `{product_base}architecture/validation-result.yaml`
+- `manifest_tech_stack_path` (path, required) — `{product_base}architecture/decision-manifest-derive-tech-stack.yaml`
+- `manifest_risks_path` (path, required) — `{product_base}architecture/decision-manifest-derive-technical-risks.yaml`
+- `specify_qp_path` (path, required) — `{product_base}specification/quality-profile.yaml`. For delta_log integrity checks (V12).
+- `scope_path` (path, required) — `{product_base}scope/scope.yaml`. For capability coverage (V4).
+- `epics_dir` (path, required) — `{product_base}scope/epics/`.
+- `project_profile_path` (path, required) — `{product_base}user-provided/project-profile.yaml`. For pin checks (V13).
+- `kb_systems_dir` (path, required) — `{ltm_base}components/memory/knowledge/arch/systems/`. For KB-origin byte-for-byte check (V22).
+- `kb_patterns_dir` (path, required) — `{ltm_base}components/memory/knowledge/arch/patterns/`. For pattern citation KB extension (V9).
+- `output_path` (string, required) — `{product_base}architecture/validation-result.yaml`.
 
 ## Process
 
-### Step 1. Load all inputs
+### Step 1 — Load all inputs
 
-Parse each artifact and manifest. On any file missing or empty, record a V1 violation immediately but continue loading the remaining files. Collect violations rather than aborting on first failure so the full violation set is reported.
+Parse each artifact and manifest. On any file missing or empty, record a V1 violation immediately but continue loading so the full violation set surfaces in one pass.
 
 Load supporting context:
-- `scope.selected_capabilities` — list of all capability IDs that must be mapped
-- `quality_profile.characteristics` — all characteristics with `relevance != not_applicable`
-- All epic YAML files under `{epics_dir}` — extract `constraints` blocks for performance requirements
-- `project_profile.grounded_tools` — the authoritative pin map
-- Load `physical_architecture.deployment_topology.runtime_tiers` — for V13 layer coverage
-- Load `nfr_spec.nfrs` — for V9, V13 cross-cutting trigger detection, and V20
+- `scope.selected_capabilities` — capability ID list.
+- Parsed refined QP characteristics with relevance, target, delta_log.
+- Parsed specify QP for delta_log diff (V12).
+- All epic YAML files for failure_conditions and constraints.
+- `project_profile.grounded_tools` map.
+- Inventory map: glob `inventory_dir/*.md`, parse frontmatter for id, origin, capabilities_served, sub_systems[].
+- KB systems catalog and KB patterns catalog: glob for indexing.
 
-Collect all five manifests into a unified decision list (`all_decisions`) for checks that span across manifests (V15, V16).
+Collect all six manifests into a unified `all_decisions` list for cross-manifest checks (V14, V15, V16).
 
-### Step 2. V1 — Artifact existence and non-emptiness (cites F1)
+### Step 2 — V1: Artifact existence and non-emptiness (cites F1)
 
-For each of the five canonical artifact files:
-1. Verify the file exists using Glob or Read.
-2. Verify the file is non-empty (not zero bytes, not a YAML document with only metadata).
-3. Verify the primary section has at least one entry:
-   - `logical-architecture.yaml` → `components` list length ≥ 1
-   - `physical-architecture.yaml` → at least one of `frontend_stack`, `backend_stack`, or `data_stores` is non-empty
-   - `nfr-spec.yaml` → `nfrs` list length ≥ 1
-   - `quality-vision.yaml` → `characteristics` list length ≥ 1
-   - `design-patterns.yaml` → `system_level` list length ≥ 1
+For each of the six canonical artifact paths:
+1. Verify file exists (or, for inventory_dir, verify the directory has ≥ 1 .md file).
+2. Verify primary section is non-empty:
+   - `refined_qp_path` → `characteristics` map with ≥ 1 entry with `relevance != not_applicable`.
+   - `inventory_dir` → ≥ 1 file with frontmatter `capabilities_served[]` non-empty.
+   - `logical_path` → `components[]` length ≥ 1 AND `layer_model.layers[]` length ≥ 1.
+   - `physical_path` → `components[]` length ≥ 1.
+   - `tech_stack_path` → `entries[]` length ≥ 1.
+   - `risks_path` → `risks[]` length ≥ 1.
 
-Any file missing, empty, or with zero entries in its primary section is a **blocker**.
+Any missing or empty primary section is a **blocker**.
 
-### Step 3. V2 — Logical architecture structural completeness (cites F1)
+### Step 3 — V2: Logical purity scan (cites F2)
 
-Read `logical-architecture.yaml` and verify:
-1. `bounded_contexts` list is non-empty (≥ 1 entry).
-2. `components` list is non-empty (≥ 1 entry).
-3. `data_model.entities` list is non-empty (≥ 1 entry).
+Scan every string in `logical_path` (component name, responsibilities, edge rationale, layer role text, capability_id text, system_ref display) against the tech-token deny-list (case-insensitive):
 
-Any empty list is a **blocker**.
+- Programming languages: JavaScript, TypeScript, Python, Go/Golang, Java, Kotlin, Ruby, PHP, C#, Rust, Swift, Dart, Elixir, Scala
+- Runtimes: Node.js, Deno, Bun, JVM, CLR, V8, Wasm
+- Frameworks/libraries: React, Vue, Angular, Svelte, Next.js, Nuxt, Express, Fastify, NestJS, FastAPI, Django, Flask, Spring, Rails, Laravel, .NET, ASP.NET
+- Databases: PostgreSQL, MySQL, SQLite, MongoDB, DynamoDB, Cassandra, Redis, Memcached, Elasticsearch, Solr, Neo4j, Pinecone, Weaviate, MariaDB, Oracle
+- Cloud products: AWS, Azure, GCP, Lambda, EC2, S3, RDS, ECS, EKS, GKE, AKS, Cloud Run, Cloud Functions, App Service, Cosmos DB, BigQuery, Firebase, Vercel, Netlify
+- Messaging: Kafka, RabbitMQ, NATS, SQS, SNS, Pub/Sub, EventBridge, Kinesis
+- Protocols: HTTPS, gRPC, GraphQL, REST, WebSocket, AMQP, MQTT, SOAP
 
-### Step 4. V3 — Logical purity scan (cites F3)
+Hit → V2 blocker with offending value and path.
 
-Scan every string value in `logical-architecture.yaml` — in `bounded_contexts`, `components`, `data_model`, `api_surface`, `integration_points`, and `component_capability_map` — against the deny list below. Match is case-insensitive.
+### Step 4 — V3: Logical component shape (cites F3)
 
-**Product name deny list** (partial; expand on new signals):
-`postgresql`, `mysql`, `mongodb`, `redis`, `elasticsearch`, `opensearch`, `kafka`, `rabbitmq`,
-`react`, `next.js`, `nextjs`, `vue`, `angular`, `svelte`, `express`, `fastify`, `django`,
-`rails`, `spring`, `aws`, `gcp`, `azure`, `vercel`, `railway`, `neon`, `prisma`, `typeorm`,
-`sequelize`, `temporal`, `celery`, `bullmq`, `node.js`, `nodejs`, `deno`, `bun`, `python`,
-`java`, `golang`, `go`, `rust`, `typescript`, `javascript`
+For every entry in `logical.components[]`:
+- `system_ref` non-empty AND resolves to a file id in `inventory_dir`.
+- `sub_system_ref` (when non-null) resolves to a `sub_systems[].id` inside that inventory file's frontmatter.
+- `layer` non-empty AND matches a layer id in `logical.layer_model.layers[]`.
+- `capability_ids[]` length ≥ 1.
 
-**Protocol deny list**:
-`http`, `https`, `grpc`, `rest`, `graphql`, `websocket`, `tcp`, `udp`, `mqtt`, `amqp`
+Any missing/unresolved field → V3 blocker.
 
-**Wire format deny list**:
-`json`, `protobuf`, `avro`, `xml`, `yaml` (when used as a data format token rather than file extension), `messagepack`, `thrift`, `parquet`
+### Step 5 — V4: Capability coverage and end-to-end traceability (cites F4)
 
-**Schema column type deny list**:
-`varchar`, `char`, `text`, `integer`, `int`, `bigint`, `smallint`, `decimal`, `numeric`,
-`float`, `double`, `boolean`, `bool`, `uuid`, `jsonb`, `bytea`, `timestamp`, `date`, `time`,
-`serial`, `bigserial`
+For every capability id in `scope.selected_capabilities`:
+- At least one logical component has the capability id in `capability_ids[]`.
+- At least one entry-layer component (component whose layer's `is_entry == true`) lists the capability.
+- Graph traversal from each such entry-layer component along `outbound_edges[]` (ignoring `sync_mode: async` for graph purposes) reaches a component whose `system_ref` (or `sub_system_ref`) declares the capability in inventory's `capabilities_served[]`.
 
-**Programming language identifier deny list** (common keywords/constructs):
-`async`, `await`, `class`, `interface`, `struct`, `enum` (when used as code construct, not plain English),
-`typedef`, `function`, `const`, `let`, `var`, `def`, `import`, `require`, `namespace`
+Orphans → V4 blocker per orphaned capability.
 
-**Exclusions:** Deny-list terms that appear only in `adr_log` entries (under `alternatives`) or in `source` / `citation` / `driver` fields are excluded — these fields document provenance, not structural content. The purity check applies to structural fields: `name`, `responsibilities`, `type`, `purpose`, `interaction_pattern`, `invariants`, `primary_identifier`, `owned_state`.
+### Step 6 — V5: Cycle detection (cites F5)
 
-Any match in a structural field is a **blocker**. Record the field path and the matching token.
+Build directed graph from `logical.components.outbound_edges[]`, counting edges with `sync_mode: sync` and `sync_mode: hybrid`; excluding `sync_mode: async`. Run DFS, detect back-edges.
 
-### Step 5. V4 — Capability coverage (cites F5)
+Build the same for `physical.components.comms[]`, with the same sync/hybrid-only rule.
 
-1. Load `scope.selected_capabilities` — the full list of capability IDs.
-2. Load `logical_architecture.component_capability_map` — the cross-reference list.
-3. For every capability ID in `scope.selected_capabilities`, verify at least one entry in `component_capability_map` has a matching `capability_id` with a non-empty `serving_components` list.
-4. Any capability with zero mappings is a **blocker**. Record the orphaned capability ID.
+Any cycle (logical or physical) → V5 blocker with cycle path.
 
-### Step 6. V5 — Physical technology specificity (cites F2)
+### Step 7 — V6: Physical component shape (cites F6)
 
-Scan every technology choice value in `physical-architecture.yaml` — in `frontend_stack.choice`, `backend_stack.choice`, `data_stores[*].choice`, `cache.choice`, `queue.choice`, `auth_infra.choice`, `platform_hosts.*`, `observability.*.choice`, and `library_pins[*].name` — against the category-phrase deny list:
+For every entry in `physical.components[]`:
+- `logical_ref` non-empty AND matches a logical component id.
+- `system_ref` non-empty AND equals the linked logical component's `system_ref` exactly.
+- `layer` non-empty AND equals the linked logical component's `layer`.
+- `deployment_target.kind` non-empty.
+- `deployment_target.name` non-empty AND does NOT match the category-term deny-list (terms: "a database", "a relational database", "a queue", "a message queue", "an observability stack", "a frontend framework", "a CI system", "a search engine", "a cache", "a load balancer" — case-insensitive).
+- `resources` block present.
 
-`a database`, `a relational database`, `a nosql database`, `a cache`, `a message queue`, `a queue`,
-`a frontend framework`, `a backend framework`, `a framework`, `a runtime`, `an orm`,
-`an auth provider`, `a monitoring tool`, `a logging tool`, `a tracing tool`, `a search engine`,
-`a vector database`, `a cloud provider`, `a hosting platform`, `a cdn`, `a load balancer`
+Any failure → V6 blocker.
 
-Match is case-insensitive. Also flag any `choice` field containing only generic nouns without a version pin or specific product name identifiable by the LTM knowledge base.
+### Step 8 — V7: Mapping cardinality and layer match (cites F7)
 
-Additionally, for every slot marked `status: pending_user_approval`, verify it has a corresponding `question_id` field — orphaned pending slots without a question ID are a **warning** (not a blocker, as pending slots are a valid mid-run state).
+For every `physical.components[]` entry:
+- `logical_ref_cardinality` ∈ {one-to-one, many-to-one, one-to-many}.
+- When `logical_ref_cardinality != one-to-one`, `cardinality_rationale` is non-empty.
+- `layer` equals the linked logical component's `layer` (also checked in V6; repeated here for clarity in F7 mapping).
 
-Any category-phrase match in a `choice` field is a **blocker**.
+Any failure → V7 blocker.
 
-### Step 7. V6 — Source-type discipline in physical and design-patterns (cites F15)
+### Step 9 — V8: NFR delivery coverage (cites F8)
 
-For every decision-carrying entry in `physical-architecture.yaml` (all `*_stack`, `data_stores[*]`, `cache`, `queue`, `auth_infra`, `platform_hosts`, `observability.*`, `library_pins[*]`) and in `design-patterns.yaml` (all `system_level[*]`, `layer_level[*]`, `component_level[*]`, `cross_cutting[*]`):
+For every characteristic in `refined_qp.characteristics` with `relevance != not_applicable`:
+- At least one physical component's `nfr_delivery[]` has an entry with `nfr_characteristic` matching this characteristic, `target_reference` non-empty, `mechanism` non-empty, `rationale` non-empty.
 
-1. Verify the entry has a `source_type` field. Missing `source_type` is a **blocker** (schema violation).
-2. Verify `source_type` is one of the permitted enum values:
-   - `grounded_tools_pin`
-   - `kb_catalog_single_candidate`
-   - `kb_catalog_multi_candidate_user_approved`
-   - `agent_default_with_user_approval`
-   - `agent_default_unilateral` — **BLOCKING** (F15). Any occurrence is an immediate blocker; do not continue validating that entry's other fields.
+Unmapped characteristic → V8 blocker per characteristic.
 
-Any entry missing `source_type` or carrying `agent_default_unilateral` is a **blocker**.
+### Step 10 — V9: Pattern citation and system-level placement (cites F9)
 
-### Step 8. V7 — Grounded-tools pin verification (cites F16)
+For every `tech_stack.entries[]` with `category: pattern`:
+- `pattern_citation.source` non-empty.
+- `pattern_citation.reference` non-empty.
+- Source matches the canonical allowlist (Gang of Four, PoEAA, DDD/Evans, Release It!/Nygard, Enterprise Integration Patterns/Hohpe-Woolf, Building Microservices/Newman, DDIA/Kleppmann, Cloud Native Patterns/Davis, microservices.io, IETF RFCs, OWASP, NIST, W3C, ISO/IEC) OR a KB pattern file exists at `{kb_patterns_dir}{pattern-id-or-name}.md` claiming the pattern.
+- Source is NOT on the fabricated deny-list ("internal", "team standard", "{product_name}-pattern", "{team_name}-pattern", empty).
 
-1. Load `project_profile.grounded_tools` — the full pin map (key = slot name, value = pinned product/version).
-2. For every pin entry, locate the corresponding slot in `physical-architecture.yaml` or `design-patterns.yaml` by matching the slot key to the artifact field name.
-3. Verify the slot's `choice` (or equivalent value field) exactly matches the pinned value (string equality, case-sensitive).
-4. Verify the slot's `source_type` is `grounded_tools_pin`.
-5. Verify the slot's `source_citation` references `project-profile.grounded_tools.{slot_key}`.
+Verify every system-level decision (monolith, microservice, modular monolith, serverless — match by `name` against this set, case-insensitive) appears in tech-stack with `category: pattern`. If any of these names appears in a different artifact's primary content, that's a misplacement violation.
 
-Any mismatch between the pinned value and the slot's actual choice is a **blocker**. Any pin that is present but tagged with a different `source_type` is also a **blocker** (mis-tagged pin).
+Any failure → V9 blocker.
 
-### Step 9. V8 — KB single-candidate verification spot-check (cites F17)
+### Step 11 — V10: Tech-stack entry shape (cites F10)
 
-For every entry in any artifact that carries `source_type: kb_catalog_single_candidate`:
+For every `tech_stack.entries[]`:
+- `id` non-empty.
+- `scope.kind` ∈ {components, components_in_layer, components_with_system_ref, global}.
+- When `scope.kind != global`, `scope.targets[]` non-empty.
+- `category` ∈ {language, runtime, framework, library, tool, pattern}.
+- `name` non-empty.
+- `source_type` non-empty.
+- `rationale` non-empty.
 
-1. Read the `source_citation` field — it must reference a KB file under `{ltm_architecture_path}/`.
-2. Verify the referenced KB file exists (Glob or Read). If the KB file does not exist, record a **warning** (non-blocking): the citation is unverifiable. Do not promote to blocker because the KB may be deployed separately.
-3. If the KB file exists, read its content and look for any `When to Choose` / `When to Avoid` sections. Attempt to identify whether more than one product is listed as a valid candidate that passes the project-profile dimensions stated in the `source_citation` field.
-4. If the KB file clearly lists multiple candidates and the `source_citation` does not name a dimension filter that would eliminate all but one → record a **blocker** (F17): the single-candidate tag is incorrect.
-5. If the KB file exists but the multi-candidate analysis is ambiguous (the filter logic is complex), record a **warning** and note the field path for human review.
+Any failure → V10 blocker.
 
-The goal is a best-effort spot-check, not a full re-execution of the KB filter math.
+### Step 12 — V11: Technical risks shape and stage order (cites F11)
 
-### Step 10. V9 — NFR delivery mechanism completeness and forward-ref resolution (cites F6)
+For every `risks.risks[]` entry:
+- `id` non-empty.
+- `risk_statement` non-empty.
+- `trigger_conditions[]` length ≥ 1.
+- `business_cost.kind`, `business_cost.magnitude`, `business_cost.cost_estimate`, `business_cost.rationale` all non-empty.
+- `likelihood.level` ∈ {low, medium, high}; `likelihood.rationale` non-empty.
+- `mitigation.action`, `mitigation.owner_role`, `mitigation.when`, `mitigation.delivery_cost` all non-empty.
+- `residual_risk` non-empty AND NOT on the zero-residual deny-list (case-insensitive: empty, "none", "no residual", "fully mitigated", "eliminated", "n/a").
+- `driver_refs[]` length ≥ 1; every entry has both `artifact` and `reference` non-empty AND `reference` resolves to a real path or in-artifact id.
+- `discovered_by.scan` matches one of the eight defined scan kinds.
 
-For every entry in `nfr-spec.nfrs`:
+Stage order: confirm the five prior artifacts (`refined_qp_path`, `inventory_dir`, `logical_path`, `physical_path`, `tech_stack_path`) all exist before `risks_path` was written. (File mtime check: risks file's mtime must be ≥ each prior file's mtime.)
 
-**Check 9a. Non-empty delivery_mechanism:**
-- Verify `delivery_mechanism` is present and non-null.
-- A `delivery_mechanism` with `status: forward_ref_pending_design_patterns` is valid at NFR derivation time — it is NOT a failure here.
-- A null or missing `delivery_mechanism` is a **blocker**.
+Any failure → V11 blocker.
 
-**Check 9b. Forward reference resolution:**
-After design-patterns is produced, every `forward_ref_pending_design_patterns` entry must be resolved. Scan `nfr-spec.forward_references` for any entry with `resolved: false`. For each:
-1. Look up the `expected_pattern` value.
-2. Search `design-patterns.yaml` for any entry (in `system_level`, `layer_level`, `component_level`, or `cross_cutting`) with a matching `pattern` field.
-3. If a matching pattern is found and its `applicability_scope` is relevant to the NFR context → this forward reference is resolved. Record it as resolved.
-4. If no matching pattern is found → **blocker** (F6 unresolved forward reference). Record the NFR ID and the expected pattern.
+### Step 13 — V12: Refined QP delta_log integrity (cites F12)
 
-Any NFR with a null delivery_mechanism OR any unresolved forward reference is a **blocker**.
+Read both `specify_qp_path` and `refined_qp_path`. Compute the diff per characteristic:
+- For every characteristic where `target` or other content differs between specify and refined:
+  - There must be a `delta_log[]` entry in refined QP citing this characteristic, with field, before, after, direction, driver.kind, driver.reference, rationale all non-empty.
+  - `driver.reference` must resolve to a real artifact (inventory file, project_profile slot, epic id, regulation cite).
+- For every characteristic where security target was loosened (refined target weaker than specify target) → V12 blocker (security ratchet violation).
 
-### Step 11. V10 — ISO 25010 characteristic coverage (cites F7)
+Any failure → V12 blocker.
 
-1. Load `quality_profile.characteristics` — extract every entry with `relevance != not_applicable`. Call this set `required_characteristics`.
-2. Load `quality_vision.characteristics` — extract the `characteristic` field from each entry. Call this set `covered_characteristics`.
-3. For every characteristic in `required_characteristics`, verify it appears in `covered_characteristics`.
-4. Any characteristic from the quality profile (with non-`not_applicable` relevance) that has no entry in quality-vision is a **blocker**.
+### Step 14 — V13: Source-type discipline across all manifests (cites F13)
 
-### Step 12. V11 — Quality-vision entry completeness (cites F7 / F8)
+Walk every entry in `all_decisions` (union of all six manifests):
+- Every entry has a non-empty `grounding_source.kind`.
+- No entry has `grounding_source.kind: agent_default_unilateral`.
+- No entry's recommendation conflicts with a `project_profile.grounded_tools[]` pin for the same slot (cross-check: for any pin in project_profile, the corresponding decision must use the pinned value).
 
-For every entry in `quality_vision.characteristics`:
+Any failure → V13 blocker.
 
-Verify ALL of the following fields are present and non-empty:
-- `vision` — non-empty string (not whitespace only)
-- `target_level` — non-empty string
-- `design_linkage` — object with at least one of `components`, `nfrs`, or `patterns` being a non-empty list
-- `tooling` — list with ≥ 1 entry; each entry must have a non-empty `name` field
-- `thresholds` — list with ≥ 1 entry; each entry must be a non-empty string
-- `lifecycle_gates` — list with ≥ 1 entry; each entry must have non-empty `gate` and `tool` fields
+### Step 15 — V14: Multi-candidate discipline (cites F14)
 
-Any missing or empty required field is a **blocker**.
+Walk every entry in `all_decisions`:
+- When `grounding_source.kind: kb_catalog_multi_candidate_user_approved`, the citation must reference a `Q-arch-NNN` ID in `{product_base}user-provided/grounding-questions.md` OR a checkpoint ID where the user picked.
+- When the citation is `Q-arch-NNN`, verify the question exists in grounding-questions.md.
 
-### Step 13. V12 — Quality-vision vague-language scan (cites F8)
+Missing question or checkpoint citation → V14 blocker.
 
-Scan every string value in `quality_vision.characteristics` entries — specifically in `vision`, `thresholds`, and `lifecycle_gates[*].threshold` — for vague phrases that lack a quantified qualifier:
+### Step 16 — V15: Decision surfacing (cites F15)
 
-**Vague-language deny list:**
-- `fast` (unless adjacent to a numeric threshold such as "fast (p95 ≤ 500ms)")
-- `reliable` (unless qualified by a percentage or SLA target)
-- `thoroughly` / `thorough`
-- `robust` (unless qualified by a specific metric)
-- `adequate`, `sufficient`, `appropriate`, `good`, `better`, `improved`
-- `use a linter`, `a linter`, `a coverage tool`, `a test framework`, `some monitoring`, `any tool`
-- `comprehensive coverage`, `high coverage`, `good practices`, `industry standards`, `best practices`
+Walk every entry in `all_decisions`:
+- `user_response` ∈ {accept, override, orbit, pending}.
+- If `user_response: pending`, the validation result records a WARNING (not blocker) — the play orchestrator surfaces these at the next checkpoint. Validator's job is to flag them, not to block.
+- If `user_response: override` or `orbit`, ensure `user_response_detail` is non-empty.
 
-A match is a **blocker** when the phrase appears in a `threshold` or `lifecycle_gates.threshold` field without an adjacent quantified metric. A match in a `vision` narrative is a **warning** (vision text is intentionally narrative; warnings flag for human review).
+Override/orbit without detail → V15 blocker.
 
-### Step 14. V13 — Design-patterns layer coverage (cites F9)
+### Step 17 — V16: Manifest completeness (cites F16)
 
-1. Load `physical_architecture.deployment_topology.runtime_tiers` — the authoritative tier list.
-2. Determine `has_backend`: true if any tier has `type: api` or `type: worker`.
-3. Load cross-cutting triggers: scan `nfr_spec.nfrs` for any NFR where `characteristic` is `reliability`, `security`, or `integrity` AND (`delivery_mechanism.description` OR `verification_method.scenario`) mentions any of: `resilience`, `idempotency`, `retry`, `consistency`, `circuit breaker`, `outbox`. Record the triggering NFR IDs.
+For each of the six manifests:
+- File exists and parses cleanly.
+- For each decision entry: `decision_id`, `decision_type`, `tier`, `grounding_source.kind`, `grounding_source.citation`, `recommendation`, `alternatives_considered[]` (may be empty but field present) all present.
 
-Verify:
-- **system_level check:** `design_patterns.system_level` has ≥ 1 entry. Missing → **blocker**.
-- **layer_level check:** if `has_backend = true`, `design_patterns.layer_level` has ≥ 1 entry. Missing when backend exists → **blocker**.
-- **component_level check:** for each `runtime_tier` entry in `physical_architecture.deployment_topology.runtime_tiers`, verify at least one entry in `design_patterns.component_level` has a matching `runtime_tier` field. Any uncovered tier → **blocker**. Record the uncovered tier name.
-- **cross_cutting check:** if any cross-cutting trigger fired (above), verify `design_patterns.cross_cutting` is non-empty. Missing when triggers exist → **blocker**.
+Any missing field → V16 blocker.
 
-### Step 15. V14 — Source-type discipline in design-patterns manifests (cites F15)
+### Step 18 — V20: Stage order broader check (cites F20)
 
-This check mirrors V6 for the design-patterns decision manifest specifically. For every entry in `manifest_design_patterns_path`:
+File mtime ordering: refined_qp and inventory may be in either order; logical_path mtime ≥ both; physical_path ≥ logical_path; tech_stack_path ≥ physical_path; risks_path ≥ tech_stack_path.
 
-1. Verify `source_type` is present (when the decision entry carries a technology choice — not all manifest entries describe technology choices; narrative decisions do not require source_type).
-2. Verify `source_type` ∉ `agent_default_unilateral`. Any occurrence → **blocker**.
+Out-of-order → V20 blocker.
 
-Note: V6 covers the primary artifact. V14 covers the manifest file for design-patterns. The same source_type rules apply.
+### Step 19 — V21: Layer model integrity (cites F21)
 
-### Step 16. V15 — Decision manifest completeness across all five manifests (cites F19)
+In `logical.layer_model`:
+- `source` ∈ {project_profile_pin, kb_blueprint, user_authored}.
+- `layers[]` length ≥ 2.
+- Exactly one layer has `is_entry: true`.
+- `layers[].order` values are unique positive integers.
+- All layer `id` values are kebab-case (regex: `^[a-z][a-z0-9-]*$`).
 
-Load all five decision manifests from `all_decisions` collected in Step 1. For every decision entry across all five manifests:
+In `logical.components[]`:
+- Every `layer` field matches a layer id in `layer_model.layers[]`.
 
-1. Verify `tier` is present and ∈ {`high`, `mid`, `low`}. Missing or invalid → **blocker**.
-2. Verify `grounding_source` is present and has a non-empty `kind` field ∈ {`kb_path`, `web_citation`, `none`}. Missing → **blocker**.
-3. Verify `recommendation` is present and non-empty. Missing → **blocker**.
-4. Verify `alternatives_considered` is present as a list. It may be a list with a single entry `"none — only candidate"` — that is valid. An absent or null list is a **blocker**.
-5. Verify `user_response` — if `user_response` is null, that is a **blocker**. After the orchestrator runs the surfacing flow, every decision must have an explicit response: `accept`, `override`, or `orbit`. A null response means the decision was never surfaced to the user.
+In `physical.components[]`:
+- Every `layer` field matches the linked logical component's layer (also V6/V7 but rechecked here).
 
-Any missing field or null `user_response` is a **blocker**.
+Any failure → V21 blocker.
 
-### Step 17. V16 — No tier=high decision with grounding_source.kind=none (cites F19)
+### Step 20 — V22: Inventory provenance (cites F22)
 
-Scan all decisions in `all_decisions`. For every entry with `tier: high`, verify `grounding_source.kind` is `kb_path` (not `web_citation`, not `none`). A `tier: high` decision requires a concrete KB or file reference — neither `web_citation` nor `none` is a valid grounding source for high-tier decisions.
+For every file in `inventory_dir/*.md`:
+- Frontmatter has `id`, `origin`, `provenance_summary`, `capabilities_served[]` non-empty.
+- When `origin: kb`:
+  - `kb_path`, `kb_version_sha`, `copied_at`, `editable: false` all present.
+  - `kb_path` resolves to a real file under `kb_systems_dir`.
+  - Computed SHA-256 of the KB file content at `kb_path` matches `kb_version_sha`.
+  - The body of the inventory file (everything after the inventory frontmatter) matches the KB master byte-for-byte (after stripping the KB file's own frontmatter if any).
+- When `origin: stm_research`:
+  - `editable: true`.
+  - All 7 required Markdown sections present (`When to Use`, `When to Avoid`, `Scale Profile`, `Capabilities Served`, `Sub-Systems`, `Tradeoffs`, `Anti-Patterns`) with non-empty body under each.
 
-Any `tier: high` + `grounding_source.kind != kb_path` combination is a **blocker**.
+Any failure → V22 blocker.
 
-### Step 18. V17 — ADR log completeness (cites F10)
+### Step 21 — V23: Inventory grounding (cites F23)
 
-Load `logical_architecture.adr_log`. For every ADR entry:
+For every `logical.components[].system_ref`:
+- Resolves to a file id in inventory_dir.
+- When `sub_system_ref` is non-null, the inventory file's frontmatter `sub_systems[]` contains a matching id.
 
-Verify ALL of the following fields are present and non-empty:
-- `decision` — the decision made (non-empty string)
-- `alternatives` — list with ≥ 1 entry (non-empty list; entries must be non-empty strings)
-- `chosen_option` — the selected option (non-empty string). Note: this field may be named `decision` in some schemas — accept either `chosen_option` or `decision` provided `decision` is not the same as the `context` description.
-- `drivers` — list with ≥ 1 entry of upstream artifact references
+For every `physical.components[].system_ref`:
+- Equals the linked logical component's `system_ref` exactly.
+- Resolves to inventory.
 
-Also accept the extended ADR schema with `title`, `status`, `date`, `context`, `rationale`, `consequences` — when present, verify `alternatives` is a list with ≥ 1 non-trivial entry (not just a whitespace string).
+Unresolved → V23 blocker per offending component.
 
-Any ADR missing `decision`, `alternatives`, or `drivers` is a **blocker**.
+### Step 22 — Write result
 
-### Step 19. V18 — Non-obvious decisions have ADRs (cites F10)
-
-Scan all decisions in `all_decisions`. For every decision entry where `alternatives_considered` has ≥ 2 distinct entries (excluding the `"none — only candidate"` value):
-
-1. This is a "non-obvious decision" — at least two viable alternatives existed.
-2. Verify a corresponding ADR exists in `logical_architecture.adr_log`. Match by: the ADR's `context` or `title` should reference the same decision subject (key term matching is acceptable — exact string match is not required).
-3. If no corresponding ADR is found → record a **warning** (non-blocking). Multiple non-ADR'd decisions of this type → escalate to **blocker** if count ≥ 3 (three or more non-obvious decisions without ADRs indicates systematic gap, not an isolated miss).
-
-### Step 20. V19 — Driver traceability (cites F4)
-
-For every `driver` / `drivers` field value across all five artifacts and all five manifests:
-
-1. Collect all driver citation strings (e.g., `"EPIC-user-login-001 CTC-001"`, `"quality-profile.security"`, `"project-profile.budget_sensitivity=medium"`, `"design flows/authentication-flow.md"`).
-2. For each citation that references a file path (any citation containing `/` or ending with `.yaml` or `.md`), verify the referenced file exists using Glob. If the file does not exist → **blocker**. Record the missing path and the field that cited it.
-3. For each citation that references a YAML key path (e.g., `quality-profile.security`, `project-profile.team_size`), verify the top-level key exists in the referenced file by reading it. If the top-level key is absent → **blocker**. Record the missing key and the field that cited it.
-4. For citations referencing epic IDs (e.g., `EPIC-user-login-001`), verify a corresponding file exists under `{epics_dir}` that matches the epic ID pattern. If no file matches → **blocker**.
-5. Citations that are free-form rationale strings without a path, key, or ID (e.g., `"standard resilience practice"`) are flagged as **warnings** — drivers must cite specific upstream artifacts per C4/F4.
-
-### Step 21. V20 — Epic performance constraints covered by NFRs (cites F6)
-
-1. Glob all files under `{epics_dir}/*.yaml`. For each epic file, parse the `constraints` block.
-2. Extract every performance constraint — any field or value that specifies a latency budget, throughput target, response time requirement, rate limit, error budget, or uptime target. Indicators: numeric values adjacent to `ms`, `%`, `rps`, `tps`, `req/s`, `uptime`, `availability`, `latency`, `p95`, `p99`, `p50`, `SLA`.
-3. For each extracted performance constraint, verify at least one entry in `nfr_spec.nfrs` has a `source` field that cites the epic ID AND a `target` that captures the constraint value.
-4. Any epic performance constraint with no matching NFR entry is a **blocker**.
-
-### Step 22. Assemble validation result
-
-After all 20 checks complete, build the output document:
+Write `{output_path}`:
 
 ```yaml
-schema_version: 2
-validated_at: <ISO-8601 timestamp>
 status: passed | failed
-artifacts_checked:
-  - logical-architecture.yaml
-  - physical-architecture.yaml
-  - nfr-spec.yaml
-  - quality-vision.yaml
-  - design-patterns.yaml
-checks:
-  - id: V1
-    cites: F1
-    status: pass | fail
-    details: <string or empty string>
-  - id: V2
-    cites: F1
-    status: pass | fail
-    details: <string or empty string>
-  - id: V3
-    cites: F3
-    status: pass | fail
-    details: <string or empty string>
-  - id: V4
-    cites: F5
-    status: pass | fail
-    details: <string or empty string>
-  - id: V5
-    cites: F2
-    status: pass | fail
-    details: <string or empty string>
-  - id: V6
-    cites: F15
-    status: pass | fail
-    details: <string or empty string>
-  - id: V7
-    cites: F16
-    status: pass | fail
-    details: <string or empty string>
-  - id: V8
-    cites: F17
-    status: pass | fail
-    details: <string or empty string>
-  - id: V9
-    cites: F6
-    status: pass | fail
-    details: <string or empty string>
-  - id: V10
-    cites: F7
-    status: pass | fail
-    details: <string or empty string>
-  - id: V11
-    cites: "F7/F8"
-    status: pass | fail
-    details: <string or empty string>
-  - id: V12
-    cites: F8
-    status: pass | fail
-    details: <string or empty string>
-  - id: V13
-    cites: F9
-    status: pass | fail
-    details: <string or empty string>
-  - id: V14
-    cites: F15
-    status: pass | fail
-    details: <string or empty string>
-  - id: V15
-    cites: F19
-    status: pass | fail
-    details: <string or empty string>
-  - id: V16
-    cites: F19
-    status: pass | fail
-    details: <string or empty string>
-  - id: V17
-    cites: F10
-    status: pass | fail
-    details: <string or empty string>
-  - id: V18
-    cites: F10
-    status: pass | fail
-    details: <string or empty string>
-  - id: V19
-    cites: F4
-    status: pass | fail
-    details: <string or empty string>
-  - id: V20
-    cites: F6
-    status: pass | fail
-    details: <string or empty string>
 violations:
-  - check_id: V{n}
+  - id: V1 | V2 | ... | V23
+    failure_bound: F1 | F2 | ...
     severity: blocker | warning
-    message: <human-readable description of the violation>
-    location: <file path + YAML field path or line reference>
+    artifact: {path}
+    detail: |
+      {prose description of the violation}
+    offending_value: {string, when applicable}
+warnings:
+  - kind: pending_decision
+    decision_id: ...
+    detail: ...
 summary:
-  total_checks: 20
-  passed: <n>
-  failed: <n>
-  blockers: <n>
-  warnings: <n>
+  checks_run: 22
+  blockers_count: <int>
+  warnings_count: <int>
+  artifacts_validated:
+    - {path}
 ```
 
-**Status rule:** If `summary.blockers > 0` → `status: failed`. If `summary.blockers = 0` → `status: passed` (warnings do not block).
+If `blockers_count == 0` → `status: passed`. Otherwise `status: failed`.
 
-### Step 23. Write output and return
+## Output Contract
 
-Write the assembled validation result to `{output_path}`. Do NOT modify any of the five artifact files or any manifest file. Read-only access to all inputs.
+On success (passed):
 
-Return output contract:
-
-```yaml
-validation:
-  path: <written path>
-  status: passed | failed
-  total_checks: 20
-  passed: <n>
-  failed: <n>
-  blockers: <n>
-  warnings: <n>
+```json
+{
+  "status": "success",
+  "skill": "validate-architecture-spec",
+  "validation_status": "passed",
+  "result_path": "{product_base}architecture/validation-result.yaml",
+  "checks_run": 22,
+  "warnings_count": <int>
+}
 ```
+
+On validation failure (validator ran cleanly but artifacts have blockers):
+
+```json
+{
+  "status": "success",
+  "skill": "validate-architecture-spec",
+  "validation_status": "failed",
+  "result_path": "{product_base}architecture/validation-result.yaml",
+  "checks_run": 22,
+  "blockers_count": <int>,
+  "warnings_count": <int>,
+  "first_offending_failure_bound": "F1 | F2 | ..."
+}
+```
+
+On skill failure (validator itself broke):
+
+```json
+{
+  "status": "failure",
+  "skill": "validate-architecture-spec",
+  "what_failed": "input_missing | input_unparseable | output_write_failed",
+  "details": "..."
+}
+```
+
+## Evals
+
+| Eval | Check |
+|------|-------|
+| V1-1 | Validation result includes every blocker found, with id, failure_bound, severity, artifact path, and detail populated. |
+| V1-2 | `status: passed` is only emitted when blockers_count == 0. |
+| V1-3 | When any artifact is missing OR contains zero primary entries, V1 fires. |
+| V1-4 | When logical contains a tech token from the deny-list, V2 fires with the offending value. |
+| V1-5 | When physical's `deployment_target.name` matches the category-term deny-list, V6 fires. |
+| V1-6 | When a refined-QP characteristic with `relevance != not_applicable` has no matching `nfr_delivery[]`, V8 fires per orphaned characteristic. |
+| V1-7 | When any `category: pattern` entry has no `pattern_citation` or fabricated source, V9 fires. |
+| V1-8 | When any inventory file lacks provenance fields OR a KB-origin file's body diverges from the KB master, V22 fires. |
+| V1-9 | When any logical or physical `system_ref` does not resolve to inventory, V23 fires. |
+| V1-10 | Stage-order mtime check fires when risks_path mtime < any prior artifact's mtime (V20). |
 
 ## Constraints
 
-- NEVER modify any artifact file or decision manifest. This skill is read-only on all inputs.
-- NEVER auto-fix violations. Report them precisely; the calling play cycles back to the appropriate derive skill.
-- NEVER return `status: passed` when any blocker violation exists. Zero blockers required for pass.
-- NEVER return `status: passed` when any `forward_ref_pending_design_patterns` entry in nfr-spec.yaml remains with `resolved: false`.
-- NEVER return `status: passed` when any decision in any manifest has `user_response: null`.
-- NEVER return `status: passed` when `agent_default_unilateral` appears anywhere in any artifact or any manifest.
-- ALWAYS run all 20 checks. Do not short-circuit on first failure — collect the full violation set so the calling play can address all issues in one cycle-back.
-- ALWAYS cite the specific field path in `violations[*].location` — "logical-architecture.yaml:components[2].name" not "logical-architecture.yaml".
-- ALWAYS load upstream scope, epics, quality profile, and project profile before running any check that depends on them (V4, V7, V10, V20).
+- Writes ONLY to `{output_path}`. Read-only on every input including KB.
+- Continues past first failure so the full violation set is reported in one pass.
+- A `pending` user_response is a WARNING, never a blocker — the play orchestrator surfaces them at checkpoints.
+- The validator does NOT check orchestrator-level F17 (missing checkpoint), F18 (whitelist bypass), F19 (code emission), or F24 (hard-halt-on-missing-upstream) — those are play behaviors, not artifact properties.
 
-## Version
+## Failure modes (skill-level)
 
-| Field | Value |
-|-------|-------|
-| Version | 0.3.0 |
-| Category | architecture |
-| Created | 2026-04-14 |
-| Updated | 2026-04-15 |
-| Related | `core/components/skills/derive-logical-architecture`, `core/components/skills/derive-physical-architecture`, `core/components/skills/derive-nfr-spec`, `core/components/skills/derive-quality-vision`, `core/components/skills/derive-design-patterns` |
+- `input_missing` — a required input path is absent. (Distinct from V1 which records the violation in the result file; this is when the validator can't even start.)
+- `input_unparseable` — an artifact file cannot be parsed as valid YAML.
+- `output_write_failed` — the validation result cannot be written.

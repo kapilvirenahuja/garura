@@ -1,8 +1,17 @@
 # Architecture Rules
 
-Canonical rules governing the five arch artifacts (logical-architecture, physical-architecture, nfr-spec, quality-vision, design-patterns) and their decision manifests. Every skill in the `/arch` pipeline loads this file.
+Canonical rules governing the six /arch artifacts (refined quality-profile, systems-inventory, logical-architecture, physical-architecture, tech-stack, technical-risks) and their decision manifests. Every skill in the `/arch` pipeline loads this file.
 
-Consumers: `derive-logical-architecture`, `derive-physical-architecture`, `derive-nfr-spec`, `derive-quality-vision`, `derive-design-patterns`, `validate-architecture-spec`, `tech-architect` agent, `tech-designer` agent.
+Consumers: `derive-systems-inventory`, `refine-quality-profile`, `derive-logical-architecture`, `derive-physical-architecture`, `derive-tech-stack`, `derive-technical-risks`, `validate-architecture-spec`, `tech-architect` agent, `tech-designer` agent.
+
+**Model change in #403** — the prior shape produced `nfr-spec.yaml`, `quality-vision.yaml`, and `design-patterns.yaml` as separate artifacts. Those are gone:
+- NFR targets live in the refined quality-profile; NFR delivery mechanisms live in `physical-architecture.yaml.components[].nfr_delivery[]`.
+- Quality vision is folded into the refined quality-profile.
+- Design patterns are produced as `category: pattern` entries in `tech-stack.yaml` (every pattern requires industry literature citation). System-level decisions (monolith / microservice / serverless) are patterns and live there too.
+
+Two new artifacts are added: `systems-inventory/` (one file per system, sourced via KB pull-to-product or stm_research) and `technical-risks.yaml` (produced LAST, eight discovery scans, one entry per risk with business_cost / mitigation / residual_risk).
+
+Components in logical and physical are SELECTED from the systems inventory — they are NOT invented at logical-time or physical-time. The layer model is a per-product input (project-profile pin OR user pick at Stage 3 from KB blueprints), not a global constant.
 
 ## Rule 1: Every Architectural Decision Has a Driver
 
@@ -36,13 +45,13 @@ A component cannot span domains without explicit cross-cutting justification (sa
 
 **Enforcement:** `validate-architecture-spec` cluster-boundary check.
 
-## Rule 4: Quality Standards Inherit From Quality Profile
+## Rule 4: Refined Quality Profile Owns NFR Description; Physical Owns Delivery
 
-**Every entry in quality-standards.yaml must correspond to an entry in the specify `quality-profile.yaml` with the same ISO 25010 characteristic.**
+**The refined `quality-profile.yaml` under architecture/ describes every NFR the product must hit (target, level, characteristic). The `physical-architecture.yaml` names the mechanism that delivers each one. No third artifact bridges the two — the bridge is gone in #403.**
 
-The quality standards document translates product-level quality requirements into build-level gates — test coverage minimums, performance budgets, security controls. Every gate must trace to a profile characteristic. Gates without a profile driver are either over-engineering or unfounded.
+For every characteristic in the refined QP with `relevance != not_applicable`, at least one `physical-architecture.yaml.components[].nfr_delivery[]` entry must name the mechanism (specific product / construct), cite the target reference, and explain how the mechanism delivers it.
 
-**Enforcement:** `derive-quality-vision` matches every gate to a profile characteristic; unmatched gates fail.
+**Enforcement:** `refine-quality-profile` writes the refined QP with delta_log. `derive-physical-architecture` writes `nfr_delivery[]` per component. `validate-architecture-spec` V8 fails when any QP characteristic with relevance != not_applicable has no matching nfr_delivery entry.
 
 ## Rule 5: Failure Scenarios Drive Reliability Architecture
 
@@ -58,15 +67,15 @@ The intent epic's failure_scenarios are the list of things the product has commi
 
 If one epic requires OWASP ASVS Level 3 and another requires Level 2, the architecture applies Level 3 globally. Security ratchets up to the maximum, never averages. This is the same ratchet rule as product.md Rule 4 at a different layer.
 
-**Enforcement:** `derive-nfr-spec` picks max; `validate-architecture-spec` warns if a security control in physical-architecture or design-patterns is weaker than the highest epic requirement.
+**Enforcement:** `refine-quality-profile` ratchets the security characteristic up only — a delta with `characteristic: security` AND `direction: loosened` is a structural violation. `validate-architecture-spec` V12 fails on any security loosening.
 
 ## Rule 7: Observability Is First-Class
 
-**Every component carries an `observability` block declaring the metrics, logs, and traces it emits.**
+**Observability is an NFR characteristic, not an afterthought. The refined quality-profile names what level of observability the product needs (maintainability / operability characteristic), and `physical-architecture.yaml` names the specific stack delivering it for each component via `nfr_delivery[]`.**
 
-An unobservable component is a production liability. The architecture spec must name what each component emits, at what sampling, and to what sink. The arch quality standards inherit these declarations as monitoring requirements.
+An unobservable component is a production liability. The refined QP must carry observability as a characteristic with target; physical must name the metrics/logs/traces sink (e.g., Datadog, Grafana + Prometheus, OpenTelemetry → CloudWatch) and the sampling rate for each component.
 
-**Enforcement:** `validate-architecture-spec` component schema check.
+**Enforcement:** `validate-architecture-spec` V8 fails when the observability characteristic in the refined QP has no `nfr_delivery[]` entry naming the mechanism.
 
 ## Rule 8: No Premature Distribution
 
@@ -76,7 +85,7 @@ A microservice split is a decision, not a default. If the epics and quality prof
 
 Every split in architecture.yaml must cite one of these drivers. Splits without a driver are over-engineering.
 
-**Enforcement:** `derive-logical-architecture` requires `split_driver` field per component-split decision.
+**Enforcement:** `derive-physical-architecture` records `logical_ref_cardinality` per component. When the cardinality is `one-to-many` (split) or `many-to-one` (collapse), `cardinality_rationale` MUST cite the driver. `validate-architecture-spec` V7 fails on missing rationale.
 
 ## Rule 9: Source-Type Discipline
 
@@ -97,9 +106,9 @@ A fifth value — `agent_default_unilateral` — is defined only as the validato
 
 **Multi-candidate resolution requires a user answer.** When the KB catalog offers more than one legitimate candidate for a slot AND `grounded_tools` does not pin it, the derivation skill MUST append a Q-arch-NNN question to `.garura/product/user-provided/grounding-questions.md` and halt the slot. Silent multi-candidate resolution is a blocking failure.
 
-**Enforcement:** `derive-physical-architecture` and `derive-design-patterns` walk the decision tree per slot and tag every output; `validate-architecture-spec` rejects any decision with `agent_default_unilateral`, missing `source_type`, a `grounded_tools` override, a mis-tagged `kb_catalog_single_candidate`, or an unapproved `kb_catalog_multi_candidate_user_approved`.
+**Enforcement:** `derive-systems-inventory`, `refine-quality-profile`, `derive-logical-architecture`, `derive-physical-architecture`, `derive-tech-stack`, and `derive-technical-risks` all walk the decision tree per slot and tag every output; `validate-architecture-spec` V13 / V14 reject any decision with `agent_default_unilateral`, missing `source_type`, a `grounded_tools` override, a mis-tagged `kb_catalog_single_candidate`, or an unapproved `kb_catalog_multi_candidate_user_approved`.
 
-**Intent mapping:** arch intent.yaml constraints C14, C15, C16 and failure conditions F12, F13, F14, F15.
+**Intent mapping:** arch intent.yaml constraints C18-C22 and failure conditions F13-F16.
 
 ## Related Rules
 
