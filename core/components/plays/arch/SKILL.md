@@ -1,821 +1,711 @@
 ---
 name: garura:arch
-description: Transform locked specify and design output into a five-artifact architecture package — logical-architecture.yaml, physical-architecture.yaml, nfr-spec.yaml, quality-vision.yaml, and design-patterns.yaml — with one decision manifest per emitting skill. Every technology choice names a specific product; every architectural decision cites an upstream driver; every inferred decision is surfaced to the user via the tier-appropriate flow before commit. Five human review checkpoints in dependency order.
+description: Produce the architecture shape of the product as six artifacts — refined quality profile, systems inventory, layered logical architecture, layered physical architecture, tech stack with industry-documented patterns, and technical risk register. Every decision is grounded in upstream inputs, the user, or KB memory; nothing is invented by the play. Components in logical and physical are SELECTED from the systems inventory (Stage 1), never invented at logical-time or physical-time. Six human review checkpoints in dependency order.
 user-invocable: true
 ---
 
 # arch
 
-The architecture play in Garura's 5-stage SDLC (Discover → Specify → Design → Build → Run). Reads locked upstream artifacts from `/specify` (under `{product_base}scope/` and `{product_base}specification/`) and `/design` (under `{product_base}experience/`) and produces FIVE canonical artifacts under `{product_base}architecture/`:
+The architecture play in Garura's SDLC. Reads upstream artifacts from `/specify` and `/design` when present and falls back to interactive questions when they are missing (soft pre-flight per C1). Produces SIX canonical artifacts under `{product_base}architecture/`:
 
-1. `logical-architecture.yaml` — bounded contexts, components, data model, capability-level API surface, integration points, ADR log. Tech-agnostic.
-2. `physical-architecture.yaml` — named stack picks, deployment topology, runtime tiers, observability, auth infrastructure. Every slot names a specific product; every slot carries `source_type`.
-3. `nfr-spec.yaml` — per-NFR contract: intake target, adjustments with rationale, named delivery mechanism, verification method.
-4. `quality-vision.yaml` — per-ISO-25010-characteristic vision narrative, target level, design linkage, named tooling, quantified thresholds, lifecycle gates.
-5. `design-patterns.yaml` — system-level, layer-level, component-level (per runtime tier), and cross-cutting patterns. Every pattern carries applicability scope, driver, alternatives, and `source_type`.
+1. `quality-profile.yaml` — REFINED quality profile (the /specify draft refined against architectural reality, with a delta_log per adjustment). Describes the NFRs the software must deliver.
+2. `systems-inventory/{system-id}.md` — one file per system the product depends on (ERP, CRM, CMS, DAM, identity, payment gateway, etc.). KB-pulled (origin: kb) or in-product research (origin: stm_research). Supports sub-systems nested in the parent system file.
+3. `logical-architecture.yaml` — components organized into a product-chosen LAYER MODEL, where every component IS a system or sub-system from inventory. No cycles. Every selected capability has an end-to-end trace through layers from the user-facing entry layer to a serving component.
+4. `physical-architecture.yaml` — runtime shape. Where each logical box runs, comms with retry/idempotency stance, and `nfr_delivery[]` per component citing the QP target each mechanism satisfies. Inherits system_ref from logical.
+5. `tech-stack.yaml` — languages, runtimes, frameworks, libraries, tools, and DESIGN PATTERNS picked per box. Patterns must be industry-documented (GoF, microservices.io, PoEAA, RFCs, OWASP, etc.) with literature citations. System-level decisions (monolith / microservice / serverless) ARE patterns and live here.
+6. `technical-risks.yaml` — produced LAST. Eight discovery scans walk the locked artifacts. Each risk has risk_statement, trigger_conditions, business_cost, likelihood, mitigation with owner, residual_risk, and driver_refs.
 
-Plus one `decision-manifest-{skill}.yaml` per emitting skill, walked by the orchestrator and surfaced to the user via the C18 tiered flow before downstream skills consume the artifact.
+Plus one `decision-manifest-{skill}.yaml` per emitting skill, walked by the orchestrator and surfaced to the user via the C19 tiered flow before downstream skills consume the artifact.
 
 No code, no test suites, no implementation work products.
 
 ## Compiled From
 
-This play was compiled from `reference/intent.yaml` (the clean triple) and
-`reference/expectation.yaml` (success_scenarios + recovery) by `/create-play`.
-Intent defines constraints (C1-C19) and failure conditions (F1-F19); the expectation
-defines success scenarios (S1-S7) and recovery (REC1-REC19).
-To modify this play, update `reference/intent.yaml` or `reference/expectation.yaml`
-and re-run `/create-play --build arch`.
+This play was compiled from `reference/intent.yaml` (the clean triple) and `reference/expectation.yaml` (success_scenarios + recovery) by `/create-play`. To modify this play, update `reference/intent.yaml` or `reference/expectation.yaml` and re-run `/create-play --build arch`.
+
+**Hash guard:** If `sha256(reference/intent.yaml)` ≠ `59bd74b8a443995c97b4d1f75365706ca40dfa7848aea3fa8499553a13bae000` OR `sha256(reference/expectation.yaml)` ≠ `19a6f1c5100a9c6498f1e5152fe8932610773c2b6e84dc26456b75f637929dba`, rebuild is required before running.
+
 Do NOT edit this file manually — it is a compiled artifact.
-
-**Hash guard:** If `sha256(reference/intent.yaml)` ≠
-`88a38a68d4432f48e017dde4b767644817056a9b5a94498f33a6dfb00aa1d148` OR
-`sha256(reference/expectation.yaml)` ≠
-`b7c3ee5a71d72460783fe43ad9ac88bea58de0f568aee46ed3d1317342a29e35`, rebuild is
-required before running.
-
-**Rebuild — 5-artifact landing:** This rebuild collapses the prior 2-file shape (architecture.yaml + quality-standards.yaml) into the canonical five-artifact contract per intent v0.3.0. Five derive skills (one per artifact) replace `derive-architecture-spec`/`derive-quality-standards`. Five decision manifests replace the prior pair. Five sequential checkpoints in dependency order (logical → physical → nfr → quality-vision → design-patterns) replace the prior two checkpoints. The validator (`validate-architecture-spec` v0.3.0) runs once after all five derives complete with a single 20-check pass (V1-V20). Decision Surfacing Discipline (C18, F18) and manifest emission (C19, F19) are preserved across all five manifests.
 
 ## Role
 
 You are the orchestrator. You own the workflow. You delegate domain tasks to agents via JSON contracts — never execute domain work directly.
 
-**Forbidden:** Direct architecture derivation. Direct NFR or quality-vision authoring. Direct pattern selection. Direct code/test-suite generation. All domain work goes through `tech-architect` or `tech-designer`, which invoke skills.
+**Forbidden direct actions:**
+- Authoring any of the six artifacts inline. All artifact authorship goes through the named skill.
+- Writing evidence, checkpoint, or status files directly. All such writes go through `scriber`.
+- Picking a multi-candidate slot unilaterally. C20 requires either a grounding question or a checkpoint defer.
+- Emitting code, tests, or implementation surfaces. C26 — /arch is design-shape only.
+- Hard-halting on missing /specify or /design artifacts. C1 — fall back to the question path.
 
-**Agent boundaries:**
+**Agent boundary:**
 
-| Agent | Domain | Phases |
+| Agent | Domain | Stages |
 |-------|--------|--------|
-| `tech-architect` | Logical, physical, and design-patterns derivation; validation orchestration | Execution Stages 1, 2, 5; Validation |
-| `tech-designer` | NFR spec and quality-vision derivation | Execution Stages 3, 4 |
-| `scriber` | Background writes of evidence, checkpoint, manifest update, and status artifacts (utility — exempt from domain agent budget) | All phases |
-| `repo-orchestrator` | Self-commit of STM + product artifacts at play close (utility — exempt from domain agent budget) | Close |
+| `tech-architect` | Systems inventory, logical architecture, physical architecture, tech stack, post-generation validation | 1, 3, 4, 5, validator |
+| `tech-designer` | Refined quality profile, technical risks | 2, 6 |
+| `scriber` | Evidence, checkpoint, status writes (whitelist enforcement) | All — background |
+
+**Agent budget:** 2 domain agents (tech-architect, tech-designer) within the ≤5 budget. `scriber` is utility (exempt).
 
 ## Pre-flight
 
-| Check | Constraint | Action on Failure |
-|-------|-----------|-------------------|
-| Resolve `stm_base` and `product_base` from `.garura/core/config.yaml` | — | Hard halt |
-| `/specify` scope-stage artifacts LOCKED at `{product_base}scope/` | C1 | Hard halt — "run /specify first" |
-| `/specify` specification-stage artifacts LOCKED at `{product_base}specification/` | C1 | Hard halt — "run /specify first" |
-| `/design` artifacts LOCKED at `{product_base}experience/` | C2 | Hard halt — "run /design first" |
-| KB catalog consistency — invoke `validate-kb-extension` skill | — | Hard halt |
-| `{product_base}user-provided/grounding-questions.md` exists (append target for Q-arch-NNN) | C15 | Hard halt — "run /specify first" |
-| `{product_base}user-provided/project-profile.yaml` exists (carries `grounded_tools` pins) | C17 | Hard halt |
-| `{product_base}architecture/` writable; scriber available | C11 | Hard halt |
+C1 — Soft pre-flight. The play probes for upstream artifacts. **Missing or DRAFT artifacts DO NOT hard-halt.** The play asks the user the equivalent questions at the relevant stage and writes the answers into a stand-in file with `origin: stm_user_answer` so downstream stages have something to read.
+
+Pre-flight steps executed before Stage 1:
+
+| Check | Action on Pass | Action on Fail |
+|-------|----------------|----------------|
+| Resolve `stm_base`, `product_base`, `ltm_project_target` from `.garura/core/config.yaml` | Continue | Hard halt — config required |
+| Git repository present | Continue | Hard halt — not a git repo |
+| Issue context (from branch name or supplied issue) | Continue | Hard halt — no issue context |
+| Probe `{product_base}scope/scope.yaml` | Read | Mark stage 1 capabilities for question fallback |
+| Probe `{product_base}scope/garura:enriched-capabilities.yaml` | Read | Mark stage 1 enrichment for question fallback |
+| Probe `{product_base}scope/epics/*.yaml` | Read | Mark stages 2/6 epic-derived context for question fallback |
+| Probe `{product_base}research/*.md` (one per domain) | Read | Mark stage 1 domain context for question fallback |
+| Probe `{product_base}specification/quality-profile.yaml` | Read | Mark stage 2 QP for question fallback |
+| Probe `{product_base}experience/personas.md`, `screens/`, `flows/`, `design-spec.md` | Read | Mark stage 3 design context for question fallback |
+| Probe `{product_base}user-provided/project-profile.yaml` | Read for pins | Mark all stages for project-profile question fallback |
+| Resume check — `{stm_base}/{issue}/status/arch.json` | If present, resume from first incomplete stage | Fresh run |
 
 ```bash
-stm_base=$(grep -A5 '^stm:' .garura/core/config.yaml | grep 'base-path' | awk '{print $2}')
-product_base=$(grep -A2 '^product:' .garura/core/config.yaml | grep 'base-path' | awk '{print $2}')
-ltm_base=$(grep -A5 '^ltm:' .garura/core/config.yaml | grep 'project-target' | awk '{print $2}')
-
-# C1: verify specify scope-stage artifacts exist (LOCKED status)
-for f in scope.yaml enriched-capabilities.yaml; do
-  test -f "${product_base}scope/$f" || halt "missing ${product_base}scope/$f — run /specify first"
-done
-test -d "${product_base}scope/epics" || halt "missing ${product_base}scope/epics dir — run /specify first"
-
-# C1: verify specify specification-stage artifacts exist (LOCKED status)
-test -f "${product_base}specification/quality-profile.yaml" || halt "missing quality-profile.yaml — run /specify first"
-test -f "${product_base}user-provided/project-profile.yaml" || halt "missing project-profile.yaml — run /specify first"
-
-# C2: verify design artifacts exist (LOCKED status)
-for f in personas.md design-spec.md; do
-  test -f "${product_base}experience/$f" || halt "missing ${product_base}experience/$f — run /design first"
-done
-test -d "${product_base}experience/screens" || halt "missing ${product_base}experience/screens dir — run /design first"
-test -d "${product_base}experience/flows" || halt "missing ${product_base}experience/flows dir — run /design first"
-
-# C11: verify architecture stage folder is writable
-test -d "${product_base}architecture" || mkdir -p "${product_base}architecture" || halt "cannot create ${product_base}architecture"
-
-# C15 / C17: grounding-questions.md and grounded_tools must exist (preconditions for derive-physical and derive-design-patterns)
-test -f "${product_base}user-provided/grounding-questions.md" || halt "missing grounding-questions.md — run /specify first"
-
-# Invoke validate-kb-extension via Skill tool (kb_root from config; halt on any structured failure)
+stm_base=$(yq '.stm.base-path' .garura/core/config.yaml)
+product_base=$(yq '.product.base-path' .garura/core/config.yaml)
+ltm_project_target=$(yq '.ltm.project-target' .garura/core/config.yaml)
+git rev-parse --is-inside-work-tree
+issue=$(echo "$(git branch --show-current)" | grep -oE '/[0-9]+' | tr -d '/')
+test -n "$issue" || { echo "no issue in branch"; exit 1; }
+# Probes inform per-stage question fallback; the play does NOT hard-halt on any probe failure.
 ```
 
-**Resume check:** If `{product_base}_status/arch.json` exists, resume — skip completed stages, reset in_progress to pending, continue from first incomplete stage.
+## Task DAG
+
+Create ALL tasks at start. Order via `blockedBy`; the sequential ID prefix `[T1]`, `[T2]`, etc. labels the step.
+
+```
+TaskCreate [T1]  "Pre-flight + scaffold STM"
+TaskCreate [T2]  "Stage 1 — Systems Inventory"      blockedBy=[T1]
+TaskCreate [T3]  "Stage 1 Checkpoint"               blockedBy=[T2]
+TaskCreate [T4]  "Stage 2 — Refine Quality Profile" blockedBy=[T1]
+TaskCreate [T5]  "Stage 2 Checkpoint"               blockedBy=[T4]
+TaskCreate [T6]  "Stage 3 — Logical Architecture"   blockedBy=[T3, T5]
+TaskCreate [T7]  "Stage 3 Checkpoint"               blockedBy=[T6]
+TaskCreate [T8]  "Stage 4 — Physical Architecture"  blockedBy=[T7]
+TaskCreate [T9]  "Stage 4 Checkpoint"               blockedBy=[T8]
+TaskCreate [T10] "Stage 5 — Tech Stack"             blockedBy=[T7, T9]
+TaskCreate [T11] "Stage 5 Checkpoint"               blockedBy=[T10]
+TaskCreate [T12] "Stage 6 — Technical Risks"        blockedBy=[T3, T5, T7, T9, T11]
+TaskCreate [T13] "Stage 6 Checkpoint"               blockedBy=[T12]
+TaskCreate [T14] "Post-generation Validation"       blockedBy=[T13]
+TaskCreate [T15] "Evidence + Close"                 blockedBy=[T14]
+```
+
+Stages 1 (Systems Inventory) and 2 (Refined QP) are independent — they may run in either order or in parallel (C3). Stages 3-6 are strictly sequential. Stage 5 needs both logical (Stage 3) and physical (Stage 4). Stage 6 needs every other stage complete.
+
+**Task ownership:** the play owns the DAG. Agents MAY call `TaskCreate` for discovered sub-work with `addBlockedBy` to the current step; they MUST NOT call `TaskUpdate` on play-level tasks.
+
+**TaskUpdate protocol per step:**
+- `TaskUpdate [Tn] → in_progress` before agent dispatch
+- `TaskUpdate [Tn] → completed` after step evals pass
 
 ## Workflow
 
-Structure A — full checkpoint flow with 5 human review gates in dependency order (logical → physical → nfr → quality-vision → design-patterns). Each derive stage is followed by a Decision Surfacing sub-step (DSD walk over the just-emitted manifest), then a checkpoint, then the next derive stage. Validation runs once after all five derives + all five surfacing flows + all five checkpoints complete.
+### Phase: Pre-flight + Scaffold
 
-The dependency order is load-bearing: physical references logical components, nfr-spec references both, quality-vision references all prior, design-patterns references all prior and resolves any `forward_ref_pending_design_patterns` entries from nfr-spec.yaml.
+**Step 1 — Pre-flight + scaffold STM**
+Owner: play (orchestrator)
+Task: `TaskUpdate [T1] → in_progress`
+
+Execute every probe in the Pre-flight table. Capture each probe result in `{stm_base}/{issue}/evidence/arch/preflight.yaml`. Scaffold:
+
+```bash
+mkdir -p "${product_base}architecture/systems-inventory"
+mkdir -p "${stm_base}${issue}/evidence/arch"
+mkdir -p "${stm_base}${issue}/checkpoint/arch"
+mkdir -p "${stm_base}${issue}/status"
+```
+
+Dispatch `scriber` for the directory scaffold and preflight.yaml write.
+
+`TaskUpdate [T1] → completed`
 
 ---
 
-### Phase: Stage 1 — Logical Architecture
+### Phase: Stage 1 — Systems Inventory
 
-**Step 1 — Derive logical-architecture.yaml**
+**Step 2 — Derive systems inventory**
 Owner: `tech-architect`
-Depends on: pre-flight
+Task: `TaskUpdate [T2] → in_progress`
 
 ```json
 {
   "intent_path": "core/components/plays/arch/reference/intent.yaml",
   "stm_base": "{stm_base}",
-  "product_base": "{product_base}",
   "stm": {
     "input": {
       "scope_path": "{product_base}scope/scope.yaml",
+      "scope_standin_path": "{product_base}specification/capabilities-stand-in.yaml",
+      "enriched_capabilities_path": "{product_base}scope/garura:enriched-capabilities.yaml",
+      "domain_research_dir": "{product_base}research/",
+      "project_profile_path": "{product_base}user-provided/project-profile.yaml",
+      "kb_systems_dir": "{ltm_project_target}components/memory/knowledge/arch/systems/",
+      "kb_extension_rules_path": "{ltm_project_target}components/memory/standards/rules/kb-extension.md",
+      "preflight_path": "{stm_base}{issue}/evidence/arch/preflight.yaml"
+    },
+    "output": {
+      "inventory_dir": "{product_base}architecture/systems-inventory/",
+      "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-systems-inventory.yaml",
+      "grounding_questions_path": "{product_base}user-provided/grounding-questions.md"
+    }
+  },
+  "task_id": "stage-1-systems-inventory"
+}
+```
+
+Agent invokes `derive-systems-inventory` skill. When `scope_path` probe failed at pre-flight, agent first runs the question fallback — interviews the user for selected capabilities and writes `capabilities-stand-in.yaml` with `origin: stm_user_answer`, then proceeds.
+
+**Step 2 Evals:**
+
+**SE-19 (F22 — system provenance):** Every file in `architecture/systems-inventory/` has non-empty frontmatter id, origin ∈ {kb, stm_research}, provenance_summary, capabilities_served[]. kb-origin files carry kb_path, kb_version_sha, copied_at, editable: false; the body matches the KB master at kb_path byte-for-byte; recomputed SHA-256 of KB content matches kb_version_sha. stm_research files carry editable: true and have all 7 required sections populated.
+
+**SE-20 (F23 — inventory grounding, prep for Stage 3):** Every capability in `scope.selected_capabilities` (or the stand-in equivalent) is named in `capabilities_served[]` of at least one inventory file (system-level or sub-system-level).
+
+`TaskUpdate [T2] → completed`
+
+---
+
+**Step 3 — Stage 1 Checkpoint**
+Owner: play (orchestrator)
+Task: `TaskUpdate [T3] → in_progress`
+
+Surface the inventory + decision manifest to the user. Drive the tiered surfacing per C19:
+
+- HIGH-tier decisions (project_profile_pin, kb_catalog_single_candidate) → batch confirmation.
+- MID-tier decisions (kb_catalog_multi_candidate_user_approved with grounding-question pending) → present each grounding question for the user's pick.
+- LOW-tier decisions (agent_default_with_user_approval for stm_research systems) → present one-by-one.
+
+Present the YAML artifact paths as the review surface:
+- `{product_base}architecture/systems-inventory/` — list of files
+- `{product_base}architecture/decision-manifest-derive-systems-inventory.yaml`
+
+Wait for Tether / Vanish / Orbit:
+- **Tether** — proceed to Stage 3 (when Stage 2 also complete) and update each manifest entry's `user_response` to `accept` (or per the user's per-decision input).
+- **Orbit** — cycle back to Stage 1 with the user's feedback captured in `{stm_base}{issue}/checkpoint/arch/stage-1-orbit-notes.md`.
+- **Vanish** — halt the play.
+
+Dispatch `scriber` to write the checkpoint artifact at `{stm_base}{issue}/checkpoint/arch/stage-1.md` (Tether/Orbit/Vanish + timestamp + summary).
+
+`TaskUpdate [T3] → completed`
+
+---
+
+### Phase: Stage 2 — Refine Quality Profile
+
+**Step 4 — Refine quality profile**
+Owner: `tech-designer`
+Task: `TaskUpdate [T4] → in_progress`
+
+Runs in parallel with Stage 1 (independent per C3).
+
+```json
+{
+  "intent_path": "core/components/plays/arch/reference/intent.yaml",
+  "stm_base": "{stm_base}",
+  "stm": {
+    "input": {
+      "specify_qp_path": "{product_base}specification/quality-profile.yaml",
+      "specify_qp_standin_path": "{product_base}specification/quality-profile-stand-in.yaml",
+      "scope_path": "{product_base}scope/scope.yaml",
+      "epics_dir": "{product_base}scope/epics/",
+      "inventory_dir": "{product_base}architecture/systems-inventory/",
+      "project_profile_path": "{product_base}user-provided/project-profile.yaml",
+      "kb_quality_dir": "{ltm_project_target}components/memory/knowledge/quality/"
+    },
+    "output": {
+      "output_path": "{product_base}architecture/quality-profile.yaml",
+      "decision_manifest_path": "{product_base}architecture/decision-manifest-refine-quality-profile.yaml"
+    }
+  },
+  "task_id": "stage-2-refine-qp"
+}
+```
+
+Agent invokes `refine-quality-profile` skill. When `specify_qp_path` probe failed, the question fallback interviews the user for ISO 25010 characteristic relevance and targets, writes `quality-profile-stand-in.yaml` with `origin: stm_user_answer`, then refines.
+
+**Step 4 Evals:**
+
+**SE-12 (F12 — QP delta uncited):** Every characteristic in the refined QP that differs from the upstream specify QP is covered by a delta_log entry with non-empty field, before, after, direction, driver.kind ∈ {inventory_constraint, project_profile_pin, epic_constraint, regulatory_pin}, driver.reference resolvable, and rationale. No delta_log entry has characteristic: security AND direction: loosened.
+
+`TaskUpdate [T4] → completed`
+
+---
+
+**Step 5 — Stage 2 Checkpoint**
+Owner: play (orchestrator)
+Task: `TaskUpdate [T5] → in_progress`
+
+Surface the refined QP + delta_log + decision manifest. Tiered surfacing per C19. Present:
+- `{product_base}architecture/quality-profile.yaml`
+- `{product_base}architecture/decision-manifest-refine-quality-profile.yaml`
+
+Wait for Tether / Vanish / Orbit. Scriber writes `{stm_base}{issue}/checkpoint/arch/stage-2.md`.
+
+`TaskUpdate [T5] → completed`
+
+---
+
+### Phase: Stage 3 — Logical Architecture
+
+**Step 6 — Derive logical architecture**
+Owner: `tech-architect`
+Task: `TaskUpdate [T6] → in_progress`
+
+Blocked on Stages 1 AND 2 both completing.
+
+```json
+{
+  "intent_path": "core/components/plays/arch/reference/intent.yaml",
+  "stm_base": "{stm_base}",
+  "stm": {
+    "input": {
+      "inventory_dir": "{product_base}architecture/systems-inventory/",
+      "refined_qp_path": "{product_base}architecture/quality-profile.yaml",
+      "scope_path": "{product_base}scope/scope.yaml",
+      "scope_standin_path": "{product_base}specification/capabilities-stand-in.yaml",
       "enriched_capabilities_path": "{product_base}scope/garura:enriched-capabilities.yaml",
       "epics_dir": "{product_base}scope/epics/",
-      "quality_profile_path": "{product_base}specification/quality-profile.yaml",
       "design_spec_path": "{product_base}experience/design-spec.md",
-      "screens_dir": "{product_base}experience/screens/",
       "flows_dir": "{product_base}experience/flows/",
       "personas_path": "{product_base}experience/personas.md",
-      "project_profile_path": "{product_base}user-provided/project-profile.yaml"
+      "project_profile_path": "{product_base}user-provided/project-profile.yaml",
+      "kb_layer_models_dir": "{ltm_project_target}components/memory/knowledge/arch/layer-models/"
     },
     "output": {
       "output_path": "{product_base}architecture/logical-architecture.yaml",
-      "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-logical-architecture.yaml"
+      "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-logical-architecture.yaml",
+      "grounding_questions_path": "{product_base}user-provided/grounding-questions.md"
     }
   },
-  "task_id": "arch-stage-1-derive",
-  "ltm_context": {
-    "discover_via": "tech-architect agent reads .garura/core/memory/knowledge/arch/_index.md and pulls relevant pattern + KB files for bounded-context and component-boundary heuristics"
-  }
+  "task_id": "stage-3-logical"
 }
 ```
 
-Agent invokes `derive-logical-architecture` skill → produces `logical-architecture.yaml` (bounded contexts, components, data model, api_surface, integration_points, component_capability_map, adr_log) AND emits `decision-manifest-derive-logical-architecture.yaml` recording every inferred structural decision (D-dla-001..011) with tier, grounding_source, recommendation, alternatives_considered, agent_reasoning_summary. The skill self-validates tech-agnostic purity (C3 / F3) and capability coverage (C5 / F5) before returning.
+Agent invokes `derive-logical-architecture` skill. The agent first establishes the layer model (project-profile pin OR KB blueprint OR user pick from blueprints). Then walks capabilities and places systems from inventory into layers, wires edges with sync_mode, runs cycle detection and end-to-end traceability checks.
 
-**Step 1b — Surface logical decisions (DSD walk)**
+**Step 6 Evals:**
+
+**SE-2 (F2 — logical tech tokens):** No string in logical-architecture.yaml matches the tech-token deny-list. Case-insensitive.
+
+**SE-3 (F3 — component shape):** Every component has non-null system_ref AND layer matching a layer in layer_model.layers AND capability_ids[] length ≥ 1.
+
+**SE-4 (F4 — capability orphan / no E2E):** Every selected capability is named in at least one entry-layer component's capability_ids[] AND a graph traversal reaches a serving component.
+
+**SE-5a (F5 logical cycle):** Logical graph (with sync/hybrid edges) is acyclic.
+
+**SE-18 (F21 — layer model integrity):** layer_model.source valid, layers[] ≥ 2, exactly one is_entry: true, unique order ints, kebab-case ids.
+
+**SE-20 (F23 — system_ref resolution):** Every component's system_ref resolves to inventory; sub_system_ref resolves to a sub_systems[].id inside that file.
+
+`TaskUpdate [T6] → completed`
+
+---
+
+**Step 7 — Stage 3 Checkpoint**
 Owner: play (orchestrator)
-Depends on: Step 1
+Task: `TaskUpdate [T7] → in_progress`
 
-The orchestrator reads `{product_base}architecture/decision-manifest-derive-logical-architecture.yaml`, groups entries by `tier`, and drives the three-tier presentation flows defined in C18:
+Surface logical-architecture.yaml + decision manifest. Tiered surfacing per C19. Present:
+- `{product_base}architecture/logical-architecture.yaml`
+- `{product_base}architecture/decision-manifest-derive-logical-architecture.yaml`
 
-- **Flow HIGH (batch-confirm):** Present all `tier: high` entries as a single batch. Each entry shows decision_id, decision_type, recommendation, KB grounding source, and a one-line reasoning. Parse `Tether` → mark all `accept`, `Orbit {decision_id}` → drop into LOW flow, `Vanish` → halt.
-- **Flow MID (batch-with-questions):** Present all `tier: mid` entries with explicit questions, web citation refs, and alternatives. Parse `Tether` → accept batch, `Orbit {id} {alt}` → override with detail, `Orbit all` → route every mid entry through LOW.
-- **Flow LOW (one-by-one):** Present each `tier: low` entry individually with full alternatives + reasoning. Per entry: `Tether` → accept, `Orbit {alt}` → override, `Vanish` → halt.
+Wait for Tether / Vanish / Orbit. When a cycle was detected during Step 6, this checkpoint surfaces the cycle + candidate breaks for user pick (F5 / REC5 human handoff). Scriber writes `{stm_base}{issue}/checkpoint/arch/stage-3.md`.
 
-After all flows complete, dispatch `scriber` to rewrite the manifest in place with populated `user_response` + `user_response_detail` on every entry. On any `override`, reopen Step 1 with the override list as additional input — re-derivation regenerates the manifest; surfacing re-runs only on entries whose recommendations changed. No Checkpoint 1 render runs until every manifest entry has a non-null `user_response`.
-
-**Exemptions:** entries with `source_type: grounded_tools_pin` and trivial echoes (slug copy, timestamp) are not surfaced.
+`TaskUpdate [T7] → completed`
 
 ---
 
-### Phase: Checkpoint 1 — Logical Architecture Review
+### Phase: Stage 4 — Physical Architecture
 
-**Step 1c — Human review of logical architecture**
-Owner: play
-Depends on: Step 1b
-
-Dispatch scriber (background) to write checkpoint artifact:
-
-```json
-{
-  "intent_path": "core/components/plays/arch/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "scribe_task": {
-    "operation": "write_checkpoint",
-    "target_path": "{product_base}_checkpoints/arch/stage-1-logical-{YYYYMMDD-HHMMSS}.md",
-    "content": "<rendered checkpoint markdown: bounded contexts count, components count, capability coverage ratio, entities count, integration points, ADR count, and full logical-architecture.yaml path>",
-    "metadata": {
-      "play_name": "arch",
-      "step": "stage-1-logical-checkpoint",
-      "timestamp": "<ISO-8601>",
-      "status": "PENDING_APPROVAL"
-    }
-  },
-  "task_id": "arch-checkpoint-1-write"
-}
-```
-
-Present to user:
-
-```markdown
-## Logical Architecture — {product slug}
-
-**Bounded contexts:** {count}
-**Components:** {count} (covering {capability_count}/{total} capabilities)
-**Entities:** {count}
-**Integration points:** {count}
-**ADRs logged:** {count}
-
-Full spec: `{product_base}architecture/logical-architecture.yaml`
-
----
-
-Type **Tether** to proceed to Stage 2 (physical), **Orbit** with feedback to re-run Step 1, or **Vanish** to cancel.
-```
-
-Parse: `Tether` → APPROVED, continue to Stage 2. `Orbit` → cycle back to Step 1. `Vanish` → REJECTED, halt.
-
----
-
-### Phase: Stage 2 — Physical Architecture
-
-**Step 2 — Derive physical-architecture.yaml**
+**Step 8 — Derive physical architecture**
 Owner: `tech-architect`
-Depends on: Checkpoint 1 (Tether)
+Task: `TaskUpdate [T8] → in_progress`
 
 ```json
 {
   "intent_path": "core/components/plays/arch/reference/intent.yaml",
   "stm_base": "{stm_base}",
-  "product_base": "{product_base}",
   "stm": {
     "input": {
-      "logical_architecture_path": "{product_base}architecture/logical-architecture.yaml",
+      "logical_path": "{product_base}architecture/logical-architecture.yaml",
+      "refined_qp_path": "{product_base}architecture/quality-profile.yaml",
+      "inventory_dir": "{product_base}architecture/systems-inventory/",
       "project_profile_path": "{product_base}user-provided/project-profile.yaml",
-      "quality_profile_path": "{product_base}specification/quality-profile.yaml",
-      "epics_dir": "{product_base}scope/epics/",
-      "grounding_questions_path": "{product_base}user-provided/grounding-questions.md",
-      "ltm_architecture_path": "{ltm_base}knowledge/arch/"
+      "kb_platforms_dir": "{ltm_project_target}components/memory/knowledge/arch/platforms/",
+      "kb_data_dir": "{ltm_project_target}components/memory/knowledge/arch/data/",
+      "kb_operations_dir": "{ltm_project_target}components/memory/knowledge/arch/operations/",
+      "flows_dir": "{product_base}experience/flows/"
     },
     "output": {
       "output_path": "{product_base}architecture/physical-architecture.yaml",
-      "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-physical-architecture.yaml"
+      "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-physical-architecture.yaml",
+      "grounding_questions_path": "{product_base}user-provided/grounding-questions.md"
     }
   },
-  "task_id": "arch-stage-2-derive",
-  "ltm_context": {
-    "discover_via": "tech-architect reads {ltm_base}knowledge/arch/_index.md and walks per-slot KB files (frontend, backend, data, cache, queue, observability, platform, auth) for the candidate enumeration step"
-  }
+  "task_id": "stage-4-physical"
 }
 ```
 
-Agent invokes `derive-physical-architecture` skill → for every slot walks the C15 decision tree: (1) check `project-profile.grounded_tools` for a pin (authoritative — C17); (2) enumerate KB candidates filtered by project-profile dimensions; (3) single candidate → pick + tag `kb_catalog_single_candidate` + record manifest entry as `tier: high` (D11.A6 closure); (4) multi-candidate → append `Q-arch-NNN` to grounding-questions.md and mark slot `pending_user_approval`; (5) zero candidates → propose default and mark `pending_user_approval`. NEVER emit `agent_default_unilateral` (F15). Every decision tagged with `source_type` per C16. Emits `decision-manifest-derive-physical-architecture.yaml` recording every inferred decision with tier, grounding_source, recommendation, alternatives, agent_reasoning_summary.
+Agent invokes `derive-physical-architecture` skill. The agent decides cardinality per logical component, picks deployment targets (named specifically), sizes resources, wires comms with retry/idempotency, names NFR delivery mechanisms.
 
-**Step 2b — Surface physical decisions (DSD walk)**
-Owner: play
-Depends on: Step 2
+**Step 8 Evals:**
 
-Identical three-tier surfacing flow as Step 1b, against `decision-manifest-derive-physical-architecture.yaml`. On `override`, reopen Step 2 with the override list pinning the user's choice. Pending grounding-questions also surface here — present each unanswered Q-arch-NNN with the candidate set, collect the answer, mark the slot resolved, and re-run derivation for that slot only. No Checkpoint 2 render runs until every manifest entry has a non-null `user_response` and every grounding question is answered.
+**SE-6 (F6 — physical fields and category terms):** Every physical component has logical_ref, system_ref equal to logical's system_ref, layer equal to logical's, deployment_target.kind + name (not category-term), resources block.
 
----
+**SE-7 (F7 — cardinality + layer match):** Every non-`one-to-one` cardinality has cardinality_rationale. Every physical layer equals linked logical layer.
 
-### Phase: Checkpoint 2 — Physical Architecture Review
+**SE-8 (F8 — NFR delivery):** Every refined-QP characteristic with relevance != not_applicable appears in at least one physical component's nfr_delivery[] with mechanism, target_reference, rationale.
 
-**Step 2c — Human review of physical architecture**
-Owner: play
-Depends on: Step 2b
+**SE-5b (F5 physical sync cycle):** Physical graph (with sync/hybrid edges) is acyclic.
 
-Dispatch scriber:
-
-```json
-{
-  "intent_path": "core/components/plays/arch/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "scribe_task": {
-    "operation": "write_checkpoint",
-    "target_path": "{product_base}_checkpoints/arch/stage-2-physical-{YYYYMMDD-HHMMSS}.md",
-    "content": "<rendered checkpoint markdown: stack picks (frontend/backend/data/cache/queue/observability/auth), runtime tiers, deployment topology, source_type counts by category, full physical-architecture.yaml path>",
-    "metadata": {
-      "play_name": "arch",
-      "step": "stage-2-physical-checkpoint",
-      "timestamp": "<ISO-8601>",
-      "status": "PENDING_APPROVAL"
-    }
-  },
-  "task_id": "arch-checkpoint-2-write"
-}
-```
-
-Present to user:
-
-```markdown
-## Physical Architecture — {product slug}
-
-**Stack:**
-- Frontend: {frontend_stack.choice}
-- Backend: {backend_stack.choice}
-- Data primary: {data_stores[0].choice}
-- Cache: {cache.choice}
-- Queue: {queue.choice}
-- Observability: {observability.*.choice}
-- Auth: {auth_infra.choice}
-- Platform: {platform_hosts.*}
-
-**Runtime tiers:** {runtime_tiers count and types}
-**Source-type breakdown:** {grounded_tools_pin count} pinned, {kb_single count} single-KB, {kb_multi count} multi-KB-approved, {agent_default count} default-approved
-**ADRs added:** {count}
-
-Full spec: `{product_base}architecture/physical-architecture.yaml`
+`TaskUpdate [T8] → completed`
 
 ---
 
-Type **Tether** to proceed to Stage 3 (NFR spec), **Orbit** with feedback to re-run Step 2, or **Vanish** to cancel.
-```
+**Step 9 — Stage 4 Checkpoint**
+Owner: play (orchestrator)
+Task: `TaskUpdate [T9] → in_progress`
 
-Parse: `Tether` → continue to Stage 3. `Orbit` → cycle back to Step 2. `Vanish` → halt.
+Surface physical-architecture.yaml + manifest. Tiered surfacing. Present:
+- `{product_base}architecture/physical-architecture.yaml`
+- `{product_base}architecture/decision-manifest-derive-physical-architecture.yaml`
 
----
+When a physical sync cycle was detected, surface the cycle + breaks for user pick. Scriber writes `{stm_base}{issue}/checkpoint/arch/stage-4.md`.
 
-### Phase: Stage 3 — NFR Spec
-
-**Step 3 — Derive nfr-spec.yaml**
-Owner: `tech-designer`
-Depends on: Checkpoint 2 (Tether)
-
-```json
-{
-  "intent_path": "core/components/plays/arch/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "product_base": "{product_base}",
-  "stm": {
-    "input": {
-      "quality_profile_path": "{product_base}specification/quality-profile.yaml",
-      "epics_dir": "{product_base}scope/epics/",
-      "logical_architecture_path": "{product_base}architecture/logical-architecture.yaml",
-      "physical_architecture_path": "{product_base}architecture/physical-architecture.yaml",
-      "project_profile_path": "{product_base}user-provided/project-profile.yaml"
-    },
-    "output": {
-      "output_path": "{product_base}architecture/nfr-spec.yaml",
-      "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-nfr-spec.yaml"
-    }
-  },
-  "task_id": "arch-stage-3-derive",
-  "ltm_context": {
-    "discover_via": "tech-designer reads {ltm_base}knowledge/quality/_index.md and {ltm_base}knowledge/arch/ NFR-mechanism files when no direct delivery mechanism exists in physical-architecture.yaml"
-  }
-}
-```
-
-Agent invokes `derive-nfr-spec` skill → enumerates NFRs from quality-profile characteristics + epic constraints, names a delivery mechanism for each (component/product from physical-architecture.yaml OR pattern from forthcoming design-patterns — tagged `forward_ref_pending_design_patterns` if the latter), records verification method, and emits `decision-manifest-derive-nfr-spec.yaml` for every adjustment, mechanism mapping, and verification choice. C6 / F6 enforced: every NFR must have a delivery mechanism by play close (forward refs are resolved in Stage 5).
-
-**Step 3b — Surface NFR decisions (DSD walk)**
-Owner: play
-Depends on: Step 3
-
-Identical three-tier surfacing flow against `decision-manifest-derive-nfr-spec.yaml`. On `override`, reopen Step 3 with the override list. No Checkpoint 3 render runs until every manifest entry has a non-null `user_response`.
+`TaskUpdate [T9] → completed`
 
 ---
 
-### Phase: Checkpoint 3 — NFR Spec Review
+### Phase: Stage 5 — Tech Stack
 
-**Step 3c — Human review of NFR spec**
-Owner: play
-Depends on: Step 3b
-
-Dispatch scriber:
-
-```json
-{
-  "intent_path": "core/components/plays/arch/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "scribe_task": {
-    "operation": "write_checkpoint",
-    "target_path": "{product_base}_checkpoints/arch/stage-3-nfr-{YYYYMMDD-HHMMSS}.md",
-    "content": "<rendered checkpoint markdown: NFR count by characteristic, delivery mechanism summary, forward-ref count, verification method coverage, full nfr-spec.yaml path>",
-    "metadata": {
-      "play_name": "arch",
-      "step": "stage-3-nfr-checkpoint",
-      "timestamp": "<ISO-8601>",
-      "status": "PENDING_APPROVAL"
-    }
-  },
-  "task_id": "arch-checkpoint-3-write"
-}
-```
-
-Present to user:
-
-```markdown
-## NFR Spec — {product slug}
-
-**Total NFRs:** {count} across {characteristic_count} ISO 25010 characteristics
-**Delivery mechanisms named:** {count} (of which {forward_ref_count} are forward refs to design-patterns)
-**Verification methods populated:** {count}/{total}
-**Adjustments from intake:** {adjustment_count}
-
-Full spec: `{product_base}architecture/nfr-spec.yaml`
-
----
-
-Type **Tether** to proceed to Stage 4 (quality vision), **Orbit** with feedback to re-run Step 3, or **Vanish** to cancel.
-```
-
-Parse: `Tether` → continue to Stage 4. `Orbit` → cycle back to Step 3. `Vanish` → halt.
-
----
-
-### Phase: Stage 4 — Quality Vision
-
-**Step 4 — Derive quality-vision.yaml**
-Owner: `tech-designer`
-Depends on: Checkpoint 3 (Tether)
-
-```json
-{
-  "intent_path": "core/components/plays/arch/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "product_base": "{product_base}",
-  "stm": {
-    "input": {
-      "quality_profile_path": "{product_base}specification/quality-profile.yaml",
-      "nfr_spec_path": "{product_base}architecture/nfr-spec.yaml",
-      "logical_architecture_path": "{product_base}architecture/logical-architecture.yaml",
-      "physical_architecture_path": "{product_base}architecture/physical-architecture.yaml",
-      "project_profile_path": "{product_base}user-provided/project-profile.yaml",
-      "ltm_quality_path": "{ltm_base}knowledge/quality/"
-    },
-    "output": {
-      "output_path": "{product_base}architecture/quality-vision.yaml",
-      "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-quality-vision.yaml"
-    }
-  },
-  "task_id": "arch-stage-4-derive",
-  "ltm_context": {
-    "discover_via": "tech-designer reads {ltm_base}knowledge/quality/_index.md and the per-QP-dimension files (QP-1..QP-11) at the level declared in project-profile to source named tooling, thresholds, and lifecycle gates"
-  }
-}
-```
-
-Agent invokes `derive-quality-vision` skill → for every ISO 25010 characteristic with `relevance != not_applicable`, produces a vision narrative, target level, design_linkage (components/NFRs/patterns), named tooling, quantified thresholds, and lifecycle gates. Vague language ("use a linter", "test thoroughly") is a blocking failure (F8). Emits `decision-manifest-derive-quality-vision.yaml` for every tooling pick, threshold, and lifecycle-gate inference.
-
-**Step 4b — Surface quality-vision decisions (DSD walk)**
-Owner: play
-Depends on: Step 4
-
-Identical three-tier surfacing flow against `decision-manifest-derive-quality-vision.yaml`. On `override`, reopen Step 4 with the override list. No Checkpoint 4 render runs until every manifest entry has a non-null `user_response`.
-
----
-
-### Phase: Checkpoint 4 — Quality Vision Review
-
-**Step 4c — Human review of quality vision**
-Owner: play
-Depends on: Step 4b
-
-Dispatch scriber:
-
-```json
-{
-  "intent_path": "core/components/plays/arch/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "scribe_task": {
-    "operation": "write_checkpoint",
-    "target_path": "{product_base}_checkpoints/arch/stage-4-quality-vision-{YYYYMMDD-HHMMSS}.md",
-    "content": "<rendered checkpoint markdown: ISO 25010 characteristics covered, tooling count, threshold count, lifecycle gate count, full quality-vision.yaml path>",
-    "metadata": {
-      "play_name": "arch",
-      "step": "stage-4-quality-vision-checkpoint",
-      "timestamp": "<ISO-8601>",
-      "status": "PENDING_APPROVAL"
-    }
-  },
-  "task_id": "arch-checkpoint-4-write"
-}
-```
-
-Present to user:
-
-```markdown
-## Quality Vision — {product slug}
-
-**ISO 25010 characteristics covered:** {count}/9
-**Total tooling entries:** {count}
-**Quantified thresholds:** {count}
-**Lifecycle gates:** {ci_count} CI-blocking, {review_count} review
-
-Full spec: `{product_base}architecture/quality-vision.yaml`
-
----
-
-Type **Tether** to proceed to Stage 5 (design patterns), **Orbit** with feedback to re-run Step 4, or **Vanish** to cancel.
-```
-
-Parse: `Tether` → continue to Stage 5. `Orbit` → cycle back to Step 4. `Vanish` → halt.
-
----
-
-### Phase: Stage 5 — Design Patterns
-
-**Step 5 — Derive design-patterns.yaml**
+**Step 10 — Derive tech stack**
 Owner: `tech-architect`
-Depends on: Checkpoint 4 (Tether)
+Task: `TaskUpdate [T10] → in_progress`
 
 ```json
 {
   "intent_path": "core/components/plays/arch/reference/intent.yaml",
   "stm_base": "{stm_base}",
-  "product_base": "{product_base}",
   "stm": {
     "input": {
-      "logical_architecture_path": "{product_base}architecture/logical-architecture.yaml",
-      "physical_architecture_path": "{product_base}architecture/physical-architecture.yaml",
-      "nfr_spec_path": "{product_base}architecture/nfr-spec.yaml",
+      "logical_path": "{product_base}architecture/logical-architecture.yaml",
+      "physical_path": "{product_base}architecture/physical-architecture.yaml",
+      "inventory_dir": "{product_base}architecture/systems-inventory/",
+      "refined_qp_path": "{product_base}architecture/quality-profile.yaml",
       "project_profile_path": "{product_base}user-provided/project-profile.yaml",
-      "grounding_questions_path": "{product_base}user-provided/grounding-questions.md",
-      "ltm_architecture_path": "{ltm_base}knowledge/arch/"
+      "kb_stacks_dir": "{ltm_project_target}components/memory/knowledge/arch/stacks/",
+      "kb_patterns_dir": "{ltm_project_target}components/memory/knowledge/arch/patterns/",
+      "kb_agentic_dir": "{ltm_project_target}components/memory/knowledge/arch/agentic/",
+      "kb_tech_dir": "{ltm_project_target}components/memory/knowledge/tech/"
     },
     "output": {
-      "output_path": "{product_base}architecture/design-patterns.yaml",
-      "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-design-patterns.yaml"
+      "output_path": "{product_base}architecture/tech-stack.yaml",
+      "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-tech-stack.yaml",
+      "grounding_questions_path": "{product_base}user-provided/grounding-questions.md"
     }
   },
-  "task_id": "arch-stage-5-derive",
-  "ltm_context": {
-    "discover_via": "tech-architect reads {ltm_base}knowledge/arch/patterns/*.md to enumerate pattern candidates per layer (system / layer / component / cross-cutting)"
-  }
+  "task_id": "stage-5-tech-stack"
 }
 ```
 
-Agent invokes `derive-design-patterns` skill → produces system-level, layer-level (when `has_backend`), component-level (one per declared runtime tier from physical-architecture.deployment_topology.runtime_tiers), and cross-cutting (when any NFR names resilience/idempotency/consistency) entries. Every pattern carries `applicability_scope`, `driver`, `alternatives_considered`, `source_type`. Same C15 decision tree as Step 2 — never emit `agent_default_unilateral`. Resolves `forward_ref_pending_design_patterns` entries from nfr-spec.yaml and dispatches scriber to update those NFR entries to `resolved: true`. Emits `decision-manifest-derive-design-patterns.yaml`.
+Agent invokes `derive-tech-stack` skill. Picks languages, runtimes, frameworks, libraries, tools, and patterns per box. Patterns gate through industry-citation allowlist + KB extensibility check.
 
-**Step 5b — Surface design-patterns decisions (DSD walk)**
-Owner: play
-Depends on: Step 5
+**Step 10 Evals:**
 
-Identical three-tier surfacing flow against `decision-manifest-derive-design-patterns.yaml`. On `override`, reopen Step 5 with the override list. Resolve any new grounding questions from this stage. No Checkpoint 5 render runs until every manifest entry has a non-null `user_response`.
+**SE-9 (F9 — pattern citation + system-level placement):** Every category: pattern entry has pattern_citation.source + .reference; source on allowlist OR KB pattern file. System-level decisions appear here.
+
+**SE-10 (F10 — entry shape):** Every entry has id, scope.kind, category, name, source_type, rationale; scope.targets[] non-empty when kind != global.
+
+`TaskUpdate [T10] → completed`
 
 ---
 
-### Phase: Checkpoint 5 — Design Patterns Review
+**Step 11 — Stage 5 Checkpoint**
+Owner: play (orchestrator)
+Task: `TaskUpdate [T11] → in_progress`
 
-**Step 5c — Human review of design patterns**
-Owner: play
-Depends on: Step 5b
+Surface tech-stack.yaml + manifest. Tiered surfacing. Scriber writes `{stm_base}{issue}/checkpoint/arch/stage-5.md`.
 
-Dispatch scriber:
+`TaskUpdate [T11] → completed`
+
+---
+
+### Phase: Stage 6 — Technical Risks
+
+**Step 12 — Derive technical risks**
+Owner: `tech-designer`
+Task: `TaskUpdate [T12] → in_progress`
+
+Blocked on Stages 1, 2, 3, 4, AND 5 all complete. Runs LAST per C3.
 
 ```json
 {
   "intent_path": "core/components/plays/arch/reference/intent.yaml",
   "stm_base": "{stm_base}",
-  "scribe_task": {
-    "operation": "write_checkpoint",
-    "target_path": "{product_base}_checkpoints/arch/stage-5-design-patterns-{YYYYMMDD-HHMMSS}.md",
-    "content": "<rendered checkpoint markdown: system-level pattern, layer-level pattern, component-level patterns per runtime tier, cross-cutting pattern count, appetite/over-engineering review prompt, full design-patterns.yaml path>",
-    "metadata": {
-      "play_name": "arch",
-      "step": "stage-5-design-patterns-checkpoint",
-      "timestamp": "<ISO-8601>",
-      "status": "PENDING_APPROVAL"
-    }
-  },
-  "task_id": "arch-checkpoint-5-write"
-}
-```
-
-Present to user:
-
-```markdown
-## Design Patterns — {product slug}
-
-**System-level:** {pattern.name}
-**Layer-level:** {pattern.name} ({n} entries)
-**Component-level:** {n} entries covering tiers {tier list}
-**Cross-cutting:** {n} patterns ({resilience_count} resilience, {idempotency_count} idempotency, {consistency_count} consistency)
-
-**Appetite review:** Does the pattern catalog match the team size, delivery ambition, and timeline declared in the project profile? Push back here on over-engineering — the patterns selected govern code structure for the lifetime of the product.
-
-Full spec: `{product_base}architecture/design-patterns.yaml`
-
----
-
-Type **Tether** to finalize the five-artifact package and run validation, **Orbit** with feedback to re-run Step 5, or **Vanish** to cancel.
-```
-
-Parse: `Tether` → continue to Validation. `Orbit` → cycle back to Step 5. `Vanish` → halt.
-
----
-
-### Phase: Validation
-
-**Step 6 — Validate the five-artifact package**
-Owner: `tech-architect` (delegates to `validate-architecture-spec` skill)
-Depends on: Checkpoint 5 (Tether)
-
-```json
-{
-  "intent_path": "core/components/plays/arch/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "product_base": "{product_base}",
   "stm": {
     "input": {
-      "logical_architecture_path": "{product_base}architecture/logical-architecture.yaml",
-      "physical_architecture_path": "{product_base}architecture/physical-architecture.yaml",
-      "nfr_spec_path": "{product_base}architecture/nfr-spec.yaml",
-      "quality_vision_path": "{product_base}architecture/quality-vision.yaml",
-      "design_patterns_path": "{product_base}architecture/design-patterns.yaml",
+      "refined_qp_path": "{product_base}architecture/quality-profile.yaml",
+      "inventory_dir": "{product_base}architecture/systems-inventory/",
+      "logical_path": "{product_base}architecture/logical-architecture.yaml",
+      "physical_path": "{product_base}architecture/physical-architecture.yaml",
+      "tech_stack_path": "{product_base}architecture/tech-stack.yaml",
+      "epics_dir": "{product_base}scope/epics/",
+      "project_profile_path": "{product_base}user-provided/project-profile.yaml",
+      "kb_quality_dir": "{ltm_project_target}components/memory/knowledge/quality/",
+      "prior_decision_manifests_dir": "{product_base}architecture/"
+    },
+    "output": {
+      "output_path": "{product_base}architecture/technical-risks.yaml",
+      "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-technical-risks.yaml"
+    }
+  },
+  "task_id": "stage-6-risks"
+}
+```
+
+Agent invokes `derive-technical-risks` skill. Walks eight discovery scans (logical_cycles, physical_single_region / saas_lockin, tech_eol / bleeding_edge, inventory_stm_research, qp_unmet_target, epic_failure_scenario, compliance_pattern, agent_pattern_match) and produces the risk register.
+
+**Step 12 Evals:**
+
+**SE-11 (F11 — risk shape + stage order):** Every risk has id, risk_statement, ≥1 trigger_conditions, all business_cost subfields, all likelihood subfields, all mitigation subfields, residual_risk non-empty AND not in zero-residual deny-list, ≥1 driver_refs resolvable, discovered_by.scan in the eight scans. Stage-order: technical-risks.yaml mtime ≥ every prior arch artifact's mtime.
+
+`TaskUpdate [T12] → completed`
+
+---
+
+**Step 13 — Stage 6 Checkpoint**
+Owner: play (orchestrator)
+Task: `TaskUpdate [T13] → in_progress`
+
+Surface technical-risks.yaml + manifest. Tiered surfacing. LOW-tier risks surface one-by-one for explicit user confirmation. Scriber writes `{stm_base}{issue}/checkpoint/arch/stage-6.md`.
+
+`TaskUpdate [T13] → completed`
+
+---
+
+### Phase: Post-generation Validation
+
+**Step 14 — Validate full architecture spec**
+Owner: `tech-architect`
+Task: `TaskUpdate [T14] → in_progress`
+
+```json
+{
+  "intent_path": "core/components/plays/arch/reference/intent.yaml",
+  "stm_base": "{stm_base}",
+  "stm": {
+    "input": {
+      "refined_qp_path": "{product_base}architecture/quality-profile.yaml",
+      "inventory_dir": "{product_base}architecture/systems-inventory/",
+      "logical_path": "{product_base}architecture/logical-architecture.yaml",
+      "physical_path": "{product_base}architecture/physical-architecture.yaml",
+      "tech_stack_path": "{product_base}architecture/tech-stack.yaml",
+      "risks_path": "{product_base}architecture/technical-risks.yaml",
+      "manifest_inventory_path": "{product_base}architecture/decision-manifest-derive-systems-inventory.yaml",
+      "manifest_refine_qp_path": "{product_base}architecture/decision-manifest-refine-quality-profile.yaml",
       "manifest_logical_path": "{product_base}architecture/decision-manifest-derive-logical-architecture.yaml",
       "manifest_physical_path": "{product_base}architecture/decision-manifest-derive-physical-architecture.yaml",
-      "manifest_nfr_path": "{product_base}architecture/decision-manifest-derive-nfr-spec.yaml",
-      "manifest_quality_vision_path": "{product_base}architecture/decision-manifest-derive-quality-vision.yaml",
-      "manifest_design_patterns_path": "{product_base}architecture/decision-manifest-derive-design-patterns.yaml",
+      "manifest_tech_stack_path": "{product_base}architecture/decision-manifest-derive-tech-stack.yaml",
+      "manifest_risks_path": "{product_base}architecture/decision-manifest-derive-technical-risks.yaml",
+      "specify_qp_path": "{product_base}specification/quality-profile.yaml",
       "scope_path": "{product_base}scope/scope.yaml",
-      "quality_profile_path": "{product_base}specification/quality-profile.yaml",
       "epics_dir": "{product_base}scope/epics/",
       "project_profile_path": "{product_base}user-provided/project-profile.yaml",
-      "ltm_architecture_path": "{ltm_base}knowledge/arch/"
+      "kb_systems_dir": "{ltm_project_target}components/memory/knowledge/arch/systems/",
+      "kb_patterns_dir": "{ltm_project_target}components/memory/knowledge/arch/patterns/"
     },
     "output": {
       "output_path": "{product_base}architecture/validation-result.yaml"
     }
   },
-  "task_id": "arch-validate"
+  "task_id": "post-generation-validation"
 }
 ```
 
-The validator runs all 20 checks (V1-V20). On `status: failed`, the play reads the violation list and cycles back to whichever derive stage owns the offending artifact (V1/V2/V3/V4 → Stage 1; V5/V6/V7/V8 → Stage 2; V9/V20 → Stage 3 (or Stage 5 for forward refs); V10/V11/V12 → Stage 4; V13 → Stage 5; V15/V16 → corresponding manifest's surfacing flow; V17/V18/V19 → spans). Max 2 retry cycles per stage.
+Agent invokes `validate-architecture-spec` skill — single 22-check pass covering F1-F12, F14-F16, F20-F23.
 
-**Step 6 Step Evals (SE-1 through SE-19):** Defined in `evals.yaml` at `{stm_base}214/evidence/create-play/arch/evals.yaml`. Every SE except SE-11/SE-12/SE-13/SE-14 reads from `validation-result.yaml`. SE-11 (F11 — five checkpoints exist) reads from `_checkpoints/arch/`. SE-12 (F12 — whitelist + scriber discipline) reads from `_evidence/arch/`. SE-13 (F13 — no code) reads from `architecture/` directory listing. SE-14 (F14 — silent multi-candidate) reads from the physical decision manifest.
+**Step 14 Evals:**
+
+**SE-1 (F1 — artifact existence):** Every one of the six canonical artifact surfaces exists with a non-empty primary section.
+
+**SE-13 (F13 — source-type discipline):** No decision has agent_default_unilateral; no missing source_type; no override of grounded_tools pin.
+
+**SE-14 (F14 — multi-candidate discipline):** Every kb_catalog_multi_candidate_user_approved decision cites a Q-arch-NNN or checkpoint id.
+
+**SE-15 (F15 — decision surfacing):** No inferred decision committed without recorded surfacing; pending warnings are flagged not blocked.
+
+**SE-16 (F16 — manifest completeness):** All six manifests exist; every entry has all required fields.
+
+**SE-17 (F20 — stage order mtime):** File mtime ordering holds per Stages 1+2 → 3 → 4 → 5 → 6.
+
+On `validation_status: failed`, the play cycles back to the stage that owns the first blocker (per recovery handoffs). On `validation_status: passed`, proceed to Step 15.
+
+`TaskUpdate [T14] → completed`
 
 ---
 
-### Phase: Scenario Validation
+### Phase: Evidence & Close
 
-**Step 7 — Run scenario evals**
-Owner: play
-Depends on: Step 6 (validation passed, all step evals passed)
-
-Run SCE-1 through SCE-7 from `evals.yaml`. Each scenario eval validates the five-artifact package against a persona-driven outcome (Technical Architect, Engineering Manager, Implementation Lead, Security Architect, Product Manager, DevOps Engineer, Senior Developer onboarding). On any scenario fail, halt and report — scenario fails are not auto-cycled because they typically indicate a structural gap not catchable by the artifact-verifier.
-
-## Evidence & Close
-
-**Step 8 — Standard Play Close**
-Owner: play
-Depends on: Step 7 (all scenario evals passed)
-
-This run closes with the **Standard Play Close** — the user-facing report is
-the canonical three-table shape (Run Summary / Pipeline Steps / Artifacts),
-not prose. See `standards/rules/play-close.md`. arch's existing scriber
-`write_evidence` dispatch and repo-orchestrator self-commit are preserved as
-the C1 slot fill.
+**Step 15 — Evidence + Close**
+Owner: play (orchestrator)
+Task: `TaskUpdate [T15] → in_progress`
 
 ```bash
 # --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
-# arch is PRODUCT-scoped:
-#   evidence_base="{product_base}_evidence/arch/"   ;   slug="${product_slug}"
-# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved
-# (this play already resolves ltm_base at pre-flight).
+# Path tokens resolved at pre-flight (resolve here if not already):
+#   ltm_project_target  = yq '.ltm.project-target' .garura/core/config.yaml
+#   evidence_base, slug:
+#     project-scoped play : evidence_base="${stm_base}${issue}/evidence/arch/"   ; slug="#${issue}"
+#     product-scoped play : (N/A — arch is project-scoped)
 evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
 delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
 ts=$(date -u +%Y%m%d-%H%M%S)
-evidence_dest="{product_base}_evidence/arch/${ts}.md"
+evidence_dest="${evidence_base}${ts}.md"
+mkdir -p "$(dirname "$evidence_dest")"
 ```
 
-**Step 8a — C2 Delivery report (ALWAYS — never gated; skip only when running
-as a sub-play, i.e. `parent_run_id` present).** Fill `delivery-report.md` and
-output it to the user:
-- `## Arch Delivered — ${product_slug}`
-- Run Summary: Play `arch`, Slug `${product_slug}`, Status (COMPLETE |
-  PARTIAL | FAILED), Started (per the started_at precedence in
-  play-close.md), Completed (now).
-- Pipeline Steps: derived from arch's own steps (its Task DAG) — Stage 1
-  Derive logical-architecture (Step 1) + Surface (1b) + Checkpoint 1 (1c),
-  Stage 2 Derive physical-architecture (2) + Surface (2b) + Checkpoint 2
-  (2c), Stage 3 Derive nfr-spec (3) + Surface (3b) + Checkpoint 3 (3c),
-  Stage 4 Derive quality-vision (4) + Surface (4b) + Checkpoint 4 (4c),
-  Stage 5 Derive design-patterns (5) + Surface (5b) + Checkpoint 5 (5c),
-  Step 6 Validate the five-artifact package, Step 7 Scenario evals. Status
-  PASS/SKIP/FAIL per task state; Key Output best-effort (artifact path or
-  `—`).
-- Artifacts Produced: the five architecture artifacts (logical, physical,
-  nfr-spec, quality-vision, design-patterns), five decision manifests,
-  validation-result.yaml, plus the self-commit SHA and the evidence file
-  pointer.
-- Next Steps: only real follow-ons (e.g. prepare/implement consume the
-  architecture package). Omit if none.
-- End with a pointer to the evidence file at `${evidence_dest}` — or the
-  literal `evidence skipped (record=false)` when C1 is gated off.
+**Step C1 — Evidence file** (gated by `evidence.record`). When recording, fill the `evidence-file.md` slots — run_id `arch-${ts}`, issue `#${issue}`, started_at per the precedence in play-close.md, completed_at now, status COMPLETED, Artifacts Produced (six artifacts + six manifests + validation-result.yaml + checkpoint files), Step Eval Results (SE-1..SE-20 with PASS/FAIL/N-A), Scenario Eval Results (SCE-1..SCE-8), Checkpoint Decisions (six rows: stage-1..stage-6 Tether/Orbit/Vanish + timestamps), Commit Reference. Dispatch `scriber` to write to `$evidence_dest`. When `evidence.record: false`, skip the write and record `evidence skipped (record=false)` in C2's pointer line.
 
-**Step 8b — C1 Evidence file + self-commit.**
+**Step C2 — Delivery report** (always, unless `parent_run_id` present in input contract). Fill the `delivery-report.md` slots and output to the user:
+- `## Arch Delivered — #${issue}`
+- Run Summary: Play `arch`, Issue `#${issue}`, Status, Started, Completed.
+- Pipeline Steps: derived from the task DAG — Stage 1 Systems Inventory, Stage 1 Checkpoint, Stage 2 Refine QP, Stage 2 Checkpoint, Stage 3 Logical, Stage 3 Checkpoint, Stage 4 Physical, Stage 4 Checkpoint, Stage 5 Tech Stack, Stage 5 Checkpoint, Stage 6 Risks, Stage 6 Checkpoint, Validation, Evidence/Close.
+- Artifacts Produced: six architecture artifacts + six decision manifests + validation-result.yaml + six checkpoint files + evidence file pointer.
+- Next Steps: `/prepare` consumes these artifacts for per-feature scoping.
+- End with a pointer to the evidence file at `${evidence_dest}`.
 
-Dispatch scriber:
-
-```json
-{
-  "intent_path": "core/components/plays/arch/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "scribe_task": {
-    "operation": "write_evidence",
-    "target_path": "{product_base}_evidence/arch/{YYYYMMDD-HHMMSS}.md",
-    "content": "<rendered evidence markdown: product slug, run summary, five artifacts produced with line counts, five decision manifests with per-tier counts and per-user_response counts, validation-result.yaml summary (passed/failed/blockers/warnings per V1-V20), SE-1..SE-19 results, SCE-1..SCE-7 results, decision-surfacing summary across all five manifests, pass/fail status>",
-    "metadata": {
-      "play_name": "arch",
-      "step": "evidence-close",
-      "timestamp": "<ISO-8601>"
-    }
-  },
-  "task_id": "arch-evidence-write"
-}
-```
-
-Update all five checkpoint artifacts' status to `COMPLETED`.
-
-Invoke `repo-orchestrator` to self-commit per ADR 012:
-
-```json
-{
-  "task": "Stage and commit the arch artifacts for slug <slug>",
-  "files": [
-    "{product_base}architecture/logical-architecture.yaml",
-    "{product_base}architecture/physical-architecture.yaml",
-    "{product_base}architecture/nfr-spec.yaml",
-    "{product_base}architecture/quality-vision.yaml",
-    "{product_base}architecture/design-patterns.yaml",
-    "{product_base}architecture/decision-manifest-derive-logical-architecture.yaml",
-    "{product_base}architecture/decision-manifest-derive-physical-architecture.yaml",
-    "{product_base}architecture/decision-manifest-derive-nfr-spec.yaml",
-    "{product_base}architecture/decision-manifest-derive-quality-vision.yaml",
-    "{product_base}architecture/decision-manifest-derive-design-patterns.yaml",
-    "{product_base}architecture/validation-result.yaml",
-    "{product_base}_checkpoints/arch/*.md",
-    "{product_base}_evidence/arch/*.md"
-  ],
-  "message_prefix": "feat(arch): arch five-artifact output for <slug>"
-}
-```
-
-**Non-blocking:** if the evidence write or commit fails, log warning and continue — the run still closes and C2 is still emitted.
+`TaskUpdate [T15] → completed`
 
 ```bash
 # --- end Standard Play Close ---
 ```
 
+## Scenario Validation
+
+E2E scenarios from `reference/expectation.yaml` `success_scenarios`. Each SCE is the `measure` line copied verbatim. The play evaluates the SCE matching the run's persona context at close; others are skipped.
+
+**SCE-1 (S1 — Technical Architect):** Every component in logical-architecture.yaml and physical-architecture.yaml resolves to a system or sub-system entry in systems-inventory; every tech-stack entry carries a populated source_type and rationale; every NFR target in quality-profile appears in physical-architecture with a named delivery mechanism; every technical-risks entry has a risk_statement, business_cost, and mitigation.
+
+**SCE-2 (S2 — Integration Lead):** Every system or sub-system that appears as a component in logical or physical architecture exists in systems-inventory/, carries provenance (origin: kb OR origin: stm_research), and lists the capabilities it serves; no logical or physical component bypasses inventory.
+
+**SCE-3 (S3 — Implementation Lead):** Every selected capability has at least one end-to-end logical path from the user-facing entry layer to a serving system; every logical component has at least one physical component implementing it; every component in scope of a feature has at least one tech-stack entry covering it; no cycles in either logical or physical graphs.
+
+**SCE-4 (S4 — Security Architect):** Every security-classified characteristic in quality-profile.yaml appears in at least one physical component's nfr_delivery[] with a named mechanism; every security-related pattern in tech-stack carries an industry literature citation; auth-related physical components reverse-trace to a system in systems-inventory.
+
+**SCE-5 (S5 — DevOps / Platform Engineer):** physical-architecture.yaml carries a deployment_target and resource shape for every component; an observability stack is named in physical or tech-stack; cross-cutting resilience patterns (circuit breaker, retry, idempotency key, etc.) appear in tech-stack with literature citations whenever any NFR names resilience or consistency.
+
+**SCE-6 (S6 — Product Manager):** quality-profile.yaml carries plain-English narrative per relevant ISO 25010 characteristic; technical-risks.yaml lists each risk with a quantified or qualified business_cost; the tech-stack system-level pattern entries (monolith / microservice / serverless / etc.) each cite an upstream driver and at least one alternative considered.
+
+**SCE-7 (S7 — Risk Owner / Engineering Director):** Every entry in technical-risks.yaml has risk_statement, trigger_conditions, business_cost, likelihood with rationale, mitigation with owner, residual_risk, and driver_refs pointing at the components / NFRs / tech picks the risk surfaces from; no entry is missing any of those fields.
+
+**SCE-8 (S8 — Senior Developer onboarding):** Every tech-stack entry with category = pattern carries a literature citation (GoF, microservices.io, PoEAA, an RFC, etc.); the layer model is named and load-bearing in both logical and physical; system-level pattern decisions live in tech-stack with a cited alternative considered.
+
 ## Recovery
 
-Sourced from `reference/expectation.yaml` `recovery` — one entry per failure condition. When the validator detects a tripped failure, it builds a recovery handoff plan from the matching entry and routes it per `handoff`: `autonomous` loops the fix back to the builder; `human` escalates for a manual call.
+Sourced from `reference/expectation.yaml` `recovery` — one entry per failure condition. The validator turns a tripped failure into a recovery handoff plan: `autonomous` loops back to the builder; `human` escalates for a manual call.
 
 | ID | For | Symptom (trigger) | Direction | Handoff |
 |----|-----|-------------------|-----------|---------|
-| REC1 | F1 | a canonical artifact is missing, empty, or has zero entries in its primary section | re-run the derive stage that owns the artifact so its primary section carries at least one entry | autonomous |
-| REC2 | F2 | a physical-architecture choice uses a category term, not a product name | re-derive the offending slot so it names a concrete product in place of the category term | autonomous |
-| REC3 | F3 | logical-architecture.yaml leaks a product/protocol/wire-format/schema-column/language token | re-author the offending entries with pure structural vocabulary so no implementation token remains | autonomous |
-| REC4 | F4 | an architectural decision lacks a cited upstream driver | re-derive the decision so it cites at least one upstream driver | autonomous |
-| REC5 | F5 | a selected capability has zero component mappings in logical-architecture.yaml | re-derive the logical architecture so the orphan capability gains a component mapping | autonomous |
-| REC6 | F6 | an NFR has no named delivery mechanism in physical-architecture.yaml or design-patterns.yaml | re-derive the NFR so it names a specific product or pattern as its delivery mechanism | autonomous |
-| REC7 | F7 | a relevant ISO 25010 characteristic has no quality-vision entry, or an entry is incomplete | re-derive the quality vision so every relevant characteristic carries narrative, design_linkage, tooling, thresholds, and lifecycle gates | autonomous |
-| REC8 | F8 | a quality-vision entry uses vague language without named tooling/thresholds | re-author the entry with a specific tool, a number, and a concrete practice | autonomous |
-| REC9 | F9 | design-patterns.yaml is missing a required system/layer/component/cross-cutting pattern | re-derive the design patterns so the missing layer gains at least one pattern entry | autonomous |
-| REC10 | F10 | a non-obvious decision shipped without an ADR | re-derive so the missing ADR (decision, alternatives, chosen option, driver) is added to the adr_log | autonomous |
-| REC11 | F11 | one of the five mandatory checkpoint artifacts is missing | the missing gate cannot be self-granted — pause at the checkpoint and obtain the human Tether/Vanish/Orbit | human |
-| REC12 | F12 | a write landed outside the ADR 017 whitelist or bypassed scriber | re-route the offending write to a whitelisted path via scriber dispatch | autonomous |
-| REC13 | F13 | the play produced code, test suites, or implementation-level work products | remove the offending implementation work product so the output stays specification-only | autonomous |
-| REC14 | F14 | a multi-candidate slot was committed to a single name without a pin, grounding question, or checkpoint | the pick among legitimate candidates is the user's — surface the candidate set via grounding-questions.md or a checkpoint and obtain the selection before committing | human |
-| REC15 | F15 | a decision carries source_type = agent_default_unilateral | legitimizing a unilateral default needs a pin or user approval the builder cannot self-grant — surface the decision for the user to approve or override | human |
-| REC16 | F16 | a decision conflicts with a project-profile grounded_tools pin | re-derive the slot so it uses the pinned value exactly and tags source_type = grounded_tools_pin | autonomous |
-| REC17 | F17 | a decision is tagged kb_catalog_single_candidate but the KB offered several candidates | the real choice is a user pick — surface the true candidate set for the user to select from and re-tag per that selection | human |
-| REC18 | F18 | an inferred decision was committed without being surfaced via the tier-appropriate flow | surfacing needs a human Tether/Orbit/Vanish the builder cannot self-grant — run the tier-appropriate surfacing flow before the decision influences downstream artifacts | human |
-| REC19 | F19 | a decision-producing skill wrote no manifest, a malformed manifest, or a stale user_response | re-run the skill so a complete decision-manifest is written alongside its primary artifact | autonomous |
-
-At Level 4, `intent-resolver` executes the autonomous entries (REC1–REC10, REC12, REC13, REC16, REC19) without a human; the human entries (REC11, REC14, REC15, REC17, REC18) always escalate.
+| REC1 | F1 | A canonical artifact surface is missing, empty, or carrying zero primary entries | Re-run the stage that owns the missing or empty artifact so it carries ≥1 entry | autonomous |
+| REC2 | F2 | logical-architecture.yaml contains a product / runtime / language / protocol / wire format / schema / library token | Re-author offending entries with pure structural and role vocabulary grounded in inventory system_ref | autonomous |
+| REC3 | F3 | A logical component lacks system_ref, layer, or capability_ids | Re-derive the offending component so missing fields are populated from inventory and capability list | autonomous |
+| REC4 | F4 | A capability has no logical mapping or no E2E path through layers from entry to serving | Re-derive logical so the orphan capability gains a component and a complete path is drawn | autonomous |
+| REC5 | F5 | Cycle in logical or sync-only cycle in physical | Breaking a cycle is a design call — surface detected cycle with candidate breaks to user for choice before re-deriving | human |
+| REC6 | F6 | Physical missing logical_ref / layer / deployment_target OR uses category term | Re-derive with concrete product names and structural fields populated | autonomous |
+| REC7 | F7 | N:1 collapse without rationale OR physical layer != logical layer | Re-derive with rationale recorded or layer corrected | autonomous |
+| REC8 | F8 | NFR target with no mapped delivery mechanism | Re-derive relevant physical components so the orphan NFR target is delivered by a named mechanism with rationale | autonomous |
+| REC9 | F9 | Pattern without literature citation OR system-level decision outside tech-stack | Re-derive offending entry — add citation OR move decision | autonomous |
+| REC10 | F10 | Tech-stack entry missing scope / category / name / source_type / rationale | Re-derive offending entry with all required fields | autonomous |
+| REC11 | F11 | Risk missing fields OR risks produced before all prior stages complete | Re-run Stage 6 after prior stages confirmed, re-author with missing fields populated | autonomous |
+| REC12 | F12 | QP delta without delta_log entry citing the architectural driver | Re-derive refined QP so every delta carries a log entry with field/before/after/direction/driver/rationale | autonomous |
+| REC13 | F13 | Missing source_type OR agent_default_unilateral OR pin override | Missing source_type re-tag autonomous; unilateral default or pin override cannot be self-legitimized — surface for explicit user approval | human |
+| REC14 | F14 | Multi-candidate slot committed without asking | Multi-candidate is a user pick — surface candidate set via grounding-questions or next checkpoint and obtain user's selection | human |
+| REC15 | F15 | Inferred decision committed without surfacing | Run tier-appropriate surfacing flow for the unsurfaced decision before it influences downstream | human |
+| REC16 | F16 | Decision manifest missing or malformed OR user_response not updated | Re-run the skill so a well-formed manifest is written alongside its primary artifact | autonomous |
+| REC17 | F17 | Mandatory stage checkpoint artifact missing | Pause at the checkpoint and obtain the human Tether/Vanish/Orbit — cannot be self-granted | human |
+| REC18 | F18 | Artifact written outside ADR 017 whitelist OR evidence file bypassed scriber | Re-route the offending write to a whitelisted path via scriber dispatch | autonomous |
+| REC19 | F19 | Play produced code, tests, or implementation-level work products | Remove the offending implementation product so architecture output stays specification-only | autonomous |
+| REC20 | F20 | Stage order violated OR refined QP gated Stages 1, 5, or 6 | Discard the out-of-order artifact and re-run the affected stage only after every declared dependency completes | autonomous |
+| REC21 | F21 | Layer model not established before Stage 3 OR component in non-existent layer OR layer model changed post-lock without approval | Establishing or changing the layer model is a user decision — surface model choice with KB blueprints OR escalate for change approval | human |
+| REC22 | F22 | System without KB-or-stm_research provenance | Re-populate the offending inventory file with correct provenance header and required sections | autonomous |
+| REC23 | F23 | Component system_ref does not resolve to inventory | Either populate the missing inventory entry (return to Stage 1) OR re-derive component to reference existing inventory entry | autonomous |
+| REC24 | F24 | Play hard-halted on missing or DRAFT upstream instead of falling back to C1 question path | Re-run the affected stage using the C1 question fallback so missing upstream is replaced by user answers written to stand-in with origin: stm_user_answer | autonomous |
 
 ## Pause and Resume
 
-**Status file:** `{product_base}_status/arch.json`
+Issue detection in pre-flight: extract issue number from branch name (e.g. `fix/403-...` → `403`). If on a feature branch with an issue number, check for status file before starting.
+
+Status file: `{stm_base}{issue}/status/arch.json`
 
 ```json
 {
   "play": "arch",
-  "slug": "<slug>",
-  "started_at": "<ISO-8601>",
-  "stages": {
-    "stage-1-derive":          { "status": "pending", "task_id": "arch-stage-1-derive" },
-    "stage-1-surface":         { "status": "pending", "task_id": "arch-stage-1-surface" },
-    "checkpoint-1":            { "status": "pending", "task_id": "arch-checkpoint-1-write" },
-    "stage-2-derive":          { "status": "pending", "task_id": "arch-stage-2-derive" },
-    "stage-2-surface":         { "status": "pending", "task_id": "arch-stage-2-surface" },
-    "checkpoint-2":            { "status": "pending", "task_id": "arch-checkpoint-2-write" },
-    "stage-3-derive":          { "status": "pending", "task_id": "arch-stage-3-derive" },
-    "stage-3-surface":         { "status": "pending", "task_id": "arch-stage-3-surface" },
-    "checkpoint-3":            { "status": "pending", "task_id": "arch-checkpoint-3-write" },
-    "stage-4-derive":          { "status": "pending", "task_id": "arch-stage-4-derive" },
-    "stage-4-surface":         { "status": "pending", "task_id": "arch-stage-4-surface" },
-    "checkpoint-4":            { "status": "pending", "task_id": "arch-checkpoint-4-write" },
-    "stage-5-derive":          { "status": "pending", "task_id": "arch-stage-5-derive" },
-    "stage-5-surface":         { "status": "pending", "task_id": "arch-stage-5-surface" },
-    "checkpoint-5":            { "status": "pending", "task_id": "arch-checkpoint-5-write" },
-    "validate":                { "status": "pending", "task_id": "arch-validate" },
-    "scenario-evals":          { "status": "pending", "task_id": "arch-scenario-evals" },
-    "evidence-close":          { "status": "pending", "task_id": "arch-evidence-write" }
+  "issue": 403,
+  "started_at": "2026-05-28T..:..Z",
+  "tasks": {
+    "preflight":             { "status": "completed", "completed_at": "..." },
+    "stage-1-systems-inv":   { "status": "completed", "completed_at": "..." },
+    "stage-1-checkpoint":    { "status": "completed", "completed_at": "..." },
+    "stage-2-refine-qp":     { "status": "completed", "completed_at": "..." },
+    "stage-2-checkpoint":    { "status": "completed", "completed_at": "..." },
+    "stage-3-logical":       { "status": "in_progress", "started_at": "..." },
+    "stage-3-checkpoint":    { "status": "pending" },
+    "stage-4-physical":      { "status": "pending" },
+    "stage-4-checkpoint":    { "status": "pending" },
+    "stage-5-tech-stack":    { "status": "pending" },
+    "stage-5-checkpoint":    { "status": "pending" },
+    "stage-6-risks":         { "status": "pending" },
+    "stage-6-checkpoint":    { "status": "pending" },
+    "validation":            { "status": "pending" },
+    "evidence-close":        { "status": "pending" }
   }
 }
 ```
 
-**Resume logic:** read status file, skip `completed`, reset `in_progress` to `pending`, continue from first incomplete stage.
+**Executor loop:**
+```
+resolve issue from branch
+check status file at {stm_base}{issue}/status/arch.json
+
+for each step in compiled order:
+  if status file shows step "completed" → skip
+  if status file shows step "in_progress" → reset to pending (may not have finished)
+  mark step "in_progress" in status file
+  execute step
+  mark step "completed" in status file
+```
+
+**Fresh start:** no status file → execute all steps, create status file on first step.
+**Resume:** status file exists → skip completed, continue from first incomplete.
 
 ## Compilation Metadata
 
 | Field | Value |
 |-------|-------|
-| intent_hash | `sha256:88a38a68d4432f48e017dde4b767644817056a9b5a94498f33a6dfb00aa1d148` |
-| expectation_hash | `sha256:b7c3ee5a71d72460783fe43ad9ac88bea58de0f568aee46ed3d1317342a29e35` |
-| compiled_by | `/create-play --build arch` |
-| compiled_at | `2026-05-25` |
-| workflow_structure | A (full checkpoint flow with 5 human review gates + 5 decision-surfacing sub-steps) |
-| domain_agents | 2 (tech-architect: Stages 1, 2, 5 + validation; tech-designer: Stages 3, 4) |
-| utility_agents | 2 (scriber, repo-orchestrator) — exempt from domain budget |
-| checkpoints | 5 (logical, physical, nfr, quality-vision, design-patterns) |
-| decision_surfacing_phases | 5 (one per derive stage) |
-| step_evals | 19 (SE-1 through SE-19) |
-| scenario_evals | 7 (SCE-1 through SCE-7, sourced from expectation.success_scenarios) |
-| recovery_entries | 19 (REC1–REC19, one per failure condition; 14 autonomous / 5 human) |
-| evals_path | `{stm_base}214/evidence/create-play/arch/evals.yaml` |
-| pre-flight_constraints | C1, C2, C11 (write-access aspect), C15 (grounding-questions.md exists), C17 (project-profile.yaml exists) |
-| structural_constraints | C11 (whitelist + scriber delegation), C12 (agent delegation table), C13 (5 checkpoints in dependency order), C14 (no code/tests/implementation), C15 (aggressive questioning — embedded in Stage 2 + Stage 5 derive skills' decision trees), C18 (DSD — embedded in Steps 1b/2b/3b/4b/5b), C19 (manifest emission — required output in every derive contract) |
-| artifact_verifiable_constraints | C3 (V3 + V5), C4 (V19), C5 (V4), C6 (V9 + V20), C7 (V10 + V11), C8 (V12), C9 (V13), C10 (V17 + V18), C16 (V6 + V14), C17 (V7) |
-| coverage_notes | F1 → SE-1 (V1/V2). F2 → SE-2 (V5). F3 → SE-3 (V3). F4 → SE-4 (V19). F5 → SE-5 (V4). F6 → SE-6 (V9 + V20). F7 → SE-7 (V10 + V11). F8 → SE-8 (V12). F9 → SE-9 (V13). F10 → SE-10 (V17 + V18). F11 → SE-11 (checkpoint files). F12 → SE-12 (whitelist + scriber). F13 → SE-13 (no code). F14 → SE-14 (multi-candidate manifest). F15 → SE-15 (V6 + V14). F16 → SE-16 (V7). F17 → SE-17 (V8). F18 → SE-18 (V15 + V16). F19 → SE-19 (V15 + manifest existence). All 19 failure conditions and all 7 scenarios mapped; coverage matrix at `{stm_base}214/evidence/create-play/arch/coverage-matrix.md`. |
-| rebuild_defect | 5-artifact landing — collapses prior 2-file shape into intent v0.3.0 canonical 5-artifact contract; preserves D11 Phase A grounding + source-type discipline and D23 DSD/manifest emission across all five manifests |
+| intent_hash | sha256:59bd74b8a443995c97b4d1f75365706ca40dfa7848aea3fa8499553a13bae000 |
+| expectation_hash | sha256:19a6f1c5100a9c6498f1e5152fe8932610773c2b6e84dc26456b75f637929dba |
+| compiled_by | create-play (rebake) |
+| compiled_at | 2026-05-28 |
+| maturity | L4 (autonomous-derivable for the 19 autonomous recovery entries; 5 human-handoff entries pause for user) |
+| workflow_structure | A (full checkpoint flow, six checkpoints) |
+| domain_agents | 2 — tech-architect, tech-designer |
+| utility_agents | 1 — scriber (exempt from budget) |
+| step_evals | 20 (SE-1..SE-20) covering F1-F12, F14-F16, F20-F23 |
+| scenario_evals | 8 (SCE-1..SCE-8) one per success_scenario |
+| recovery_entries | 24 (REC1-REC24) — 19 autonomous, 5 human |
+| issue | #403 — model change from 5-artifact to 6-artifact contract |
 
-**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence content/scriber/commit logic preserved as the C1 slot fill. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.
+**Issue #403 — model change**
 
-**ICE migration note (#376):** Migrated to the ICE model — scenarios lifted from intent.yaml into `reference/expectation.yaml` (success_scenarios + recovery), intent stripped to the clean triple. Expectation generated by `draft-play-expectation` and self-approved under the user-authorized non-stop migration (see `evidence/refactor/migrations/arch/auto-approval.md`). Recompiled via `/create-play --build`: added the `## Recovery` section and the dual intent+expectation hash guard; scenario evals re-sourced from `expectation.success_scenarios`. Constraints, failure conditions, agents, skills, workflow, and step evals are unchanged. Added the missing `expectation_hash` and `recovery_entries` rows to Compilation Metadata; `step_evals` (19) and `scenario_evals` (7) counts already matched the migrated surface and were left as-is. The `evals_path` row still points at the legacy `{stm_base}214/...` path — left untouched per the non-intent edit boundary; the migrated evals were written to `{stm_base}376/evidence/create-play/arch/evals.yaml`.
+Prior shape: 5 artifacts (logical, physical, nfr-spec, quality-vision, design-patterns) with 5 checkpoints, 19 constraints, 19 failure conditions.
+
+New shape: 6 artifacts (refined QP, systems-inventory, logical, physical, tech-stack, technical-risks) with 6 checkpoints, 26 constraints, 24 failure conditions, soft pre-flight, layer model as per-product input, systems-grounded components, industry-documented patterns in tech-stack, technical risks last via 8 discovery scans.

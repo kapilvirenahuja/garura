@@ -1,0 +1,188 @@
+play: arch
+generated_by: evals-creator (compiler-inline rebake)
+intent_hash_source: core/components/plays/arch/reference/intent.yaml
+expectation_hash_source: core/components/plays/arch/reference/expectation.yaml
+
+# Step evals (SE-n) — one per artifact-verifiable failure condition.
+# Each SE binds to the failure condition it guards and the skill whose output
+# carries the property. Validator V-checks are the actual check engine; SE
+# evals here are the step-level gates the play uses to decide whether a stage
+# can advance.
+step_evals:
+  - id: SE-1
+    failure_bound: F1
+    skill: validate-architecture-spec
+    check: |
+      Every one of the six canonical artifact surfaces exists with a non-empty primary section: refined quality-profile.yaml carries ≥1 characteristic with relevance != not_applicable; systems-inventory/ has ≥1 file with capabilities_served non-empty; logical-architecture.yaml has ≥1 layer in layer_model.layers and ≥1 component; physical-architecture.yaml has ≥1 component; tech-stack.yaml has ≥1 entry; technical-risks.yaml has ≥1 risk.
+
+  - id: SE-2
+    failure_bound: F2
+    skill: derive-logical-architecture
+    check: |
+      No string in logical-architecture.yaml (component name, responsibilities, edge rationale, layer role, capability id display, system_ref display) matches the tech-token deny-list (programming languages, runtimes, frameworks, databases, cloud products, messaging systems, protocols, wire formats). Case-insensitive.
+
+  - id: SE-3
+    failure_bound: F3
+    skill: derive-logical-architecture
+    check: |
+      Every entry in logical-architecture.yaml.components has non-null system_ref AND non-null layer matching a layer id in layer_model.layers AND capability_ids[] of length ≥ 1.
+
+  - id: SE-4
+    failure_bound: F4
+    skill: derive-logical-architecture
+    check: |
+      Every capability id in scope.selected_capabilities is named in capability_ids[] of at least one logical component sitting in a layer with is_entry: true, AND a graph traversal along outbound_edges[] (ignoring sync_mode: async) from that entry-layer component reaches a component whose system_ref (or sub_system_ref) declares the capability in inventory's capabilities_served[].
+
+  - id: SE-5
+    failure_bound: F5
+    skill: derive-logical-architecture + derive-physical-architecture
+    check: |
+      The directed graph of logical components and outbound_edges with sync_mode in {sync, hybrid} is acyclic. The directed graph of physical components and comms[] with sync_mode in {sync, hybrid} is acyclic. Async edges break a cycle and are excluded from cycle detection.
+
+  - id: SE-6
+    failure_bound: F6
+    skill: derive-physical-architecture
+    check: |
+      Every physical component has non-null logical_ref matching a logical component id, system_ref equal to that logical component's system_ref, layer equal to that logical component's layer, deployment_target.kind non-empty, deployment_target.name non-empty AND not matching the category-term deny-list, and a resources block present.
+
+  - id: SE-7
+    failure_bound: F7
+    skill: derive-physical-architecture
+    check: |
+      Every physical component with logical_ref_cardinality != one-to-one has non-empty cardinality_rationale. Every physical component's layer equals the linked logical component's layer.
+
+  - id: SE-8
+    failure_bound: F8
+    skill: derive-physical-architecture
+    check: |
+      Every characteristic in refined quality-profile.yaml with relevance != not_applicable appears in at least one physical component's nfr_delivery[] entry with non-empty mechanism, target_reference, and rationale.
+
+  - id: SE-9
+    failure_bound: F9
+    skill: derive-tech-stack
+    check: |
+      Every tech-stack entry with category: pattern has non-empty pattern_citation.source AND non-empty pattern_citation.reference; source matches the canonical allowlist (Gang of Four, PoEAA, DDD, Release It!, EIP, Building Microservices, DDIA, Cloud Native Patterns, microservices.io, IETF RFCs, OWASP, NIST, W3C, ISO/IEC) OR a KB pattern file exists at the kb_patterns_dir claiming the pattern. System-level decisions (monolith, microservice, modular monolith, serverless — case-insensitive) appear as category: pattern entries in tech-stack and nowhere else.
+
+  - id: SE-10
+    failure_bound: F10
+    skill: derive-tech-stack
+    check: |
+      Every tech-stack entry has non-empty id, scope.kind ∈ {components, components_in_layer, components_with_system_ref, global}, category ∈ {language, runtime, framework, library, tool, pattern}, name, source_type, and rationale. When scope.kind != global, scope.targets[] is non-empty.
+
+  - id: SE-11
+    failure_bound: F11
+    skill: derive-technical-risks
+    check: |
+      Every technical-risks.yaml.risks[] entry has non-empty id, risk_statement, ≥1 trigger_conditions[], all business_cost subfields (kind, magnitude, cost_estimate, rationale), all likelihood subfields (level ∈ {low, medium, high}, rationale), all mitigation subfields (action, owner_role, when, delivery_cost), residual_risk non-empty AND not matching the zero-residual deny-list (empty, none, no residual, fully mitigated, eliminated, n/a), ≥1 driver_refs[] with both artifact and reference, discovered_by.scan matches one of the eight defined scans. Stage-order check: technical-risks.yaml mtime ≥ refined_qp_path mtime AND inventory_dir mtime AND logical_path mtime AND physical_path mtime AND tech_stack_path mtime.
+
+  - id: SE-12
+    failure_bound: F12
+    skill: refine-quality-profile
+    check: |
+      Every characteristic in the refined architecture/quality-profile.yaml that differs from the upstream specification/quality-profile.yaml is covered by a delta_log[] entry with non-empty field, before, after, direction, driver.kind ∈ {inventory_constraint, project_profile_pin, epic_constraint, regulatory_pin}, driver.reference that resolves to a real artifact, and rationale. No delta_log entry has characteristic: security AND direction: loosened.
+
+  - id: SE-13
+    failure_bound: F13
+    skill: validate-architecture-spec (cross-manifest)
+    check: |
+      No decision across the six manifests has source_type / grounding_source.kind: agent_default_unilateral. No decision is missing source_type. No decision conflicts with a project_profile.grounded_tools[] pin for the same slot.
+
+  - id: SE-14
+    failure_bound: F14
+    skill: validate-architecture-spec (cross-manifest)
+    check: |
+      For every decision with grounding_source.kind: kb_catalog_multi_candidate_user_approved, the citation references either a Q-arch-NNN entry in grounding-questions.md OR a checkpoint id where the user picked. Decisions tagged kb_catalog_single_candidate are verified by spot-checking the KB catalog returned exactly one candidate.
+
+  - id: SE-15
+    failure_bound: F15
+    skill: validate-architecture-spec (cross-manifest)
+    check: |
+      No inferred decision (user_response ∈ {accept, override, orbit}) is committed to its artifact without a recorded surfacing flow. Decisions with user_response: pending are warnings (orchestrator surfaces next checkpoint), not blockers.
+
+  - id: SE-16
+    failure_bound: F16
+    skill: all six derive/refine skills
+    check: |
+      Every decision manifest exists at its declared path. Every entry has non-empty decision_id, decision_type, tier ∈ {high, mid, low}, grounding_source.kind, grounding_source.citation, recommendation, alternatives_considered (may be empty array but field present).
+
+  - id: SE-17
+    failure_bound: F20
+    skill: validate-architecture-spec (stage order)
+    check: |
+      File mtime ordering holds: refined quality-profile and systems-inventory may be in either order; logical-architecture.yaml mtime ≥ both; physical-architecture.yaml mtime ≥ logical-architecture.yaml mtime; tech-stack.yaml mtime ≥ physical-architecture.yaml mtime; technical-risks.yaml mtime ≥ tech-stack.yaml mtime.
+
+  - id: SE-18
+    failure_bound: F21
+    skill: derive-logical-architecture
+    check: |
+      logical-architecture.yaml.layer_model has source ∈ {project_profile_pin, kb_blueprint, user_authored}, layers[] length ≥ 2, exactly one layer with is_entry: true, unique positive integer order values, all layer ids kebab-case. Every component's layer field matches a layer id in layer_model.layers[].
+
+  - id: SE-19
+    failure_bound: F22
+    skill: derive-systems-inventory
+    check: |
+      Every file in architecture/systems-inventory/ has non-empty frontmatter id, origin ∈ {kb, stm_research}, provenance_summary, capabilities_served[]. kb-origin files carry kb_path, kb_version_sha, copied_at, editable: false; the body matches the KB master at kb_path byte-for-byte (after KB frontmatter stripped); recomputed SHA-256 of KB content matches kb_version_sha. stm_research files carry editable: true and have all 7 required sections (When to Use, When to Avoid, Scale Profile, Capabilities Served, Sub-Systems, Tradeoffs, Anti-Patterns) populated with non-empty prose.
+
+  - id: SE-20
+    failure_bound: F23
+    skill: derive-logical-architecture + derive-physical-architecture
+    check: |
+      Every logical-architecture.yaml.components[].system_ref resolves to a file id in architecture/systems-inventory/; non-null sub_system_ref resolves to a sub_systems[].id inside that file's frontmatter. Every physical-architecture.yaml.components[].system_ref equals the linked logical component's system_ref exactly and resolves to inventory.
+
+# Scenario evals (SCE-n) — one per success_scenario in expectation.yaml.
+# The check text is the scenario's `measure` line copied verbatim.
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Technical Architect
+    check: |
+      Every component in logical-architecture.yaml and physical-architecture.yaml resolves to a system or sub-system entry in systems-inventory; every tech-stack entry carries a populated source_type and rationale; every NFR target in quality-profile appears in physical-architecture with a named delivery mechanism; every technical-risks entry has a risk_statement, business_cost, and mitigation.
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: Integration Lead
+    check: |
+      Every system or sub-system that appears as a component in logical or physical architecture exists in systems-inventory/, carries provenance (origin: kb OR origin: stm_research), and lists the capabilities it serves; no logical or physical component bypasses inventory.
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: Implementation Lead
+    check: |
+      Every selected capability has at least one end-to-end logical path from the user-facing entry layer to a serving system; every logical component has at least one physical component implementing it; every component in scope of a feature has at least one tech-stack entry covering it; no cycles in either logical or physical graphs.
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: Security Architect
+    check: |
+      Every security-classified characteristic in quality-profile.yaml appears in at least one physical component's nfr_delivery[] with a named mechanism; every security-related pattern in tech-stack carries an industry literature citation; auth-related physical components reverse-trace to a system in systems-inventory.
+
+  - id: SCE-5
+    scenario_id: S5
+    persona: DevOps / Platform Engineer
+    check: |
+      physical-architecture.yaml carries a deployment_target and resource shape for every component; an observability stack is named in physical or tech-stack; cross-cutting resilience patterns (circuit breaker, retry, idempotency key, etc.) appear in tech-stack with literature citations whenever any NFR names resilience or consistency.
+
+  - id: SCE-6
+    scenario_id: S6
+    persona: Product Manager
+    check: |
+      quality-profile.yaml carries plain-English narrative per relevant ISO 25010 characteristic; technical-risks.yaml lists each risk with a quantified or qualified business_cost; the tech-stack system-level pattern entries (monolith / microservice / serverless / etc.) each cite an upstream driver and at least one alternative considered.
+
+  - id: SCE-7
+    scenario_id: S7
+    persona: Risk Owner / Engineering Director
+    check: |
+      Every entry in technical-risks.yaml has risk_statement, trigger_conditions, business_cost, likelihood with rationale, mitigation with owner, residual_risk, and driver_refs pointing at the components / NFRs / tech picks the risk surfaces from; no entry is missing any of those fields.
+
+  - id: SCE-8
+    scenario_id: S8
+    persona: Senior Developer (onboarding)
+    check: |
+      Every tech-stack entry with category = pattern carries a literature citation (GoF, microservices.io, PoEAA, an RFC, etc.); the layer model is named and load-bearing in both logical and physical; system-level pattern decisions live in tech-stack with a cited alternative considered.
+
+summary:
+  step_evals_count: 20
+  scenario_evals_count: 8
+  failure_conditions_covered_by_evals: [F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, F14, F15, F16, F20, F21, F22, F23]
+  failure_conditions_covered_structurally: [F17, F18, F19, F24]
+  scenarios_covered: [S1, S2, S3, S4, S5, S6, S7, S8]

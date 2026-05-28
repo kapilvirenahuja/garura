@@ -1,0 +1,111 @@
+play: arch
+total_constraints: 26
+classifications:
+  # Pre-flight in the classical hard-halt sense: NONE — C1 is a soft probe-and-fallback
+  # process, classified as structural below.
+
+  # Structural constraints — process / workflow / output-contract / agent-boundary rules
+  # enforced by the play structure itself.
+  - id: C1
+    category: structural
+    enforcement_location: pre-flight probe + per-stage question fallback (workflow)
+  - id: C2
+    category: structural
+    enforcement_location: workflow output paths + scriber dispatch
+  - id: C3
+    category: structural
+    enforcement_location: workflow stage order + checkpoint sequence
+  - id: C4
+    category: structural
+    enforcement_location: Stage 3 opening — layer model probe + KB blueprint surfacing
+  - id: C19
+    category: structural
+    enforcement_location: per-checkpoint decision surfacing flow (orchestrator drives tier-appropriate surfacing)
+  - id: C20
+    category: structural
+    enforcement_location: skill-level multi-candidate halt + orchestrator grounding-question pass
+  - id: C23
+    category: structural
+    enforcement_location: six checkpoint blocks in workflow (one per stage)
+  - id: C24
+    category: structural
+    enforcement_location: agent boundary table (tech-architect / tech-designer / scriber)
+  - id: C25
+    category: structural
+    enforcement_location: user-facing-voice rule applied to every reply from orchestrator
+  - id: C26
+    category: structural
+    enforcement_location: agent prompts forbid code / test emission
+
+  # Artifact-verifiable constraints — observable property of a skill's output artifact;
+  # generate SE-n evals via evals-creator.
+  - id: C5
+    category: artifact-verifiable
+    artifact: systems-inventory files
+    failure_bound: F22
+  - id: C6
+    category: artifact-verifiable
+    artifact: logical-architecture.yaml
+    failure_bound: F3
+  - id: C7
+    category: artifact-verifiable
+    artifact: logical-architecture.yaml
+    failure_bound: F2
+  - id: C8
+    category: artifact-verifiable
+    artifact: logical-architecture.yaml + physical-architecture.yaml
+    failure_bound: F5
+  - id: C9
+    category: artifact-verifiable
+    artifact: logical-architecture.yaml
+    failure_bound: F4
+  - id: C10
+    category: artifact-verifiable
+    artifact: physical-architecture.yaml
+    failure_bound: F6
+  - id: C11
+    category: artifact-verifiable
+    artifact: physical-architecture.yaml
+    failure_bound: F7
+  - id: C12
+    category: artifact-verifiable
+    artifact: physical-architecture.yaml
+    failure_bound: F6
+  - id: C13
+    category: artifact-verifiable
+    artifact: architecture/quality-profile.yaml (refined)
+    failure_bound: F12
+  - id: C14
+    category: artifact-verifiable
+    artifact: physical-architecture.yaml + refined quality-profile.yaml
+    failure_bound: F8
+  - id: C15
+    category: artifact-verifiable
+    artifact: tech-stack.yaml
+    failure_bound: F10
+  - id: C16
+    category: artifact-verifiable
+    artifact: tech-stack.yaml
+    failure_bound: F9
+  - id: C17
+    category: artifact-verifiable
+    artifact: technical-risks.yaml
+    failure_bound: F11
+  - id: C18
+    category: artifact-verifiable
+    artifact: all six decision manifests
+    failure_bound: F13
+  - id: C21
+    category: artifact-verifiable
+    artifact: any decision manifest vs project-profile.grounded_tools
+    failure_bound: F13
+  - id: C22
+    category: artifact-verifiable
+    artifact: all six decision manifests
+    failure_bound: F16
+
+summary:
+  pre_flight_count: 0
+  artifact_verifiable_count: 16
+  structural_count: 10
+  total: 26
