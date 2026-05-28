@@ -1,0 +1,20 @@
+branch:
+  name: "fix/403-logical-architecture-yaml-dump"
+  action: created
+  pushed: true
+  tracking: "origin/fix/403-logical-architecture-yaml-dump"
+  base_ref: main
+
+worktree:
+  used: false
+  path: null
+  reason: "Only untracked files present — checkout carries them forward automatically"
+
+changes_preserved:
+  - ".garura/project/issues/399/evidence/create-pr/"
+  - ".garura/project/issues/399/evidence/merge-pr/"
+  - ".garura/project/issues/403/"
+
+result:
+  success: true
+  error: null
