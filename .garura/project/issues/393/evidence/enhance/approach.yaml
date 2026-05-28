@@ -1,0 +1,672 @@
+problem_statement: >
+  Every code-host operation in Garura's plays, agents, and skills is hard-wired to the
+  GitHub CLI (`gh`). Running /review-pr against a GitLab MR halts at the very first
+  command (`gh pr view`). The same limitation affects issue management, PR creation, and
+  merge operations. The fix is a single verb-adapter skill that centralises all
+  code-host dispatch behind a stable verb interface, and converts every current `gh`
+  caller to route through it — so adding a new host in future touches one file.
+
+solution_summary: >
+  Introduce `platform-adapter` as a new skill. It exposes a stable verb set
+  (view-pr, diff-pr, comment-pr, request-changes, add-reviewer, view-issue,
+  create-issue, list-issues, close-issue, comment-issue, add-label, attach-sub-issue,
+  create-pr, merge-pr, view-user, update-comment). Each verb maps to the correct CLI
+  command for the active platform, resolved from `platform:` in
+  `.garura/core/config.yaml`. Agents call the skill; plays never call the adapter
+  directly. All 22 source files across core/components/ that currently call `gh`
+  directly are converted in this PR — no follow-on chore PRs. The `reference/{platform}/`
+  subdirs inside submit-pr and merge-pr skills are retired into the adapter's own
+  reference layer; a single dispatch pattern replaces the two-pattern world.
+
+files_to_create:
+  - path: core/components/skills/platform-adapter/SKILL.md
+    purpose: >
+      The adapter skill. Defines the verb interface, platform resolution logic (reads
+      `platform:` from `.garura/core/config.yaml`; defaults to `github`), pre-flight
+      checks (`which glab` when platform=gitlab; halt with install hint on failure),
+      and the dispatch table that routes each verb to the correct CLI command.
+      Authoritative for what the adapter CAN do — callers pass `{verb, args}`.
+
+  - path: core/components/skills/platform-adapter/reference/github/verbs.md
+    purpose: >
+      Executable command translations for every adapter verb on GitHub. This is the
+      normative reference the adapter reads when platform=github. One section per verb;
+      each section contains the exact `gh` command with parameter substitution tokens.
+
+  - path: core/components/skills/platform-adapter/reference/gitlab/verbs.md
+    purpose: >
+      Executable command translations for every adapter verb on GitLab. Same structure
+      as github/verbs.md. Covers the two behavioural gaps:
+      (1) request-changes: `glab mr update {mr_number} --draft` (sets WIP state) PLUS
+          `glab mr note {mr_number} --message "{structured_comment}"` (posts comment).
+      (2) attach-sub-issue: GitLab has no parent/child sub-issue concept. Verb falls
+          back to `glab api projects/{encoded_project}/issues/{n}/links` (related-issues
+          link). Reference doc documents the fallback and its limits.
+      (3) update-comment: uses `glab api projects/{id}/notes/{note_id} -X PUT`.
+          Project numeric ID must be resolved via
+          `glab api projects/{encoded_owner%2Fname} | jq '.id'` and cached.
+
+  - path: core/components/memory/tools/github/adapter.md
+    purpose: >
+      KB narrative describing the adapter verb surface for GitHub — intended for agents
+      and contributors reading the KB, not for the adapter's own execution. Explains
+      what each verb does conceptually, which `gh` command backs it, and any caveats.
+      Role is descriptive (human/agent reading), not normative (not the command the
+      adapter executes; that lives in reference/github/verbs.md).
+
+  - path: core/components/memory/tools/gitlab/adapter.md
+    purpose: >
+      Same KB narrative role as github/adapter.md but for GitLab. Documents the two
+      behavioural gaps (request-changes draft + note; sub-issue related-link fallback)
+      so agents can set correct expectations when routing to GitLab.
+
+files_to_modify:
+  - path: core/components/skills/analyze-pr/SKILL.md
+    lines_affected: "47–48"
+    change: >
+      PR-scoped mode (Step 0a): replace `gh pr diff {pr_number}` and
+      `gh pr view {pr_number} --json ...` with calls to
+      `platform-adapter diff-pr {pr_number}` and `platform-adapter view-pr {pr_number}`.
+      Branch-diff mode uses `git` — no change needed there.
+
+  - path: core/components/skills/manage-issue/SKILL.md
+    lines_affected: "45, 57, 73, 84, 133, 144, 151, 161, 168, 174, 180, 191, 194"
+    change: >
+      Replace every direct `gh issue` and `gh api` invocation with the corresponding
+      adapter verb: view-issue, create-issue, list-issues, close-issue, comment-issue,
+      add-label, attach-sub-issue. Remove the `reference/github-issue.md` dispatch —
+      the adapter owns the platform routing now. Repurpose or retire
+      `reference/github-issue.md` as a historical delegation pointer (one-line note
+      pointing readers to platform-adapter). Do NOT introduce a `gitlab-issue.md`
+      sibling — the locked decision is to route through adapter, not extend the
+      reference-file pattern.
+
+  - path: core/components/skills/archive-issue-stm/SKILL.md
+    lines_affected: "42"
+    change: >
+      Replace `gh issue view {issue_number} --json closedAt` with
+      `platform-adapter view-issue {issue_number}` extracting the `closedAt`
+      (GitHub) or `closed_at` (GitLab) field. Adapter reference docs encode the
+      correct field name per platform.
+
+  - path: core/components/skills/submit-pr/SKILL.md
+    lines_affected: "36–55 (platform dispatch block)"
+    change: >
+      Replace the `reference/{platform}/pr.md` dispatch pattern with calls to the
+      corresponding adapter verbs: create-pr, view-pr (for status check), list-issues
+      (pr list), merge-pr (pr checks via view-pr). Delete `reference/github/pr.md`,
+      `reference/gitlab/pr.md`, and `reference/bitbucket/pr.md` — the adapter now
+      owns all platform command translations. Bitbucket is not in the adapter's verb
+      inventory for this PR; its reference file is deleted and Bitbucket remains
+      unsupported until a future PR adds it to the adapter.
+
+  - path: core/components/skills/merge-pr/SKILL.md
+    lines_affected: "30–55 (platform dispatch block)"
+    change: >
+      Same as submit-pr: replace `reference/{platform}/merge.md` dispatch with
+      adapter verbs (merge-pr, view-pr for pre-flight state check). Delete
+      `reference/github/merge.md`, `reference/gitlab/merge.md`, and
+      `reference/bitbucket/merge.md` — adapter owns the translations.
+
+  - path: core/components/plays/review-pr/SKILL.md
+    lines_affected: "37, 107, 343, 346, 347, 358, 479"
+    change: >
+      Replace all direct `gh` invocations:
+      - Line 37: `gh pr view ... --json` → repo-orchestrator calls `platform-adapter view-pr`
+      - Line 107: `gh pr diff` → `platform-adapter diff-pr`
+      - Line 343: `gh api repos/.../issues/comments/{id} -X PATCH` → `platform-adapter update-comment`
+      - Line 346: `gh pr comment` → `platform-adapter comment-pr`
+      - Line 347: `gh pr comment` → `platform-adapter comment-pr`
+      - Line 358: `gh pr review --request-changes` → `platform-adapter request-changes`
+      - Line 479: `gh pr edit --add-reviewer` → `platform-adapter add-reviewer`
+      All invocations remain mediated by repo-orchestrator (utility agent); the play
+      text describes the agent calling the adapter, not the play calling it directly.
+
+  - path: core/components/plays/merge-pr/SKILL.md
+    lines_affected: "72"
+    change: >
+      Replace `gh pr view --json number,state,baseRefName,mergeable` with
+      `platform-adapter view-pr {pr_number}` extracting the same fields. Field name
+      mapping (e.g., `baseRefName` → `target_branch` on GitLab) is encoded in
+      reference/gitlab/verbs.md.
+
+  - path: core/components/plays/enhance/SKILL.md
+    lines_affected: "733"
+    change: >
+      Narrative-only update. Line 733 documents that analyze-pr uses `gh pr diff` /
+      `gh pr view` internally. Remove the parenthetical `(gh pr diff / gh pr view)`;
+      replace with `(platform-adapter diff-pr / platform-adapter view-pr)` to stay
+      accurate after analyze-pr's conversion. Not an executable path — no structural
+      change needed.
+
+  - path: core/components/agents/repo-orchestrator.md
+    lines_affected: "399 (Forbidden table)"
+    change: >
+      Expand the Bash Forbidden table to forbid both `gh` AND `glab` direct invocations.
+      Add a note: "All code-host operations must route through the platform-adapter
+      skill. Pass verb + args to the skill; never invoke gh or glab directly."
+
+  - path: core/components/agents/project-orchestrator.md
+    lines_affected: "332–335 (Forbidden table)"
+    change: >
+      Same expansion: add `glab issue create`, `glab issue view`, `glab issue list`,
+      `glab issue close`, `glab api` to the forbidden list alongside the existing
+      `gh issue` entries. Add routing note pointing to platform-adapter.
+
+  - path: core/components/agents/code-builder.md
+    lines_affected: "290 (Forbidden table)"
+    change: >
+      Add `glab mr create` alongside the existing `gh pr create` in the forbidden
+      table. Routing note: use repo-orchestrator → platform-adapter.
+
+  - path: core/components/agents/knowledge-extractor.md
+    lines_affected: "314"
+    change: >
+      Update the `pr_diff` source note from `gh pr diff {pr_number}` to
+      `platform-adapter diff-pr {pr_number}` to reflect where the diff now comes from.
+
+  - path: core/components/memory/standards/templates/pr-review-comment.md
+    lines_affected: "50–51"
+    change: >
+      Update Behavior section: replace literal `gh api repos/.../issues/comments/{id}
+      -X PATCH` and `gh pr comment` with adapter verb references (`platform-adapter
+      update-comment` and `platform-adapter comment-pr`). This is a documentation
+      reference, not executable — the update keeps the KB accurate.
+
+  - path: core/components/memory/standards/templates/github-issue.md
+    lines_affected: "3, 56"
+    change: >
+      Add a platform note at the top: "For GitLab, use platform-adapter create-issue
+      verb — see memory/tools/gitlab/adapter.md." Update the `gh issue create` example
+      at line 56 to note the adapter verb equivalent. Keep the GitHub-specific content
+      intact — this template remains the GitHub reference.
+
+  - path: core/components/memory/standards/templates/issue-comment-rca-approved.md
+    lines_affected: "44, 81"
+    change: >
+      Replace `gh api user -q .login` with `platform-adapter view-user` and
+      `gh issue comment {issue_number}` with `platform-adapter comment-issue
+      {issue_number}`. Same documentation-accuracy update pattern.
+
+  - path: .garura/core/config.yaml
+    lines_affected: "7–12 (platform/github block)"
+    change: >
+      Add a commented-out `gitlab:` block as schema documentation, parallel to the
+      existing `github:` block. This shows the required fields (host, owner, name) so
+      teams switching platforms know what to populate. The `platform:` key on line 7
+      remains `github` (active project) — no operational change.
+
+connections:
+  call_chain: |
+    Play (review-pr / enhance / ship)
+      → repo-orchestrator (utility agent, exempt from domain budget)
+          → platform-adapter skill
+              → gh (when platform=github)
+              → glab (when platform=gitlab)
+
+    Play (review-pr)
+      → repo-orchestrator
+          → analyze-pr skill (PR-scoped mode)
+              → platform-adapter skill (diff-pr, view-pr)
+                  → gh / glab
+
+    Play (ship / enhance / fix-it)
+      → repo-orchestrator
+          → manage-issue skill
+              → platform-adapter skill (all issue verbs)
+                  → gh / glab
+
+    Play (ship / enhance)
+      → repo-orchestrator
+          → archive-issue-stm skill
+              → platform-adapter skill (view-issue)
+                  → gh / glab
+
+    Play (ship / enhance)
+      → repo-orchestrator
+          → submit-pr skill
+              → platform-adapter skill (create-pr, view-pr)
+                  → gh / glab
+
+    Play (ship / enhance / merge-pr)
+      → repo-orchestrator
+          → merge-pr skill
+              → platform-adapter skill (merge-pr verb, view-pr)
+                  → gh / glab
+
+  platform_resolution: >
+    The adapter reads `platform:` from `.garura/core/config.yaml` using the same
+    bash snippet already established in submit-pr/SKILL.md lines 36–39 and
+    merge-pr/SKILL.md lines 30–35:
+      platform=$(grep '^platform:' .garura/core/config.yaml | awk '{print $2}')
+      platform=${platform:-github}
+    Config is authoritative. `git remote -v` is NOT used.
+
+  verb_interface: >
+    Callers pass a verb name and a map of named arguments.
+    The adapter resolves the platform, looks up the command translation in
+    reference/{platform}/verbs.md, substitutes arguments, and executes.
+    Return value is the raw CLI output (stdout) plus an exit code.
+    The caller is responsible for parsing the output — the adapter does not
+    transform field names across platforms (field-name mapping notes live in
+    the reference docs for callers to consult).
+
+  reference_vs_kb_split: >
+    Two file types, two roles:
+    - platform-adapter/reference/{platform}/verbs.md — normative execution
+      reference that the skill reads to produce CLI commands. One section per
+      verb; authoritative command with parameter tokens.
+    - memory/tools/{platform}/adapter.md — KB narrative for agents and
+      contributors. Explains verb semantics, caveats, and gap behaviours
+      (request-changes draft+note; sub-issue related-link fallback).
+      Descriptive, not executed.
+
+tasks:
+  - id: T1
+    title: "Create platform-adapter SKILL.md"
+    description: >
+      Write core/components/skills/platform-adapter/SKILL.md with the full verb
+      interface, platform-resolution logic (config grep pattern), pre-flight
+      `which glab` check with install hint, and the dispatch table referencing
+      reference/{platform}/verbs.md. Include all 16 verbs from the inventory.
+    owner_role: implementer
+    blocked_by: []
+
+  - id: T2
+    title: "Create reference/github/verbs.md and reference/gitlab/verbs.md"
+    description: >
+      Write both verb translation files under platform-adapter/reference/.
+      GitHub file: one section per verb with exact `gh` command + parameter
+      tokens. GitLab file: same structure with `glab` equivalents, plus the
+      three documented gap behaviours (request-changes = draft + note;
+      attach-sub-issue = related-issues API; update-comment = project-id
+      resolution via `glab api projects/{encoded}` then `notes/{note_id}`).
+    owner_role: implementer
+    blocked_by: [T1]
+
+  - id: T3
+    title: "Create memory/tools/github/adapter.md and memory/tools/gitlab/adapter.md"
+    description: >
+      Create the memory/tools/ namespace (new directory) and write both KB
+      narrative docs. GitHub doc covers all verbs and their gh mappings.
+      GitLab doc covers all verbs and explicitly documents the three gap
+      behaviours so agents can set correct expectations.
+    owner_role: implementer
+    blocked_by: [T2]
+
+  - id: T4
+    title: "Convert analyze-pr to call adapter"
+    description: >
+      In core/components/skills/analyze-pr/SKILL.md lines 47–48, replace
+      `gh pr diff {pr_number}` and `gh pr view {pr_number} --json ...` with
+      `platform-adapter diff-pr {pr_number}` and `platform-adapter view-pr
+      {pr_number}`. Branch-diff mode uses git — leave unchanged.
+    owner_role: implementer
+    blocked_by: [T2]
+
+  - id: T5
+    title: "Convert manage-issue to call adapter"
+    description: >
+      In core/components/skills/manage-issue/SKILL.md, replace all gh issue
+      and gh api invocations (lines 45, 57, 73, 84, 133, 144, 151, 161, 168,
+      174, 180, 191, 194) with the corresponding adapter verbs. Repurpose
+      reference/github-issue.md as a one-line delegation pointer to
+      platform-adapter. Do NOT add a gitlab-issue.md sibling.
+    owner_role: implementer
+    blocked_by: [T2]
+
+  - id: T6
+    title: "Convert archive-issue-stm to call adapter"
+    description: >
+      In core/components/skills/archive-issue-stm/SKILL.md line 42, replace
+      `gh issue view {issue_number} --json closedAt` with
+      `platform-adapter view-issue {issue_number}`. Note that GitLab returns
+      `closed_at`, not `closedAt` — the skill must read the field name from
+      the platform reference doc (or do a coerce via jq `.closedAt // .closed_at`).
+    owner_role: implementer
+    blocked_by: [T2]
+
+  - id: T7
+    title: "Convert submit-pr skill; delete reference/{platform}/ subdirs"
+    description: >
+      In core/components/skills/submit-pr/SKILL.md, replace the
+      reference/{platform}/pr.md dispatch block (lines 36–55) with calls to
+      adapter verbs (create-pr, view-pr, list-issues). Then delete
+      reference/github/pr.md, reference/gitlab/pr.md, and
+      reference/bitbucket/pr.md. Bitbucket support is not added in this PR;
+      its reference file is deleted and the platform remains unsupported
+      until a future adapter verb extension.
+    owner_role: implementer
+    blocked_by: [T2]
+
+  - id: T8
+    title: "Convert merge-pr skill; delete reference/{platform}/ subdirs"
+    description: >
+      In core/components/skills/merge-pr/SKILL.md, replace the
+      reference/{platform}/merge.md dispatch block (lines 30–55) with adapter
+      verb calls (merge-pr verb, view-pr for pre-flight). Delete
+      reference/github/merge.md, reference/gitlab/merge.md, and
+      reference/bitbucket/merge.md.
+    owner_role: implementer
+    blocked_by: [T2]
+
+  - id: T9
+    title: "Update review-pr play (7 gh invocations)"
+    description: >
+      In core/components/plays/review-pr/SKILL.md, replace all 7 direct gh
+      invocations (lines 37, 107, 343, 346, 347, 358, 479) with the
+      corresponding adapter verb calls, expressed as repo-orchestrator invoking
+      the adapter. See files_to_modify entry for per-line mapping.
+    owner_role: implementer
+    blocked_by: [T1]
+
+  - id: T10
+    title: "Update merge-pr play (1 gh invocation)"
+    description: >
+      In core/components/plays/merge-pr/SKILL.md line 72, replace
+      `gh pr view --json number,state,baseRefName,mergeable` with
+      `platform-adapter view-pr {pr_number}`. Note the field-name difference
+      on GitLab (`target_branch` vs `baseRefName`) — the play must read the
+      field using the name appropriate to the platform, or the adapter reference
+      must normalise the field (decide in T2 — normalisation is simpler for
+      callers but adds adapter complexity; recommend no normalisation and
+      platform-specific field access in calling code).
+    owner_role: implementer
+    blocked_by: [T1]
+
+  - id: T11
+    title: "Update enhance play narrative (line 733)"
+    description: >
+      In core/components/plays/enhance/SKILL.md line 733, replace the
+      parenthetical `(gh pr diff / gh pr view)` with
+      `(platform-adapter diff-pr / platform-adapter view-pr)`. Narrative-only;
+      no structural change.
+    owner_role: implementer
+    blocked_by: [T4]
+
+  - id: T12
+    title: "Expand agent forbidden tables"
+    description: >
+      Update three agent files:
+      - repo-orchestrator.md line 399: add glab to forbidden Bash table; add
+        routing note pointing to platform-adapter.
+      - project-orchestrator.md lines 332–335: add glab issue verbs to forbidden
+        list; add routing note.
+      - code-builder.md line 290: add `glab mr create` alongside `gh pr create`.
+      Also update knowledge-extractor.md line 314: change `gh pr diff {pr_number}`
+      source note to `platform-adapter diff-pr {pr_number}`.
+    owner_role: implementer
+    blocked_by: [T1]
+
+  - id: T13
+    title: "Update standards templates"
+    description: >
+      Three template files:
+      - pr-review-comment.md lines 50–51: replace gh API calls with adapter
+        verb references (update-comment, comment-pr).
+      - github-issue.md lines 3, 56: add platform note and adapter verb
+        equivalent alongside the gh example.
+      - issue-comment-rca-approved.md lines 44, 81: replace `gh api user` and
+        `gh issue comment` with adapter verb calls.
+      Also add the commented-out `gitlab:` block to .garura/core/config.yaml
+      as schema documentation.
+    owner_role: implementer
+    blocked_by: [T1]
+
+  - id: T14
+    title: "Run /sync-claude to deploy"
+    description: >
+      After all file changes are committed, run `/sync-claude` to deploy the
+      new platform-adapter skill and all modified components to `~/.claude/`.
+      Verify that `~/.claude/skills/platform-adapter/SKILL.md` exists and
+      that `~/.claude/skills/analyze-pr/SKILL.md`, `submit-pr`, `merge-pr`
+      reflect the converted versions.
+    owner_role: orchestrator
+    blocked_by: [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]
+
+evals:
+  - id: E1
+    description: "platform-adapter SKILL.md exists and contains all 16 verbs"
+    assertion: >
+      File core/components/skills/platform-adapter/SKILL.md exists.
+      grep check: each verb name in
+      [view-pr, diff-pr, comment-pr, request-changes, add-reviewer, view-issue,
+       create-issue, list-issues, close-issue, comment-issue, add-label,
+       attach-sub-issue, create-pr, merge-pr, view-user, update-comment]
+      appears at least once in the file.
+    pass_criteria: "All 16 verb names found in SKILL.md"
+    fail_criteria: "Any verb name absent from SKILL.md"
+
+  - id: E2
+    description: "Each verb has a github and gitlab reference entry"
+    assertion: >
+      reference/github/verbs.md and reference/gitlab/verbs.md both exist under
+      core/components/skills/platform-adapter/. Each file contains a section
+      heading (## or ###) for every verb in the inventory.
+    pass_criteria: "Both files exist; all 16 verb headings present in each"
+    fail_criteria: "File missing or any verb section absent"
+
+  - id: E3
+    description: "No direct gh or glab invocation outside platform-adapter skill"
+    assertion: >
+      grep -rn '\bgh \(pr\|api\|issue\|run\|workflow\)\|\bglab ' core/components/
+      --include="*.md"
+      Result must contain matches ONLY within
+      core/components/skills/platform-adapter/ and optionally as historical
+      cross-references in memory/tools/ KB docs (narrative, not executable).
+      Zero matches in skills/, plays/, agents/, or memory/standards/ outside
+      those paths.
+    pass_criteria: "grep returns only platform-adapter/ matches"
+    fail_criteria: "Any match in other skills, plays, agents, or standards templates"
+
+  - id: E4
+    description: "Adapter halts with install hint when platform=gitlab and glab missing"
+    assertion: >
+      reference/gitlab/verbs.md (or SKILL.md) contains the text
+      "glab CLI not found" or equivalent install-hint message as the pre-flight
+      halt output. Grep: grep -i 'glab.*not found\|install.*glab' in
+      platform-adapter/SKILL.md.
+    pass_criteria: "Install hint text present in SKILL.md pre-flight section"
+    fail_criteria: "No install hint text found"
+
+  - id: E5
+    description: "request-changes on GitLab sets draft AND posts comment"
+    assertion: >
+      In core/components/skills/platform-adapter/reference/gitlab/verbs.md,
+      the request-changes section contains BOTH:
+      (a) `glab mr update {mr_number} --draft` (or equivalent draft-set command)
+      (b) `glab mr note {mr_number} --message` (or equivalent comment command)
+    pass_criteria: "Both commands present in request-changes section"
+    fail_criteria: "Either command absent"
+
+  - id: E6
+    description: "attach-sub-issue on GitLab uses related-issues fallback"
+    assertion: >
+      In reference/gitlab/verbs.md, the attach-sub-issue section references
+      `glab api projects/{...}/issues/{n}/links` or equivalent GitLab
+      related-issues API path.
+    pass_criteria: "Related-issues API path present in attach-sub-issue section"
+    fail_criteria: "Section absent or uses different (unsupported) approach"
+
+  - id: E7
+    description: "Agent forbidden tables include both gh and glab"
+    assertion: >
+      grep check on three files:
+      - core/components/agents/repo-orchestrator.md: contains both 'gh pr merge'
+        (existing) and a glab entry in the forbidden section
+      - core/components/agents/project-orchestrator.md: contains both 'gh issue'
+        entries (existing) and glab issue entries
+      - core/components/agents/code-builder.md: contains both 'gh pr create'
+        (existing) and 'glab mr create'
+    pass_criteria: "glab entries present in all three forbidden tables"
+    fail_criteria: "Any agent missing glab in its forbidden table"
+
+  - id: E8
+    description: "review-pr play contains no literal 'gh pr' invocation"
+    assertion: >
+      grep -n 'gh pr ' core/components/plays/review-pr/SKILL.md
+      returns zero matches (excluding comment lines that cite adapter as the
+      replacement — grep should target executable-looking occurrences).
+      Safer: grep -c '`gh pr ' (backtick-quoted invocations) returns 0.
+    pass_criteria: "Zero backtick-quoted gh pr invocations in file"
+    fail_criteria: "Any match found"
+
+  - id: E9
+    description: "merge-pr play contains no literal 'gh pr' invocation"
+    assertion: >
+      grep -c '`gh pr ' core/components/plays/merge-pr/SKILL.md returns 0.
+    pass_criteria: "Zero matches"
+    fail_criteria: "Any match found"
+
+  - id: E10
+    description: "submit-pr and merge-pr skills no longer reference platform subdirs"
+    assertion: >
+      grep -rn 'reference/github\|reference/gitlab\|reference/bitbucket' \
+        core/components/skills/submit-pr/SKILL.md \
+        core/components/skills/merge-pr/SKILL.md
+      returns zero matches (the dispatch blocks are gone; reference subdirs deleted).
+    pass_criteria: "Zero path references to reference/{platform}/ in both files"
+    fail_criteria: "Any reference/{platform}/ path found in either SKILL.md"
+
+  - id: E11
+    description: "/sync-claude deployed the new skill"
+    assertion: >
+      After T14, verify ~/.claude/skills/platform-adapter/SKILL.md exists:
+      `ls ~/.claude/skills/platform-adapter/SKILL.md` exits 0.
+    pass_criteria: "File present at deployment path"
+    fail_criteria: "File absent or ls exits non-zero"
+
+risks:
+  - id: R1
+    type: architectural
+    description: >
+      The adapter becomes a god-skill if additional verbs accrete beyond the
+      locked inventory. Once an abstraction layer exists, every new operation
+      is a tempting candidate for addition.
+    mitigation: >
+      Verb inventory is locked to the 16 listed in this PR. Any growth request
+      triggers a new issue — not an ad-hoc addition. Evals E1/E2 enforce the
+      current surface; reviewer explicitly rejects verb additions in this PR's
+      review checklist.
+    action: approval-required
+    ltm_reference: null
+    generated_evals: [E1, E2]
+
+  - id: R2
+    type: technical
+    description: >
+      GitLab project numeric ID resolution. The `update-comment` verb
+      (and any `glab api projects/{id}/...` call) requires a numeric project ID,
+      not the `owner/repo` slug used by GitHub. If the adapter does not
+      consistently resolve and cache this ID, callers will hit 404s.
+    mitigation: >
+      reference/gitlab/verbs.md documents the resolution procedure:
+      `glab api projects/{url_encoded_owner%2Fname} | jq '.id'`.
+      The adapter caches the result in a local variable for the duration of
+      a single invocation. Not persisted across calls — resolved fresh each time
+      (acceptable for current call volumes; re-evaluate if latency matters).
+    action: eval-driven
+    ltm_reference: null
+    generated_evals: [E6]
+
+  - id: R3
+    type: technical
+    description: >
+      Comment update-in-place semantics diverge between hosts. GitHub addresses
+      by global `comment_id` in `issues/comments/{id}`; GitLab requires
+      `projects/{project_id}/notes/{note_id}`. Callers must pass the right ID
+      type per platform, or the adapter must abstract this.
+    mitigation: >
+      Adapter reference docs (both github/verbs.md and gitlab/verbs.md) encode
+      the exact API path and required ID type. The `update-comment` verb
+      accepts a single `comment_id` argument; on GitHub it maps to the issues
+      endpoint; on GitLab it maps to notes endpoint with project_id resolution
+      as per R2. Callers pass one identifier — the adapter handles the mapping.
+      Documented in memory/tools/{platform}/adapter.md for agent awareness.
+    action: eval-driven
+    ltm_reference: null
+    generated_evals: [E2]
+
+  - id: R4
+    type: business
+    description: >
+      GitHub regression risk. Existing GitHub workflows must produce byte-identical
+      comment-record.yaml output after conversion. Routing through the adapter
+      adds one indirection layer — any argument ordering mistake or field-name
+      change in the GitHub reference doc will silently break GitHub users.
+    mitigation: >
+      Eval E3 (grep for direct gh calls) ensures the adapter is the only path.
+      Eval E8/E9 confirm play-level conversion. For functional validation, run
+      /review-pr on a live GitHub PR before and after and diff comment-record.yaml.
+      The adapter's GitHub branch must produce commands identical to the former
+      direct calls — reviewable in github/verbs.md during PR review.
+    action: eval-driven
+    ltm_reference: null
+    generated_evals: [E3, E8, E9]
+
+  - id: R5
+    type: architectural
+    description: >
+      Deleting submit-pr/merge-pr reference/{platform}/ subdirs removes existing
+      platform docs (including the already-working gitlab/pr.md and
+      gitlab/merge.md) that contributors may rely on or reference.
+    mitigation: >
+      User approved this in Q&A (discovery.md line 68: "Retire their
+      reference/{platform}/ subdirs into the adapter's reference"). The content
+      moves to platform-adapter/reference/{platform}/verbs.md — it is not lost,
+      only relocated. The adapter's reference files are richer (all verbs in one
+      place) than the per-skill references were. Monitor-only post-merge.
+    action: monitor-only
+    ltm_reference: "discovery.md line 68"
+    generated_evals: [E10]
+
+alternatives_considered:
+  - id: A1
+    approach: >
+      Implement the adapter as an extension inside repo-orchestrator agent rather
+      than as a new skill.
+    rejection_reason: >
+      User-locked in Q&A Q1 (discovery.md): "New skill. Agents call this skill;
+      the skill owns gh/glab routing." Beyond the explicit lock, the architecture
+      is wrong: agents own context engineering; skills own artifact production and
+      CLI dispatch. Mixing platform routing into the agent violates the
+      agent-vs-skill separation that the framework enforces (CLAUDE.md Rule 4:
+      "Agents hold the role of Context Crafting... the actual work is supposed to
+      be done by skills"). Razor 1 — Occam's Razor also favours the skill: fewer
+      changes to the agent, cleaner single-responsibility.
+
+  - id: A2
+    approach: >
+      Keep two dispatch patterns: verb adapter for review-pr operations, keep
+      reference/{platform}/ dispatch for submit-pr and merge-pr.
+    rejection_reason: >
+      User-locked in Q&A Q2 (discovery.md line 68): "CONVERT to the new
+      verb-adapter. Retire their reference/{platform}/ subdirs. One dispatch
+      pattern across the codebase." Two patterns mean two places to add a new
+      platform in future, two mental models for contributors, and a partial
+      migration that leaves the codebase in an inconsistent state. Razor 1 —
+      Occam's Razor: one pattern is fewer moving parts.
+
+  - id: A3
+    approach: >
+      Detect platform from `git remote -v` at runtime rather than reading
+      `platform:` from config.yaml.
+    rejection_reason: >
+      User-locked in Q&A Q1 (discovery.md line 67): "Read platform: from
+      .garura/core/config.yaml (NOT git remote -v). Config is authoritative."
+      Runtime remote parsing is fragile — SSH vs HTTPS format differences,
+      custom remote names, self-hosted GitLab URLs. Config is explicit and
+      operator-controlled. Razor 3 — Evidence over opinion: the submit-pr and
+      merge-pr skills already establish this pattern (understanding.md section 4,
+      lines 135–141) — follow the existing evidence.
+
+  - id: A4
+    approach: >
+      Convert submit-pr and merge-pr in a follow-on PR after this one.
+    rejection_reason: >
+      User-locked in Q&A Q2 (discovery.md line 34): "All. Else we leave a gap."
+      A partial conversion means two code paths coexist, the grep eval (E3) fails
+      by design, and any GitLab user using the ship flow gets a silent regression
+      on submit-pr. Razor 2 — Reversibility bias: shipping a complete conversion
+      in one PR is no harder to undo than a partial one, and it prevents a
+      permanent inconsistency in the codebase.

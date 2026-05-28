@@ -1,0 +1,46 @@
+analysis:
+  branch: fix/397-product-epic-ice-shape
+  issue: 397
+  groups:
+    - type: refactor
+      scope: epics
+      subject: >
+        migrate product-layer intent-epic shape to four-section ICE schema — identity
+        then intent / expectations / connections / provenance. Renames legacy keys
+        (intents[]→intent.goal, failure_conditions[]→intent.failure_scenario,
+        expectation→expectations, success_scenarios→success_scenario, kb_source→provenance.kb_source)
+        and introduces the non-negotiable human-readable tenet.
+      issue_ref: 397
+      issue_confidence: high
+      files:
+        - core/components/memory/standards/schemas/intent-epic.yaml
+        - core/components/memory/standards/rules/epics.md
+        - core/components/skills/generate-intent-epics/SKILL.md
+        - core/components/skills/generate-intent-epics/reference/intent.yaml
+        - core/components/skills/validate-intent-epics/SKILL.md
+        - core/components/skills/draft-epic-expectation/SKILL.md
+        - core/components/skills/derive-quality-profile-from-epics/SKILL.md
+        - core/components/skills/enrich-capabilities/SKILL.md
+        - core/components/skills/infer-epics-from-code/SKILL.md
+        - core/components/agents/epic-expectation-crafter.md
+        - core/components/agents/product-keeper.md
+  risks:
+    sensitive_files: []
+    breaking_changes:
+      - >
+        intent-epic-schema.yaml renames legacy top-level keys (intents, failure_conditions,
+        appetite, in_scope, anti_goals, must_not_break, problem_statement, expectation)
+        into the four-section ICE structure. Any existing epic YAML files written under
+        the old schema will fail validate-intent-epics after this change.
+      - >
+        validate-intent-epics description and validation logic now rejects banned legacy
+        keys — existing epics in .garura/product/scope/epics/ will need migration before
+        specify can run successfully.
+    ambiguous_types: []
+    hotfix_branch: false
+
+excluded:
+  - path: .garura/project/issues/393/
+    reason: >
+      Untracked STM directory for a different issue (#393). Excluded per C3 —
+      does not belong in the #397 commit group. Not a sensitive file.

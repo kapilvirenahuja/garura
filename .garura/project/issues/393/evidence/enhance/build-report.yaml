@@ -1,0 +1,100 @@
+implementation:
+  success: true
+  steps_completed: 13
+  steps_total: 13
+
+  files_created:
+    - core/components/skills/platform-adapter/SKILL.md
+    - core/components/skills/platform-adapter/reference/github/verbs.md
+    - core/components/skills/platform-adapter/reference/gitlab/verbs.md
+    - core/components/memory/tools/github/adapter.md
+    - core/components/memory/tools/gitlab/adapter.md
+
+  files_modified:
+    - path: core/components/skills/analyze-pr/SKILL.md
+      change: Replaced gh pr diff and gh pr view calls in Step 0a with platform-adapter skill invocations (verb diff-pr and view-pr). Updated auth preflight to reference adapter exit code instead of gh auth status.
+    - path: core/components/skills/manage-issue/SKILL.md
+      change: Replaced all direct gh issue and gh api invocations with platform-adapter skill invocations. Actions read, create, list, comment, close, resolve_or_create, and sub-issue attachment all route through the adapter. Updated reference and constraints sections.
+    - path: core/components/skills/manage-issue/reference/github-issue.md
+      change: Added delegation note at top explaining commands now execute via platform-adapter. File retained as historical reference.
+    - path: core/components/skills/archive-issue-stm/SKILL.md
+      change: Replaced gh issue view closedAt call with platform-adapter view-issue invocation. Added jq '.closedAt // .closed_at' coercion for cross-platform field name handling.
+    - path: core/components/skills/submit-pr/SKILL.md
+      change: Replaced Platform Dispatch section (reference/{platform}/pr.md dispatch block) with platform-adapter routing. Steps 3 and 4 now invoke platform-adapter create-pr and view-pr verbs. Updated constraints section.
+    - path: core/components/skills/merge-pr/SKILL.md
+      change: Replaced Platform Dispatch section (reference/{platform}/merge.md dispatch block) with platform-adapter routing. Steps 1, 2, and 3 now invoke platform-adapter view-pr and merge-pr verbs. Updated constraints section.
+    - path: core/components/plays/review-pr/SKILL.md
+      change: 7 direct gh invocations replaced. Agent boundaries table updated. Step 0 prose updated. Step 5 prose updated (update-comment, comment-pr, request-changes, add-reviewer). Step 5 eval updated. Pause and Resume auto-detect phrase updated.
+    - path: core/components/plays/merge-pr/SKILL.md
+      change: Pre-flight pr_info fetch replaced with platform-adapter view-pr skill invocation comment. Field name access updated to handle baseRefName (GitHub) vs target_branch (GitLab).
+    - path: core/components/plays/enhance/SKILL.md
+      change: Line 733 narrative parenthetical updated from (gh pr diff / gh pr view) to (platform-adapter diff-pr / platform-adapter view-pr).
+    - path: core/components/agents/repo-orchestrator.md
+      change: Added glab rows to Forbidden table alongside existing gh rows. Added routing note directing all code-host operations through platform-adapter.
+    - path: core/components/agents/project-orchestrator.md
+      change: Added glab issue create/view/list/close and glab api rows to Forbidden table. Added routing note pointing to platform-adapter via manage-issue.
+    - path: core/components/agents/code-builder.md
+      change: Added glab mr create alongside gh pr create in Forbidden table with routing note to repo-orchestrator/platform-adapter.
+    - path: core/components/agents/knowledge-extractor.md
+      change: Updated pr_diff source note from gh pr diff {pr_number} to platform-adapter diff-pr {pr_number}.
+    - path: core/components/memory/standards/templates/pr-review-comment.md
+      change: Update Behavior section updated to reference platform-adapter update-comment and platform-adapter comment-pr verbs instead of literal gh api and gh pr comment commands.
+    - path: core/components/memory/standards/templates/github-issue.md
+      change: Added platform note at top directing GitLab users to platform-adapter create-issue. Added adapter equivalent note below CLI Command section.
+    - path: core/components/memory/standards/templates/issue-comment-rca-approved.md
+      change: Field Derivation @{user} source updated to platform-adapter view-user. CLI Command section updated to invoke platform-adapter comment-issue with legacy reference note.
+    - path: .garura/core/config.yaml
+      change: Added commented-out gitlab block as schema documentation, parallel to existing github block. Active platform key remains github.
+
+  files_deleted:
+    - core/components/skills/submit-pr/reference/github/pr.md
+    - core/components/skills/submit-pr/reference/gitlab/pr.md
+    - core/components/skills/submit-pr/reference/bitbucket/pr.md
+    - core/components/skills/merge-pr/reference/github/merge.md
+    - core/components/skills/merge-pr/reference/gitlab/merge.md
+    - core/components/skills/merge-pr/reference/bitbucket/merge.md
+
+  task_status:
+    T1: completed
+    T2: completed
+    T3: completed
+    T4: completed
+    T5: completed
+    T6: completed
+    T7: completed
+    T8: completed
+    T9: completed
+    T10: completed
+    T11: completed
+    T12: completed
+    T13: completed
+    T14: skipped — orchestrator task, not executed by implementer per contract instructions
+
+  deviations:
+    - task: T5
+      detail: >
+        impl-context.md described routing manage-issue through the adapter as a full conversion.
+        understanding.md (section 6) describes an alternative of adding a gitlab-issue.md sibling
+        reference and using the existing platform-dispatch pattern. The impl-context.md approach.yaml
+        (the authoritative input) specifies adapter routing — that approach was followed. No gitlab-issue.md
+        was added to manage-issue/reference/ as directed by the impl-context instructions.
+        Also: impl-context.md specified "repurpose reference/github-issue.md as a one-line delegation
+        pointer". This was initially implemented with a delegation note atop the full file; corrected
+        post-implementation to a true single-line delegation pointer (file trimmed to one blockquote line).
+    - task: T7 and T8
+      detail: >
+        submit-pr/SKILL.md Step 1 (Push Branch) previously read the push command from the platform
+        reference file. Since those reference files are now deleted, Step 1 was updated to use
+        git push -u origin HEAD directly (platform-neutral push; this step does not vary by platform).
+        The impl-context.md did not explicitly specify what to do with Step 1 after deleting reference
+        files — this deviation is required for the skill to remain functional.
+    - task: T10
+      detail: >
+        The pre-flight pr_info fetch in merge-pr play was in a bash code block. The initial edit
+        wrote pr_info=$(# ...) which is syntactically malformed bash (evaluates to empty string).
+        Corrected post-implementation: rewritten as pure comment lines matching the pseudo-code style
+        of the rest of that bash block (which already uses "# Halt if ..." comments).
+        This follows the contract instruction to express adapter calls as skill invocations in prose,
+        not as bash commands.
+
+  issues_encountered: []

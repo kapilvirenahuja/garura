@@ -1,0 +1,13 @@
+ M .garura/project/issues/capture-report/evidence/capture/inference-trace.yaml
+?? .garura/project/issues/393/
+?? .garura/project/issues/397/
+?? .garura/project/issues/399/
+?? .garura/project/issues/capture-report/evidence/capture/body.md
+?? .garura/project/issues/capture-report/evidence/capture/issue-result.yaml
+?? .garura/project/issues/capture-report/evidence/capture/title.txt
+?? core/components/agents/grill-anchor-resolver.md
+?? core/components/agents/shape-applier.md
+?? core/components/plays/grill-me/
+?? core/components/skills/apply-shape-changes/
+?? core/components/skills/check-grill-tensions/
+?? core/components/skills/resolve-grill-anchor/

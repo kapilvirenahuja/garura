@@ -1,0 +1,44 @@
+play: grill-me
+classifications:
+  - id: C1
+    category: artifact-verifiable
+    rationale: per-round push-back log records cited_constraint_id or quoted phrase; check that no push-back has empty citation
+  - id: C2
+    category: artifact-verifiable
+    rationale: per-round log counts push-backs per weak answer; check ≤1 per (round, weak_answer)
+  - id: C3
+    category: artifact-verifiable
+    rationale: round transcript surface contains no machine/agent jargon tokens; register matches anchor lock
+  - id: C4
+    category: artifact-verifiable
+    rationale: each round in session-state.yaml has questions[], synthesis_text, tensions_report_path (proves tension check ran)
+  - id: C5
+    category: pre-flight
+    rationale: anchor kind/target must be supplied and valid before round one — PF4/PF5
+  - id: C6
+    category: artifact-verifiable
+    rationale: anchor lock's defended_count > 0 (skill halts otherwise; absence of halt means it passed)
+  - id: C7
+    category: artifact-verifiable
+    rationale: locked-shape.md exists at the canonical STM path with all required sections
+  - id: C8
+    category: artifact-verifiable
+    rationale: session-state.yaml contains exactly one bundle-approval entry, present iff any bundle file was written
+  - id: C9
+    category: artifact-verifiable
+    rationale: session-state.yaml termination_reason in {defensible, human_good_enough}; never round_count/time/tokens
+  - id: C10
+    category: artifact-verifiable
+    rationale: each round log carries a mode_reminder_recorded boolean = true (orchestrator-stamped)
+  - id: C11
+    category: structural
+    rationale: play structure (agent table) declares two domain agents only and excludes specify/design/arch/craft-ice; no invocation of those plays anywhere in the compiled flow
+  - id: C12
+    category: artifact-verifiable
+    rationale: a single commit covers every bundle file; presence of any bundle file at HEAD without a matching commit is a violation; rollback path exits with files_rolled_back list and no commit
+  - id: C13
+    category: artifact-verifiable
+    rationale: bundle commit contains zero code-path files; gh issue list filtered to grill-followup label for this session returns exactly one issue
+  - id: C14
+    category: artifact-verifiable
+    rationale: bundle commit includes an epic file whose status field is in {planned, development, rollout, released, cleanup}

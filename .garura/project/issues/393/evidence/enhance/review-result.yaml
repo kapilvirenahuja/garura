@@ -1,0 +1,158 @@
+pr_number: 395
+pr_url: "https://github.com/kapilvirenahuja/garura/pull/395"
+branch: enhance/393-gitlab-support
+base: main
+analysis_mode: pr-scoped
+analyzed_at: "2026-05-27"
+
+summary:
+  suggested_title: "feat(platform-adapter): add GitLab support via verb adapter (#393)"
+  commit_types: [feat, chore]
+  file_patterns_matched: [documentation, configuration, new_skill, agent_definitions]
+  ready: true
+  blocking_issues: []
+
+evals_verification:
+  - id: E1
+    description: "platform-adapter SKILL.md exists and contains all 16 verbs"
+    status: PASS
+    evidence: "All 16 verbs found: view-pr, diff-pr, comment-pr, request-changes, add-reviewer, view-issue, create-issue, list-issues, close-issue, comment-issue, add-label, attach-sub-issue, create-pr, merge-pr, view-user, update-comment"
+
+  - id: E2
+    description: "Each verb has a github and gitlab reference entry"
+    status: PASS
+    evidence: "Both reference/github/verbs.md and reference/gitlab/verbs.md exist. All 16 verb section headings present in each file."
+
+  - id: E3
+    description: "No direct gh or glab invocation outside platform-adapter skill"
+    status: PASS
+    evidence: >
+      Remaining grep matches are all narrative/documentation references, not executable invocations:
+      - issue-comment-rca-approved.md line 82: blockquoted legacy reference note (explicitly labelled 'Legacy reference', directs readers to use adapter)
+      - github-issue.md line 3: descriptive header text; line 65: adapter-equivalent callout note
+      - project-orchestrator.md lines 332-339: forbidden table entries (listing what NOT to call — correct placement)
+      - code-builder.md lines 290-291: forbidden table entries
+      - repo-orchestrator.md lines 399-401: forbidden/redirect table entries
+      - define/SKILL.md line 33: pre-existing forbidden prose (not in scope of this PR)
+      Zero backtick-quoted executable gh/glab invocations outside platform-adapter/ and memory/tools/ KB docs.
+
+  - id: E4
+    description: "Adapter halts with install hint when platform=gitlab and glab missing"
+    status: PASS
+    evidence: "SKILL.md contains: 'glab CLI not found. Install via: brew install glab or https://gitlab.com/gitlab-org/cli' — present in both which glab pre-flight block and constraints section."
+
+  - id: E5
+    description: "request-changes on GitLab sets draft AND posts comment"
+    status: PASS
+    evidence: "gitlab/verbs.md request-changes section contains both: (a) glab mr update {pr_number} --draft and (b) glab mr note {pr_number} --message. Two-step gap behaviour explicitly documented."
+
+  - id: E6
+    description: "attach-sub-issue on GitLab uses related-issues fallback"
+    status: PASS
+    evidence: "gitlab/verbs.md attach-sub-issue section references glab api projects/{encoded_project}/issues/{n}/links. Gap behaviour and loss of hierarchy explicitly documented for caller awareness."
+
+  - id: E7
+    description: "Agent forbidden tables include both gh and glab"
+    status: PASS
+    evidence: >
+      - repo-orchestrator.md: 2 glab occurrences in forbidden table (glab mr view, glab api group)
+      - project-orchestrator.md: 5 glab occurrences (glab issue create/view, list, close, api)
+      - code-builder.md: 1 occurrence (glab mr create alongside gh pr create)
+
+  - id: E8
+    description: "review-pr play contains no literal 'gh pr' invocation"
+    status: PASS
+    evidence: "grep -c '`gh pr ' core/components/plays/review-pr/SKILL.md returns 0"
+
+  - id: E9
+    description: "merge-pr play contains no literal 'gh pr' invocation"
+    status: PASS
+    evidence: "grep -c '`gh pr ' core/components/plays/merge-pr/SKILL.md returns 0"
+
+  - id: E10
+    description: "submit-pr and merge-pr skills no longer reference platform subdirs"
+    status: PASS
+    evidence: "grep for reference/github|reference/gitlab|reference/bitbucket in both SKILL.md files returns zero matches. Six reference files deleted from the diff."
+
+  - id: E11
+    description: "/sync-claude deployed the new skill"
+    status: PASS
+    evidence: "ls ~/.claude/skills/platform-adapter/SKILL.md exits 0. File present at deployment path."
+
+evals_summary:
+  total: 11
+  pass: 11
+  fail: 0
+  review: 0
+
+checklist:
+  must_have:
+    - item: "New skill directory and files are present and complete"
+      trigger: "New capability introduced (platform-adapter skill with 3 files)"
+      status: PASS
+      evidence: "SKILL.md + reference/github/verbs.md + reference/gitlab/verbs.md all present under core/components/skills/platform-adapter/"
+
+    - item: "All callers converted — no stranded direct gh calls"
+      trigger: "Cross-cutting change across plays, agents, skills"
+      status: PASS
+      evidence: "E3 confirmed zero executable gh/glab invocations outside the adapter and its KB docs"
+
+    - item: "Deleted files accounted for"
+      trigger: "6 reference files deleted (submit-pr and merge-pr platform subdirs)"
+      status: PASS
+      evidence: "All 6 deletions present in diff: submit-pr/reference/{github,gitlab,bitbucket}/pr.md and merge-pr/reference/{github,gitlab,bitbucket}/merge.md"
+
+    - item: "Agent forbidden tables updated"
+      trigger: "Agent boundary definitions changed (3 agents)"
+      status: PASS
+      evidence: "repo-orchestrator, project-orchestrator, code-builder all carry glab entries alongside existing gh entries"
+
+    - item: "PR mergeable, no conflicts"
+      trigger: "Branch diverged from main"
+      status: PASS
+      evidence: "GitHub reports mergeable: MERGEABLE"
+
+    - item: "sync-claude deployed new skill to ~/.claude/"
+      trigger: "New skill must be available at runtime"
+      status: PASS
+      evidence: "~/.claude/skills/platform-adapter/SKILL.md confirmed present"
+
+  nice_to_have:
+    - item: "Functional smoke test of platform-adapter on a live GitHub PR"
+      trigger: "Cross-platform abstraction; GitHub path must remain byte-compatible"
+      status: REVIEW
+      evidence: "No automated CI configured for this repo. Manual verification recommended: run /review-pr on a real GitHub PR post-merge and confirm comment-record.yaml output is unchanged."
+
+    - item: "STM evidence files from issue #377 included in PR diff"
+      trigger: "Branch carries a prior evidence commit (chore(stm) for #377)"
+      status: REVIEW
+      evidence: >
+        13 files under .garura/project/issues/377/ are included in the PR diff.
+        These are pre-existing STM artifacts from a prior fix-it run on this branch.
+        They are harmless (read-only evidence files) but add noise to the PR diff.
+        Consider whether a separate cleanup branch/commit would reduce reviewer cognitive load.
+        Not blocking.
+
+observations:
+  - >
+    The E3 eval definition uses backtick-quoted pattern grep. Some narrative occurrences
+    (legacy-reference blockquotes, forbidden table entries) show gh/glab as text but are
+    NOT executable invocations. All confirmed narrative. Eval intent satisfied.
+  - >
+    The github-issue.md template title line (line 3) still reads "via gh issue create"
+    in its header. This is descriptive context for the GitHub-specific template and is
+    intentional per the approach (keep GitHub content intact, add adapter note alongside).
+    Not a regression.
+  - >
+    T14 (sync-claude) was listed as an orchestrator task in the implementation plan.
+    It was completed as evidenced by E11 PASS — the skill is live at ~/.claude/.
+
+overall:
+  ready: true
+  confidence: 0.82
+  blocking_count: 0
+  review_items: 2
+  verdict: >
+    All 11 evals PASS. No blocking issues. Two nice-to-have items flagged for
+    post-merge attention (live smoke test; STM noise in diff). PR is ready for
+    Tether at the PR checkpoint.

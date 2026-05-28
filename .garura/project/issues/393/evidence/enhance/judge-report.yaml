@@ -1,0 +1,110 @@
+judge_report:
+  timestamp: "2026-05-27T00:00:00Z"
+  eval_source: "core/components/plays/enhance/reference/evals/solution-rating.yaml"
+  total_evals: 4
+  passed: 4
+  failed: 0
+  pass_rate: "100.0%"
+  overall: "PASS"
+  overall_confidence: 0.82
+
+  category_breakdown:
+    contract_mismatch: { total: 1, passed: 1, failed: 0 }
+    intent_propagation: { total: 1, passed: 1, failed: 0 }
+    stale_boundary: { total: 1, passed: 1, failed: 0 }
+    confidence_aggregation: { total: 1, passed: 1, failed: 0 }
+
+  results:
+    - eval_id: "ER-1"
+      name: "Contract Mismatch at Skill Boundary"
+      status: "PASS"
+      severity_if_fail: blocker
+      evidence: |
+        Verified all skill boundaries in the delivered enhancement.
+
+        platform-adapter Input Contract: two required fields — `verb` (string) and `args` (map). Every
+        caller examined passes exactly these fields and nothing else.
+
+        Checked callers:
+        - manage-issue/SKILL.md: all 9 invoke lines use `verb: <verb-name>` and `args: {…}` — no
+          undeclared fields passed, no required fields absent.
+        - analyze-pr/SKILL.md lines 38–40: passes `verb: diff-pr` / `verb: view-pr` with
+          `args: {pr_number}` — matches contract.
+        - archive-issue-stm/SKILL.md line 39: passes `verb: view-issue` with
+          `args: {issue_number}` — matches contract.
+        - submit-pr/SKILL.md line 55: passes `verb: create-pr` with full args map — matches contract.
+        - merge-pr/SKILL.md lines 42, 46, 52: passes `verb: view-pr` or `verb: merge-pr` with
+          `args: {pr_number}` — matches contract.
+        - review-pr play lines 107, 343, 346, 347: all pass `verb` + `args` inline — matches contract.
+
+        No undeclared fields found at any boundary. No required fields missing from any dispatch.
+
+    - eval_id: "ER-2"
+      name: "Intent-Propagation Break in Agent-to-Agent Handoff"
+      status: "PASS"
+      severity_if_fail: blocker
+      evidence: |
+        Traced all upstream artifact writes to downstream consumers in the review-pr play (the
+        most complex flow in the enhancement).
+
+        repo-orchestrator writes pr-meta.yaml and diff.patch (review-pr/SKILL.md line 107).
+        Downstream agent dispatch contracts at lines 99–100, 121–122, 162–163, 245, 329 all
+        explicitly declare paths to both artifacts. No produced artifact is an orphan.
+
+        platform-adapter itself is a terminal executor (produces stdout + exit_code returned
+        directly to the calling skill, not written to disk as an artifact) — no handoff orphan
+        risk at this layer.
+
+        All other enhanced skills (manage-issue, analyze-pr, archive-issue-stm, submit-pr,
+        merge-pr) invoke platform-adapter and receive its raw return — no downstream agent
+        needs to consume these as disk artifacts. No propagation breaks found.
+
+    - eval_id: "ER-3"
+      name: "Stale Agent Boundary Contradicting New Rule"
+      status: "PASS"
+      severity_if_fail: blocker
+      evidence: |
+        Checked all three agents touched by the enhancement for stale boundary statements.
+
+        repo-orchestrator.md: Forbidden table at line 399 now explicitly lists both `gh pr` and
+        `glab mr` operations as forbidden, routing to platform-adapter. Line 405 adds the
+        routing mandate. No remaining MUST NOT statement contradicts the new rule.
+
+        project-orchestrator.md lines 332–339: Both `gh issue` and `glab issue` entries are
+        in the forbidden table, all routing through manage-issue → platform-adapter. No
+        contradiction found.
+
+        code-builder.md line 291: `glab mr create` added alongside `gh pr create`. No
+        contradiction found.
+
+        knowledge-extractor.md line 314: `pr_diff` source note updated from `gh pr diff` to
+        `platform-adapter diff-pr`. No stale reference remains.
+
+        No agent boundary statement found that prohibits behaviour the enhancement now requires,
+        nor any that permits behaviour the enhancement now forbids.
+
+    - eval_id: "ER-4"
+      name: "Overall Confidence Aggregation Cap"
+      status: "PASS"
+      severity_if_fail: blocker
+      evidence: |
+        ER-1 PASS, ER-2 PASS, ER-3 PASS — no blocker concerns in any of the three prior evals.
+        Confidence cap of 0.55 does NOT apply. Overall confidence is uncapped and set at 0.82,
+        reflecting high-quality delivery with two minor observations noted below.
+
+        Minor observations (not blockers):
+        1. submit-pr and merge-pr reference/{platform}/ subdirs were emptied (not deleted). The
+           approach specified deletion; the directories remain on disk as empty folders. No SKILL.md
+           references them any longer (grep of both SKILL.md files returns zero matches), so there
+           is no functional gap — eval E10 from the approach evals would PASS. The empty directories
+           are cosmetically inconsistent with the approach spec but cause no runtime issue.
+        2. manage-issue does not have a discrete `add-label` action (the add-label adapter verb
+           exists in platform-adapter but manage-issue has no section routing to it). The approach
+           listed `add-label` in the verb conversion list. This is a narrow coverage gap — it does
+           not break any active call path since no existing manage-issue action used `gh issue edit
+           --add-label` directly, but the verb is declared in the adapter and not wired from the
+           skill. Classified as a follow-on gap, not a blocker.
+
+  plaintext_deleted: not_applicable
+  notes: >
+    No decryption required — eval file was plaintext YAML. plaintext_deleted is not applicable.

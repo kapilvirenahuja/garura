@@ -1,0 +1,68 @@
+branch: feat/399-grill-me
+issue: 399
+total_files_changed: 14
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+
+groups:
+  - id: G1
+    type: feat
+    scope: grill-me
+    subject: "add grill-me play with anchor resolver, shape applier, and grill skills"
+    issue: 399
+    confidence: high
+    files:
+      - core/components/agents/grill-anchor-resolver.md
+      - core/components/agents/shape-applier.md
+      - core/components/plays/grill-me/SKILL.md
+      - core/components/plays/grill-me/reference/expectation.yaml
+      - core/components/plays/grill-me/reference/intent.yaml
+      - core/components/skills/apply-shape-changes/SKILL.md
+      - core/components/skills/check-grill-tensions/SKILL.md
+      - core/components/skills/resolve-grill-anchor/SKILL.md
+
+  - id: G2
+    type: chore
+    scope: stm
+    subject: "record STM evidence for issues 393, 397, 399, and capture-report"
+    issue: 399
+    confidence: high
+    files:
+      - .garura/project/issues/393/context/understanding.md
+      - .garura/project/issues/393/evidence/enhance/20260527-120712.md
+      - .garura/project/issues/393/evidence/enhance/approach.yaml
+      - .garura/project/issues/393/evidence/enhance/branch-result.yaml
+      - .garura/project/issues/393/evidence/enhance/build-report.yaml
+      - .garura/project/issues/393/evidence/enhance/discovery.md
+      - .garura/project/issues/393/evidence/enhance/impl-context.md
+      - .garura/project/issues/393/evidence/enhance/issue-read.yaml
+      - .garura/project/issues/393/evidence/enhance/judge-report.yaml
+      - .garura/project/issues/393/evidence/enhance/pr-result.yaml
+      - .garura/project/issues/393/evidence/enhance/quality-report.yaml
+      - .garura/project/issues/393/evidence/enhance/review-result.yaml
+      - .garura/project/issues/393/evidence/enhance/ship-result.yaml
+      - .garura/project/issues/393/evidence/enhance/test-context.md
+      - .garura/project/issues/393/evidence/enhance/verification-report.yaml
+      - .garura/project/issues/393/evidence/merge-pr/merge-result.yaml
+      - .garura/project/issues/397/evidence/commit-code/analysis.yaml
+      - .garura/project/issues/397/evidence/commit-code/issue-mappings.yaml
+      - .garura/project/issues/397/evidence/create-pr/analysis.yaml
+      - .garura/project/issues/397/evidence/merge-pr/merge-result.yaml
+      - .garura/project/issues/399/evidence/create-play/grill-me/agent-audit-grill-anchor-resolver.md
+      - .garura/project/issues/399/evidence/create-play/grill-me/agent-audit-shape-applier.md
+      - .garura/project/issues/399/evidence/create-play/grill-me/constraint-classifications.yaml
+      - .garura/project/issues/399/evidence/create-play/grill-me/coverage-matrix.md
+      - .garura/project/issues/399/evidence/create-play/grill-me/evals.yaml
+      - .garura/project/issues/399/evidence/create-play/grill-me/skill-manifest.yaml
+      - .garura/project/issues/399/evidence/create-play/grill-me/workflow-and-preflight.md
+      - .garura/project/issues/399/evidence/start-feature/20260528-092112.md
+      - .garura/project/issues/399/evidence/start-feature/branch-result.yaml
+      - .garura/project/issues/399/evidence/start-feature/issue-resolution.yaml
+      - .garura/project/issues/399/evidence/start-feature/pre-play-snapshot.txt
+      - .garura/project/issues/capture-report/evidence/capture/body.md
+      - .garura/project/issues/capture-report/evidence/capture/inference-trace.yaml
+      - .garura/project/issues/capture-report/evidence/capture/issue-result.yaml
+      - .garura/project/issues/capture-report/evidence/capture/title.txt

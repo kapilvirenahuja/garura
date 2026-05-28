@@ -1,0 +1,7 @@
+pr_number: 395
+pr_url: "https://github.com/kapilvirenahuja/garura/pull/395"
+head_sha: "fd1162c0e7edea83e94b2d22e177f649ccfc6108"
+state: open
+title: "feat(platform-adapter): add GitLab support via verb adapter (#393)"
+base: main
+branch: enhance/393-gitlab-support

@@ -1,0 +1,1 @@
+[ENH] Remove doc-builder HTML generation from arch play
