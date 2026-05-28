@@ -1,0 +1,46 @@
+quality_report:
+  timestamp: "2026-05-27T00:00:00Z"
+  overall: "PASS"
+  qp_source: ".garura/product/specification/quality-profile.yaml"
+  quality_profile_status: "DRAFT"
+
+  gates:
+    - name: "build"
+      status: "PASS"
+      command: "N/A"
+      exit_code: 0
+      evidence: "No build step in markdown-only components framework."
+
+    - name: "typecheck"
+      status: "PASS"
+      command: "N/A"
+      exit_code: 0
+      evidence: "No compiled code — type checking not applicable to this repo."
+
+    - name: "unit_tests"
+      status: "PASS"
+      command: "N/A"
+      exit_code: 0
+      evidence: "Verification handled by play eval framework (already executed in verify step of this play)."
+
+    - name: "lint"
+      status: "PASS"
+      command: "node core/tools/lint-components/index.js --target core/components --output json"
+      exit_code: 1
+      violations_total: 66
+      violations_new: 0
+      evidence: |
+        Linter reported 66 errors and 1 warning in the full components tree.
+        Baseline check (stash + re-run on main state) produced identical counts: 66 errors, 1 warning.
+        Delta introduced by this branch: 0 new violations.
+        All 66 pre-existing errors are in files unrelated to this branch's changes.
+        Changed files (submit-pr/SKILL.md, merge-pr/SKILL.md, analyze-pr/SKILL.md, manage-issue/SKILL.md,
+        archive-issue-stm/SKILL.md, review-pr/SKILL.md, merge-pr play, enhance play, agents, templates,
+        config.yaml, new platform-adapter skill) introduced zero structural or semantic violations.
+        Gate PASS: no blocking violations introduced by this change.
+      baseline_method: "git stash → lint main state → git stash pop → lint branch state → compare counts"
+      static_analysis:
+        tool: "eslint"
+        note: "lint-components is the project's structural linter (Node.js, not eslint). Used as the applicable tool."
+
+  vision_gate_violations: []

@@ -1,0 +1,31 @@
+play: grill-me
+skills:
+  - name: resolve-grill-anchor
+    path: core/components/skills/resolve-grill-anchor/SKILL.md
+    status: new
+    purpose: lock anchor + inventory downstream target-shape touchpoints
+    enforces: [C3-register, C5, C6, F5, F11]
+
+  - name: check-grill-tensions
+    path: core/components/skills/check-grill-tensions/SKILL.md
+    status: new
+    purpose: per-round tension detection with mandatory citation
+    enforces: [C1, C4, F1, F4]
+
+  - name: apply-shape-changes
+    path: core/components/skills/apply-shape-changes/SKILL.md
+    status: new
+    purpose: atomic close bundle — locked shape + target edits + epic + one code issue
+    enforces: [C7, C8, C12, C13, C14, F7, F12, F13, F14]
+
+  - name: manage-issue
+    path: core/components/skills/manage-issue/SKILL.md
+    status: existing
+    purpose: file the single code follow-up issue at close
+    enforces: [C13 — exactly one issue per session]
+
+  - name: write-evidence
+    path: core/components/skills/write-evidence/SKILL.md
+    status: existing
+    purpose: round logs + session-state writes within .garura/ whitelist
+    enforces: [STM whitelist]

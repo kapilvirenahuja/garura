@@ -1,0 +1,10 @@
+pr_number: 398
+merge_sha: 705f40a3e60efb603083644c09b6afdaaf4e0c77
+status: merged
+base_branch: main
+branch_deleted:
+  local: true
+  remote: true
+notes: >
+  Both local and remote branches were deleted by `gh pr merge --delete-branch`.
+  Subsequent deletion attempts returned "branch not found" — treated as success per C6.

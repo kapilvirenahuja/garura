@@ -1,0 +1,13 @@
+result:
+  success: true
+  branch:
+    name: "enhance/393-gitlab-support"
+    base_ref: "main"
+    base_sha: "1554cd3c0bc24b21ea6dc3dba96294e9caea9af6"
+    pushed: true
+    tracking: "origin/enhance/393-gitlab-support"
+  worktree:
+    used: false
+    path: null
+    reason: "Working tree was clean (only untracked STM files — no tracked changes)"
+  error: null

@@ -1,0 +1,9 @@
+title: "[ENH] Remove doc-builder HTML generation from arch play"
+number: 405
+labels:
+  - enhancement
+type: enhancement
+url: https://github.com/kapilvirenahuja/garura/issues/405
+state: open
+created: true
+completed_at: "2026-05-28"

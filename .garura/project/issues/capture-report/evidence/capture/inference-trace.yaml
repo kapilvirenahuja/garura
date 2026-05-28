@@ -1,10 +1,11 @@
 type_resolution:
-  source: explicit          # caller provided type=bug
-  resolved_type: bug
+  source: inferred
+  resolved_type: enhancement
   ambiguous_text: false
-repo_slug: kapilvirenahuja/garura   # resolved from github.repo URL (config has no owner/name keys)
-label: bug
+  inference_basis: "keyword 'remove'/'capability' — cleanup/improvement"
+repo_slug: kapilvirenahuja/garura
+label: enhancement
 events:
-  - event: explicit-type
-    type: bug
-    timestamp: "2026-05-25T00:00:00Z"
+  - event: inferred-type
+    type: enhancement
+    timestamp: "2026-05-28T00:00:00Z"

@@ -1,0 +1,224 @@
+play: enhance
+issue: 393
+role: tester
+iteration: 1
+evals:
+  - id: E1
+    status: PASS
+    evidence: |
+      Command: for verb in view-pr diff-pr comment-pr request-changes add-reviewer view-issue create-issue list-issues close-issue comment-issue add-label attach-sub-issue create-pr merge-pr view-user update-comment; do echo -n "$verb: "; grep -c "$verb" core/components/skills/platform-adapter/SKILL.md; done
+      Output:
+        view-pr: 2
+        diff-pr: 2
+        comment-pr: 2
+        request-changes: 2
+        add-reviewer: 2
+        view-issue: 2
+        create-issue: 2
+        list-issues: 2
+        close-issue: 2
+        comment-issue: 2
+        add-label: 2
+        attach-sub-issue: 2
+        create-pr: 2
+        merge-pr: 2
+        view-user: 2
+        update-comment: 2
+      All 16 verb names found in core/components/skills/platform-adapter/SKILL.md.
+    notes: null
+
+  - id: E2
+    status: PASS
+    evidence: |
+      Files checked:
+        core/components/skills/platform-adapter/reference/github/verbs.md — exists
+        core/components/skills/platform-adapter/reference/gitlab/verbs.md — exists
+
+      GitHub verbs.md grep counts (all ≥1):
+        view-pr: 2, diff-pr: 1, comment-pr: 1, request-changes: 2, add-reviewer: 2,
+        view-issue: 1, create-issue: 1, list-issues: 1, close-issue: 1, comment-issue: 1,
+        add-label: 3, attach-sub-issue: 1, create-pr: 1, merge-pr: 1, view-user: 1, update-comment: 1
+
+      GitLab verbs.md grep counts (all ≥1):
+        view-pr: 1, diff-pr: 1, comment-pr: 1, request-changes: 1, add-reviewer: 1,
+        view-issue: 1, create-issue: 1, list-issues: 1, close-issue: 1, comment-issue: 1,
+        add-label: 1, attach-sub-issue: 1, create-pr: 1, merge-pr: 1, view-user: 2, update-comment: 1
+
+      Both files exist; all 16 verb headings present in each.
+    notes: null
+
+  - id: E3
+    status: PASS
+    evidence: |
+      Command: grep -rn --include="*.md" -E '`gh (pr|api|issue|run|workflow)' core/components/ | grep -v "core/components/skills/platform-adapter/"
+      Matches outside platform-adapter:
+        core/components/memory/tools/github/adapter.md — KB narrative doc, lines 15-108: all
+          occurrences are in "Backed by:" or similar descriptive prose (e.g., "Backed by: `gh pr view {pr_number} --json ...`").
+          This is the memory/tools/ KB narrative. Classified: descriptive, not executable.
+        core/components/memory/standards/templates/github-issue.md:65 — prose saying
+          "The adapter dispatches to `gh issue create` (GitHub) or `glab issue create` (GitLab)".
+          Classified: descriptive (explaining adapter dispatch, not an invocation).
+        core/components/memory/standards/templates/issue-comment-rca-approved.md:82 — prose:
+          "The backing CLI command on GitHub is `gh issue comment ...`". Classified: descriptive legacy reference.
+        core/components/agents/project-orchestrator.md:332-335 — forbidden table entries
+          showing `gh issue create` etc. in the "FORBIDDEN — use skill instead" column.
+          Classified: policy/prohibition text, not executable invocations.
+        core/components/agents/repo-orchestrator.md:399-400 — forbidden table entries.
+          Classified: policy/prohibition text.
+        core/components/agents/code-builder.md:290 — forbidden table entry `gh pr create`.
+          Classified: policy/prohibition text.
+        core/components/plays/define/SKILL.md:33 — "Forbidden: Direct `gh` or `git` invocations."
+          Classified: prohibition statement.
+
+      Command: grep -rn --include="*.md" -E '`glab (pr|api|issue|run|workflow|mr)' core/components/ | grep -v "core/components/skills/platform-adapter/"
+      Matches outside platform-adapter:
+        core/components/memory/tools/gitlab/adapter.md — KB narrative doc, all occurrences
+          are in "Backed by:" descriptive prose. Classified: descriptive.
+        core/components/memory/standards/templates/github-issue.md:65 — descriptive adapter prose.
+        core/components/memory/standards/templates/issue-comment-rca-approved.md:82 — descriptive legacy reference.
+        core/components/agents/project-orchestrator.md:336-339 — forbidden table entries. Classified: policy text.
+        core/components/agents/repo-orchestrator.md:401 — forbidden table entry. Classified: policy text.
+        core/components/agents/code-builder.md:291 — forbidden table entry. Classified: policy text.
+
+      Additional check: bash code fences in plays/skills (excluding platform-adapter) containing gh/glab:
+      grep -rn -A1 '```bash' core/components/plays/ core/components/skills/ --exclude-dir="platform-adapter" | grep -E 'gh (pr|issue|api)|glab (mr|issue|api)'
+      Output: (empty — no matches)
+
+      No executable gh/glab invocations found outside the platform-adapter skill directory.
+      All matches are either descriptive KB prose (memory/tools/), forbidden-table policy entries, or prohibition statements.
+    notes: The memory/tools/github/adapter.md and memory/tools/gitlab/adapter.md files are
+      KB narrative docs documenting what the adapter does — all backtick usages there are
+      "Backed by:" descriptive labels, not invocations. The agents' forbidden tables reference
+      gh/glab to tell agents what commands to avoid — these are policy statements, not executable calls.
+
+  - id: E4
+    status: PASS
+    evidence: |
+      Command: grep -n -i "glab\|brew install\|not found\|install hint\|glab CLI" core/components/skills/platform-adapter/SKILL.md
+      Relevant output:
+        line 64: When `platform=gitlab`, verify `glab` CLI is installed:
+        line 67: which glab
+        line 70: If `glab` is not found, halt immediately with:
+        line 73: glab CLI not found. Install via: brew install glab or https://gitlab.com/gitlab-org/cli
+        line 130: - ALWAYS perform the `which glab` pre-flight check before any operation when platform=gitlab
+        line 131: - ALWAYS halt with the prescribed install hint text when `glab` is missing: "glab CLI not found. Install via: brew install glab or https://gitlab.com/gitlab-org/cli"
+      Install-hint text present in the pre-flight section. Both the check and the halt-with-hint instruction are explicit.
+    notes: null
+
+  - id: E5
+    status: PASS
+    evidence: |
+      File: core/components/skills/platform-adapter/reference/gitlab/verbs.md
+      Section: ## request-changes (lines 35-53)
+
+      Content excerpt:
+        "**Gap behaviour:** GitLab does not have a first-class "request changes" review state.
+        The adapter uses TWO commands in sequence: first set the MR to draft (WIP) to signal
+        it is not ready to merge, then post a structured note."
+
+        Step 1 — Set MR to draft:
+          glab mr update {pr_number} --draft
+
+        Step 2 — Post a structured note:
+          glab mr note {pr_number} --message "{structured_comment}"
+
+        "Both commands must be executed."
+
+      Both a draft-set command (glab mr update --draft) and a note-post command
+      (glab mr note --message) are present in the request-changes section.
+    notes: null
+
+  - id: E6
+    status: PASS
+    evidence: |
+      File: core/components/skills/platform-adapter/reference/gitlab/verbs.md
+      Section: ## attach-sub-issue (lines 150-164)
+
+      Content excerpt:
+        "The adapter falls back to the related-issues API, which creates a bidirectional
+        'related' link only."
+
+        glab api projects/{encoded_owner%2Fname}/issues/{issue_number}/links \
+          -X POST \
+          -f target_project_id="{project_id}" \
+          -f target_issue_iid="{related_issue_number}" \
+          -f link_type="relates_to"
+
+      The `issues/{n}/links` related-issues API path is referenced. The section explicitly
+      does NOT no-op (a command is present) and does NOT raise an error.
+    notes: null
+
+  - id: E7
+    status: PASS
+    evidence: |
+      repo-orchestrator.md:
+        grep -n "glab" core/components/agents/repo-orchestrator.md
+        line 401: | `glab mr view`, `glab mr diff`, `glab mr note`, `glab mr update`, `glab api` | `platform-adapter` skill ...
+        line 405: "All code-host operations must route through the `platform-adapter` skill."
+        gh entries present at line 399-400.
+        Routing note present at line 405.
+
+      project-orchestrator.md:
+        grep -n "glab" core/components/agents/project-orchestrator.md
+        lines 336-339: glab issue create, glab issue view, glab issue list, glab issue close, glab api — all in forbidden table.
+        line 343: "All code-host operations must route through the `platform-adapter` skill"
+        gh entries present at lines 332-335.
+        Routing note present at line 343.
+
+      code-builder.md:
+        grep -n "glab" core/components/agents/code-builder.md
+        line 291: | `glab mr create` | Not your job — repo-orchestrator handles PRs (routes through platform-adapter) |
+        gh entry present at line 290: | `gh pr create` | Not your job — repo-orchestrator handles PRs |
+
+      All three agents have both gh and glab entries in their forbidden tables.
+      Routing notes pointing to platform-adapter present in repo-orchestrator and project-orchestrator.
+    notes: code-builder has one gh entry (gh pr create) and one glab entry (glab mr create) in its
+      forbidden table. While sparse, both CLI types are represented as required by the eval.
+
+  - id: E8
+    status: PASS
+    evidence: |
+      Command: grep -n '`gh pr ' core/components/plays/review-pr/SKILL.md
+      Output: (no output — exit code 0 for file exists, zero matches)
+
+      File exists at core/components/plays/review-pr/SKILL.md.
+      Zero backtick-quoted `gh pr` invocations found.
+    notes: null
+
+  - id: E9
+    status: PASS
+    evidence: |
+      Command: grep -n '`gh pr ' core/components/plays/merge-pr/SKILL.md
+      Output: (no output — exit code 0 for file exists, zero matches)
+
+      File exists at core/components/plays/merge-pr/SKILL.md.
+      Zero backtick-quoted `gh pr` invocations found.
+    notes: null
+
+  - id: E10
+    status: PASS
+    evidence: |
+      Command: grep -n "reference/github\|reference/gitlab\|reference/bitbucket" core/components/skills/submit-pr/SKILL.md core/components/skills/merge-pr/SKILL.md
+      Output: (no output — exit code 1, no matches found)
+
+      Note: reference/ subdirectories (bitbucket, github, gitlab) still exist on disk under
+      both submit-pr and merge-pr, but the SKILL.md definition files contain zero references
+      to those paths. The eval pass condition is specifically "Zero path references to
+      reference/{platform}/ in both skill files" — which is satisfied.
+    notes: The eval verifies SKILL.md file content, not directory presence. The reference subdirs
+      remain on disk but are not referenced from the skill definitions.
+
+  - id: E11
+    status: PASS
+    evidence: |
+      Command: ls -la ~/.claude/skills/platform-adapter/SKILL.md
+      Output: -rw-r--r-- 1 kapilahuja staff 5425 May 27 15:46 /Users/kapilahuja/.claude/skills/platform-adapter/SKILL.md
+      File present at deployed path after orchestrator ran /sync-claude (T14).
+    notes: Re-checked after orchestrator's /sync-claude task (T14) completed.
+
+summary:
+  pass: 11
+  fail: 0
+  pending: 0
+  total: 11
+  overall: PASS

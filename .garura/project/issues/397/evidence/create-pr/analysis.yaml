@@ -1,0 +1,254 @@
+analysis:
+  branch: fix/397-product-epic-ice-shape
+  base: main
+  branch_pattern: bugfix
+  commits: 1
+  head_commit: 1a65f2f
+  issue: 397
+  changes:
+    files: 11
+    additions: 1091
+    deletions: 1036
+
+  suggested_title: "refactor(epics): migrate product-layer intent-epic to four-section ICE schema (#397)"
+
+  context:
+    file_patterns_matched:
+      - name: skill-definitions
+        files: 6
+        trigger: "core/components/skills/**/SKILL.md"
+        files_list:
+          - core/components/skills/draft-epic-expectation/SKILL.md
+          - core/components/skills/generate-intent-epics/SKILL.md
+          - core/components/skills/generate-intent-epics/reference/intent.yaml
+          - core/components/skills/validate-intent-epics/SKILL.md
+          - core/components/skills/derive-quality-profile-from-epics/SKILL.md
+          - core/components/skills/enrich-capabilities/SKILL.md
+          - core/components/skills/infer-epics-from-code/SKILL.md
+      - name: agent-definitions
+        files: 2
+        trigger: "core/components/agents/**/*.md"
+        files_list:
+          - core/components/agents/epic-expectation-crafter.md
+          - core/components/agents/product-keeper.md
+      - name: standards-schema
+        files: 2
+        trigger: "core/components/memory/standards/**"
+        files_list:
+          - core/components/memory/standards/schemas/intent-epic.yaml
+          - core/components/memory/standards/rules/epics.md
+      - name: sync-trigger
+        files: 11
+        trigger: "core/components/** (all changed files trigger sync-claude)"
+
+    commit_types:
+      - type: refactor
+        count: 1
+        example: "refactor(epics): migrate product-layer intent-epic to four-section ICE schema (#397)"
+
+    branch_modifiers:
+      - "fix/* branch pattern: standard priorities apply (not hotfix, release, or experiment)"
+      - "refactor: commit type triggers refactor-no-break check"
+
+  checklist:
+    must_have:
+
+      - id: no-conflicts
+        item: No merge conflicts with main
+        trigger: Universal — always applied
+        status: PASS
+        evidence: "git merge-tree --write-tree main fix/397-product-epic-ice-shape exits clean (SHA 58d9ded00a46fb44c351a2e360b54cae1466f1c3). No conflict markers."
+
+      - id: no-secrets
+        item: No secrets or credentials committed
+        trigger: Universal — always applied
+        status: PASS
+        evidence: "Scanned all 11 changed files for api_key, secret, password, token, private_key, credentials patterns. Only 'token' appears in YAML enum values (auth_token as an example string). No live credentials detected."
+
+      - id: agent-frontmatter
+        item: Both changed agent files have valid frontmatter (name, domain, role, tools)
+        trigger: "core/components/agents/epic-expectation-crafter.md and product-keeper.md changed"
+        status: PASS
+        evidence: >
+          epic-expectation-crafter.md: name=epic-expectation-crafter, domain=expectation,
+          role=epic-crafter, tools=[Read,Write,Glob,Grep,Skill]. All fields present.
+          product-keeper.md: name=product-keeper, domain=product-capability, role=keeper,
+          tools=[Task,Read,Write,Glob,Grep,Skill,WebSearch,WebFetch]. All fields present.
+
+      - id: agent-boundaries
+        item: Both changed agent files have NEVER/ALWAYS boundaries section
+        trigger: "core/components/agents/epic-expectation-crafter.md and product-keeper.md changed"
+        status: PASS
+        evidence: >
+          epic-expectation-crafter.md: ## Boundaries with ### NEVER (line 94) and ### ALWAYS (line 104).
+          product-keeper.md: ## Boundaries with ### NEVER (line 135) and ### ALWAYS (line 147).
+          Both present and populated.
+
+      - id: skill-frontmatter
+        item: All 6 changed skills have valid frontmatter (name, description, user-invocable, allowed-tools)
+        trigger: "6 skill SKILL.md files changed under core/components/skills/"
+        status: PASS
+        evidence: >
+          Verified all 6: draft-epic-expectation, generate-intent-epics, validate-intent-epics,
+          derive-quality-profile-from-epics, enrich-capabilities, infer-epics-from-code.
+          All have name, description, user-invocable: false, allowed-tools. No missing fields.
+
+      - id: skill-io
+        item: All changed skills define Input and their output contract sections
+        trigger: "6 skill SKILL.md files changed"
+        status: PASS
+        evidence: >
+          draft-epic-expectation: ## Input (line 19), output contract at step 8 Return the output contract.
+          generate-intent-epics: ## Input (line 47), ## Constraints (line 296), output contract at step 5.
+          validate-intent-epics: ## Input (line 29), ## Constraints (line 269), output contract at step 7.
+          derive-quality-profile-from-epics: ## Input present, output section present.
+          enrich-capabilities: ## Input present.
+          infer-epics-from-code: ## Input (line 46), ## Output (line 188).
+
+      - id: config-valid
+        item: YAML files are syntactically valid
+        trigger: "core/components/memory/standards/schemas/intent-epic.yaml and generate-intent-epics/reference/intent.yaml changed"
+        status: PASS
+        evidence: >
+          python3 yaml.safe_load() passed on both YAML files with no errors.
+
+      - id: refactor-no-break
+        item: No breaking change to the output contracts of generate-intent-epics, validate-intent-epics, and draft-epic-expectation
+        trigger: "refactor: commit type — checks that Output sections are preserved, not removed"
+        status: PASS
+        evidence: >
+          All three skills retain their output contract YAML blocks. generate-intent-epics step 5
+          retains epics.output_dir, file_count, files[], quantification_coverage, decision_manifest.
+          validate-intent-epics step 7 retains validation.path, status, total_epics, failed_epics,
+          total_violations, total_warnings. draft-epic-expectation step 8 retains full output contract.
+          Output shapes are additive/renamed, not removed.
+
+      - id: sync-claude
+        item: Components synced with core/components/ — /sync-claude must be run after merge
+        trigger: "All 11 changed files are under core/components/ — sync-claude rule fires"
+        status: REVIEW
+        evidence: >
+          ~/.claude/ and ~/.garura/core/memory/ are not tracked in this repo.
+          /sync-claude must be run after merge to deploy updated skills, agents, and memory
+          to the global deploy target. This cannot be auto-verified pre-merge.
+
+      - id: epic-migration-missing
+        item: The 9 existing tracked product epics must be migrated to the new four-section ICE shape
+        trigger: >
+          Issue #397 acceptance criterion d) explicitly requires re-migration of the 9 existing
+          epics. The changed schema now makes all 9 files (which still use top-level intents:,
+          failure_conditions:, cross_cutting_justification:, etc.) non-conformant with
+          intent-epic-schema.yaml. validate-intent-epics will reject them with unknown_field
+          violations on merge.
+        status: FAIL
+        evidence: >
+          9 tracked epic files under .garura/product/scope/epics/ ALL still use banned
+          legacy top-level keys per the new schema. Confirmed via grep: all 9 carry 'intents:'
+          at top level; none carry the new 'intent:' section key. Zero epic files were modified
+          in this branch (git diff shows 0 lines changed in .garura/product/scope/epics/).
+          Issue #397 explicitly lists acceptance criterion d) as: "Re-migrate the 9 existing
+          epics (and the Sudarshan epics) to the corrected shape." This is undelivered.
+          Files affected:
+            - epic-agentic-methodology-component-arch-001.yaml
+            - epic-agentic-methodology-l2-spec-driven-001.yaml
+            - epic-agentic-methodology-l3-intent-driven-001.yaml
+            - epic-ai-governance-audit-attribution-001.yaml
+            - epic-engineering-experience-cli-slash-commands-001.yaml
+            - epic-engineering-experience-first-run-onboarding-001.yaml
+            - epic-engineering-experience-ide-integrations-001.yaml
+            - epic-engineering-observability-quality-signals-001.yaml
+            - epic-work-intelligence-intent-driven-verification-001.yaml
+
+      - id: stale-provisional-comment
+        item: >
+          "rules — under review" comment in intent-epic.yaml and "Rules will be re-derived"
+          comment in the validation rules block should be removed — epics.md and
+          validate-intent-epics are both fully updated in this PR
+        trigger: >
+          core/components/memory/standards/schemas/intent-epic.yaml comment at line 196 reads
+          "(rules — under review)" and the validation comment block (lines 181-188) says
+          "Rules will be re-derived from the rewritten epics.md after the user's review."
+          Both suggest the rules file is still pending — but it has been rewritten in this PR.
+        status: FAIL
+        evidence: >
+          epics.md is 120 lines, fully rewritten with all 7 rules updated to new field names.
+          validate-intent-epics SKILL.md is fully rewritten with 3a-3g checks for the new shape.
+          The provisional comments in the schema file were accurate when written but are stale
+          now that this commit delivers the complete rewrite. Leaving them in creates a false
+          signal that the spec is incomplete. They should be replaced with a clean "See
+          core/components/memory/standards/rules/epics.md" reference.
+
+    nice_to_have:
+
+      - id: skill-constraints
+        item: All changed skills have a Constraints section
+        trigger: "6 skill SKILL.md files changed"
+        status: PASS
+        evidence: >
+          generate-intent-epics: ## Constraints with NEVER/ALWAYS lists (line 296).
+          validate-intent-epics: ## Constraints (line 269).
+          draft-epic-expectation: ## Boundaries section serves as constraints (line ~134).
+          infer-epics-from-code: ## Constraints present.
+          derive-quality-profile-from-epics: Constraints present.
+          enrich-capabilities: Constraints present.
+
+      - id: agent-naming
+        item: Agent files follow {domain}-{role} naming convention
+        trigger: "core/components/agents/ files changed"
+        status: PASS
+        evidence: >
+          epic-expectation-crafter: domain=expectation, role=epic-crafter → matches {domain}-{role}-{qualifier}.
+          product-keeper: domain=product-capability, role=keeper → matches convention.
+
+      - id: config-documented
+        item: Schema and rules changes documented with cross-references
+        trigger: "intent-epic.yaml (YAML config) and epics.md changed"
+        status: PASS
+        evidence: >
+          intent-epic.yaml carries Related: block at end listing epics.md, generate-intent-epics,
+          validate-intent-epics, draft-epic-expectation, intent-driven-development.md.
+          generate-intent-epics/SKILL.md version metadata updated (0.2.0→0.3.0,
+          Updated: 2026-05-28) with Related listing schema and epics.md.
+
+      - id: decision-manifest-ids-stable
+        item: D-gie-* decision IDs are audit-stable across the schema migration
+        trigger: >
+          generate-intent-epics/SKILL.md explicitly notes "IDs are audit-stable across
+          schema migrations — do NOT renumber". D-gie-001/002/003/005/006 are renamed
+          in description but not renumbered.
+        status: PASS
+        evidence: >
+          Decision IDs D-gie-001 through D-gie-006 (excluding 004 which was removed in #390)
+          are preserved. Only their decision_type labels and what-is-decided descriptions were
+          updated to reflect the new field names. ID stability confirmed by grep — no ID gaps
+          or renumbering introduced.
+
+  blocking_issues:
+    - item: 9 existing tracked product epics not migrated to four-section ICE shape
+      reason: >
+        All 9 epics under .garura/product/scope/epics/ still carry banned legacy top-level
+        keys (intents:, failure_conditions:, cross_cutting_justification:, etc.) that the new
+        validate-intent-epics skill will reject with unknown_field blocking violations. The
+        new schema is enforced; the existing instances are not. Issue #397 acceptance criterion
+        d) explicitly required this migration.
+      trigger: "Issue #397 acceptance criteria + new schema enforcement via validate-intent-epics"
+
+    - item: Two stale provisional comments in intent-epic.yaml must be cleaned up
+      reason: >
+        The comment at line 196 "(rules — under review)" and the validation comment block at
+        lines 181-188 ("Rules will be re-derived...") signal the spec is incomplete when it
+        is not. This creates misleading guidance for future readers and implementers.
+      trigger: "intent-epic.yaml changed; stale comments detected post-review"
+
+  ready: false
+  recommendation: "Fix issues first — migrate 9 existing epics and remove 2 stale provisional comments before creating the PR"
+
+  confidence:
+    overall: high
+    target_branch: high
+    checklist_completeness: high
+    notes: >
+      All checklist items are directly evidenced from file content in the diff.
+      The two blocking issues are independently verifiable: grep for legacy top-level
+      keys in .garura/product/scope/epics/*.yaml (epic migration) and line numbers
+      in intent-epic.yaml (stale comments). No speculative items.

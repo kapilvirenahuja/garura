@@ -1,0 +1,13 @@
+issue:
+  number: 393
+  title: "[ENH] Add GitLab support to /review-pr and the platform adapter layer"
+  labels:
+    - enhancement
+  state: "OPEN"
+  body_summary: "enhancement | Reported From: review-pr smoke test 2026-05-27. Problem: /review-pr is hard-wired to GitHub — every PR operation runs through `gh` (gh pr view, gh pr diff, gh pr comment, gh api). None of that works on GitLab, blocking review of GitLab-hosted"
+  url: "https://github.com/kapilvirenahuja/garura/issues/393"
+  updated_at: "2026-05-27T05:54:00Z"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "feature"

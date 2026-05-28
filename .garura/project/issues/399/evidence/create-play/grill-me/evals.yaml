@@ -1,0 +1,231 @@
+step_evals:
+  - id: SE-1
+    source_type: both
+    failure_condition_id: F1
+    constraint_id: C1
+    skill: check-grill-tensions
+    check: every tension entry the skill emits must cite a specific defended item — either a defended_id from the anchor lock or a quoted phrase from the target's declared constraints, rules, or failure scenarios
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/rounds/{round_id}-tensions.yaml"
+    pass_criteria: every entry in tensions[] has a non-empty defended_id AND a non-empty cited_text; no entry's contradiction_summary is generic stylistic critique without a cited anchor
+    fail_criteria: at least one tension entry has empty defended_id, empty cited_text, or a contradiction_summary that does not reference the cited defended item
+
+  - id: SE-2
+    source_type: both
+    failure_condition_id: F2
+    constraint_id: C2
+    skill: apply-shape-changes
+    check: within any single round, the play issues at most one push-back per weak answer, and a previously-pushed-back answer is either recorded as resolved or recorded as a gap and advanced
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/session-state.yaml"
+    pass_criteria: for every round in rounds[], push_back_count_by_weak_answer has no value greater than 1; every weak_answer carried past one round appears in accepted_gaps or in a resolution
+    fail_criteria: any round shows more than one push-back on the same weak answer, or a weak answer is carried into the next round still marked weak without an intervening gap-recorded-and-advanced entry
+
+  - id: SE-3
+    source_type: both
+    failure_condition_id: F3
+    constraint_id: C3
+    skill: apply-shape-changes
+    check: every question, synthesis, and push-back recorded in the round transcript is in plain human language matched to the anchor — product register for epic/feature anchors, technical register for tech/design anchors — and contains no machine/agent jargon, A/B/C menus, terse YAML-style prompts, or references to skills, agents, evals, or compiled artefacts
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/session-state.yaml"
+    pass_criteria: round transcript surfaces contain no jargon tokens (skill, agent, eval, SKILL.md, yaml, frontmatter, intent.yaml, expectation.yaml), no enumerated option menus (A/B/C, 1./2./3. of competing choices), and register matches the anchor lock's register field
+    fail_criteria: any question, synthesis, or push-back contains jargon tokens, lettered/numbered option menus presented as the question itself, or vocabulary mismatched to the anchor register
+
+  - id: SE-4
+    source_type: both
+    failure_condition_id: F4
+    constraint_id: C4
+    skill: check-grill-tensions
+    check: each round closes with both a synthesis statement and a tension check against the target's own declared constraints, rules, and failure scenarios, and each round's questions are gap-closing
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/session-state.yaml"
+    pass_criteria: every entry in rounds[] has a non-empty synthesis_text AND a non-null tensions_report_path that resolves to an existing file from check-grill-tensions
+    fail_criteria: any round entry has an empty synthesis_text, has no tensions_report_path, or has questions that do not reference a previously identified gap
+
+  - id: SE-5
+    source_type: both
+    failure_condition_id: F5
+    constraint_id: C6
+    skill: resolve-grill-anchor
+    check: a target with zero declared constraints, business rules, and failure scenarios halts the play before round one with a plain-language explanation pointing the human at the upstream play
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/anchor-lock.yaml"
+    pass_criteria: either anchor-lock.yaml exists with at least one entry across defended_constraints, defended_business_rules, defended_failure_scenarios; or the skill returned status=failed reason=no_grillable_target and no round-one artefacts exist under the session STM path
+    fail_criteria: anchor-lock.yaml exists with all defended-* lists empty, OR round-one artefacts exist while the anchor-lock indicates no grillable items
+
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: null
+    skill: apply-shape-changes
+    check: a tension is recorded as resolved only when an actual resolution_text was agreed that changes the shape and that resolution applies to at least one concrete artefact edit or accepted_gap entry; capitulation without a real change is not resolution
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/session-state.yaml"
+    pass_criteria: every tension marked resolved has a non-empty resolution_text AND either a non-empty applies_to list OR an entry under documentation_only_in_shape_doc; no tension is marked resolved with an empty or whitespace-only resolution_text
+    fail_criteria: any tension marked resolved has an empty resolution_text, an empty applies_to with no documentation_only flag, or a resolution_text that exactly matches the prior push-back's language verbatim (indicating the human did not actually change the shape)
+
+  - id: SE-7
+    source_type: both
+    failure_condition_id: F7
+    constraint_id: C8
+    skill: apply-shape-changes
+    check: no part of the close bundle is written without an explicit human approval of the full bundle recorded for the session; approval is one decision over shape document + every target-shape edit + epic + the single code follow-up issue
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/session-state.yaml AND the git commit produced by apply-shape-changes"
+    pass_criteria: session-state.yaml contains exactly one bundle_approval entry with decision=approved before any bundle file appears at HEAD, OR no bundle files appear at HEAD and no issue is filed (vanish case)
+    fail_criteria: any bundle file (locked-shape.md, target-shape edit, epic file) exists at HEAD without a matching bundle_approval entry, or more than one approval entry exists for the same bundle, or the code follow-up issue was filed without the bundle approval
+
+  - id: SE-8
+    source_type: both
+    failure_condition_id: F8
+    constraint_id: C9
+    skill: apply-shape-changes
+    check: the session terminates only on defensibility against every declared constraint/rule/failure scenario of the target with no unresolved tensions, or on the human's explicit good-enough declaration; round counts, time limits, and token budgets are never termination triggers
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/session-state.yaml"
+    pass_criteria: termination_reason field has value in {defensible, human_good_enough}
+    fail_criteria: termination_reason has value in {round_count, time_limit, token_budget} or any value outside the two permitted
+
+  - id: SE-9
+    source_type: failure_condition
+    failure_condition_id: F9
+    constraint_id: null
+    skill: apply-shape-changes
+    check: when the human disengages mid-session, the play pauses, records unresolved tensions as accepted gaps, and exits cleanly — it does not continue issuing push-backs past the disengagement point
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/session-state.yaml"
+    pass_criteria: if disengagement_at_round is set, every tension live at that round appears in accepted_gaps AND no rounds with new push-backs exist after disengagement_at_round AND termination_reason is human_good_enough
+    fail_criteria: disengagement_at_round is set but live tensions from that round are missing from accepted_gaps, OR rounds with new push-backs exist after disengagement_at_round
+
+  - id: SE-10
+    source_type: both
+    failure_condition_id: F10
+    constraint_id: C7
+    skill: apply-shape-changes
+    check: the play produces a locked shape document at the canonical STM path with the required sections — target shape, how we got here, tensions and resolutions, accepted gaps, target-shape edits in this bundle, epic for the now→then journey, code follow-up — in the register declared by the anchor lock
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/locked-shape.md"
+    pass_criteria: locked-shape.md exists at the canonical path AND contains the seven required section headings AND the register markers match the anchor lock's register field
+    fail_criteria: locked-shape.md does not exist at the canonical path, OR any required section heading is missing, OR the register markers contradict the anchor lock
+
+  - id: SE-11
+    source_type: failure_condition
+    failure_condition_id: F11
+    constraint_id: null
+    skill: resolve-grill-anchor
+    check: round one begins only when an explicit anchor is selected from exactly four kinds (epic, feature, tech-decision, design-decision) and the play's register matches the locked anchor; outside-of-four kinds or missing anchor halt the play before round one
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/anchor-lock.yaml"
+    pass_criteria: anchor-lock.yaml exists with anchor_kind in {epic, feature, tech-decision, design-decision} AND register in {product, technical} AND register matches the kind (product for epic/feature, technical for tech/design)
+    fail_criteria: anchor-lock.yaml has anchor_kind outside the four kinds, or has register that mismatches the kind, or does not exist while rounds were run
+
+  - id: SE-12
+    source_type: both
+    failure_condition_id: F12
+    constraint_id: C12
+    skill: apply-shape-changes
+    check: every impacted target-shape artefact in the close bundle is written in one transaction; partial writes are forbidden and produce a rollback that leaves no artefact changed
+    artifact_pattern: git commit produced by apply-shape-changes
+    pass_criteria: either a single commit lands containing every drafted bundle file (shape doc, every target-shape edit, the epic file), OR the skill returned status=failed reason=atomic_rollback AND no bundle file exists at HEAD
+    fail_criteria: bundle files appear at HEAD distributed across more than one commit, OR a subset of bundle files exists at HEAD without the rest, OR the working tree contains uncommitted bundle changes after the skill returned
+
+  - id: SE-13
+    source_type: both
+    failure_condition_id: F13
+    constraint_id: C13
+    skill: apply-shape-changes
+    check: the play never edits code, files exactly one code follow-up issue per session, and the issue's body matches the locked shape's Code follow-up section (including the explicit "no code changes required" body when nothing code-side is implied)
+    artifact_pattern: git commit produced by apply-shape-changes AND gh issues filtered by label
+    pass_criteria: the bundle commit contains zero files under code paths (src/, lib/, app/, pkg/, internal/, or language source dirs); exactly one open or recently-filed issue carries label grill-followup AND anchor:{anchor_kind} AND links to locked-shape.md; the issue body equals the locked shape's Code follow-up section verbatim
+    fail_criteria: the bundle commit touches a code path, OR fewer/more than one issue carries the grill-followup label for this session, OR the issue body does not match the locked shape's Code follow-up section
+
+  - id: SE-14
+    source_type: both
+    failure_condition_id: F14
+    constraint_id: C14
+    skill: apply-shape-changes
+    check: the close bundle creates or updates the product epic that represents the now→then journey for the locked shape, with status field set in the canonical 5-point vocabulary
+    artifact_pattern: git commit produced by apply-shape-changes AND the epic file under {product_base}specification/epics/
+    pass_criteria: the bundle commit includes exactly one epic file (created or updated), and that file's status field has value in {planned, development, rollout, released, cleanup}
+    fail_criteria: the bundle commit includes no epic file, OR includes multiple epic files, OR the epic file's status field is absent or set to a value outside the canonical 5
+
+  - id: SE-15
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C10
+    skill: apply-shape-changes
+    check: the play reminds itself of its mode every turn — before each round's questions are issued, the orchestrator restates that it is in grill mode and that its job is to push back, not to agree
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/session-state.yaml"
+    pass_criteria: every entry in rounds[] has mode_reminder_recorded=true (or equivalent stamp showing the orchestrator restated grill mode at round start)
+    fail_criteria: any round entry has mode_reminder_recorded=false or is missing the stamp entirely
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: solo product owner anchoring on an epic
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/locked-shape.md AND session-state.yaml"
+    check: the persona receives a locked shape document whose final shape contradicts none of the epic's declared constraints, rules, or failure scenarios, and the session terminated on defensibility
+    pass_criteria: locked-shape.md exists at the canonical product research path under STM AND records anchor=epic AND every declared constraint/rule/failure on the epic appears in the shape's tension-check log with status=resolved AND termination_reason equals defensible
+    fail_criteria: any declared item from the epic is missing from the tension-check log, or any entry is left with status=live, or termination_reason is not defensible
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: solo product owner who has answered enough
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/locked-shape.md AND session-state.yaml"
+    check: the persona explicitly declares the shape good enough and receives a locked shape document that names every unresolved tension as an accepted gap, not as "agreed"
+    pass_criteria: termination_reason equals human_good_enough AND every unresolved tension is listed under accepted_gaps with the human's exact words preserved AND no unresolved tension is marked resolved
+    fail_criteria: termination_reason is not human_good_enough, OR any unresolved tension is silently marked resolved, OR accepted_gaps entries paraphrase rather than preserve the human's exact words
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: any human starting the play against a target with nothing to defend
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/"
+    check: the persona receives a plain-language halt message before round one, no shape document is written, and the upstream play is named
+    pass_criteria: no rounds directory exists under the session STM, no locked-shape.md exists at the canonical path, the play's halt transcript explicitly names grill mode requires declared constraints/rules/failures and the upstream play to produce them
+    fail_criteria: any round artefact exists, OR locked-shape.md exists, OR the halt message does not name the upstream play
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: epic author scoping a new epic
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/anchor-lock.yaml AND session-state.yaml AND locked-shape.md"
+    check: the anchor locks to epic, constraints come from the epic file or catalog entry, and the session uses product-language register throughout
+    pass_criteria: anchor-lock.yaml records anchor_kind=epic AND constraints_source_path resolves to the epic file or catalog entry AND sampled questions/syntheses/push-backs contain no technical-register tokens (component, contract, data flow) and no agent/skill/eval/YAML jargon
+    fail_criteria: anchor_kind is not epic, OR constraints_source_path does not resolve to the epic source, OR any sampled surface uses technical-register or jargon tokens
+
+  - id: SCE-5
+    scenario_id: S5
+    persona: feature owner anchoring on a feature spec
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/anchor-lock.yaml AND session-state.yaml"
+    check: the anchor locks to feature, constraints come from the feature spec, and the session uses product-language register throughout
+    pass_criteria: anchor_kind=feature AND constraints_source_path resolves to the feature spec AND register=product AND the round surfaces pass the product-register check
+    fail_criteria: anchor_kind is not feature, OR constraints_source_path does not resolve to the feature spec, OR register surfaces fail the product-register check
+
+  - id: SCE-6
+    scenario_id: S6
+    persona: tech lead grilling a technical decision
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/anchor-lock.yaml AND session-state.yaml"
+    check: the anchor locks to tech-decision, constraints come from the architecture or technical-approach artefact, and the session uses technical-language register
+    pass_criteria: anchor_kind=tech-decision AND constraints_source_path resolves to the architecture or technical-approach artefact AND register=technical AND sampled round surfaces use technical-register tokens (component, contract, data flow, failure mode) and no product-only register
+    fail_criteria: anchor_kind is not tech-decision, OR constraints_source_path does not resolve to the architecture artefact, OR sampled surfaces use product-only register
+
+  - id: SCE-7
+    scenario_id: S7
+    persona: designer grilling a design decision
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/anchor-lock.yaml AND session-state.yaml"
+    check: the anchor locks to design-decision, constraints come from the design system or design spec, and the session uses technical-language register
+    pass_criteria: anchor_kind=design-decision AND constraints_source_path resolves to the design system or design spec AND register=technical AND the round surfaces pass the technical-register check
+    fail_criteria: anchor_kind is not design-decision, OR constraints_source_path does not resolve to the design source, OR register surfaces fail the technical-register check
+
+  - id: SCE-8
+    scenario_id: S8
+    persona: solo product owner mid-session
+    artifact_pattern: "{stm_base}/{issue}/evidence/grill-me/rounds/*-tensions.yaml AND session-state.yaml"
+    check: a round that finds a contradiction with a specific declared constraint receives one cited push-back, gets answered, and the next round's synthesis records the tension as resolved with no badgering re-issue in the same round
+    pass_criteria: at least one round's tensions report has an entry with a cited defended_id or quoted phrase AND that round's session-state shows exactly one push-back issued for the tension's weak answer AND the subsequent synthesis records the tension as resolved
+    fail_criteria: no round shows a cited push-back, OR more than one push-back is issued for the same weak answer in the same round, OR the subsequent synthesis does not record the tension as resolved
+
+  - id: SCE-9
+    scenario_id: S9
+    persona: solo product owner at end of session
+    artifact_pattern: git commit produced by apply-shape-changes AND the full bundle on disk AND the filed issue
+    check: the persona approves a bundle as one unit, every part of the bundle is written in one transaction on approval, or nothing writes on rejection; on approval the epic exists with valid status and exactly one code follow-up issue is filed
+    pass_criteria: bundle_approval entry has decision=approved AND a single commit contains every drafted bundle file AND the epic file's status is in the canonical 5 AND exactly one issue carries label grill-followup; OR bundle_approval has decision=vanish AND no bundle file exists at HEAD AND no issue was filed
+    fail_criteria: approval was approved but a subset of bundle files is missing from HEAD or split across commits, OR the epic file has invalid status, OR more/fewer than one code follow-up issue was filed; OR approval was vanish but any bundle file or issue exists
+
+  - id: SCE-10
+    scenario_id: S10
+    persona: any human running a grilling session that surfaces no code work
+    artifact_pattern: locked-shape.md Code follow-up section AND the filed issue body
+    check: the bundle still writes atomically, the epic is created or updated with status reflecting no code work pending, and the code follow-up issue is filed with body explicitly stating "no code changes required"
+    pass_criteria: bundle commit exists with the epic AND target-shape edits AND locked-shape.md; the locked-shape's Code follow-up section reads "No code changes required."; exactly one open issue carries label grill-followup with body matching that section verbatim
+    fail_criteria: the code follow-up section is absent or non-empty when no code work is implied, OR no issue is filed in the no-code-work case, OR the issue body does not match the section verbatim
