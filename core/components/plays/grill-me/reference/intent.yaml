@@ -1,0 +1,300 @@
+name: grill-me
+description: >
+  Interview a human about a proposed feature or epic with adversarial rigour
+  — not by collecting answers, but by pushing back on weak ones. Surface
+  the gaps, contradictions, and hand-waves that a polite intent interview
+  would have let through, until the shape of the work is concrete enough
+  that the downstream pipeline (specify, design, prepare, craft-ice)
+  cannot drift on hidden ambiguity.
+version: 0.2.0
+checksum: "<computed by /create-play --build>"
+
+intent: >
+  Before grilling begins, the play asks the human one anchor question:
+  what part of the work is being grilled — an epic, a feature, a
+  technical decision, or a user experience design decision. Agent can look 
+  for current conversation and suggest topics too. The anchor decides which
+  constraints the grilling defends against and which register the
+  conversation uses: product language for epic and feature anchors,
+  technical language for tech and design anchors. Once anchored, the
+  play runs a multi-round, human-in-the-loop grilling session that
+  interrogates the proposed shape against whatever constraints,
+  business rules, failure scenarios, or stated principles the anchored
+  target already declares. Each round asks a small batch of
+  plain-language questions, synthesises the answers, and checks the
+  synthesis for tensions: undefined denominators, double-counting,
+  unsourced numbers, conflated dimensions, or any answer that
+  contradicts a stated constraint or rule of the target. When a
+  tension is found, the play names it plainly, cites the specific
+  constraint or rule that is about to break, and re-asks once. When
+  no tension is found, it advances to the next gap-closing batch.
+  Rounds continue until the shape is defensible against its own
+  declared constraints or the human declares the shape good enough.
+  The play produces a locked shape document at the product's research
+  path, optionally edits to the target's source of truth to push
+  specifics back where they belong, and optionally a sibling-epic
+  split when grilling surfaces a separately-failable concern. The
+  play is a target-shape discipline that runs upstream of specify,
+  design, prepare, and craft-ice. The product is documented in two
+  views — the target shape in product LTM (what the product needs
+  to be) and the current shape in deployed code (what it is today);
+  this play moves the target shape and never touches code. At
+  session close it writes one atomic bundle: the locked shape
+  document, every impacted target-shape artefact (personas,
+  screens, design system, tech decisions, NFRs, feature specs,
+  epic intent blocks — whatever the locked shape touches), the
+  product epic that names the now→then journey (created if absent,
+  updated if present, status set in the canonical
+  planned→development→rollout→released→cleanup vocabulary), and
+  exactly one code follow-up issue summarising the engineering
+  work needed for code to eventually catch up to the new target.
+  The bundle is approved as one unit; partial writes are
+  forbidden. The play is not autonomous, never replaces
+  intent-crafter, and adds no value when the target has no
+  constraints to defend against.
+
+constraints:
+  - id: C1
+    rule: >
+      Every push-back the play makes must cite a specific constraint,
+      business rule, or failure scenario declared on the target — by id
+      or by quoted phrase. Generic critique ("that feels vague", "are
+      you sure?") without a cited anchor is not a push-back and is not
+      permitted.
+
+  - id: C2
+    rule: >
+      For any single weak answer in a single round, the play issues at
+      most one push-back. If the re-asked answer is still weak, the
+      play records the gap and advances — it does not badger. The same
+      weakness may be revisited in a later round only if a new
+      tension makes it material again.
+
+  - id: C3
+    rule: >
+      Every question, synthesis, and push-back the play emits is in
+      plain human language matched to the anchor: product language
+      (users, outcomes, capabilities, business rules) when the anchor
+      is an epic or a feature, and technical language (components,
+      contracts, data flow, failure modes) when the anchor is a tech
+      or design decision. Machine and agent jargon — field-name
+      soup, A/B/C menus, terse YAML-style prompts, references to
+      skills, agents, evals, or compiled artifacts — is never
+      permitted in the human-facing surface, regardless of anchor.
+
+  - id: C4
+    rule: >
+      Each round follows the same shape: ask three to four
+      gap-closing questions, synthesise the answers into a concrete
+      statement of the shape so far, run a tension check against the
+      target's own declared constraints/rules/failure scenarios, then
+      either name the tensions and re-ask or advance to the next
+      batch. A round that skips the synthesis or skips the tension
+      check is malformed.
+
+  - id: C5
+    rule: >
+      Before round one, the play asks the human a single anchor
+      question and locks the anchor to exactly one of four kinds:
+      epic, feature, tech decision, or design decision. The anchor
+      decides where the play looks for the constraints it will
+      defend against — the epic file or catalog entry for an epic
+      anchor, the feature spec for a feature anchor, the
+      architecture or technical-approach artefact for a tech anchor,
+      the design system or design spec for a design anchor — and it
+      decides which register C3 uses for the session. The anchor is
+      named in the locked shape document. If the human cannot name
+      an anchor, or names something outside these four kinds, the
+      play halts before round one with a plain-language explanation.
+
+  - id: C6
+    rule: >
+      A target with zero declared constraints, business rules, or
+      failure scenarios is not a grillable target. The play halts
+      with a plain-language explanation that grilling requires
+      something to defend against, and points the human at the play
+      that produces those declarations.
+
+  - id: C7
+    rule: >
+      The play produces a locked shape document — a plain-language
+      record of the questions asked, the answers given, the tensions
+      surfaced, the resolutions reached, and the final defensible
+      target shape. The document is part of the close bundle (C12),
+      written under the issue's STM and referenced from the affected
+      product LTM artefacts so downstream plays can trace any target
+      change back to the grilling session that produced it.
+
+  - id: C8
+    rule: >
+      Every write the play makes is gated on explicit human approval
+      of the full close bundle (C12) as one unit — the shape
+      document plus every impacted product LTM target-shape artefact
+      plus the created-or-updated epic plus the single code
+      follow-up issue. The play may recommend; it may not write any
+      part of the bundle silently or piecemeal.
+
+  - id: C9
+    rule: >
+      The play terminates on exactly two conditions: the shape is
+      defensible against every declared constraint/rule/failure
+      scenario of the target with no unresolved tensions remaining,
+      or the human explicitly declares the shape good enough. Round
+      counts, time limits, or token budgets are not termination
+      triggers.
+
+  - id: C10
+    rule: >
+      The play reminds itself of its mode every turn — before each
+      round's questions are issued, the orchestrator restates that it
+      is in grill mode and that its job is to push back, not to
+      agree. Drifting into collaborative consensus-building without
+      this self-check is the central failure mode the discipline
+      guards against.
+
+  - id: C11
+    rule: >
+      The play is a target-shape discipline that runs upstream of
+      specify, design, prepare, and craft-ice. It does not author
+      intent.yaml for plays, does not produce ICE specifications,
+      and does not lock scope. It DOES create or update product
+      epics that name the now→then journey for the grilled shape
+      (C14). Its outputs are the locked shape document, the updated
+      product LTM target-shape artefacts, the created-or-updated
+      epic, and the single code follow-up issue (C13).
+
+  - id: C12
+    rule: >
+      The product is documented in two views: the target shape
+      (product LTM — what the product needs to be) and the current
+      shape (the deployed code — what it is today). The play
+      updates only the target shape, and does so atomically at
+      session close: every impacted product LTM artefact (persona,
+      screen, flow, design system, design spec, epic intent block,
+      tech-approach decision, NFR, quality vision, feature spec,
+      and any other artefact the locked shape touches) is written
+      in one transaction. If any write in the bundle fails, the
+      whole bundle rolls back and no artefact is left changed.
+      Partial writes are forbidden — that is the drift this play
+      exists to prevent.
+
+  - id: C13
+    rule: >
+      The play never edits code. Code-side implications surfaced
+      during grilling — the engineering work needed to move the
+      current shape up to the new target shape — are summarised in
+      the shape document's "Code follow-up" section and filed as
+      exactly one tracking issue at session close, labelled with
+      the grilled anchor and linked back to the locked shape.
+      Multiple code issues are not filed; the single issue carries
+      the full implementation surface for the project's normal
+      feature/fix process to drain.
+
+  - id: C14
+    rule: >
+      The play creates or updates the product epic that represents
+      the now→then journey for the locked shape. A grilling
+      session against an existing epic refreshes that epic's
+      intent block; a grilling session against a free-text idea or
+      a sibling-split concern creates a new epic with status
+      "planned". The epic's status field is the canonical tracker
+      of progress from the current shape to the target shape and
+      moves through planned → development → rollout → released →
+      cleanup as the code follow-up issue (C13) is drained. The
+      epic is part of the atomic bundle (C12).
+
+failure_conditions:
+  - id: F1
+    condition: >
+      The play issues a push-back that cites no specific constraint,
+      rule, or failure scenario of the target — pure stylistic
+      critique with no anchor. Violates C1.
+
+  - id: F2
+    condition: >
+      The play issues more than one push-back on the same weak
+      answer within the same round, or carries an already-pushed-back
+      answer forward as still-weak without recording the gap and
+      advancing. Badgering violates C2.
+
+  - id: F3
+    condition: >
+      The play's human-facing surface drifts into config-form
+      jargon — field-name soup, A/B/C menus, or terse YAML-style
+      prompts. Violates C3.
+
+  - id: F4
+    condition: >
+      A round completes without a synthesis step, without a tension
+      check against the target's declared constraints, or with
+      questions that do not close an identified gap. Violates C4.
+
+  - id: F5
+    condition: >
+      The play runs against a target that declares no constraints,
+      no business rules, and no failure scenarios — there is nothing
+      to defend against, and any push-back the play makes is
+      necessarily generic. Violates C6.
+
+  - id: F6
+    condition: >
+      The session converges by the play silently softening its
+      position to match the human's — agreement reached through
+      capitulation rather than through the human's answer actually
+      resolving the cited tension. The locked shape records "agreed"
+      where the underlying tension is still live.
+
+  - id: F7
+    condition: >
+      Any part of the close bundle — shape document, artefact
+      edits, epic create/update, or code follow-up issue — is
+      written without an explicit human approval of the full
+      bundle as one unit. Violates C8.
+
+  - id: F8
+    condition: >
+      The play terminates on a round count, time limit, or token
+      budget rather than on defensibility or explicit human
+      sign-off. Violates C9.
+
+  - id: F9
+    condition: >
+      The human disengages mid-session (stops answering, signals
+      fatigue, or asks to stop) and the play continues issuing
+      push-backs instead of pausing, recording the unresolved gaps
+      in the shape document, and exiting cleanly.
+
+  - id: F10
+    condition: >
+      The play completes without producing a locked shape document
+      at the product's research path. The conversation happened but
+      left no consumable artifact for downstream plays. Violates C7.
+
+  - id: F11
+    condition: >
+      The play begins round one without an explicit anchor selected
+      by the human, or proceeds with an anchor outside the four
+      permitted kinds (epic, feature, tech decision, design
+      decision), or proceeds with the wrong register for the
+      selected anchor. Violates C5 or C3.
+
+  - id: F12
+    condition: >
+      The close bundle writes partially — at least one impacted
+      product LTM target-shape artefact is updated while at least
+      one other impacted artefact is not. The target shape is now
+      internally inconsistent across artefacts. Violates C12.
+
+  - id: F13
+    condition: >
+      The play writes to any code file, or files more than one
+      code follow-up issue, or files zero code follow-up issues
+      despite the locked shape implying code changes. Violates C13.
+
+  - id: F14
+    condition: >
+      The close bundle is written but no product epic was created
+      or updated to name the now→then journey for the locked
+      shape, or the epic's status field is missing or set to a
+      value outside the canonical 5-point vocabulary
+      (planned/development/rollout/released/cleanup). Violates C14.
