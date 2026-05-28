@@ -7,6 +7,8 @@ user-invocable: false
 
 # derive-quality-vision
 
+> **DEPRECATED for /arch (#403).** This skill is no longer part of the /arch pipeline. quality-vision is no longer a separate artifact — its work is folded into the refined quality-profile produced by `refine-quality-profile`. The refined QP carries every relevant ISO 25010 characteristic; delivery mechanisms live in physical-architecture's `nfr_delivery[]` blocks. This file is retained because `/codify` still references the quality-vision artifact shape through `infer-quality-vision-from-code`; aligning /codify with the new /arch contract is a separate follow-on. Do NOT invoke this skill in new /arch runs.
+
 > **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest-derive-quality-vision.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
 
 Called by `tech-designer` during `arch` Stage 4. Produces `quality-vision.yaml` at `{product_base}architecture/quality-vision.yaml`.

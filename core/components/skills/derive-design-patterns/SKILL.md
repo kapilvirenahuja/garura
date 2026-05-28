@@ -7,6 +7,8 @@ user-invocable: false
 
 # derive-design-patterns
 
+> **DEPRECATED for /arch (#403).** This skill is no longer part of the /arch pipeline. Design-patterns is no longer a separate artifact — patterns are now produced as `category: pattern` entries in `tech-stack.yaml` by `derive-tech-stack`. System-level decisions (monolith / microservice / serverless / modular monolith) live there too, also as patterns. This file is retained because `/codify` still references the design-patterns artifact shape through `infer-design-patterns-from-code`; aligning /codify with the new /arch contract is a separate follow-on. Do NOT invoke this skill in new /arch runs.
+
 > **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest-derive-design-patterns.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
 
 Called by `tech-architect` during `arch` Stage 5. Produces `design-patterns.yaml` at `{product_base}architecture/design-patterns.yaml`.

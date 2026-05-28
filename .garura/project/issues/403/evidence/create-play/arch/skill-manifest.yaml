@@ -1,0 +1,45 @@
+play: arch
+mode: rebake
+skill_manifest:
+  - name: derive-systems-inventory
+    path: core/components/skills/derive-systems-inventory/SKILL.md
+    status: new
+    stage: 1
+    owner_agent: tech-architect
+  - name: refine-quality-profile
+    path: core/components/skills/refine-quality-profile/SKILL.md
+    status: new
+    stage: 2
+    owner_agent: tech-designer
+  - name: derive-logical-architecture
+    path: core/components/skills/derive-logical-architecture/SKILL.md
+    status: modified
+    stage: 3
+    owner_agent: tech-architect
+  - name: derive-physical-architecture
+    path: core/components/skills/derive-physical-architecture/SKILL.md
+    status: modified
+    stage: 4
+    owner_agent: tech-architect
+  - name: derive-tech-stack
+    path: core/components/skills/derive-tech-stack/SKILL.md
+    status: new
+    stage: 5
+    owner_agent: tech-architect
+  - name: derive-technical-risks
+    path: core/components/skills/derive-technical-risks/SKILL.md
+    status: new
+    stage: 6
+    owner_agent: tech-designer
+  - name: validate-architecture-spec
+    path: core/components/skills/validate-architecture-spec/SKILL.md
+    status: modified
+    stage: post-generation
+    owner_agent: tech-architect
+deprecated_skills:
+  - name: derive-design-patterns
+    successor: derive-tech-stack (patterns as category=pattern entries)
+  - name: derive-nfr-spec
+    successor: refine-quality-profile (targets) + derive-physical-architecture (mechanisms)
+  - name: derive-quality-vision
+    successor: refine-quality-profile (folded in)
