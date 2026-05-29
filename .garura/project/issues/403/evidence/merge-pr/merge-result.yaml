@@ -1,0 +1,18 @@
+result:
+  status: merged
+  pr_number: 409
+  merge_sha: "5045cbaadcd3f419afa4c03a9ba1aa45c43a9a2d"
+  base_branch: main
+  branch_deleted: true
+  error: null
+
+evals:
+  SE-1: PASS  # no conflict state — pre-flight confirmed MERGEABLE
+  SE-2: PASS  # branch deleted locally and remotely
+  SE-3: PASS  # local HEAD on main, SHA matches origin/main (5045cba)
+  SE-4: PASS  # pre-flight confirmed clean working tree
+  SE-5: PASS  # platform reports PR state as MERGED
+
+scenario_evals:
+  SCE-1: PASS  # HEAD on main, 0 commits behind origin, feature branch absent locally and remotely
+  SCE-2: PASS  # PR 409 state=MERGED, merge_sha reachable from main tip

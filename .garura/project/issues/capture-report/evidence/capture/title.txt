@@ -1,1 +1,1 @@
-[ENH] Remove doc-builder HTML generation from arch play
+[ENH] Redesign review-pr around rule-driven audits with tiered tooling (fast / full / grinding)

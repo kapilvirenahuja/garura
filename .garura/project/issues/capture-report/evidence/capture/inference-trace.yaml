@@ -2,10 +2,11 @@ type_resolution:
   source: inferred
   resolved_type: enhancement
   ambiguous_text: false
-  inference_basis: "keyword 'remove'/'capability' — cleanup/improvement"
+  inference_basis: "redesign of an existing capability (review-pr) — structural improvement maps to enhancement"
+caller_kind: human
 repo_slug: kapilvirenahuja/garura
 label: enhancement
 events:
   - event: inferred-type
     type: enhancement
-    timestamp: "2026-05-28T00:00:00Z"
+    timestamp: "2026-05-29T00:00:00Z"
