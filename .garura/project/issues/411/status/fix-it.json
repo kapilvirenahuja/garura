@@ -11,9 +11,9 @@
     "approval-gate": { "status": "completed", "tether_received_at": "2026-05-29T10:05:00Z", "completed_at": "2026-05-29T10:05:00Z" },
     "implement-fix": { "status": "completed", "completed_at": "2026-05-29T11:00:00Z" },
     "verify-fix": { "status": "completed", "completed_at": "2026-05-29T11:30:00Z", "verdict": "pass" },
-    "ship": { "status": "in_progress", "started_at": "2026-05-29T11:31:00Z", "note": "commit+PR autonomous; merge paused for human to-main confirm" },
-    "scenario-evals": { "status": "pending" },
-    "evidence-report": { "status": "pending" }
+    "ship": { "status": "completed", "completed_at": "2026-05-29T12:10:00Z", "pr": 414, "merge_sha": "069a3a0", "branch_deleted": true },
+    "scenario-evals": { "status": "completed", "completed_at": "2026-05-29T12:15:00Z", "result": "SCE-1..4 PASS" },
+    "evidence-report": { "status": "in_progress", "started_at": "2026-05-29T12:16:00Z" }
   },
   "task_list": [
     {
