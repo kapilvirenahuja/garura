@@ -1,10 +1,12 @@
 intent: >
-  Given a locked execution plan milestone (a single feature phase identified by milestone_id,
-  such as T-001, from plan.yaml) and the milestone's scope items with success scenarios and
-  failure conditions, produce a working implementation that passes all independently-generated
-  evaluations and meets project quality standards. implement runs per milestone —
-  after each milestone completes, validate runs for that milestone before the next
-  milestone begins.
+  Given a locked plan.yaml (a DAG of tasks produced by /prepare), /implement is an agentic,
+  self-locating, continuous executor. It reads the plan DAG and the current branch state to
+  determine where execution stands and which node can run next. It executes nodes continuously,
+  following DAG edges, and halts ONLY at two boundary types: a gate (readiness/tooling stop —
+  the orchestrator waits for the gate's exit condition to clear, then resumes) or a milestone
+  (human-acceptance stop — evals and scenario gates run, the orchestrator waits for validate
+  to confirm ACCEPTED, then resumes). Tasks drive execution; milestones and gates only bound it.
+  No milestone_id is required at invocation.
 
   Test authorship is isolated and spec-driven: a test-writer agent writes behavioral tests from
   TEST-CONTEXT.md (behavioral specs derived from epic-spec.yaml and scenarios) before
@@ -33,20 +35,27 @@ intent: >
 constraints:
   - id: C1
     rule: >
-      The plan.yaml execution order entry referenced by the milestone_id must have status: "LOCKED".
-      An entry in DRAFT status is not eligible for implementation.
+      When the DAG walk reaches a milestone node, that node's plan.yaml entry must have
+      status: "LOCKED" for the milestone boundary to be eligible. A milestone-node entry in
+      DRAFT status is not eligible — the walk halts at the milestone boundary rather than
+      running its acceptance gate against a draft entry.
 
   - id: C2
     rule: >
-      The milestone's feature phase must have at least one success scenario and at least one failure
-      condition defined in features.yaml before implementation begins.
+      A milestone node the walk reaches must have at least one success scenario and at least one
+      failure condition defined in features.yaml before its acceptance gate runs. A milestone
+      boundary with no scenarios and no failure conditions cannot generate evaluations.
 
   - id: C3
     rule: >
-      All prerequisite feature phases listed in the target milestone's depends_on entries in
-      plan.yaml must have status: "COMPLETE" before implementation of the target milestone begins.
-      The pre-flight step validates each depends_on milestone status and halts with structured
-      failure (F24) if any dependency is not complete.
+      All depends_on edges for the current plan node must be resolved before execution of that
+      node begins. Resolution is by node type: an entry matching a milestone_id in plan.yaml
+      requires that milestone to have status ACCEPTED (confirmed by validate); an entry matching
+      a gate task ID (e.g., T-000-GATE) requires that gate's exit_gate condition to be met; an
+      entry matching a task ID requires that task to be marked done in the branch state. The
+      DAG-walk pre-flight validates all edges for the next candidate node before dispatching it.
+      Pre-flight halts with structured failure (F24) if any dependency cannot be resolved or its
+      condition is not satisfied.
 
   - id: C4
     rule: >
@@ -124,12 +133,12 @@ constraints:
   - id: C13
     rule: >
       A codebase context document (CONTEXT.md) is generated before implementation begins,
-      distilled from the target milestone's plan.yaml scope items and tech.yaml contracts
+      distilled from the current scope's plan.yaml scope items and tech.yaml contracts
       (api_contracts, internal_interfaces, service_contracts) plus architecture decisions
-      relevant to the milestone. CONTEXT.md describes the API surface, interface contracts,
-      service contracts, scope items, file ownership, and conventions for the target milestone
-      only. It does NOT include behavioral descriptions from features.yaml — those feed
-      TEST-CONTEXT.md via the test-writer path, not CONTEXT.md.
+      relevant to that scope. CONTEXT.md describes the API surface, interface contracts,
+      service contracts, scope items, file ownership, and conventions for the scope under
+      implementation only. It does NOT include behavioral descriptions from features.yaml — those
+      feed TEST-CONTEXT.md via the test-writer path, not CONTEXT.md.
 
   - id: C14
     rule: >
@@ -225,11 +234,11 @@ constraints:
 
   - id: C25
     rule: >
-      After all milestone scope items complete their individual write-test / write-code /
-      run-tests cycles, the orchestrator runs the full test suite (unit + integration with
-      mocks) to verify cross-scope-item behavior within the milestone. Integration test failure
-      enters the fix loop. Regression tests for previously completed milestones are included
-      to verify no prior milestone behavior was broken.
+      After all scope items in the current segment complete their individual write-test /
+      write-code / run-tests cycles, the orchestrator runs the full test suite (unit + integration
+      with mocks) to verify cross-scope-item behavior within the segment. Integration test failure
+      enters the fix loop. Regression tests for previously completed segments are included
+      to verify no prior behavior was broken.
 
   - id: C26
     rule: >
@@ -251,12 +260,14 @@ constraints:
 
   - id: C28
     rule: >
-      implement accepts a milestone_id parameter (e.g., T-001) identifying a single feature
-      phase from plan.yaml's execution_order. Each invocation implements ONLY the scope items of
-      the specified milestone. After the milestone completes, validate is called for that
-      milestone before implement is invoked for the next milestone (T-002, T-003, etc.).
-      The pre-flight step resolves the milestone entry from plan.yaml, confirms its status is
-      LOCKED, and verifies all depends_on milestones are COMPLETE per C3.
+      implement is invoked with an optional issue reference (no milestone_id required). On
+      startup, implement reads plan.yaml from STM and inspects the current branch state
+      (committed evidence, milestone status files) to self-locate: it identifies the set of
+      plan nodes whose depends_on edges are all satisfied and which have not yet been executed,
+      then picks the topologically earliest such node as the starting point. It runs that node
+      and continues through the DAG, node by node, until it reaches a gate boundary (pause for
+      readiness) or a milestone boundary (pause for acceptance via validate). After the boundary
+      condition clears, execution resumes from the next unsatisfied node.
 
   - id: C29
     rule: >
@@ -320,6 +331,17 @@ constraints:
           conveys WHERE and HOW to verify, not test content, assertion text, or eval criteria.
       Omitting any section or providing it unlabeled is a failure condition (F26).
 
+  - id: C34
+    rule: >
+      The /implement DAG executor recognizes exactly two halt-boundary types. A gate node
+      (identified by a .GATE suffix or kind: gate in plan.yaml) is a readiness/tooling stop:
+      execution pauses, the gate's exit condition is checked, and execution resumes automatically
+      when the condition clears. A milestone node (identified by a milestone_id field in
+      plan.yaml) is a human-acceptance stop: execution pauses, evals are generated, scenario
+      gates run, and the validate play is invoked; execution resumes only after validate confirms
+      ACCEPTED. All task nodes between two boundaries execute without pausing. The orchestrator
+      MUST NOT pause mid-stream at a task node that is neither a gate nor a milestone.
+
 failure_conditions:
   - id: F1
     condition: >
@@ -359,14 +381,14 @@ failure_conditions:
 
   - id: F8
     condition: >
-      The plan.yaml execution order entry referenced by the milestone_id has a status other
-      than LOCKED at the time implementation begins.
+      The DAG walk reaches a milestone node whose plan.yaml entry has a status other than
+      LOCKED (e.g., DRAFT) when the milestone boundary's acceptance gate is about to run.
 
   - id: F9
     condition: >
-      The milestone's feature phase has no exit gate defined in plan.yaml execution_order[].exit_gate,
-      or the feature in features.yaml has no success scenarios or failure conditions
-      to generate evaluations from.
+      A milestone node the walk reaches has no exit gate defined in its plan.yaml
+      execution_order[].exit_gate, or the feature in features.yaml backing that milestone node
+      has no success scenarios or failure conditions to generate evaluations from.
 
   - id: F10
     condition: >
@@ -444,9 +466,10 @@ failure_conditions:
 
   - id: F24
     condition: >
-      One or more depends_on milestones for the target milestone_id do not have status: "COMPLETE"
-      in plan.yaml at the time implement begins. Milestone dependency pre-flight failed or
-      was skipped.
+      A depends_on edge target for the current plan node cannot be resolved (the node ID does
+      not exist in plan.yaml), OR a resolved gate target's exit_gate condition is not satisfied,
+      OR a resolved milestone target does not have status ACCEPTED. DAG-walk pre-flight failed
+      or was skipped.
 
   - id: F25
     condition: >
