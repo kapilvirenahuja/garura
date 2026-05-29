@@ -1,0 +1,81 @@
+style: yaml_eval_spec
+target_issue: "411"
+based_on:
+  rca: ".garura/project/issues/411/evidence/fix-it/rca.yaml"
+  design: ".garura/project/issues/411/evidence/fix-it/design.yaml"
+
+description: >
+  The /implement pre-flight depends_on resolver treats every depends_on entry as a
+  milestone_id lookup with no branch for a kind:prerequisites phase terminal gate
+  (e.g. T-000.GATE). The fix extends C3 in intent.yaml with 3-branch resolution
+  and adds F27 for the unrecognized-reference halt case. This test asserts that all
+  three fix artifacts are present; they are absent in the unfixed codebase (RED).
+
+assertions:
+  - id: A1
+    description: >
+      C3 in implement/reference/intent.yaml must contain the word 'prerequisites'
+      (indicating the 3-branch resolution rule that recognises a kind:prerequisites
+      phase gate). Currently absent — C3 only mentions milestone status checks.
+    kind: grep_present
+    spec:
+      pattern: "prerequisites"
+      path: "core/components/plays/implement/reference/intent.yaml"
+    expected_red_reason: >
+      Current C3 text has no 'prerequisites' branch — the word does not appear
+      anywhere in intent.yaml for the implement play.
+
+  - id: A2
+    description: >
+      intent.yaml must contain a failure condition with id F27 (the new
+      unrecognized-reference halt case that replaces the unrecognized-reference
+      semantics previously conflated into F24). Absent in the unfixed codebase.
+    kind: grep_present
+    spec:
+      pattern: "id: F27"
+      path: "core/components/plays/implement/reference/intent.yaml"
+    expected_red_reason: >
+      F27 does not exist in the current intent.yaml — the file ends at F26.
+
+  - id: A3
+    description: >
+      C3 must include a '.GATE' reference (or 'GATE' as a terminal-task marker)
+      so that depends_on entries like T-000.GATE are explicitly named in the
+      constraint rule. Absent in the unfixed codebase.
+    kind: grep_present
+    spec:
+      pattern: "\\.GATE"
+      path: "core/components/plays/implement/reference/intent.yaml"
+    expected_red_reason: >
+      The current C3 rule contains no mention of .GATE or terminal gate tasks.
+
+pass_when: "all_assertions_pass"
+
+verification_commands:
+  - id: verify-A1
+    command: >
+      grep -n "prerequisites" core/components/plays/implement/reference/intent.yaml
+    cwd: "/Users/kapilahuja/cto/builder/garura"
+    expected_exit_on_unfixed: 1
+    actual_output_on_unfixed: "(empty — grep found no matches)"
+    actual_exit_on_unfixed: 1
+
+  - id: verify-A2
+    command: >
+      grep -n "id: F27" core/components/plays/implement/reference/intent.yaml
+    cwd: "/Users/kapilahuja/cto/builder/garura"
+    expected_exit_on_unfixed: 1
+    actual_output_on_unfixed: "(empty — grep found no matches)"
+    actual_exit_on_unfixed: 1
+
+  - id: verify-A3
+    command: >
+      grep -n "\\.GATE" core/components/plays/implement/reference/intent.yaml
+    cwd: "/Users/kapilahuja/cto/builder/garura"
+    expected_exit_on_unfixed: 1
+    actual_output_on_unfixed: "(empty — grep found no matches)"
+    actual_exit_on_unfixed: 1
+
+verified_red_at: "2026-05-29T00:00:00Z"
+expected_state_before_fix: red
+expected_state_after_fix: green

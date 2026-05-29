@@ -1,0 +1,58 @@
+regression_test_verdict: pass
+verified_at: "2026-05-29T07:15:00Z"
+regression_test_path: .garura/project/issues/411/evidence/fix-it/regression-test.yaml
+assertions:
+  - id: A1
+    check: "grep -E 'DAG|self.locat|self-locat|next runnable|next-runnable' core/components/plays/implement/reference/intent.yaml"
+    expected: "present — DAG / self-locat / next runnable tokens"
+    observed: "Multiple matches found (exit 0): 'DAG', 'self-locating', 'next runnable node', 'DAG edges', 'self-locate'"
+    state: pass
+
+  - id: A2
+    check: "grep -E 'gate.node|milestone.node|two.boundary|readiness.stop|tooling.stop|acceptance.stop|halt.type' core/components/plays/implement/reference/intent.yaml"
+    expected: "present — gate/milestone node or two-boundary halt tokens"
+    observed: "Multiple matches found (exit 0): 'readiness/tooling stop', 'human-acceptance stop', 'gate node', 'milestone node', 'two halt-boundary types'"
+    state: pass
+
+  - id: A3
+    check: "grep -E 'branch.state|branch state|self.locat|self-locat' core/components/plays/implement/reference/intent.yaml"
+    expected: "present — branch state / self-locat tokens"
+    observed: "Multiple matches found (exit 0): 'branch state', 'self-locating', 'current branch state', 'self-locate'"
+    state: pass
+
+  - id: A4
+    check: "grep -E 'accepts a milestone_id parameter' core/components/plays/implement/reference/intent.yaml"
+    expected: "absent — 'accepts a milestone_id parameter' must NOT be present"
+    observed: "No matches found (exit 1) — pattern is absent"
+    state: pass
+
+  - id: A5
+    check: "grep -E 'gate task|gate.*ID|node type|resolved by node|gate task ID' core/components/plays/implement/reference/intent.yaml"
+    expected: "present — gate task / node type / gate task ID tokens"
+    observed: "Multiple matches found (exit 0): 'node type', 'gate task ID (e.g., T-000-GATE)'"
+    state: pass
+
+  - id: A6
+    check: "grep -E 'id: C34' core/components/plays/implement/reference/intent.yaml"
+    expected: "present — id: C34 must exist"
+    observed: "Match found (exit 0): '  - id: C34'"
+    state: pass
+
+  - id: A7
+    check: "grep -E 'milestone_id required' core/components/plays/implement/SKILL.md"
+    expected: "absent — 'milestone_id required' must NOT be present"
+    observed: "No matches found (exit 1) — pattern is absent"
+    state: pass
+
+  - id: A8
+    check: "grep -E 'self.locat|self-locat|DAG.walk|dag.walk|next.runnable|next-runnable' core/components/plays/implement/SKILL.md"
+    expected: "present — self-locat / DAG-walk / next-runnable tokens"
+    observed: "Multiple matches found (exit 0): 'self-locating', 'DAG walk', 'self-locate', 'next runnable node', 'next-runnable node', 'DAG-walk'"
+    state: pass
+
+notes: >
+  All 8 assertions pass. Both files were modified by the fix: intent.yaml was rewritten to
+  encode the agentic DAG-walk / self-location / two-boundary halt model (C28 replaced,
+  C34 added, C3 updated), and SKILL.md was regenerated to match — the old
+  'milestone_id required' language is gone and DAG/self-location language is present
+  throughout. The fix is complete and verified against the actual files on disk.

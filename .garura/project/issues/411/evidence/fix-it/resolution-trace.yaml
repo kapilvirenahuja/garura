@@ -1,0 +1,54 @@
+resolution_trace:
+  - decision: >
+      What execution model should an agentic play orchestrator use to traverse a task DAG,
+      self-locate within the graph, and determine the next runnable node?
+    resolved_from: "core"
+    source: "knowledge/arch/agentic/agent-orchestration.md"
+    section: "Reference Architecture — Agent Loop: Think / Act / Observe"
+    authority: "draft"
+    value: >
+      Core knowledge confirms the standard agentic loop: the agent reasons about what to do
+      next (Think), executes a step (Act), and observes the result (Observe) — repeating until
+      done or a bounded stop is reached. For a DAG-structured task graph this maps to:
+      inspect the graph + current state to find the next runnable node (Think), execute that
+      node (Act), record the result and update graph state (Observe), repeat. The "always set
+      max step limits" and "human-in-the-loop for high-stakes actions" guidance directly maps
+      to the two-boundary halt model (gate = tooling stop, milestone = human-acceptance stop).
+
+  - decision: >
+      What rules govern constraint authoring in a play's intent.yaml — specifically, how
+      should new execution-model constraints be structured and what makes them valid?
+    resolved_from: "core"
+    source: "standards/rules/architecture.md"
+    section: "Rule 1: Every Architectural Decision Has a Driver"
+    authority: "draft"
+    value: >
+      Architecture rules require every constraint to trace back to a product need and cite
+      its driver. Applied to play intent constraints: new DAG-walk, self-location, and
+      two-boundary-halt constraints must each cite the execution model requirement (the
+      corrected model from corrected-model.md) as their driver. Constraints without a
+      traceable driver are architecture smells. This validates that the fix strategy
+      (intent change + recompile) is the correct path — not patching the compiled SKILL.md.
+
+  - decision: >
+      Does the core LTM contain specific knowledge about how Garura play execution models
+      are designed or how the /implement play's execution contract should be structured?
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: >
+      No core LTM file addresses Garura-specific play execution models, intent.yaml constraint
+      authoring patterns, or the specific /implement play design. The knowledge/arch/agentic
+      file covers general multi-agent orchestration patterns; it does not address the
+      Garura-specific intent + constraint + compile pipeline. This domain question was resolved
+      via LLM reasoning, grounded by: (a) reading corrected-model.md as the authoritative
+      execution model, (b) reading implement/reference/intent.yaml to confirm the four
+      structural gaps, and (c) applying the standard agentic loop pattern from core LTM to
+      validate the corrected model's design direction. This is a knowledge gap — the
+      organization lacks persistent knowledge specifically for Garura play intent constraint
+      design conventions.
+
+produced_at: "2026-05-29T06:00:00Z"
+play: "fix-it"
+issue: 411

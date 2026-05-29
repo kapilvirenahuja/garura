@@ -1,0 +1,121 @@
+analysis:
+  branch: feat/399-grill-me
+  base: main
+  suggested_title: "feat(grill-me): add /grill-me play — cited push-back discipline for scoping (#399)"
+  context:
+    file_patterns_matched:
+      - agent-definitions (core/components/agents/*.md)
+      - skill-definitions (core/components/skills/*/SKILL.md)
+      - play-definitions (core/components/plays/grill-me/SKILL.md)
+      - configuration-yaml (.garura/project/issues/*/evidence/**/*.yaml)
+      - stm-evidence (.garura/project/issues/*)
+      - core-components-changed (core/components/**)
+    commit_types:
+      - "feat(grill-me): add grill-me play with anchor resolver, shape applier, and grill skills"
+      - "chore(stm): record STM evidence for issues 393, 397, 399, and capture-report"
+
+  checklist:
+    must_have:
+      - item: "No merge conflicts"
+        trigger: "Universal rule — always applies"
+        status: "PASS"
+        evidence: "git merge-tree --write-tree main HEAD returned clean tree hash ba0d52e76409c4e7f2e1c425b6292e107c0a1bcb with no conflict markers"
+
+      - item: "No secrets committed"
+        trigger: "Universal rule — always applies"
+        status: "PASS"
+        evidence: "Grep scan of non-STM changed files for api_key, secret, password, token, private_key, auth_token, access_token patterns found only legitimate keyword references in play/expectation content prose — no actual secret values"
+
+      - item: "Agent grill-anchor-resolver has valid frontmatter (name, domain, role, tools)"
+        trigger: "Agent definitions changed — core/components/agents/grill-anchor-resolver.md"
+        status: "PASS"
+        evidence: "Frontmatter contains: name=grill-anchor-resolver, domain=grill-anchor, role=resolver, model=sonnet, tools=[Read, Write, Glob, Grep, Skill]"
+
+      - item: "Agent shape-applier has valid frontmatter (name, domain, role, tools)"
+        trigger: "Agent definitions changed — core/components/agents/shape-applier.md"
+        status: "PASS"
+        evidence: "Frontmatter contains: name=shape-applier, domain=shape-close, role=applier, model=opus, tools=[Read, Write, Edit, Bash, Glob, Grep, Skill]"
+
+      - item: "Agent grill-anchor-resolver has NEVER/ALWAYS boundaries"
+        trigger: "Agent definitions changed — boundaries are a required structural section"
+        status: "PASS"
+        evidence: "## Boundaries section present at line 78 with ### NEVER (line 80) and ### ALWAYS (line 90)"
+
+      - item: "Agent shape-applier has NEVER/ALWAYS boundaries"
+        trigger: "Agent definitions changed — boundaries are a required structural section"
+        status: "PASS"
+        evidence: "## Boundaries section present at line 114 with ### NEVER (line 116) and ### ALWAYS (line 130)"
+
+      - item: "All 3 skills have valid frontmatter (name, description, user-invocable, allowed-tools)"
+        trigger: "Skill definitions changed — apply-shape-changes, check-grill-tensions, resolve-grill-anchor"
+        status: "PASS"
+        evidence: "All 3 skills have name, description, user-invocable=false, model, and allowed-tools in frontmatter"
+
+      - item: "All 3 skills define Input and Output sections"
+        trigger: "Skill definitions changed — Input/Output sections are required"
+        status: "PASS"
+        evidence: "apply-shape-changes: Input@L50, Output@L267; check-grill-tensions: Input@L41, Output@L117; resolve-grill-anchor: Input@L40, Output@L138"
+
+      - item: "Play grill-me has valid frontmatter (name, description, user-invocable)"
+        trigger: "Play definition changed — core/components/plays/grill-me/SKILL.md"
+        status: "PASS"
+        evidence: "Frontmatter contains: name=grill-me, description present, user-invocable=true. Level is in ## Version metadata (not frontmatter) per rule note"
+
+      - item: "Play grill-me defines a Workflow section"
+        trigger: "Play definition changed — workflow is required"
+        status: "PASS"
+        evidence: "## Workflow found at line 120"
+
+      - item: "Play grill-me defines checkpoint behavior"
+        trigger: "Play definition changed — checkpoints are required"
+        status: "PASS"
+        evidence: "Checkpoint referenced at lines 37 and 112 (TaskCreate T5 Bundle approval checkpoint); Step 5 at line 305"
+
+      - item: "Core components synced with /sync-claude"
+        trigger: "core/components/** changed — new agents, skills, and play added"
+        status: "REVIEW"
+        evidence: "New files added to core/components/agents/, core/components/plays/grill-me/, core/components/skills/. Deployment to ~/.claude/ requires /sync-claude run post-merge"
+
+      - item: "Feature is documented"
+        trigger: "feat: commit type — new features must be documented in README or docs"
+        status: "REVIEW"
+        evidence: "grill-me not found in README.md or docs/. The play's SKILL.md, intent.yaml, and expectation.yaml are self-documenting within the framework, but no README or docs/ mention was added. Acceptable for a framework play if team convention treats SKILL.md as the primary doc — reviewer should confirm"
+
+    nice_to_have:
+      - item: "All 3 skills have Constraints sections"
+        trigger: "Skill definitions changed — Constraints section is nice-to-have"
+        status: "FAIL"
+        evidence: "grep for '## Constraints' found no matches in any of the 3 new skills. Constraints are embedded in play intent.yaml (C1-C16) and expectation.yaml rather than in individual skill files"
+
+      - item: "Agent naming follows {domain}-{role} convention"
+        trigger: "Agent definitions changed — naming convention check"
+        status: "PASS"
+        evidence: "grill-anchor-resolver = domain(grill-anchor)-role(resolver); shape-applier = domain(shape)-role(applier). Both conform"
+
+      - item: "Significant feature has ADR"
+        trigger: "feat: commit adds a new play (grill-me) with 2 agents and 3 skills — large change"
+        status: "REVIEW"
+        evidence: "No new ADR added. Last ADR is 018. grill-me is a new discipline play but follows established play pattern — ADR may not be needed. Reviewer should confirm"
+
+      - item: "Configuration changes documented"
+        trigger: "Configuration YAML files changed (.yaml files in STM evidence)"
+        status: "PASS"
+        evidence: "Changed YAML files are STM evidence artifacts (.garura/project/issues/*/evidence/) — these are operational outputs, not project config. No documentation update needed"
+
+      - item: "STM evidence chore commit noted in PR body"
+        trigger: "chore(stm) commit carries evidence for 4 issues (393, 397, 399, capture-report)"
+        status: "REVIEW"
+        evidence: "PR body should explain that the chore commit is expected — STM evidence from prior plays piggybacked on this branch. Reviewers who see 37 STM files changed without explanation may question scope"
+
+  blocking_issues:
+    - "sync-claude must be run after merge to deploy new play and agents to ~/.claude/"
+
+  ready: true
+  confidence: high
+  notes: >
+    Two substantive components: (1) the grill-me play with grill-anchor-resolver agent,
+    shape-applier agent, and 3 supporting skills — all structurally sound; (2) a chore
+    commit carrying STM evidence for issues 393, 397, 399, and capture-report.
+    The STM files are read-only operational artifacts and require different quality
+    scrutiny than the framework code. Checklist reflects this split.
+    No blocking structural violations found. One post-merge action required (sync-claude).

@@ -1,0 +1,18 @@
+regression_test_path: .garura/project/issues/411/evidence/fix-it/regression-test.yaml
+failing: true
+verified_by: play (fix-it post-verify, C14)
+verified_at: "2026-05-29T00:00:00Z"
+assertions:
+  - id: A1
+    check: 'grep -c "prerequisites" core/components/plays/implement/reference/intent.yaml'
+    result: 0
+    state: red
+  - id: A2
+    check: 'grep -c "id: F27" core/components/plays/implement/reference/intent.yaml'
+    result: 0
+    state: red
+  - id: A3
+    check: 'grep -c "\.GATE" core/components/plays/implement/reference/intent.yaml'
+    result: 0
+    state: red
+note: All assertions return 0 matches against the unfixed codebase — regression test is RED as required before implementation.

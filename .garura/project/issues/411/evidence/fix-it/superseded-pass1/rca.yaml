@@ -1,0 +1,93 @@
+issue_number: 411
+summary: >
+  When /prepare generates a plan.yaml where the first feature milestone (T-001) carries a
+  phase-level depends_on referencing a non-milestone phase gate (T-000.GATE), the /implement
+  pre-flight check (SKILL.md lines 122-123, enforcing C3/F24) resolves every depends_on entry
+  as a milestone_id lookup — T-000.GATE is a terminal task inside a prerequisites phase that
+  has no milestone_id and therefore does not appear in plan-milestone-summary.yaml, causing F24
+  to fire as a false positive and leaving T-000 permanently undriven by the framework.
+
+root_cause:
+  file: "core/components/plays/implement/SKILL.md"
+  logic: >
+    The pre-flight block (lines 122-123) reads the phase-level depends_on[] list from the
+    milestone entry in plan.yaml and, for each dependency, checks whether a milestone with
+    that ID has status COMPLETE. The check is unconditional: it treats every entry in
+    depends_on[] as a milestone_id, verified via plan-milestone-summary.yaml. There is no
+    branch for a depends_on entry that is a terminal task of a non-milestone phase
+    (i.e., a phase with kind: prerequisites and no milestone_id).
+  why_wrong: >
+    /prepare deliberately outputs T-000 as a kind: prerequisites phase without a milestone_id,
+    and its terminal task T-000.GATE is meant to signal "tooling floor is ready." /prepare
+    writes T-001's phase-level depends_on as [T-000.GATE] (confirmed: sudarshan plan.yaml
+    line 137). T-000 is absent from plan-milestone-summary.yaml because it carries no
+    milestone_id. When /implement's pre-flight looks up T-000.GATE as a milestone, it finds
+    nothing, treats the dependency as unsatisfied (F24), and halts. Additionally, /implement
+    has no execution path for a prerequisites phase: it only accepts --milestone entries that
+    carry a milestone_id, so T-000 can never be driven by the framework at all. These two
+    gaps — the blind depends_on resolver and the absence of a prerequisites execution path —
+    combine to make the first feature milestone permanently blocked after a greenfield /prepare.
+  line_range: "95-96, 117-124 (SKILL.md compiled artifact); root fix vehicle: core/components/plays/implement/reference/intent.yaml C3 and F24"
+  contributing_factor: >
+    A format divergence exists between the prepare SKILL.md canonical example (which shows
+    the T-000-GATE dependency only at the task level inside T-001-1, with T-001's phase-level
+    depends_on empty) and the actual plan.yaml /prepare produces for greenfield epics (where
+    T-001's phase-level depends_on is [T-000.GATE]). The divergence means prepare's authored
+    output is valid from its own perspective but incompatible with implement's pre-flight
+    resolution logic. The root defect is in implement (the resolver), not in prepare.
+
+trace:
+  - step: >
+      User runs /implement --milestone T-001 after a greenfield /prepare run on sudarshan
+      issue #6. plan.yaml exists with T-000 (kind: prerequisites, no milestone_id) and
+      T-001 (milestone_id: T-001, phase-level depends_on: [T-000.GATE]).
+  - step: >
+      implement pre-flight reads plan.yaml milestone entry for T-001 and extracts its
+      phase-level depends_on list: [T-000.GATE] (plan.yaml line 137).
+  - step: >
+      Pre-flight iterates over depends_on[]. For each entry, it checks milestone status
+      via plan-milestone-summary.yaml. T-000.GATE is not a milestone_id — plan-milestone-summary
+      lists only T-001, T-002, T-003, T-004. T-000.GATE resolves to nothing.
+  - step: >
+      The unresolved entry is treated as a dependency that is not COMPLETE. C3/F24 pre-flight
+      eval (SE-2) fires: "All depends_on milestones COMPLETE" check fails. Hard halt with F24.
+  - step: >
+      Because /implement only accepts --milestone invocations (milestone_id required per C28),
+      and T-000 has no milestone_id, there is no other invocation path to execute T-000's
+      tasks. The prerequisites phase is permanently undriven. T-001 is permanently blocked.
+
+blast_radius:
+  - path: "core/components/plays/implement/reference/intent.yaml"
+    role: "Source of truth for the /implement play — defines C3 (depends_on pre-flight rule) and F24 (failure condition for unmet dependencies). This is the fix vehicle."
+    change_needed: >
+      Extend C3 to specify that depends_on entries are resolved by type: (1) if the entry
+      matches a milestone_id in plan-milestone-summary → check COMPLETE status (existing
+      behavior); (2) if it matches a terminal .GATE task of a non-milestone prerequisites
+      phase → treat as satisfied when that phase's tasks are prepended to scope execution
+      (new behavior); (3) if neither → structured halt with a clear error message.
+      Update F24 to distinguish the new error type (unrecognized depends_on reference)
+      from the existing type (unsatisfied milestone dependency). Optionally add a new
+      constraint/failure for prerequisites-phase execution.
+  - path: "core/components/plays/implement/SKILL.md"
+    role: "Compiled artifact — this is what the play orchestrator actually reads at runtime. Will be regenerated via /create-play --build after intent.yaml is fixed."
+    change_needed: >
+      Do NOT hand-edit. Regenerate from reference/intent.yaml via /create-play --build
+      after constraints and failure conditions are updated. The pre-flight pseudocode block
+      (lines 122-123), the pre-flight table row (line 95-96), and SE-2 (line 137) will all
+      be regenerated with the new 3-branch resolution logic.
+  - path: "core/components/plays/prepare/SKILL.md"
+    role: "Produces the plan.yaml that implement consumes. The canonical example (line 1053) shows T-001 phase-level depends_on as empty, but real output (sudarshan plan.yaml line 137) emits depends_on: [T-000.GATE] at the phase level."
+    change_needed: >
+      Align the canonical example to match actual /prepare output: T-001's phase-level
+      depends_on should be [T-000.GATE] (not empty []) to accurately document the format
+      and prevent future authoring confusion. This is a documentation-only change to the
+      SKILL.md canonical example (non-intent change — direct edit permitted per garura Play Pipeline Rules).
+  - path: "core/components/plays/prepare/reference/intent.yaml"
+    role: "Source of truth for /prepare — defines how plan.yaml is structured (C39, SE-27)"
+    change_needed: >
+      No functional change required. Consider adding a note to C39 clarifying that
+      the first feature milestone's phase-level depends_on references T-000.GATE
+      (prerequisites gate), distinct from subsequent milestones which reference prior
+      milestone IDs acceptance-based.
+
+produced_at: "2026-05-29T00:00:00Z"

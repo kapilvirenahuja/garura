@@ -1,0 +1,23 @@
+regression_test_path: .garura/project/issues/411/evidence/fix-it/regression-test.yaml
+failing: true
+verified_by: play (fix-it post-verify, C14)
+verified_at: "2026-05-29T00:00:00Z"
+model: corrected (DAG-aware, agentic self-location, two-boundary halt)
+assertions_spot_checked:
+  - id: A1
+    check: 'grep -Ec "DAG|self.locat|next runnable" core/components/plays/implement/reference/intent.yaml'
+    result: 0
+    state: red
+  - id: A2
+    check: 'grep -Ec "gate.node|two.boundary|readiness.stop" core/components/plays/implement/reference/intent.yaml'
+    result: 0
+    state: red
+  - id: A4
+    check: 'grep -Ec "id: C34" core/components/plays/implement/reference/intent.yaml'
+    result: 0
+    state: red
+  - id: A6
+    check: 'grep -Ec "self.locat|DAG.walk|next.runnable" core/components/plays/implement/SKILL.md'
+    result: 0
+    state: red
+note: All spot-checked assertions return 0 (absent) against the unfixed codebase — regression test is RED. Test covers both intent.yaml and SKILL.md so a forgotten /create-play recompile keeps it red.
