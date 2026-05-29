@@ -1,0 +1,161 @@
+style: yaml_eval_spec
+target_issue: 411
+based_on:
+  rca: ".garura/project/issues/411/evidence/fix-it/rca.yaml"
+  design: ".garura/project/issues/411/evidence/fix-it/design.yaml"
+
+description: >
+  Regression test for the corrected execution model: /implement must be agentic, self-locating,
+  and continuous with a two-boundary (gate/milestone) halt model. All assertions are
+  positive-presence checks that are FALSE today (before the fix) and TRUE only after:
+  (1) intent.yaml is rewritten to encode DAG-walk + self-location + two-boundary halt, AND
+  (2) SKILL.md is regenerated via /create-play --build implement.
+  The test covers BOTH files intentionally — asserting only intent.yaml would go green on the
+  edit alone, missing a forgotten recompile. All assertions must be green for the fix to be
+  considered complete.
+
+assertions:
+  - id: A1
+    description: >
+      intent.yaml intent statement encodes DAG-walk / self-location / next-runnable-node.
+      The current intent statement describes milestone-first invocation; after the fix it
+      must describe an agentic executor that reads the plan DAG and determines the next
+      runnable node itself.
+    kind: grep_present
+    spec:
+      pattern: "DAG|self.locat|self-locat|next runnable|next-runnable"
+      path: "core/components/plays/implement/reference/intent.yaml"
+    command: "grep -E 'DAG|self.locat|self-locat|next runnable|next-runnable' core/components/plays/implement/reference/intent.yaml"
+    verified_red_output: "(no output — exit code 1)"
+    verified_red_at: "2026-05-29T06:10:00Z"
+
+  - id: A2
+    description: >
+      intent.yaml encodes the gate-vs-milestone two-boundary halt distinction. A new
+      constraint (C34 or equivalent) must name gate nodes as readiness/tooling stops and
+      milestone nodes as human-acceptance stops as distinct halt types. Currently absent.
+    kind: grep_present
+    spec:
+      pattern: "gate.node|milestone.node|two.boundary|readiness.stop|tooling.stop|acceptance.stop|halt.type"
+      path: "core/components/plays/implement/reference/intent.yaml"
+    command: "grep -E 'gate.node|milestone.node|two.boundary|readiness.stop|tooling.stop|acceptance.stop|halt.type' core/components/plays/implement/reference/intent.yaml"
+    verified_red_output: "(no output — exit code 1)"
+    verified_red_at: "2026-05-29T06:10:00Z"
+
+  - id: A3
+    description: >
+      intent.yaml C28-equivalent constraint encodes self-location from branch state. The
+      updated C28 must state that /implement reads plan.yaml and the current branch state
+      to determine where execution stands, without requiring a milestone_id at invocation.
+    kind: grep_present
+    spec:
+      pattern: "branch.state|branch state|self.locat|self-locat"
+      path: "core/components/plays/implement/reference/intent.yaml"
+    command: "grep -E 'branch.state|branch state|self.locat|self-locat' core/components/plays/implement/reference/intent.yaml"
+    verified_red_output: "(no output — exit code 1)"
+    verified_red_at: "2026-05-29T06:10:00Z"
+
+  - id: A4
+    description: >
+      intent.yaml C28 no longer contains "milestone_id parameter" (the milestone-required
+      invocation language). After the fix, C28 must encode optional/absent milestone_id.
+      Currently C28 line 254 reads "implement accepts a milestone_id parameter".
+    kind: grep_absent
+    spec:
+      pattern: "accepts a milestone_id parameter"
+      path: "core/components/plays/implement/reference/intent.yaml"
+    command: "grep -E 'accepts a milestone_id parameter' core/components/plays/implement/reference/intent.yaml"
+    verified_red_output: "254:      implement accepts a milestone_id parameter (e.g., T-001) identifying a single feature"
+    verified_red_note: "Pattern IS present now (exit 0) — grep_absent assertion is RED"
+    verified_red_at: "2026-05-29T06:10:00Z"
+
+  - id: A5
+    description: >
+      intent.yaml encodes general DAG-edge resolution in C3: the updated rule must name
+      resolution by node type (milestone_id edges, gate task edges, task edges). Currently
+      C3 only checks "milestone status" with no gate or task node resolution.
+    kind: grep_present
+    spec:
+      pattern: "gate task|gate.*ID|node type|resolved by node|gate task ID"
+      path: "core/components/plays/implement/reference/intent.yaml"
+    command: "grep -E 'gate task|gate.*ID|node type|resolved by node|gate task ID' core/components/plays/implement/reference/intent.yaml"
+    verified_red_output: "(no output — exit code 1)"
+    verified_red_at: "2026-05-29T06:10:00Z"
+
+  - id: A6
+    description: >
+      intent.yaml contains a C34 (or higher ID) constraint encoding the two-boundary halt
+      model. This is a NEW constraint that does not exist today. After the fix, a constraint
+      with id C34 or later must be present.
+    kind: grep_present
+    spec:
+      pattern: "id: C34"
+      path: "core/components/plays/implement/reference/intent.yaml"
+    command: "grep -E 'id: C34' core/components/plays/implement/reference/intent.yaml"
+    verified_red_output: "(no output — exit code 1)"
+    verified_red_at: "2026-05-29T06:10:00Z"
+
+  - id: A7
+    description: >
+      SKILL.md pre-flight table no longer contains "milestone_id required" (the C28 hard
+      halt row). After recompile the pre-flight row for the old C28 must reflect the new
+      self-location model. Currently SKILL.md line 91 reads:
+      "| Parse `--milestone` argument | C28 | Hard halt — milestone_id required |"
+    kind: grep_absent
+    spec:
+      pattern: "milestone_id required"
+      path: "core/components/plays/implement/SKILL.md"
+    command: "grep -E 'milestone_id required' core/components/plays/implement/SKILL.md"
+    verified_red_output: "91:| Parse `--milestone` argument | C28 | Hard halt — milestone_id required |"
+    verified_red_note: "Pattern IS present now (exit 0) — grep_absent assertion is RED"
+    verified_red_at: "2026-05-29T06:10:00Z"
+
+  - id: A8
+    description: >
+      SKILL.md pre-flight/Arguments section encodes DAG-walk or self-location after recompile.
+      The new Arguments section must describe invocation without a required milestone_id and
+      the pre-flight pseudocode must reference DAG-walk or self-location logic. Currently absent.
+    kind: grep_present
+    spec:
+      pattern: "self.locat|self-locat|DAG.walk|dag.walk|next.runnable|next-runnable"
+      path: "core/components/plays/implement/SKILL.md"
+    command: "grep -E 'self.locat|self-locat|DAG.walk|dag.walk|next.runnable|next-runnable' core/components/plays/implement/SKILL.md"
+    verified_red_output: "(no output — exit code 1)"
+    verified_red_at: "2026-05-29T06:10:00Z"
+
+pass_when: "all_assertions_pass"
+
+verification_summary:
+  total_assertions: 8
+  red_verified_count: 8
+  all_red: true
+  verification_method: >
+    Each assertion was executed via grep against the actual files at:
+    core/components/plays/implement/reference/intent.yaml
+    core/components/plays/implement/SKILL.md
+    grep_present assertions: exit code 1 (pattern not found) = RED.
+    grep_absent assertions: exit code 0 (pattern found — currently present, will be removed by fix) = RED.
+  commands_run:
+    - "grep -E 'DAG|self.locat|self-locat|next runnable|next-runnable' core/components/plays/implement/reference/intent.yaml  # exit 1 → RED"
+    - "grep -E 'gate.node|milestone.node|two.boundary|readiness.stop|tooling.stop|acceptance.stop|halt.type' core/components/plays/implement/reference/intent.yaml  # exit 1 → RED"
+    - "grep -E 'branch.state|branch state|self.locat|self-locat' core/components/plays/implement/reference/intent.yaml  # exit 1 → RED"
+    - "grep -E 'accepts a milestone_id parameter' core/components/plays/implement/reference/intent.yaml  # exit 0, found on line 254 → RED (grep_absent)"
+    - "grep -E 'gate task|gate.*ID|node type|resolved by node|gate task ID' core/components/plays/implement/reference/intent.yaml  # exit 1 → RED"
+    - "grep -E 'id: C34' core/components/plays/implement/reference/intent.yaml  # exit 1 → RED"
+    - "grep -E 'milestone_id required' core/components/plays/implement/SKILL.md  # exit 0, found on line 91 → RED (grep_absent)"
+    - "grep -E 'self.locat|self-locat|DAG.walk|dag.walk|next.runnable|next-runnable' core/components/plays/implement/SKILL.md  # exit 1 → RED"
+
+green_conditions:
+  description: >
+    All 8 assertions pass (green) ONLY when:
+    (1) intent.yaml has been rewritten per design.yaml execution plan step-1
+        — DAG-walk, self-location, two-boundary halt, updated C3, replaced C28, new C34
+    (2) SKILL.md has been regenerated via /create-play --build implement per step-2
+        — "milestone_id required" removed, DAG/self-locat language present
+    Both conditions must hold simultaneously. Assertions A1–A6 verify intent.yaml; A7–A8
+    verify SKILL.md. A4 and A7 are grep_absent checks that turn green when the defective
+    text is no longer present.
+
+verified_red_at: "2026-05-29T06:10:00Z"
+expected_state_before_fix: red
+expected_state_after_fix: green

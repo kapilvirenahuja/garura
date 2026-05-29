@@ -1,0 +1,209 @@
+based_on_rca: "/Users/kapilahuja/cto/builder/garura/.garura/project/issues/411/evidence/fix-it/rca.yaml"
+
+strategy: >
+  Extend constraint C3 in core/components/plays/implement/reference/intent.yaml to specify a
+  3-branch depends_on resolution rule: (1) if a depends_on entry matches a milestone_id in
+  plan-milestone-summary.yaml, check that milestone's COMPLETE status (existing behavior preserved);
+  (2) if the entry matches the id of a terminal .GATE task inside a kind: prerequisites phase that
+  has no milestone_id, treat the dependency as satisfied by prepending that phase's task list to
+  the current milestone's scope execution — the prerequisites tasks run as scaffolding-only steps
+  (no eval generation, no judge, no scenario gate) before the feature milestone's scope_items begin;
+  (3) if the entry matches neither, halt with a structured error naming the unresolved reference
+  (new failure condition F27 or extended F24 subtype). Also update F24 to scope it to the
+  milestone-not-COMPLETE case only, and add F27 for the unrecognized-reference case to give
+  operators a clear diagnostic. After intent.yaml is updated, regenerate SKILL.md by running
+  /create-play --build implement — SKILL.md must NOT be hand-edited for this change. Separately,
+  fix the prepare/SKILL.md canonical example (a non-intent direct edit) to show T-001's phase-level
+  depends_on as [T-000.GATE] rather than [] so that the documented format matches actual /prepare
+  output.
+
+alternatives_considered:
+  - option: "Fix in /prepare — forbid kind: prerequisites phases, require all phases to be feature_milestone"
+    rejection_reason: >
+      This alternative shifts the burden to plan authors and forces scenario surface onto
+      tooling-only work. A greenfield T-000 equivalent milestone would need success_scenarios
+      and failure_conditions (C2 requires them before implementation), producing eval coverage
+      for "npm install succeeds" and "tsconfig compiles" — scenarios with no product value.
+      It also breaks backward compatibility with all existing plan.yaml files that already use
+      kind: prerequisites, requiring a migration across all STM contexts. The issue body explicitly
+      identifies this as the inferior option for this reason. Rejected: imposes product-surface
+      cost on scaffolding phases and requires plan migration.
+
+  - option: "Hand-edit SKILL.md pre-flight pseudocode directly without updating intent.yaml"
+    rejection_reason: >
+      SKILL.md is a compiled artifact generated from reference/intent.yaml by /create-play --build.
+      The garura Play Pipeline Rules (CLAUDE.md) state that intent changes must go through
+      intent.yaml — direct SKILL.md edits for intent-level changes are clobbered on the next
+      /create-play --build run, creating a silent divergence between the source of truth and the
+      runtime artifact. The lint-components validator checks hash guards against intent.yaml; a
+      hand-edited SKILL.md would fail that guard. Rejected: violates the play pipeline invariant
+      and creates an undocumented drift that breaks on any future rebuild.
+
+affected_files:
+  - path: "core/components/plays/implement/reference/intent.yaml"
+    role: "Source of truth for the /implement play — the authoritative definition of C3 (depends_on pre-flight rule), F24 (milestone dependency failure condition), and all constraints/failure conditions compiled into SKILL.md."
+    action: modify
+    change: >
+      C3: Replace single-sentence depends_on rule with 3-branch resolution specification:
+      branch 1 (milestone_id match) → check COMPLETE in plan-milestone-summary.yaml;
+      branch 2 (prerequisites .GATE task) → prepend that phase's tasks as scaffolding-only scope,
+      treat dependency as resolved;
+      branch 3 (neither) → structured halt with named unresolved reference.
+      F24: Narrow condition to "a depends_on entry matched a known milestone_id but that milestone
+      does not have status COMPLETE" — remove the unrecognized-reference case from F24.
+      F27 (new): Add failure condition — "a depends_on entry in the target milestone's depends_on
+      list does not match any milestone_id in plan-milestone-summary.yaml AND does not match any
+      .GATE task in a kind: prerequisites phase in plan.yaml — the reference is unresolvable."
+    risk: medium
+    risk_rationale: >
+      Changes a pre-flight constraint that governs when implementation is allowed to proceed;
+      incorrect branching could allow implementations to run with unsatisfied prerequisites or
+      reject valid configurations. Risk mitigated by the 3-branch explicit logic and the new
+      F27 as a hard catch for the neither case.
+
+  - path: "core/components/plays/implement/SKILL.md"
+    role: "Compiled /implement play artifact — read by the play orchestrator at runtime. Contains the pre-flight table (line 95), pseudocode block (lines 122-123), SE-2 eval (line 137), and the F24 failure condition text."
+    action: modify
+    change: >
+      DO NOT hand-edit for the intent portion. Regenerate entirely by running
+      /create-play --build implement after intent.yaml changes are complete.
+      The regenerated SKILL.md will reflect: updated pre-flight table row for depends_on
+      check, updated pseudocode block with 3-branch resolution logic, updated SE-2 eval
+      text referencing the 3-branch rule, updated F24 condition text (narrowed),
+      and new F27 condition text. The hash guard (intent_hash field in Compilation Metadata)
+      will be recomputed by /create-play.
+    risk: low
+    risk_rationale: >
+      Regeneration is a deterministic compilation step from intent.yaml; no manual authoring
+      risk. The only risk is a /create-play compilation bug, which would be caught by the
+      hash guard check.
+
+  - path: "core/components/plays/prepare/SKILL.md"
+    role: "Compiled /prepare play artifact — contains the canonical plan.yaml example that documents the expected format for plan.yaml's task_dag structure, including T-001's phase-level depends_on field."
+    action: modify
+    change: >
+      Direct edit (non-intent, permitted per garura Play Pipeline Rules):
+      Line 1053 — change:
+        depends_on: []    # first feature milestone — acceptance-based; no prior milestone to be ACCEPTED
+      To:
+        depends_on: [T-000.GATE]    # first feature milestone depends on prerequisites gate; no prior feature milestone to be ACCEPTED
+      This aligns the canonical example with actual /prepare output (confirmed in sudarshan
+      plan.yaml line 137) and eliminates the format divergence that obscures the defect.
+      Add a "Direct-edit deviation note (#411):" footer per the play pipeline rules.
+    risk: low
+    risk_rationale: >
+      Documentation-only change to a canonical example in a compiled artifact. Does not alter
+      any constraint, failure condition, eval, or agent contract in the /prepare play.
+
+execution_plan:
+  - id: step-1
+    description: >
+      Update C3 in core/components/plays/implement/reference/intent.yaml to specify the
+      3-branch depends_on resolution rule, replacing the current single-resolution rule.
+    files:
+      - path: "core/components/plays/implement/reference/intent.yaml"
+        action: modify
+        details: >
+          Locate the C3 constraint block (lines 44-49 in intent.yaml). Replace the rule text with:
+          "The pre-flight step resolves each entry in the target milestone's depends_on list using
+          a 3-branch lookup:
+          (1) Milestone reference: if the entry matches a milestone_id in plan-milestone-summary.yaml,
+              check that milestone's status. If not COMPLETE, halt with F24.
+          (2) Prerequisites gate reference: if the entry matches the id of a task whose id ends in
+              '.GATE' (or '-GATE') within a phase that has no milestone_id and kind: prerequisites
+              in plan.yaml, treat the dependency as resolved by prepending that phase's full task
+              list to this milestone's scope execution. Those tasks execute as scaffolding-only steps:
+              no eval generation, no judge, no scenario gate. The prerequisite phase's tasks must
+              exit cleanly (build/lint/typecheck/test exit-0) before the milestone's own scope_items begin.
+          (3) Unrecognized reference: if the entry matches neither, halt with F27 and name the
+              unresolvable entry in the error message."
+    expected_outcome: "C3 rule text updated with 3-branch resolution specification."
+    self_test: >
+      Grep core/components/plays/implement/reference/intent.yaml for 'branch' or 'prerequisites gate'
+      — the 3-branch language must appear in the C3 block.
+
+  - id: step-2
+    description: >
+      Narrow F24 in intent.yaml to the milestone-not-COMPLETE case only, and add F27 for the
+      unrecognized-reference case.
+    files:
+      - path: "core/components/plays/implement/reference/intent.yaml"
+        action: modify
+        details: >
+          F24 (lines 445-449): Replace condition with:
+          "A depends_on entry in the target milestone's depends_on list matched a known milestone_id
+          in plan-milestone-summary.yaml, but that milestone does not have status COMPLETE at the
+          time implement begins. Milestone dependency pre-flight failed or was skipped."
+          F27 (new — append after F26): Add:
+          "- id: F27
+             condition: >
+               A depends_on entry in the target milestone's depends_on list does not match any
+               milestone_id in plan-milestone-summary.yaml AND does not match any terminal .GATE
+               task inside a kind: prerequisites phase in plan.yaml. The reference is unresolvable.
+               The pre-flight must name the unresolvable entry in the structured halt message."
+    expected_outcome: "F24 narrowed to milestone-not-COMPLETE case; F27 added for unrecognized reference."
+    self_test: >
+      Grep core/components/plays/implement/reference/intent.yaml for 'F27' — must appear.
+      Grep for F24 condition — must NOT contain 'unrecognized' or 'neither'; that language
+      now lives in F27.
+
+  - id: step-3
+    description: >
+      Regenerate core/components/plays/implement/SKILL.md by running /create-play --build implement.
+      This is the ONLY permitted way to update SKILL.md for this intent-level change.
+      Do NOT hand-edit SKILL.md for the intent portion.
+    files:
+      - path: "core/components/plays/implement/SKILL.md"
+        action: modify
+        details: >
+          Run: /create-play --build implement
+          The compiled SKILL.md will be regenerated with:
+          - Updated pre-flight table row: "depends_on entries resolved (3-branch: milestone/prerequisites-gate/unrecognized) | C3, F24, F27 | Hard halt"
+          - Updated pseudocode block replacing lines 122-123 with the 3-branch resolution algorithm
+          - Updated SE-2: "All depends_on entries resolve cleanly: milestone refs are COMPLETE, prerequisites-gate refs prepend scaffolding scope, unrecognized refs halt with F27."
+          - Updated F24 and F27 condition text in the Recovery section
+          - Updated intent_hash in Compilation Metadata (recomputed from changed intent.yaml)
+    expected_outcome: >
+      SKILL.md updated to reflect 3-branch resolution. Pre-flight table, pseudocode, SE-2, and
+      failure conditions are all consistent with the updated intent.yaml. Hash guard passes.
+    self_test: >
+      Grep core/components/plays/implement/SKILL.md for 'prerequisites' in the pre-flight section
+      — the 3-branch language must appear. Grep for 'F27' — must appear in the Recovery table.
+      Verify the intent_hash in Compilation Metadata differs from the prior value.
+
+  - id: step-4
+    description: >
+      Direct-edit core/components/plays/prepare/SKILL.md to align the canonical plan.yaml example
+      with actual /prepare output. This is a non-intent change — direct edit is permitted.
+    files:
+      - path: "core/components/plays/prepare/SKILL.md"
+        action: modify
+        details: >
+          Line 1053: Change:
+            depends_on: []    # first feature milestone — acceptance-based; no prior milestone to be ACCEPTED
+          To:
+            depends_on: [T-000.GATE]    # first feature milestone depends on prerequisites gate; no prior feature milestone to be ACCEPTED
+          At the bottom of the file (before the final dashes or at end of Compilation Metadata),
+          add the deviation note:
+          "**Direct-edit deviation note (#411):** Canonical plan.yaml example updated — T-001
+          phase-level depends_on changed from [] to [T-000.GATE] to match actual /prepare output
+          (confirmed in sudarshan issue #6 plan.yaml line 137). Non-intent change — no constraint,
+          failure condition, eval, or agent contract affected. /create-play convergence: this
+          example lives in the plan.yaml template block, not in a constraint or eval rule, so
+          /create-play does not emit it; the deviation note is the durable record."
+    expected_outcome: >
+      prepare/SKILL.md canonical example now shows depends_on: [T-000.GATE] for T-001.
+      Deviation note appended.
+    self_test: >
+      Grep core/components/plays/prepare/SKILL.md for 'T-000.GATE' on the line containing
+      T-001's phase-level depends_on — must appear. Grep for 'Direct-edit deviation note (#411)'
+      — must appear.
+
+confidence: high
+confidence_rationale: >
+  Root cause is precisely located in a single constraint rule (C3 in intent.yaml). The 3-branch
+  fix is self-contained, does not change any agent contract, isolation invariant, or eval structure.
+  The SKILL.md regeneration path is deterministic. The prepare SKILL.md direct edit is a
+  one-line documentation correction.
+
+produced_at: "2026-05-29T00:00:00Z"

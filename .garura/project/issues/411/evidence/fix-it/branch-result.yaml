@@ -1,0 +1,12 @@
+result:
+  success: true
+  branch:
+    name: "fix/411-implement-gate-depends-on"
+    base_ref: "main"
+    pushed: true
+    tracking: "origin/fix/411-implement-gate-depends-on"
+  worktree:
+    used: false
+    path: null
+    reason: "Working tree had only untracked files — clean checkout used"
+  error: null

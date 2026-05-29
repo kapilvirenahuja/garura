@@ -1,0 +1,71 @@
+number: 411
+state: open
+title: "/implement halts on phase-internal .GATE depends_on — task-chain vs milestone-list mismatch"
+url: "https://github.com/kapilvirenahuja/garura/issues/411"
+labels: []
+body: |
+  ## What happened
+
+  In a real /prepare-authored plan.yaml for an epic, the task DAG looks like this (excerpted from a Sudarshan epic plan, issue #6 in the sudarshan repo):
+
+  - Top-level phases: T-000, T-001, T-002, T-003, T-004.
+  - T-000 is `kind: prerequisites` (tooling green floor: package.json, tsconfig, tailwind, eslint, vitest). No `milestone_id`. No scenarios.
+  - T-001..T-004 are `kind: feature_milestone` with their own `milestone_id`, scenario_gate, and a sub-task list ending in `T-00X.GATE`.
+  - T-001 declares: `depends_on: [T-000.GATE]`.
+
+  When you run `/implement --milestone T-001`, pre-flight halts with F24 ("a depends_on milestone is not COMPLETE"). T-000.GATE is not a milestone — it is a task inside the T-000 phase. The skill cannot resolve it.
+
+  There is no other driver in the framework for T-000 either: `/implement` only accepts entries with a `milestone_id`, and T-000 has none. So the user has to run T-000 by hand before /implement will accept T-001. The framework leaves the prerequisites phase undriven.
+
+  ## Why this is a real bug, not a plan authoring mistake
+
+  The plan structure is internally consistent and matches the natural reading of "milestone":
+
+  - Tasks are the unit of work (T-000.1, T-000.2, ..., T-001.1, ..., T-001.GATE).
+  - Milestone gates (`.GATE` tasks at the end of `feature_milestone` phases) are markers along the chain.
+  - `depends_on: [T-000.GATE]` on T-001 reads as "to reach the T-001 milestone gate, you must first walk every task up to T-000.GATE."
+
+  Under that reading, `/implement --milestone T-001` should walk forward through T-000's tasks, then T-001's tasks, and stop at T-001.GATE. The number of tasks before any given milestone gate is variable — sometimes 1, sometimes 5+ — and that is fine; the skill should follow the chain.
+
+  The skill currently reads `depends_on` as a list of prior milestone IDs only, not as a task chain. That assumption breaks the moment a plan has a non-milestone prerequisites phase (which is exactly what `/prepare` is documented to produce for greenfield epics).
+
+  ## Analysis — two definitions of "milestone" in conflict
+
+  - Plan's definition: a milestone is a `.GATE` checkpoint at the end of a chain of tasks. The chain may cross phase boundaries via `depends_on`. The milestone run covers every task from the last accepted milestone gate (or repo start) up to this gate.
+  - `/implement` skill's definition: a milestone is a self-contained phase whose `scope_items` list is its full task list, and `depends_on` only ever references other completed milestones.
+
+  The plan author and the skill author disagree on how phases chain. The plan says T-000's tasks belong to the path to T-001's milestone. The skill says T-001's `scope_items` is the entire list of tasks T-001 owns and T-000 must have completed elsewhere first.
+
+  ## Fix
+
+  In `/implement` pre-flight, when resolving `depends_on`:
+
+  1. For each entry in `depends_on`:
+     - If it matches a `milestone_id` in plan-milestone-summary.yaml → check that milestone's COMPLETE status (current behavior).
+     - If it matches an `id` of a non-milestone phase's terminal `.GATE` task (e.g. `T-000.GATE`) → walk that phase's task list as part of this milestone's execution. The skill should treat those tasks as a prepended scope, executed before the milestone's own scope_items.
+     - If neither → halt with a clear error: "depends_on reference X is neither a known milestone_id nor a recognised phase gate task."
+
+  2. Update the scope_items count and exit-gate logic accordingly: the milestone's effective scope is the transitive task list from the last satisfied gate up to and including its own `.GATE`.
+
+  3. The scenario-bearing portion (and therefore the test-writer / judge / quality-auditor surface) stays scoped to the milestone phase only — the prerequisites phase's tasks are run as scaffolding-only steps (build/lint/typecheck/test exit-0 gates), no eval generation, no judge.
+
+  This keeps the skill's strict isolation invariants intact while honoring the plan's task-chain structure.
+
+  ## Alternative fix (lighter, in `/prepare` instead of `/implement`)
+
+  Forbid `kind: prerequisites` in plan.yaml. Require every phase to be a `feature_milestone` with at least a minimal "tooling exits 0" scenario. The downside: the first milestone of a greenfield epic gets noisier and the scenario surface includes "npm install succeeds" style assertions that aren't really behaviour.
+
+  Recommended: fix in `/implement` (the structural fix above). The plan format as authored is more honest about the difference between prerequisites and feature delivery.
+
+  ## Repro
+
+  1. Open a greenfield epic via /specify → /arch → /prepare.
+  2. Confirm the generated plan.yaml has a T-000 prerequisites phase and T-001 declares `depends_on: [T-000.GATE]`.
+  3. Run `/implement --milestone T-001`.
+  4. Observe F24 halt.
+
+  ## Source artefacts (sudarshan repo, issue #6, branch feature/6-chakra-engine-shell)
+
+  - `.garura/project/issues/6/context/design/plan.yaml` — lines 33–122 (T-000 phase, kind: prerequisites), line 137 (T-001 depends_on: [T-000.GATE]).
+  - `.garura/project/issues/6/context/design/plan-milestone-summary.yaml` — T-001..T-004 listed as milestones; T-000 absent.
+  - `core/components/plays/implement/SKILL.md` (this repo) — pre-flight `All depends_on milestones COMPLETE (C3, F24)`.

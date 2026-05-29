@@ -1,0 +1,227 @@
+# Constraint classifications for /implement recompile (issue #411 — DAG-runner redesign)
+# Categories: pre-flight | artifact-verifiable | structural
+# Heuristics:
+#   "must exist / be provided / LOCKED before"      -> pre-flight
+#   artifact content / format / fields              -> artifact-verifiable
+#   "delegated to agent / max N / never directly / isolation" -> structural
+# Source: core/components/plays/implement/reference/intent.yaml (C1-C34)
+
+classifications:
+  - id: C1
+    category: pre-flight
+    note: >
+      Milestone node's plan.yaml entry must have status LOCKED for its boundary to be
+      eligible — a "must be LOCKED before the gate runs" precondition checked when the
+      DAG walk reaches that boundary.
+
+  - id: C2
+    category: pre-flight
+    note: >
+      A reached milestone node must have >=1 success scenario and >=1 failure condition
+      in features.yaml before its acceptance gate runs — a precondition for eval generation.
+
+  - id: C3
+    category: pre-flight
+    note: >
+      All depends_on edges of the current candidate node must be resolved (by type:
+      milestone=ACCEPTED, gate=exit_gate met, task=done in branch state) before that node
+      executes. DAG-walk pre-flight validates edges before dispatch.
+
+  - id: C4
+    category: structural
+    note: >
+      Eval generator receives ONLY the listed inputs and is scoped to unit-test coverage
+      completeness — an isolation/scope guarantee on the evals-engineer contract.
+
+  - id: C5
+    category: structural
+    note: >
+      Code-builder receives ONLY CONTEXT.md + architecture-context.yaml; never test/eval
+      content — agent input isolation (bare scope-dir path exception is procedural).
+
+  - id: C6
+    category: structural
+    note: >
+      Judge receives ONLY encrypted evals + impl artifacts (EVAL-REVIEW) or spec contracts +
+      status report (ARBITER); never builder prompts/reasoning/eval-gen content — isolation.
+
+  - id: C7
+    category: artifact-verifiable
+    note: >
+      Evals encrypted at rest, plaintext deleted after encryption — verifiable on the
+      eval-storage artifacts and disk state.
+
+  - id: C8
+    category: artifact-verifiable
+    note: >
+      Eval files stored outside the repo tree; no eval content inside the repo at any point —
+      verifiable by inspecting paths/disk and repo tree.
+
+  - id: C9
+    category: structural
+    note: >
+      After a fix iteration old evals are discarded entirely; a fresh eval agent with no
+      knowledge of prior evals regenerates — process/isolation guarantee across iterations.
+
+  - id: C10
+    category: structural
+    note: >
+      Builder receives ONLY remediation derived from spec-referenced status reports; status
+      reports must not carry test/eval content — channel-isolation guarantee.
+
+  - id: C11
+    category: structural
+    note: >
+      Fix loop runs a maximum of 3 iterations — a "max N" loop-bound guarantee.
+
+  - id: C12
+    category: artifact-verifiable
+    note: >
+      Project build and type check pass without errors after implementation — verifiable by
+      build/type-check exit codes and the quality report.
+
+  - id: C13
+    category: artifact-verifiable
+    note: >
+      CONTEXT.md generated before implementation with API surface, interface/service
+      contracts, scope items, file ownership, conventions; no behavioral descriptions —
+      verifiable on the CONTEXT.md artifact content.
+
+  - id: C14
+    category: artifact-verifiable
+    note: >
+      Quality-auditor independently verifies lint/tests/typecheck/build/coverage and emits a
+      qp_certification section with per-dimension PASS/FAIL and overall CERTIFIED|BLOCKED —
+      verifiable on the quality-report artifact. (Carries a structural "does not receive"
+      clause covered alongside isolation evals.)
+
+  - id: C15
+    category: pre-flight
+    note: >
+      Quality vision gates captured in STM before the quality agent runs; thresholds derived
+      from quality-vision.yaml when present — a "must exist before" precondition.
+
+  - id: C16
+    category: structural
+    note: >
+      Test-writer and code-builder work independently from the SPEC, neither sees the other's
+      product; scope items are not batched (one cycle completes before the next) — isolation +
+      sequencing guarantee.
+
+  - id: C17
+    category: structural
+    note: >
+      Test-writer receives ONLY TEST-CONTEXT.md (behavioral); never CONTEXT.md file paths,
+      architecture, or tech decisions — agent input isolation.
+
+  - id: C18
+    category: artifact-verifiable
+    note: >
+      Orchestrator status report maps each failure to a tech.yaml contract ID with expected
+      behavior and observed deviation; must not contain test source/assertion text/paths/mock
+      data/impl code — verifiable on the status-report artifact format/content.
+
+  - id: C19
+    category: artifact-verifiable
+    note: >
+      QP dimension levels translate to concrete thresholds (coverage/complexity/security) with
+      no manual override — verifiable on the resolved quality-gate thresholds artifact.
+
+  - id: C20
+    category: structural
+    note: >
+      If quality-auditor FAIL or qp_certification BLOCKED, orchestrator MUST NOT proceed to
+      judge — single-gate control-flow guarantee.
+
+  - id: C21
+    category: structural
+    note: >
+      Remediation reads two sources (status reports + quality-report incl qp_certification),
+      categorizes entries, re-checks both each iteration; no failing source omitted — process
+      guarantee.
+
+  - id: C22
+    category: artifact-verifiable
+    note: >
+      Fresh eval count compared to original manifest; a decrease requires a
+      consolidation_rationale per removed eval ID — verifiable on the eval-audit artifact.
+
+  - id: C23
+    category: pre-flight
+    note: >
+      Design artifacts sourced from issue STM context/design/; arch artifacts from
+      product_base/architecture/; artifact_base derived from issue STM path — a path-resolution
+      precondition the pre-flight validates.
+
+  - id: C24
+    category: pre-flight
+    note: >
+      Mock infrastructure must exist before test-writer runs; mock setup failure is a hard halt
+      — a "must exist before" precondition.
+
+  - id: C25
+    category: structural
+    note: >
+      After all scope items in the segment complete, orchestrator runs the full suite (unit +
+      integration with mocks + regression) — process/sequencing guarantee.
+
+  - id: C26
+    category: artifact-verifiable
+    note: >
+      Quality-auditor report MUST include a qp_certification section (overall, per-dimension
+      level/threshold/actual_value/status, blockers) when quality-vision.yaml exists —
+      verifiable on the report artifact.
+
+  - id: C27
+    category: structural
+    note: >
+      implement reads ONLY from STM context/; KB and LTM forbidden; no agent contract carries
+      ltm_context/product_base/core-memory paths — boundary/isolation guarantee on contracts.
+
+  - id: C28
+    category: pre-flight
+    note: >
+      Invoked with optional issue reference (no milestone_id); on startup reads plan.yaml +
+      branch state to self-locate the topologically-earliest runnable node — the self-location
+      precondition that seeds the walk.
+
+  - id: C29
+    category: structural
+    note: >
+      Code-builder context must not contain test/eval content; a bare scope-dir path is allowed;
+      orchestrator runs a hard pre-invocation check before every builder invocation — isolation
+      guarantee enforced per dispatch.
+
+  - id: C30
+    category: structural
+    note: >
+      Judge-as-arbiter escalation only after the same contract fails two consecutive cycles;
+      arbiter reads only spec contracts + status report; renders one of three verdicts — a
+      "never before N failures / isolation" guarantee.
+
+  - id: C31
+    category: structural
+    note: >
+      Test-writer and code-builder both derive independently from the same SPEC; neither's
+      product is input to the other — isolation guarantee (alignment via shared spec fidelity).
+
+  - id: C32
+    category: structural
+    note: >
+      All inter-agent communication flows through spec references and status reports; no agent
+      sees another's source/test code/prompts/reasoning — communication-channel isolation.
+
+  - id: C33
+    category: structural
+    note: >
+      Every code-builder/test-writer dispatch MUST carry four labeled sections in order
+      (Description, Preconditions, Expected Behavior, Verification Steps) — a dispatch-structure
+      guarantee enforced by an orchestrator pre-dispatch gate.
+
+  - id: C34
+    category: structural
+    note: >
+      The DAG executor recognizes exactly two halt-boundary types (gate = readiness/auto-resume,
+      milestone = human-acceptance via validate); all task nodes between boundaries execute
+      without pausing; never pause at a non-boundary task node — the core execution-model
+      control-flow guarantee.

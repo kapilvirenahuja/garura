@@ -1,0 +1,5 @@
+status: dispatched
+dispatched_at: "2026-05-29T10:05:05Z"
+task_id: issue-comment-dispatch
+template: core/components/memory/standards/templates/issue-comment-rca-approved.md
+issue: 411

@@ -1,0 +1,54 @@
+resolution_trace:
+  - decision: "What is the correct fix vehicle for changing /implement's depends_on resolution logic — SKILL.md or intent.yaml?"
+    resolved_from: "core"
+    source: "core/components/memory/standards/rules/_index.md"
+    section: "Artifact rules"
+    authority: "draft"
+    value: >
+      Standards rules establish the garura play pipeline where SKILL.md is a compiled artifact
+      generated from reference/intent.yaml. Changing resolution semantics (a constraint-level
+      change) requires updating intent.yaml → /create-play --build. Direct SKILL.md edits for
+      intent changes are forbidden and will be clobbered on rebuild.
+
+  - decision: "How should the pre-flight depends_on resolver distinguish milestone IDs from non-milestone phase gate tasks?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: >
+      No core knowledge file covers DAG traversal patterns in play orchestrators or
+      the two-namespace problem (milestone_id vs task id). Resolution by LLM reasoning:
+      the resolver must branch on entry type — check plan.yaml task_dag for a phase with
+      no milestone_id whose tasks[] contains an id matching the depends_on entry, treating
+      it as a prerequisites gate rather than a milestone reference.
+    rationale: >
+      The garura framework's core memory contains architectural and epic rules but has no
+      specific knowledge file for play orchestration patterns, DAG resolution logic, or
+      multi-namespace dependency resolution. The resolution applies general dependency
+      resolution principles (explicit type discrimination before resolution) to the
+      garura-specific two-namespace problem.
+
+  - decision: "Is the plan.yaml format produced by /prepare for the first feature milestone's phase-level depends_on well-defined or ambiguous?"
+    resolved_from: "core"
+    source: "core/components/memory/standards/rules/epics.md"
+    section: "Rule 1: Every epic must deliver end-to-end testable user value"
+    authority: "draft"
+    value: >
+      Epic rules confirm the intent: prerequisites phases (T-000) are explicitly distinguished
+      from feature-milestone phases (T-001+) in the garura plan structure. The plan authorship
+      rules in epics.md acknowledge T-000 as a scaffolding exception. The format divergence
+      (canonical example vs actual output) is an implicit gap in plan authorship documentation,
+      not a rule violation.
+
+  - decision: "What quality standard governs when a failure condition (F24) is too broad?"
+    resolved_from: "core"
+    source: "core/components/memory/standards/rules/architecture.md"
+    section: "Rule 1: Every Architectural Decision Has a Driver"
+    authority: "draft"
+    value: >
+      Architecture rules establish that every decision (including failure conditions) must
+      cite its driver. F24 currently fires for two distinct failure modes — unrecognized
+      depends_on reference AND unsatisfied milestone — without distinguishing them. The fix
+      should introduce a new failure condition (or subtype) for the unrecognized reference case,
+      with a clear error message that names the unresolved entry. This aligns with the
+      driver-traceability principle.

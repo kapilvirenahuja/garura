@@ -1,0 +1,290 @@
+based_on_rca: ".garura/project/issues/411/evidence/fix-it/rca.yaml"
+
+strategy: >
+  Rewrite the /implement play's intent.yaml to encode the corrected execution model described
+  in corrected-model.md, then recompile SKILL.md via /create-play --build implement. The
+  intent.yaml is the authoritative source of truth; SKILL.md is never hand-edited for the
+  intent portion. Four changes are required in intent.yaml:
+
+  (1) Rewrite the intent statement to describe /implement as an agentic, self-locating,
+  continuous DAG executor. It reads the plan DAG and the current branch state, determines
+  the next runnable node itself, and runs nodes continuously. It halts ONLY at two boundary
+  types: a gate (readiness/tooling stop — pause until condition clears, then continue) or a
+  milestone (human-acceptance stop with evals — pause for acceptance, then continue). No
+  milestone_id is required at invocation.
+
+  (2) Replace C28 (milestone-required invocation) with a new constraint encoding the agentic
+  invocation model: /implement takes an optional issue reference, reads plan.yaml plus the
+  current branch state to self-locate, identifies all nodes whose depends_on edges are
+  satisfied, picks the next runnable node, and begins continuous execution.
+
+  (3) Update C3 to encode general DAG-edge resolution: a depends_on entry may reference a
+  milestone_id (requiring ACCEPTED status from validate), a gate task ID (requiring that gate's
+  exit_gate condition to be met), or a task ID (requiring that task to be marked done). The
+  pre-flight check validates all edges at the start of each DAG-walk step before execution
+  of that node begins. Update F24 to match — it fires when a DAG-edge target cannot be
+  resolved or its condition is not satisfied.
+
+  (4) Add a new constraint (new C — e.g. C34) encoding the two-boundary halt model:
+  a gate node halts execution, waits for the gate's readiness/tooling condition to clear,
+  then resumes the DAG walk; a milestone node halts execution, runs evals and scenario gates,
+  waits for human acceptance (via validate), then resumes the DAG walk. Between two stop
+  points the orchestrator runs all intermediate task nodes without pausing.
+
+  After intent.yaml is updated, run /create-play --build implement to regenerate SKILL.md.
+  Then make a secondary, non-intent direct edit to prepare/SKILL.md to align its canonical
+  plan.yaml example (T-001 phase-level depends_on: []) to match actual /prepare output
+  (T-001 phase-level depends_on: [T-000-GATE]).
+
+alternatives_considered:
+  - option: >
+      Shallow patch: add a third branch to the C3/F24 depends_on resolver to recognise
+      .GATE task references (as the original issue body proposed). When a depends_on entry
+      matches a terminal .GATE task of a non-milestone phase, prepend that phase's task list
+      to the current milestone's scope before execution.
+    rejection_reason: >
+      This leaves /implement milestone-first (C28 still requires --milestone at invocation;
+      the caller still drives sequencing). It does not add a DAG walker, self-location from
+      branch state, or the two-boundary halt model. After the patch the user still must invoke
+      /implement --milestone T-001 explicitly — the play has no ability to determine for itself
+      where plan execution stands, which means it remains incapable of continuous agentic
+      execution across a multi-phase DAG. The fix patches one symptom (the F24 gate-lookup
+      halt) while leaving the structural defect (milestone-first, non-agentic model) intact.
+      Corrected-model.md explicitly supersedes this approach.
+
+  - option: >
+      Fix in /prepare instead: forbid kind: prerequisites phases and require every phase to be
+      a feature_milestone with a milestone_id, so that /implement's current milestone-first
+      model always works without modification. Tooling setup becomes part of T-001's scope.
+    rejection_reason: >
+      This encodes a worse plan structure: the first feature milestone would include "npm install
+      succeeds" and "typecheck passes" as scenarios, polluting the feature scenario surface with
+      scaffolding assertions. More fundamentally, the corrected execution model (plan.yaml as a
+      DAG of tasks with milestones as stop-point annotations) is the right model for /implement
+      to implement — not a workaround that forces plan.yaml to match /implement's current
+      limitations. Fixing in /prepare treats the symptom in the wrong artifact and makes
+      future plan structures more constrained than they need to be.
+
+affected_files:
+  - path: "core/components/plays/implement/reference/intent.yaml"
+    role: >
+      Authoritative source of truth for the /implement play. All four defective constraints
+      (intent statement, C28, C3, and the absences of DAG-walk and two-boundary halt) originate
+      here. This is the primary fix vehicle — the only file that must be edited by hand.
+    action: modify
+    change: >
+      (a) Intent statement (lines 1–7): rewrite to describe /implement as an agentic,
+      self-locating, continuous DAG executor that reads plan.yaml + branch state to determine
+      the next runnable node and runs continuously, halting only at gates (readiness/tooling
+      stops) or milestones (human-acceptance stops).
+
+      (b) C3 (lines 44–50): replace "prerequisite feature phases … must have status COMPLETE
+      … validates each depends_on milestone status" with "every depends_on edge in plan.yaml
+      is resolved by node type: milestone_id edges require ACCEPTED status from validate; gate
+      task edges require that gate's exit_gate condition met; task edges require the task marked
+      done. Pre-flight validates all edges for the current node before execution begins."
+
+      (c) C28 (lines 252–260): replace "accepts a milestone_id parameter … each invocation
+      implements ONLY the scope items of the specified milestone … After the milestone completes,
+      validate is called … before implement is invoked for the next milestone" with a constraint
+      encoding: /implement is invoked with an optional issue reference (no milestone_id required);
+      it reads plan.yaml and the current branch state; it self-locates by finding the furthest
+      node whose depends_on edges are all satisfied and which has not yet been executed; it then
+      runs the DAG continuously from that node until it reaches a gate or milestone boundary.
+
+      (d) F24 (lines 444–448): update to cover DAG-walker failures — fires when a depends_on
+      edge target cannot be resolved (unknown node ID), when a resolved gate's condition is not
+      met, or when a milestone dependency is not ACCEPTED.
+
+      (e) Add new constraint C34 (after C33): encode the two-boundary halt model — gate nodes
+      pause execution and wait for the gate's readiness condition to clear before the DAG walk
+      resumes; milestone nodes pause execution, trigger eval generation and scenario gates, wait
+      for human acceptance via validate, then the DAG walk resumes. Between two boundaries all
+      intermediate task nodes execute without pausing.
+    risk: medium
+    risk_rationale: >
+      Intent changes cause a full recompile of SKILL.md — the compiled artifact changes
+      substantially. The hash guard in the current SKILL.md header will no longer match and
+      must be updated by the recompile. The isolation invariants (C4–C17, C27–C33) and
+      agent boundary table are unchanged and will survive the recompile intact.
+
+  - path: "core/components/plays/implement/SKILL.md"
+    role: >
+      Compiled runtime artifact generated from intent.yaml + expectation.yaml by
+      /create-play --build. Must NOT be hand-edited for the intent portion. Updated by
+      the recompile step.
+    action: modify
+    change: >
+      Regenerated entirely by /create-play --build implement after intent.yaml is updated.
+      Sections that change: Arguments (--milestone → optional issue ref), Pre-flight table
+      (C28 row changes; C3/F24 row changes), pre-flight pseudocode (milestone_id resolution
+      → DAG-walk + branch-state self-location), SE-1/SE-2 step evals (reflect new C28/C3
+      semantics). The isolation invariants, agent boundary table, and all workflow steps for
+      context assembly, test-writer, code-builder, evals, quality-auditor, judge, and outer
+      fix loop are unchanged.
+    risk: low
+    risk_rationale: >
+      This is a generated artifact — the risk is in intent.yaml (above). The recompile
+      cannot introduce new errors beyond what the updated intent.yaml specifies. The hash
+      guard update is automatic.
+
+  - path: "core/components/plays/prepare/SKILL.md"
+    role: >
+      Produces the plan.yaml that /implement consumes. Contains a canonical plan.yaml example
+      at the Step 14 section. The example shows T-001 phase-level depends_on: [] (empty), but
+      actual /prepare output emits depends_on: [T-000.GATE] at the phase level. This is a
+      documentation discrepancy — not a structural defect in /prepare.
+    action: modify
+    change: >
+      Direct non-intent edit (per garura Play Pipeline Rules): in the canonical plan.yaml
+      example at the Step 14 section, change T-001's phase-level depends_on from:
+        depends_on: []    # first feature milestone — acceptance-based; no prior milestone to be ACCEPTED
+      to:
+        depends_on: [T-000-GATE]    # first feature milestone deps on prerequisites gate (task-level)
+      Add a clarifying comment noting the distinction between phase-level deps (T-000-GATE
+      for prerequisites) and acceptance-based deps ([T-001] for subsequent milestones).
+      Add a direct-edit deviation note footer per Play Pipeline Rules.
+    risk: low
+    risk_rationale: >
+      Documentation-only change to a canonical example in a compiled SKILL.md. No
+      constraint, failure condition, eval, or agent contract is touched. Risk is confined
+      to the accuracy of the example.
+
+execution_plan:
+  - id: step-1
+    description: >
+      Update core/components/plays/implement/reference/intent.yaml — rewrite the intent
+      statement and update/add constraints C3, C28, F24, C34 to encode the corrected
+      DAG-walk + self-location + two-boundary-halt execution model.
+    files:
+      - path: "core/components/plays/implement/reference/intent.yaml"
+        action: modify
+        details: >
+          1. Rewrite the `intent:` block (lines 1–7) to read approximately:
+             "Given a locked plan.yaml (a DAG of tasks produced by /prepare), /implement is an
+             agentic, self-locating, continuous executor. It reads the plan DAG and the current
+             branch state to determine where execution stands and which node can run next.
+             It executes nodes continuously, following DAG edges, and halts ONLY at two
+             boundary types: a gate (readiness/tooling stop — the orchestrator waits for the
+             gate's exit condition to clear, then resumes) or a milestone (human-acceptance stop
+             — evals and scenario gates run, the orchestrator waits for validate to confirm
+             ACCEPTED, then resumes). Tasks drive execution; milestones and gates only bound it.
+             No milestone_id is required at invocation."
+
+          2. Update C3 rule to:
+             "All depends_on edges for the current plan node must be resolved before execution
+             of that node begins. Resolution is by node type: an entry matching a milestone_id
+             in plan.yaml requires that milestone to have status ACCEPTED (confirmed by validate);
+             an entry matching a gate task ID (e.g., T-000-GATE) requires that gate's exit_gate
+             condition to be met; an entry matching a task ID requires that task to be marked
+             done in the branch state. The DAG-walk pre-flight validates all edges for the next
+             candidate node before dispatching it."
+
+          3. Replace C28 with:
+             "implement is invoked with an optional issue reference (no milestone_id required).
+             On startup, implement reads plan.yaml from STM and inspects the current branch state
+             (committed evidence, milestone status files) to self-locate: it identifies the set
+             of plan nodes whose depends_on edges are all satisfied and which have not yet been
+             executed, then picks the topologically earliest such node as the starting point.
+             It runs that node and continues through the DAG, node by node, until it reaches a
+             gate boundary (pause for readiness) or a milestone boundary (pause for acceptance
+             via validate). After the boundary condition clears, execution resumes from the next
+             unsatisfied node."
+
+          4. Update F24 condition to:
+             "A depends_on edge target for the current plan node cannot be resolved (the node ID
+             does not exist in plan.yaml), OR a resolved gate target's exit_gate condition is not
+             satisfied, OR a resolved milestone target does not have status ACCEPTED. DAG-walk
+             pre-flight failed or was skipped."
+
+          5. Add C34 after C33:
+             "The /implement DAG executor recognizes exactly two halt-boundary types. A gate
+             node (identified by a .GATE suffix or kind: gate in plan.yaml) is a readiness/tooling
+             stop: execution pauses, the gate's exit condition is checked, and execution resumes
+             automatically when the condition clears. A milestone node (identified by a
+             milestone_id field in plan.yaml) is a human-acceptance stop: execution pauses,
+             evals are generated, scenario gates run, and the validate play is invoked; execution
+             resumes only after validate confirms ACCEPTED. All task nodes between two boundaries
+             execute without pausing. The orchestrator MUST NOT pause mid-stream at a task node
+             that is neither a gate nor a milestone."
+    expected_outcome: >
+      intent.yaml has a rewritten intent statement encoding the DAG-walk + self-location +
+      two-halt-boundary model. C3 encodes general DAG-edge resolution. C28 encodes agentic
+      invocation without required milestone_id. F24 covers DAG-walker failure modes. C34
+      encodes the gate-vs-milestone halt distinction. The existing sha256 hashes in SKILL.md
+      header will no longer match — that is expected and correct.
+    self_test: >
+      grep the updated intent.yaml for: "self-locat" OR "next runnable" OR "DAG" — must
+      find at least one occurrence in the intent statement. Confirm C28 no longer contains
+      "milestone_id parameter". Confirm C3 contains "gate task ID" or equivalent. Confirm
+      C34 exists and contains "gate" and "milestone" as distinct halt types. Confirm F24
+      references "cannot be resolved" or equivalent DAG-walker failure language.
+
+  - id: step-2
+    description: >
+      Recompile SKILL.md by running /create-play --build implement. This regenerates the
+      compiled artifact from the updated intent.yaml + existing expectation.yaml.
+    files:
+      - path: "core/components/plays/implement/SKILL.md"
+        action: modify
+        details: >
+          Run: /create-play --build implement
+          The compiler reads reference/intent.yaml (updated in step-1) and
+          reference/expectation.yaml (unchanged) and regenerates SKILL.md. The Arguments
+          section, Pre-flight table, pre-flight pseudocode, and SE-1/SE-2 step evals will
+          reflect the new DAG-walk model. The hash guard will be updated to match the new
+          intent.yaml sha256. Do NOT hand-edit this file for the intent portion before or
+          after the recompile.
+    expected_outcome: >
+      SKILL.md is regenerated with: Arguments section showing optional invocation (no
+      --milestone required), Pre-flight table with updated C28 row (self-location from plan +
+      branch) and updated C3/F24 row (DAG-edge resolution), pre-flight pseudocode describing
+      DAG-walk + self-location logic, and updated hash guard matching the new intent.yaml sha256.
+      The isolation invariants and agent boundary table are preserved unchanged.
+    self_test: >
+      grep the regenerated SKILL.md for: (a) absence of "milestone_id required" in the
+      pre-flight table (C28 row changed); (b) presence of "DAG" or "self-locat" or
+      "next runnable" in the Arguments or Pre-flight sections; (c) updated sha256 hash
+      that matches sha256(reference/intent.yaml) as regenerated. Run lint-components on
+      the play to confirm structural validity.
+
+  - id: step-3
+    description: >
+      Direct non-intent edit to core/components/plays/prepare/SKILL.md: align the canonical
+      plan.yaml example so T-001's phase-level depends_on matches actual /prepare output.
+    files:
+      - path: "core/components/plays/prepare/SKILL.md"
+        action: modify
+        details: >
+          In the Step 14 section (around line 1053), find:
+            depends_on: []    # first feature milestone — acceptance-based; no prior milestone to be ACCEPTED
+          Replace with:
+            depends_on: [T-000-GATE]    # first feature milestone phase-level dep on prerequisites gate
+          Add a comment block after the T-001 phase entry explaining: "Phase-level depends_on
+          for T-001 references T-000-GATE (the prerequisites gate task) because /prepare
+          emits this in real output. Subsequent milestones (T-002+) use acceptance-based
+          phase-level depends_on ([T-001], [T-002]) which is different: those reference a
+          milestone_id, not a gate task."
+          Add a direct-edit deviation note footer:
+          "**Direct-edit deviation note (DAG-model alignment, #411):** Canonical plan.yaml
+          example updated to match actual /prepare output — T-001 phase-level depends_on
+          is [T-000-GATE], not []. Non-intent change (documentation only). No constraint,
+          failure condition, eval, or agent contract affected. /create-play is not invoked."
+    expected_outcome: >
+      prepare/SKILL.md canonical plan.yaml example accurately shows T-001's phase-level
+      depends_on as [T-000-GATE], matching actual /prepare output. The deviation note is
+      present at the bottom of the file.
+    self_test: >
+      grep prepare/SKILL.md for "T-000-GATE" in the context of T-001's phase-level
+      depends_on — must find the updated line. Confirm the deviation note is present with
+      issue #411 reference.
+
+confidence: high
+confidence_rationale: >
+  All four defective constraints are precisely located in intent.yaml. The fix vehicle
+  (intent change + recompile) is the standard Garura pattern for intent changes per the
+  Play Pipeline Rules. The alternatives are concrete and their rejection reasons are tied
+  to the corrected-model.md specification. The affected-files set is bounded and the
+  secondary prepare edit is documentation-only.
+
+produced_at: "2026-05-29T06:00:00Z"
