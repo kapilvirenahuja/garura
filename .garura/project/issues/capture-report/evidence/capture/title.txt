@@ -1,1 +1,1 @@
-[ENH] Redesign review-pr around rule-driven audits with tiered tooling (fast / full / grinding)
+[ENH] /prepare should produce minimal milestones — only where human validation is truly needed

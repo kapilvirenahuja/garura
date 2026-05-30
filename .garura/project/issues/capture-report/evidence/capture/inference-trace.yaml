@@ -1,12 +1,15 @@
 type_resolution:
-  source: inferred
+  caller_kind: human
+  caller_provided_type: true
   resolved_type: enhancement
+  method: explicit
+  matched_keyword: null
   ambiguous_text: false
-  inference_basis: "redesign of an existing capability (review-pr) — structural improvement maps to enhancement"
-caller_kind: human
-repo_slug: kapilvirenahuja/garura
-label: enhancement
-events:
-  - event: inferred-type
-    type: enhancement
-    timestamp: "2026-05-29T00:00:00Z"
+  events:
+    - event: type_resolved
+      type: enhancement
+      rationale: >
+        Caller asked to change existing /prepare behavior (stop over-producing
+        milestones; produce only those needed for true human validation).
+        An enhancement to an existing play. Unambiguous; no human confirmation
+        prompt required. Severity not applicable (type is not defect).
