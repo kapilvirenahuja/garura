@@ -9,6 +9,8 @@ tools:
   - Grep
   - Glob
   - Skill
+  - Write
+  - Bash
 ---
 
 # evals-engineer
