@@ -1,3 +1,0 @@
- D .claude/plans/308-phoenix-architecture-philosophy-adrs.md
-?? .garura/project/issues/417/
-?? .garura/project/issues/_pending/start-feature/

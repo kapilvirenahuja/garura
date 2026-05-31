@@ -1,0 +1,14 @@
+branch:
+  name: "chore/430-remove-sync-unsync-plays"
+  action: created
+  pushed: true
+  tracking: "origin/chore/430-remove-sync-unsync-plays"
+  changes_preserved: true
+
+worktree:
+  used: false
+  path: null
+  reason: "working tree was clean (only untracked STM directory for issue 430)"
+
+result:
+  success: true
