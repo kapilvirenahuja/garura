@@ -542,3 +542,16 @@ recovery:
       neither test-writer nor code-builder needs the other's output.
     handoff: autonomous
     derivable_at_l4: true
+
+  - id: REC30
+    for_failure: F30                # milestone count outside [1, cap]
+    trigger: >
+      plan.yaml has zero milestones, or more milestones than the configured cap
+      prepare.max-milestones-per-epic (default 2).
+    direction: >
+      The milestone count must fall in [1, cap]; re-author the plan's milestone
+      designations so the final feature phase is the epic acceptance milestone and
+      any additional milestones sit only at genuine mid-epic human-validation points,
+      merging or removing surplus milestones until the total is within the cap.
+    handoff: autonomous
+    derivable_at_l4: true
