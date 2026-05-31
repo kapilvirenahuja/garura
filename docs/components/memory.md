@@ -53,6 +53,8 @@ The `write-evidence` skill (invoked by the `scriber` agent) is the single chokep
 
 ### KB Capability Catalog (domain-taxonomy + cross-tree constraints)
 
+> **Transitional (#434).** The `knowledge/domain-taxonomy/` KB described in this section has been **deleted** as part of the ProductOS realignment. It is replaced by the ProductOS v1 schemas at `core/components/memory/standards/schemas/product-os/` (product-os, ice, decision, epic, capability-intent). This section is retained for the legacy plays (`specify`/`design`/`arch`) until #434 Phase E retires them.
+
 Per ADR 017 and 214.4, the `knowledge/domain-taxonomy/*.md` files are Garura's **capability catalog** — a human-readable feature catalog that the product-planning pipeline (`specify` / `design` / `arch`) reads programmatically.
 
 Each feature in a domain file carries NINE sections:

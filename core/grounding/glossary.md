@@ -26,6 +26,8 @@ The foundation of Garura's execution model: Plays (human-invocable workflows) or
 
 Garura uses two memory tiers — Long-Term Memory (LTM) that persists across sessions and Short-Term Memory (STM) that is per-issue. The Knowledge Base (KB) is the capability catalog sub-folder within Core LTM. "Knowledge," "KB," and "Core LTM" are distinct and must not be conflated.
 
+> **Transitional (#434).** The KB / Knowledge / `domain-taxonomy` / Capability(KB) / Intent-Epic concepts in the table below describe the PRE-ProductOS memory model. The `knowledge/` folder (the old KB) has been **deleted**. These rows are kept only because the legacy plays (`specify` / `design` / `arch`) still reference them until #434 Phase E retires those plays. The new persistent data model is the **ProductOS Model (v1)** — see the section directly after this one.
+
 | Concept | Definition | Examples | Relationships | Anti-definition |
 |---------|------------|----------|---------------|-----------------|
 | **LTM (Long-Term Memory)** | Persistent knowledge that survives across sessions. Contains standards, formats, domain knowledge, and project-specific decisions. Split into Core LTM (framework-wide) and Product LTM (project-specific). Deployed at setup time; never created during play execution. | `~/.garura/core/memory/` (Core), `{product_base}/` (Product) | Contains Core LTM and Product LTM; consulted by agents during Context Crafting via R1–R4 protocol | NOT: STM. STM is per-issue and ephemeral in scope; LTM persists across all issues and sessions. NOT: the context window. |
@@ -41,6 +43,26 @@ Garura uses two memory tiers — Long-Term Memory (LTM) that persists across ses
 | **Resolution trace** | A per-decision trace written by agents to `{stm_base}/{issue}/evidence/{play}/resolution-trace.yaml` when following the R1–R4 protocol. Documents which domains were consulted, which artifacts were read, and whether the answer came from LTM or LLM fallback. | `.garura/project/issues/42/evidence/enhance/resolution-trace.yaml` with `resolved_from: "llm"` | Written to STM via Scriber; produced during Context Crafting; demonstrates the LTM resolution path taken | NOT: the LTM artifacts themselves. Resolution trace documents the path taken; LTM artifacts contain the knowledge read. |
 | **Capability** | A product feature unit in the KB capability catalog. Named `{PREFIX}-F001` (e.g., `UM-F001`). Defines a bounded feature with inclusion rules, success criteria, and failure scenarios. Groups under a Domain; expands into Intent Epics. | `UM-F001` (user registration), `PM-F003` (payment processing) | Part of KB; grouped under Domain (KB); expands into Intent Epics via `specify` | NOT: an Intent Epic. A capability is a KB definition; an Intent Epic is a structured work unit generated from a capability for a specific project. |
 | **Domain (KB)** | A knowledge taxonomy domain in the KB capability catalog. One Markdown file per domain in `domain-taxonomy/`. Each domain contains multiple Capabilities. Provides the organizing structure for product planning. | user-management, commerce, payments, auth | Contained within KB; groups Capabilities; one file per domain in `domain-taxonomy/` | NOT: a bounded context in the architecture sense. KB domains are knowledge taxonomy categories, not runtime service boundaries. |
+
+---
+
+## ProductOS Model (v1)
+
+The persistent product data model introduced under #434 (Realign Garura to the ProductOS Command Model). It keeps only three things forever — structure, intent, decisions — and generates everything else on demand. Defined by the v1 schemas at `core/components/memory/standards/schemas/product-os/`.
+
+| Concept | Definition | Schema | Lifecycle |
+|---------|------------|--------|-----------|
+| **ProductOS** | The persistent product model: a 3-level tree Domain → Capability → Functionality, plus personas and journeys attached to nodes. The "structure" ProductOS keeps forever. | `product-os.yaml` | permanent |
+| **Capability (ProductOS)** | A node at the middle level of the tree, the unit of INTENT — it carries ICE. NOT the legacy KB `{PREFIX}-F001` catalog entry. | `product-os.yaml` | permanent |
+| **Functionality** | A leaf node under a capability. Its functionality-level ICE is the build input. | `product-os.yaml` | permanent |
+| **ICE (ProductOS)** | Intent (goals, constraints, failures), Context (persona, systems, scope), Expectations (outcomes), attached to a capability or functionality node. The build unit at functionality level. | `ice.yaml` | permanent |
+| **Decision / ADR (ProductOS)** | A decision record = an ADR at any level (product, capability, functionality, framework). Accepted decisions are never edited — superseded by a new record. | `decision.yaml` | permanent |
+| **Capability Intent** | The 5 realization lenses /realize produces for a capability — ux, architecture, delivery, quality, agentic. One canonical copy per capability so deliveries don't drift. | `capability-intent.yaml` | permanent |
+| **Epic (ProductOS)** | A vertical slice of a functionality — the unit of delivery and the grain a GitHub issue is cut at. Written by the shaping pipeline, deleted when its issue merges. | `epic.yaml` | temporary |
+
+Storage tiers: permanent items (structure, ICE, decisions, capability intents) and temporary epics both live in the product-os folder; stories, tests, and build detail stay in STM and are regenerated on demand.
+
+**Status:** the v1 schemas are locked. The plays that fill them (`/vision`, `/understand`, `/shape`, `/realize`, `/grill`, `/implement`, …) are not yet built — the legacy plays (`specify`/`design`/`arch`/`enhance`/`ship`) remain the operating pipeline until #434 Phase E retires them.
 
 ---
 
