@@ -95,7 +95,7 @@ All styling is authored once as a common token set + component classes. Each bri
 ~/.claude/skills/briefs/templates/brief-common.css
 ```
 
-(Source: `core/components/plays/briefs/templates/brief-common.css` — deployed via `/sync-claude` or `/sync-droids`)
+(Source: `core/components/plays/briefs/templates/brief-common.css` — deployed via `/sud:install`)
 
 This file is the single source of truth for all brief styling:
 - Token definitions (:root variables) — sourced from Phoenix Design System v2.0

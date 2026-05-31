@@ -48,7 +48,7 @@ dimensions:
 **Three-layer search order:**
 1. **Project LTM** — `{project}/.garura/core/memory/knowledge/quality/` — project-specific overrides
 2. **KB (Memory Bank)** — `~/.garura/core/memory/knowledge/quality/` — framework defaults
-3. If neither found — HALT: "No quality KB found. Run /sync-claude to deploy quality standards."
+3. If neither found — HALT: "No quality KB found. Run /sud:install to deploy quality standards."
 
 For each of the 11 domains, load the knowledge files from the resolved path. Filter check items by detected stack (e.g., skip frontend files for backend-only projects).
 

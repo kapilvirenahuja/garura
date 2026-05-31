@@ -15,11 +15,11 @@ core/components/           # Source of truth (edit here)
 ├── plays/                 # plays
 └── memory/                # LTM: standards, formats, knowledge
 
-~/.claude/                 # Global deployment (via /sync-claude, default)
+~/.claude/                 # Global deployment (via /sud:install)
 ├── agents/                # Deployed agents
 └── skills/                # Deployed skills + plays
 
-~/.garura/core/memory/     # Global KB (via /sync-claude, default)
+~/.garura/core/memory/     # Global KB (via /sud:install)
 ```
 
 **Note:** `.claude/` and `.garura/core/memory/` are NO LONGER tracked in the repository. They are gitignored.
@@ -33,7 +33,7 @@ core/components/           # Source of truth (edit here)
 ### 1. Source of Truth
 
 Author all components in `core/components/`. The canonical deployment is `~/.claude/` (global).
-After editing source, run `/sync-claude` to deploy globally. Use `/sync-claude --project` for ephemeral local copies (gitignored).
+After editing source, run the sudarshan `/sud:install` meta-play to deploy components into a target's `.claude/` (skills + agents). Deployment tooling lives in sudarshan, not in garura itself.
 
 ### 2. Execution Model
 

@@ -33,7 +33,7 @@ Both deploy to `.claude/skills/` but serve fundamentally different roles. This d
 
 Some skills exist to manage the Garura framework itself. These are classified as **meta-utility skills** and may be `user-invocable: true` despite the general rule that skills are model-invocable only.
 
-Example: `sync-claude` — synchronizes Garura components to Claude Code directories. It is invoked directly by the user because it manages the deployment pipeline, not a domain task.
+Example: deployment of Garura components to Claude Code directories runs via the sudarshan `/sud:install` meta-play. Deployment is invoked directly by the user because it manages the deployment pipeline, not a domain task.
 
 Meta-utility skills:
 - Are user-invocable
@@ -136,12 +136,6 @@ Meta-utility skills:
 | Skill | User-Invocable | Model | Description |
 |-------|----------------|-------|-------------|
 | `write-implementation` | false | sonnet | Write implementation code per an execution plan scope item |
-
-### Meta-Utility Skills
-
-| Skill | User-Invocable | Model | Description |
-|-------|----------------|-------|-------------|
-| `sync-claude` | true | haiku | Sync Garura components to .claude/ (project mode) or ~/.claude/ (global mode, default) |
 
 For the complete play roster, see [Plays Component Guide](./plays.md).
 
@@ -368,7 +362,7 @@ allowed-tools: {Tool1, Tool2}
 
 | Model | When To Use | Examples |
 |-------|-------------|----------|
-| `haiku` | Execution-only skills — no analysis, no decision-making, fast operations | `create-commit`, `setup-branch`, `submit-pr`, `sync-claude`, `archive-issue-stm` |
+| `haiku` | Execution-only skills — no analysis, no decision-making, fast operations | `create-commit`, `setup-branch`, `submit-pr`, `archive-issue-stm` |
 | `sonnet` | Analysis skills — reasoning, categorization, pattern matching, complex logic | `analyze-changes`, `analyze-pr`, `manage-issue`, `draft-product-spec`, `draft-technical-approach` |
 
 **Rule of thumb:** If the skill just runs commands and formats output, use `haiku`. If the skill needs to read, reason, and categorize, use `sonnet`.

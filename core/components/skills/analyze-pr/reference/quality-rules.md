@@ -86,7 +86,7 @@ This ruleset is designed for projects where the primary artifacts are:
 
 | ID | Priority | Item | Verification |
 |----|----------|------|--------------|
-| `sync-claude` | must-have | Components synced with `core/components/` | Run `/sync-claude` (global) or `/sync-claude --project` |
+| `deploy-components` | must-have | Components deployed from `core/components/` | After editing `core/components/`, deploy via `/sud:install` |
 
 ---
 

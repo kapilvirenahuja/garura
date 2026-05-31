@@ -135,8 +135,8 @@ core/components/memory/
 
 **Deployment:**
 - Source: `core/components/memory/`
-- Global mode (default): `~/.garura/core/memory/` (shared across all projects, deployed via `/sync-claude`)
-- Project mode (ephemeral): `.garura/core/memory/` (project-specific, deployed via `/sync-claude --project`, gitignored)
+- Global mode (default): `~/.garura/core/memory/` (shared across all projects, deployed via `/sud:install`)
+- Project mode (ephemeral): `.garura/core/memory/` (project-specific, deployed via `/sud:install` in project mode, gitignored)
 
 **Runtime (where agents read from):**
 ```

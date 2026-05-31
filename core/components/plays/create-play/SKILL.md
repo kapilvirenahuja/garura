@@ -508,7 +508,7 @@ Skill Inventory, Agent Declaration &amp; Audit, Workflow Selection, Compile
 
 **Agents:** {list — all PASS} | **Evals:** {step count} step, {scenario count} scenario
 
-**Next Steps:** Run `/sync-claude` to deploy.
+**Next Steps:** Run `/sud:install` to deploy.
 ```
 
 **C1 — Evidence file (gated by `evidence.record`).** When true (or absent),
