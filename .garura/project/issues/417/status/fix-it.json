@@ -1,0 +1,24 @@
+{
+  "play": "fix-it",
+  "issue": "417",
+  "started_at": "2026-05-30T00:00:00Z",
+  "completed_at": "2026-05-30T06:19:59Z",
+  "status": "COMPLETE",
+  "tasks": {
+    "validate-issue": { "status": "completed" },
+    "create-branch": { "status": "completed" },
+    "rca-and-design": { "status": "completed" },
+    "prepare-checkpoint": { "status": "completed" },
+    "issue-comment-dispatch": { "status": "completed", "dispatched_at": "2026-05-30T06:13:20Z", "comment_url": "https://github.com/kapilvirenahuja/garura/issues/417#issuecomment-4581931250" },
+    "approval-gate": { "status": "completed", "tether_received_at": "2026-05-30T06:13:20Z" },
+    "implement-fix": { "status": "completed", "started_at": "2026-05-30T06:14:00Z" },
+    "verify-fix": { "status": "completed", "regression_test_verdict": "pass", "verified_at": "2026-05-30T06:15:23Z" },
+    "ship": { "status": "completed", "pr_number": 418, "merge_sha": "b741c1e", "fix_commit": "9bee07f", "branch_deleted": true },
+    "scenario-evals": { "status": "completed" },
+    "evidence-report": { "status": "completed", "evidence_committed": false, "reason": "evidence.record=false" }
+  },
+  "task_list": [
+    { "id": "task-1", "description": "Add Write and Bash to evals-engineer tools list", "status": "completed", "retry_count": 0, "regression_test_path": ".garura/project/issues/417/evidence/fix-it/regression-test.yaml" },
+    { "id": "task-2", "description": "Deploy via /sync-claude", "status": "completed", "retry_count": 0, "regression_test_path": ".garura/project/issues/417/evidence/fix-it/regression-test.yaml" }
+  ]
+}

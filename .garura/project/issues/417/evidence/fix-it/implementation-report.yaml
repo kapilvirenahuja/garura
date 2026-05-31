@@ -1,0 +1,29 @@
+implementation:
+  success: true
+  steps_completed: 1
+  steps_total: 1
+  changes:
+    - step: step-1
+      description: >
+        Added Write and Bash to the evals-engineer agent's frontmatter tools list.
+        The tools block (lines 7-11) now contains six entries: Read, Grep, Glob,
+        Skill, Write, Bash. All other lines in the file were left untouched, including
+        the prose prohibitions against authoring YAML eval content inline via Write
+        and invoking openssl directly.
+      files_modified:
+        - path: "core/components/agents/evals-engineer.md"
+          action: modified
+          summary: >
+            Added two entries (Write, Bash) to the frontmatter tools: list.
+            No other lines were changed.
+      verified: true
+      deviation: null
+  issues_encountered: []
+  files_touched:
+    - path: "core/components/agents/evals-engineer.md"
+
+notes: >
+  Step-2 (/sync-claude deployment) is explicitly out of scope for this task
+  and is handled separately. The implementation-report covers step-1 only.
+
+produced_at: "2026-05-30T00:00:00Z"

@@ -1,0 +1,57 @@
+style: yaml_eval_spec
+target_issue: 417
+based_on:
+  rca: ".garura/project/issues/417/evidence/fix-it/rca.yaml"
+  design: ".garura/project/issues/417/evidence/fix-it/design.yaml"
+
+description: >
+  Verifies that the evals-engineer agent's frontmatter tools list is a superset of the
+  generate-encrypted-evals skill's allowed-tools (Read, Write, Bash). The defect was that
+  Write and Bash were absent from the tools block (lines 7-11 of evals-engineer.md),
+  making the skill's file-write, openssl, rm, and ls steps unreachable at runtime.
+  This test passes when both Write and Bash appear as entries in the tools: block.
+
+assertions:
+  - id: A1
+    description: >
+      The evals-engineer agent's frontmatter tools list must include Write. The generate-encrypted-evals
+      skill (allowed-tools: Read, Write, Bash) uses Write to author the plaintext temp eval file
+      (SKILL.md Process step 2) and to write manifest.json (step 5). Without Write in the host
+      agent's tool grant, both steps fail at runtime.
+    kind: grep_present
+    spec:
+      pattern: "^  - Write$"
+      path: "core/components/agents/evals-engineer.md"
+    red_state_evidence:
+      command_run: "grep -n '^  - Write' core/components/agents/evals-engineer.md"
+      exit_code: 1
+      output: ""
+      verified_at: "2026-05-30T00:00:00Z"
+
+  - id: A2
+    description: >
+      The evals-engineer agent's frontmatter tools list must include Bash. The generate-encrypted-evals
+      skill uses Bash to run openssl enc (step 3), rm for plaintext deletion (step 4), and ls for
+      residue verification (step 4). Without Bash in the host agent's tool grant, all three shell
+      operations fail at runtime.
+    kind: grep_present
+    spec:
+      pattern: "^  - Bash$"
+      path: "core/components/agents/evals-engineer.md"
+    red_state_evidence:
+      command_run: "grep -n '^  - Bash' core/components/agents/evals-engineer.md"
+      exit_code: 1
+      output: ""
+      verified_at: "2026-05-30T00:00:00Z"
+
+pass_when: all_assertions_pass
+verified_red_at: "2026-05-30T00:00:00Z"
+expected_state_before_fix: red
+expected_state_after_fix: green
+
+how_to_run: >
+  From project_root (the garura repo root):
+    grep -n "^  - Write" core/components/agents/evals-engineer.md && \
+    grep -n "^  - Bash" core/components/agents/evals-engineer.md
+  Both greps must exit 0 (match found) for the test to be GREEN.
+  Either grep exiting 1 (no match) means the test is RED.

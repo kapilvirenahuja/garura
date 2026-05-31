@@ -1,0 +1,60 @@
+issue_number: 417
+summary: >
+  The evals-engineer agent's frontmatter tools list (Read, Grep, Glob, Skill) does not
+  include Write or Bash, which means the generate-encrypted-evals skill — which it hosts
+  via the Skill tool — cannot execute any of its file-write, openssl, rm, or ls steps
+  at runtime, making eval generation structurally non-functional.
+root_cause:
+  file: "core/components/agents/evals-engineer.md"
+  logic: >
+    The frontmatter block (lines 7–11) declares exactly four tools: Read, Grep, Glob,
+    and Skill. In the Garura execution model a skill invoked via the Skill tool runs
+    inside the calling agent's context and is constrained to the tools that agent was
+    granted. The generate-encrypted-evals skill declares allowed-tools: Read, Write, Bash
+    (SKILL.md line 6) and exercises all three in every code path: Write is used to author
+    the plaintext temp eval file (Process step 2), Bash is used to run openssl enc
+    (step 3), rm (step 4), and ls residue verification (step 4), and Write again for
+    manifest.json (step 5). Because evals-engineer holds no Write grant and no Bash grant,
+    the runtime tool set available to the skill is {Read, Grep, Glob, Skill} — a strict
+    subset that omits every write and shell operation the skill requires.
+  why_wrong: >
+    The tools list was authored to match only what the agent itself does directly (reading
+    specs, assembling the generation request) and was never extended to cover the tools
+    the hosted skill requires at runtime. The distinction matters because the agent
+    prose correctly forbids the agent from authoring YAML inline or invoking openssl
+    directly — but those prohibitions apply to the agent's own reasoning steps, not to
+    the tool budget made available to the skill it hosts. The omission of Write and Bash
+    from the tools frontmatter means the skill's three write/shell code paths will fail
+    at the first tool invocation after dispatch.
+  line_range: "7-11"
+trace:
+  - step: >
+      Symptom: generate-encrypted-evals is dispatched by evals-engineer via Skill tool
+      but cannot write the temp eval YAML file — the Write tool is unavailable in the
+      agent's tool grant.
+  - step: >
+      Trace: the skill's Process step 2 calls Write to author the plaintext temp file
+      at {output_base}/evals-{epic_id}-phase-{phase_num}.yaml.tmp. Without Write, this
+      step fails immediately.
+  - step: >
+      Trace: even if step 2 were somehow bypassed, step 3 calls openssl via Bash, step 4
+      calls rm and ls via Bash, and step 5 calls Write for manifest.json — all four
+      remaining steps also fail for the same reason.
+  - step: >
+      Originates at: evals-engineer.md frontmatter, lines 7–11 — the tools: list was
+      set to {Read, Grep, Glob, Skill} without including Write or Bash, making the
+      hosted skill's entire write-and-encrypt pipeline unreachable.
+blast_radius:
+  - path: "core/components/agents/evals-engineer.md"
+    role: "Host agent definition — its frontmatter tools list is the runtime tool budget for the generate-encrypted-evals skill"
+    change_needed: "Add Write and Bash to the tools list so the hosted skill can execute its file-write and shell steps"
+  - path: "core/components/skills/generate-encrypted-evals/SKILL.md"
+    role: "Hosted skill — declares allowed-tools: Read, Write, Bash and relies on all three"
+    change_needed: "No change required to the skill; it is correctly specified. Only the agent host needs updating."
+  - path: "core/components/plays/validate/reference/intent.yaml"
+    role: "The validate play is the primary caller of evals-engineer; it drives eval generation for milestone validation"
+    change_needed: "No code change; verify that after the agent fix the validate play's eval-generation step succeeds end-to-end"
+  - path: "~/.claude/agents/evals-engineer.md"
+    role: "Deployed copy of evals-engineer in the global agent pool — must be re-synced after the source fix"
+    change_needed: "Re-run /sync-claude after patching core/components/agents/evals-engineer.md so the deployed copy picks up Write and Bash"
+produced_at: "2026-05-30T00:00:00Z"

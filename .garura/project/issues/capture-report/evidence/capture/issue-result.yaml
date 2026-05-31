@@ -1,9 +1,10 @@
-title: "[ENH] Remove doc-builder HTML generation from arch play"
-number: 405
+title: "[ENH] /prepare should produce minimal milestones — only where human validation is truly needed"
 labels:
   - enhancement
 type: enhancement
-url: https://github.com/kapilvirenahuja/garura/issues/405
+url: https://github.com/kapilvirenahuja/garura/issues/422
+number: 422
 state: open
 created: true
-completed_at: "2026-05-28"
+completed_at: "2026-05-30T00:00:00Z"
+status: completed

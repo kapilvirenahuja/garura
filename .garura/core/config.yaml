@@ -80,6 +80,18 @@ review-pr:
   fallback_reviewers: []
   activity_window_days: 90
 
+# prepare play configuration
+# max-milestones-per-epic — the hard cap on how many milestones /prepare may
+#   author into a single epic's plan. A milestone is a human-validation
+#   checkpoint (a human-acceptance stop in implement/validate), NOT a unit of
+#   work breakdown. prepare cuts a milestone only where a human must genuinely
+#   sign off; for a straightforward epic that is one milestone covering the
+#   whole epic. This value caps the count — prepare never authors more
+#   milestones than this. Default 2 when absent or unreadable. Set to 1 to
+#   force a single end-to-end epic milestone.
+prepare:
+  max-milestones-per-epic: 2
+
 # craft-ice play configuration
 # hitl — human-in-the-loop for the ICE-spec approval checkpoint (C6).
 #   true  → a human approves the generated spec at the checkpoint before any

@@ -1,4 +1,6 @@
-status: dispatched
-dispatched_at: "2026-05-29T00:00:00Z"
+status: completed
+dispatched_at: "2026-05-30T00:00:00Z"
 task_id: file-github-issue
 type: enhancement
+issue_number: 422
+issue_url: https://github.com/kapilvirenahuja/garura/issues/422

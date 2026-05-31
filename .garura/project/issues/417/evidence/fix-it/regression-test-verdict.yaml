@@ -1,0 +1,24 @@
+regression_test_verdict: pass
+verified_at: "2026-05-30T06:15:23Z"
+regression_test_path: ".garura/project/issues/417/evidence/fix-it/regression-test.yaml"
+
+evidence:
+  - assertion: A1
+    description: "Write must appear as an entry in the evals-engineer frontmatter tools block"
+    command: "grep -n '^  - Write$' core/components/agents/evals-engineer.md"
+    exit_code: 0
+    matched_lines:
+      - "12:  - Write"
+    result: PASS
+
+  - assertion: A2
+    description: "Bash must appear as an entry in the evals-engineer frontmatter tools block"
+    command: "grep -n '^  - Bash$' core/components/agents/evals-engineer.md"
+    exit_code: 0
+    matched_lines:
+      - "13:  - Bash"
+    result: PASS
+
+pass_when: all_assertions_pass
+all_assertions_passed: true
+state_transition: "RED -> GREEN"

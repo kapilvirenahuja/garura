@@ -316,9 +316,18 @@ constraints:
 
   - id: C37
     rule: >
-      Each feature phase in plan.yaml IS a milestone and is the atomic unit of
-      the implement→validate cycle. Every feature phase (T-001, T-002, etc.)
-      must include all of the following fields:
+      A milestone is a human-validation checkpoint — a human-acceptance stop in
+      the implement→validate cycle — NOT a unit of work breakdown. prepare
+      designates a feature phase as a milestone ONLY where a human must
+      genuinely sign off before work continues; internal sequencing of work
+      does not, on its own, justify a milestone. For a straightforward epic
+      that is a single milestone covering the whole epic, designated on the
+      final feature phase so validate verifies the entire epic in one pass. A
+      plan may contain many feature phases, but only the designated ones are
+      milestones. Feature phases that are NOT milestones are ordinary task
+      groupings — implement consumes them as task nodes that run without
+      pausing. Every feature phase DESIGNATED as a milestone must include all
+      of the following fields:
       (a) milestone_id — the phase identifier matching the feature phase ID
       (e.g., T-001);
       (b) scenario_gate.ids[] — the explicit list of scenario IDs that
@@ -331,9 +340,9 @@ constraints:
       (d) delivers — a one-sentence description of the testable end-to-end
       capability this milestone delivers, sufficient to confirm scope without
       reading individual tasks.
-      plan.yaml tasks within a feature phase inherit that phase's milestone_id
-      via their phase membership. A plan.yaml feature phase missing any of
-      these fields is structurally incomplete.
+      plan.yaml tasks within a milestone feature phase inherit that phase's
+      milestone_id via their phase membership. A feature phase designated a
+      milestone but missing any of these fields is structurally incomplete.
 
   - id: C38
     rule: >
@@ -380,6 +389,21 @@ constraints:
       tech.yaml interface definitions that require either party to inspect the
       other's work product — or to read the codebase — to fill in missing
       contract detail are a constraint violation.
+
+  - id: C41
+    rule: >
+      The number of milestones prepare authors into plan.yaml must fall within
+      the range [1, cap], where cap is the configured value
+      prepare.max-milestones-per-epic in .garura/core/config.yaml (default 2
+      when the key is absent or unreadable). prepare resolves this cap during
+      pre-flight and the plan author cuts milestones at genuine
+      human-validation points up to — never beyond — the cap. There is always
+      at least one milestone: the final feature phase is designated the epic
+      acceptance gate so validate verifies the whole epic, with its
+      cumulative_scenarios equal to the full scenario suite. Additional
+      milestones are added only where a human must validate mid-epic, never
+      taking the total above the cap. A plan with zero milestones (validate
+      never runs) or more milestones than the cap violates this constraint.
 
 failure_conditions:
   - id: F1
@@ -533,11 +557,13 @@ failure_conditions:
 
   - id: F27
     condition: >
-      Any feature phase in plan.yaml is missing one or more required milestone
-      fields: milestone_id, scenario_gate.ids[] (actual IDs, not count only),
-      depends_on (for any non-first milestone), or delivers. A feature phase
-      without all four fields is not milestone-ready and cannot be consumed by
-      implement or validate.
+      Any feature phase DESIGNATED as a milestone in plan.yaml is missing one
+      or more required milestone fields: milestone_id, scenario_gate.ids[]
+      (actual IDs, not count only), depends_on (for any non-first milestone),
+      or delivers. A designated milestone phase without all four fields is not
+      milestone-ready and cannot be consumed by implement or validate.
+      (Feature phases that are not milestones are exempt — they carry no
+      milestone fields by design.)
 
   - id: F28
     condition: >
@@ -558,3 +584,12 @@ failure_conditions:
       behavioral differences. A test-writer or code-builder would need to
       inspect the other's work product or read the codebase to fill in the
       missing contract detail.
+
+  - id: F30
+    condition: >
+      The number of milestones in plan.yaml falls outside the range [1, cap],
+      where cap is prepare.max-milestones-per-epic from .garura/core/config.yaml
+      (default 2 when absent or unreadable). Either zero milestones were
+      authored (no epic acceptance gate, so implement never invokes validate)
+      or more milestones than the cap were authored (over-producing
+      human-validation checkpoints the work does not warrant).
