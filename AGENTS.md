@@ -15,23 +15,23 @@ core/components/           # Source of truth (edit here)
 ├── plays/              # plays
 └── memory/               # LTM: standards, formats, knowledge
 
-~/.factory/                # Global deployment (via /sync-droids, default)
+~/.factory/                # Global deployment (via /sud:install factory adapter)
 ├── droids/               # Deployed agents (transformed from Claude Code format)
 └── skills/               # Deployed skills + plays
 
-~/.garura/core/memory/   # Global LTM (via /sync-droids, default)
+~/.garura/core/memory/   # Global LTM (via /sud:install)
 ```
 
 **Note:** `.factory/` and `.garura/core/memory/` are NOT tracked in the repository. They are gitignored.
 - Components deploy to `~/.factory/` (global mode, default) or `.factory/` (project mode, ephemeral)
 - Memory deploys to `~/.garura/core/memory/` (global mode, default) or `.garura/core/memory/` (project mode, ephemeral)
-- The `sync-droids` script transforms Claude Code agents into Factory Droid format during deployment
+- The sudarshan `/sud:install` factory adapter transforms Claude Code agents into Factory Droid format during deployment
 
 **Data Flow:** High-order play → chains atomic plays → play invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`{stm_base}/{issue}/` — resolved from `stm.base-path` in `.garura/core/config.yaml`)
 
 ## Tool Name Mapping
 
-Source files use Claude Code tool names. The `sync-droids` script transforms these during deployment.
+Source files use Claude Code tool names. The sudarshan `/sud:install` factory adapter transforms these during deployment.
 
 | Claude Code | Factory Droid |
 |-------------|---------------|
@@ -54,21 +54,21 @@ Author all components in `core/components/`. The canonical deployment is `~/.fac
 
 **Global mode (default):**
 ```
-core/components/skills/   → ~/.factory/skills/          (via /sync-droids)
-core/components/plays/  → ~/.factory/skills/          (via /sync-droids)
-core/components/agents/   → ~/.factory/droids/          (via /sync-droids, transformed)
-core/components/memory/   → ~/.garura/core/memory/    (via /sync-droids)
+core/components/skills/   → ~/.factory/skills/          (via /sud:install)
+core/components/plays/  → ~/.factory/skills/          (via /sud:install)
+core/components/agents/   → ~/.factory/droids/          (via /sud:install, transformed)
+core/components/memory/   → ~/.garura/core/memory/    (via /sud:install)
 ```
 
 **Project mode (ephemeral):**
 ```
-core/components/skills/   → .factory/skills/            (via /sync-droids --project, gitignored)
-core/components/plays/  → .factory/skills/            (via /sync-droids --project, gitignored)
-core/components/agents/   → .factory/droids/            (via /sync-droids --project, gitignored)
-core/components/memory/   → .garura/core/memory/      (via /sync-droids --project, gitignored)
+core/components/skills/   → .factory/skills/            (via /sud:install project mode, gitignored)
+core/components/plays/  → .factory/skills/            (via /sud:install project mode, gitignored)
+core/components/agents/   → .factory/droids/            (via /sud:install project mode, gitignored)
+core/components/memory/   → .garura/core/memory/      (via /sud:install project mode, gitignored)
 ```
 
-After editing source, run `/sync-droids` to deploy globally. Use `/sync-droids --project` for ephemeral local copies (gitignored).
+After editing source, run the sudarshan `/sud:install` meta-play to deploy components. Deployment tooling lives in sudarshan, not in garura itself.
 
 ### 2. Execution Model
 

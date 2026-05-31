@@ -26,22 +26,22 @@ components:
   agents: ./core/components/agents/
   memory: ./core/components/memory/
 
-# Claude Code derived locations (populated by /sync-claude)
+# Claude Code derived locations (populated by /sud:install)
 claude:
   skills: ./.claude/skills/
   agents: ./.claude/agents/
 
-# Global Claude Code locations (for /sync-claude default global mode)
+# Global Claude Code locations (for /sud:install global mode)
 global-claude:
   skills: ~/.claude/skills/
   agents: ~/.claude/agents/
 
-# Factory Droid derived locations (populated by /sync-droids)
+# Factory Droid derived locations (populated by /sud:install factory adapter)
 factory:
   skills: ./.factory/skills/
   droids: ./.factory/droids/
 
-# Global Factory Droid locations (for /sync-droids default global mode)
+# Global Factory Droid locations (for /sud:install factory adapter, global mode)
 global-factory:
   skills: ~/.factory/skills/
   droids: ~/.factory/droids/

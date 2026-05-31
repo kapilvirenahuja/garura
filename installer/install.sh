@@ -8,7 +8,9 @@ set -euo pipefail
 
 REPO="kapilvirenahuja/garura"
 BRANCH="main"
-EXCLUDED_SKILLS="sync-claude"
+# Skills that must not be deployed into target projects (space-separated).
+# Deployment is handled by the sudarshan /sud:install meta-play.
+EXCLUDED_SKILLS=""
 
 # --- Helpers ---
 
@@ -138,8 +140,8 @@ text = re.sub(r'\`\`\`\ncore/components/.*?\`\`\`', new_diagram, text, flags=re.
 # Remove Source of Truth section
 text = re.sub(r'### 1\. Source of Truth[\s\S]*?(?=### 2\. Execution Model)', '', text)
 
-# Remove sync-claude reference
-text = re.sub(r'After editing source, run \`/sync-claude\`\.\n*', '', text)
+# Remove deploy-command reference (deployment handled by /sud:install)
+text = re.sub(r'After editing source, run \`/sud:install\`\.\n*', '', text)
 
 # Update config path references
 text = text.replace('\`.garura/core/config.yaml\`', '\`.garura/core/config.yaml\`')
@@ -158,7 +160,7 @@ with open('$tmpfile', 'w') as f:
   rm -f "$tmpfile" "$tmpfile.bak"
 }
 
-# --- Deploy skills (excluding sync-claude) ---
+# --- Deploy skills (honoring EXCLUDED_SKILLS) ---
 
 deploy_skills() {
   local src="$1" dest="$2"
@@ -188,7 +190,7 @@ if [ "$MODE" = "init" ]; then
     copy_dir "$COMPONENTS_DIR/agents" "$TARGET_DIR/.claude/agents"
   fi
 
-  # 2. Deploy skills (excluding sync-claude)
+  # 2. Deploy skills (honoring EXCLUDED_SKILLS)
   if [ -d "$COMPONENTS_DIR/skills" ]; then
     info "  Deploying skills..."
     deploy_skills "$COMPONENTS_DIR/skills" "$TARGET_DIR/.claude/skills"
@@ -259,7 +261,7 @@ else
     copy_dir "$COMPONENTS_DIR/agents" "$TARGET_DIR/.claude/agents"
   fi
 
-  # 2. Upgrade skills (overwrite managed, excluding sync-claude)
+  # 2. Upgrade skills (overwrite managed, honoring EXCLUDED_SKILLS)
   if [ -d "$COMPONENTS_DIR/skills" ]; then
     info "  Upgrading skills..."
     deploy_skills "$COMPONENTS_DIR/skills" "$TARGET_DIR/.claude/skills"

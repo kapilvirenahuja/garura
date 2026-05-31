@@ -1,6 +1,6 @@
 # Evidence Recording Rule
 
-**Self-development reference only — not deployed via /sync-claude.**
+**Self-development reference only — not deployed via /sud:install.**
 
 ---
 

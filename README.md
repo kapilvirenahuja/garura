@@ -207,8 +207,8 @@ If you want to develop Garura itself:
 git clone https://github.com/kapilvirenahuja/garura.git
 cd garura
 
-# Sync components to .claude/ directory
-claude /sync-claude
+# Deploy components to .claude/ via the sudarshan meta-play
+claude /sud:install
 ```
 
 ## Repository Structure
@@ -230,8 +230,7 @@ garura/
 │   │   │   ├── create-commit/
 │   │   │   ├── manage-issue/
 │   │   │   ├── setup-branch/
-│   │   │   ├── submit-pr/
-│   │   │   └── sync-claude/
+│   │   │   └── submit-pr/
 │   │   ├── plays/           # plays (atomic activities)
 │   │   │   ├── commit-code/
 │   │   │   ├── create-pr/
@@ -244,8 +243,8 @@ garura/
 │   │       └── templates/     # Output templates
 │   └── config.yaml            # Configuration
 ├── .claude/                   # NO LONGER IN REPO (gitignored, use ~/.claude/ global deployment)
-│   ├── agents/                # Use ~/.claude/agents/ (via /sync-claude)
-│   ├── skills/                # Use ~/.claude/skills/ (via /sync-claude)
+│   ├── agents/                # Use ~/.claude/agents/ (via /sud:install)
+│   ├── skills/                # Use ~/.claude/skills/ (via /sud:install)
 │   └── plans/                 # Planning artifacts
 ├── docs/
 │   ├── adr/                   # Architecture Decision Records

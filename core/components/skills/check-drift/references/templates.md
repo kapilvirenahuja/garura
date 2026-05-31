@@ -143,7 +143,7 @@ LTM path: ~/.garura/core/memory/knowledge/[category]/[filename].md
 
 **LTM path convention:**
 Place items under `~/.garura/core/memory/knowledge/` (deployed path) in the appropriate subdirectory.
-Source authoring path is `core/components/memory/knowledge/` — deployed via `/sync-droids` or `/sync-claude`.
+Source authoring path is `core/components/memory/knowledge/` — deployed via `/sud:install`.
 Subdirectories:
 - `architecture/` — architectural patterns and platform knowledge
 - `domain/` — domain-specific knowledge (experiment platforms, AI agents, etc.)

@@ -484,7 +484,7 @@ PR created for review
             (e.g., "all services use structured JSON logging")
         │
         ▼
-Merged → deployed to ~/.garura/core/memory/ via /sync-claude
+Merged → deployed to ~/.garura/core/memory/ via /sud:install
 ```
 
 **Semantic Conflict Detection**: Git catches file-level conflicts, but not semantic contradictions (e.g., one practice says "always use retry logic" while another says "never retry inside transactions"). The `capture-learning` play is designed with an `extract-patterns` skill that should detect semantic overlap with existing KB entries — but this capability is not yet built. Current state: manual review during PR process.
