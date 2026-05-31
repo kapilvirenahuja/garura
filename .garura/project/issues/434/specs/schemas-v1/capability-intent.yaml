@@ -1,0 +1,43 @@
+# Capability-Intent Schema — v1 (DRAFT, pending HITL review)
+#
+# The five realization intents /realize produces for a capability:
+#   ux | architecture | delivery | quality | agentic
+# These are INTENT — kept forever in product-os, in the capability's intent
+# folder. Every epic of the capability builds against these, so one canonical
+# copy prevents drift between deliveries.
+#
+# v1 uses ONE enveloped schema with a `type` field (alternative considered:
+# five separate schemas — see review note).
+
+schema:
+  name: capability-intent
+  version: 1
+  persistence: permanent
+
+intent:
+  id: string
+  capability_ref: string  # the capability this intent belongs to
+  type: string            # one of: ux | architecture | delivery | quality | agentic
+  summary: string         # one line of what this intent establishes
+  body: string            # the design write-up for this lens
+  status: string          # one of: proposed | active | superseded
+  metadata:
+    created_by: string    # /realize
+    updated_by: string
+    version: integer
+
+# ---- Fill rules -------------------------------------------------------------
+fill_rules:
+  - play: "/realize"
+    writes: "creates/updates the five intents for the capability"
+  - play: "/learn"
+    writes: "may update an intent from real-world outcomes"
+
+# ---- Enhance rules ----------------------------------------------------------
+enhance_rules:
+  governed_by: "PARKED — see Q6 in product-os.yaml (future schema-evolution play)"
+
+# ---- Review note ------------------------------------------------------------
+# One enveloped schema (type field) vs five separate schemas: v1 picks the
+# envelope for simplicity; body holds the lens-specific content. Flip to five
+# if you want each lens strongly typed.

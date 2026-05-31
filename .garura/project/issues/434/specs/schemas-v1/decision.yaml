@@ -1,0 +1,47 @@
+# Decision Schema (ADR) — v1 (DRAFT, pending HITL review)
+#
+# A decision record IS an ADR — usable at product, capability, functionality, or
+# framework level (Q5). The third thing ProductOS keeps forever: DECISIONS.
+# Accepted decisions are never edited — a new decision supersedes them, so the
+# history stays intact.
+
+schema:
+  name: decision
+  version: 1
+  is_adr: true            # these records are ADRs, at any level
+
+decision:
+  id: string
+  node_ref: string        # node this affects; null = framework-wide ADR
+  level: string           # product | capability | functionality | framework
+  title: string
+  reason: string
+  alternatives:           # what else was considered, and why it lost
+    - name: string
+      why_not: string
+  status: string          # one of: proposed | accepted | superseded | rejected
+  superseded_by: string   # id of the decision that replaced this one; else null
+  metadata:
+    decided_by: string    # play that recorded the decision
+    date: string          # passed in by the play; not auto-generated
+    version: integer
+
+immutability: "accepted decisions are not edited — supersede with a new record"
+
+# ---- Fill rules -------------------------------------------------------------
+fill_rules:
+  - play: "/understand"
+    writes: "decisions made while clarifying intent"
+  - play: "/shape"
+    writes: "decisions about functionalities, personas, journeys"
+  - play: "/realize"
+    writes: "architecture, delivery, quality, and agentic decisions"
+  # /implement does NOT write decisions (Q4) — it executes them, not decides them.
+
+# ---- Enhance rules ----------------------------------------------------------
+enhance_rules:
+  governed_by: "PARKED — see Q6 in product-os.yaml (future schema-evolution play)"
+
+# ---- Review status ----------------------------------------------------------
+# Resolved: Q4 /implement cannot write decisions;
+#           Q5 these records are ADRs, at product or any level.

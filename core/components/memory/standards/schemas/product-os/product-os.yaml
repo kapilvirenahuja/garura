@@ -1,0 +1,100 @@
+# Product-OS Schema — v1
+#
+# The persistent product model. One of the three things ProductOS keeps forever:
+# STRUCTURE. The tree is always exactly three levels:
+#   Domain -> Capability -> Functionality
+#
+# Nodes link by id. ICE, Decisions, Personas, and Journeys attach to nodes by
+# reference (their own schemas).
+
+schema:
+  name: product-os
+  version: 1
+
+# ---- Node shape -------------------------------------------------------------
+node:
+  id: string              # opaque, stable id — never changes once assigned
+  path: string            # human-readable path, derived from names; may change
+                          # on rename/reparent, e.g.
+                          # order-management.checkout.guest-checkout
+  type: string            # one of: domain | capability | functionality
+  name: string            # human label, e.g. "Guest Checkout"
+  summary: string         # one-line description
+  parent: string          # parent node id; null only for a domain
+  depends_on: [string]    # ids of OTHER nodes this node needs (cross-tree
+                          # dependency lives in STRUCTURE, not in ICE)
+  status: string          # one of: proposed | active | deprecated
+  ice_ref: string         # id of this node's ICE record (null until seeded)
+  decision_refs: [string] # ids of decisions (ADRs) affecting this node
+  journey_refs: [string]  # ids of journeys linked to this node
+  priority: integer       # set by /roadmap; null until prioritized
+  metadata:
+    created_by: string
+    updated_by: string
+    version: integer
+
+# ---- Tree rules -------------------------------------------------------------
+structure:
+  levels: [domain, capability, functionality]   # exactly 3, in this order
+  domain:        { parent: none,       child: capability }
+  capability:    { parent: domain,     child: functionality }
+  functionality: { parent: capability, child: none }
+
+# ---- Persona record (persistent, attached to a node) -----------------------
+persona:
+  id: string
+  name: string            # e.g. "Guest shopper on mobile"
+  description: string     # who they are and what they need
+  node_ref: string        # node (usually capability) this persona belongs to
+  metadata:
+    created_by: string
+    version: integer
+
+# ---- Journey record (persistent, attached to a node) -----------------------
+journey:
+  id: string
+  name: string            # e.g. "First-time guest checkout"
+  persona_ref: string     # whose journey
+  node_ref: string        # node (usually capability) this journey belongs to
+  steps: [string]         # ordered steps the persona takes
+  metadata:
+    created_by: string
+    version: integer
+
+# ---- Fill rules: which play writes which part ------------------------------
+fill_rules:
+  - play: "/vision"
+    writes: "domain and capability nodes (seed), plus a seed ice_ref"
+  - play: "/shape"
+    writes: "functionality nodes (create + reshape), personas, journeys"
+  - play: "/roadmap"
+    writes: "priority"
+  - play: "/learn"
+    writes: "status changes driven by real-world outcomes"
+  - play: "/understand"
+    writes: "nothing on the node itself — enriches the linked ICE record"
+
+# ---- Enhance rules: who may change THIS schema -----------------------------
+enhance_rules:
+  governed_by: "PARKED — a dedicated schema-evolution play will own this; it
+                implies migrating existing records to the new shape"
+  immutable_in_v1: [structure.levels]   # the 3-level shape is fixed for v1
+
+# ---- Storage layout (the product-os folder) --------------------------------
+# Three lifecycle tiers live here:
+#   PERMANENT  — structure, ICE, decisions, the 5 capability intents.
+#   TEMPORARY  — epics: written by /grill, deleted when their issue merges.
+#   (STM, NOT here) — stories, tests, build detail produced by /implement.
+#
+# Per-capability shape:
+#   product-os/{capability}/
+#     node.yaml                      # the capability node (this schema)
+#     ice.yaml                       # capability ICE (ice schema)
+#     intent/                        # the 5 capability intents (PERMANENT)
+#       ux.yaml architecture.yaml delivery.yaml quality.yaml agentic.yaml
+#     decisions/                     # decision (ADR) records
+#     personas/  journeys/           # persona + journey records
+#     functionalities/{functionality}/
+#       node.yaml  ice.yaml          # functionality node + its build-unit ICE
+#     epics/                         # TEMPORARY — vertical slices awaiting/under
+#                                    # delivery; each deleted on its issue merge

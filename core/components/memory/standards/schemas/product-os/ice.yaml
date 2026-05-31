@@ -1,0 +1,54 @@
+# ICE Schema — v1
+#
+# Intent / Context / Expectations attached to a ProductOS node. The second of
+# the three things ProductOS keeps forever: INTENT.
+#
+# ICE is the UNIT THAT GOES TO BUILD: functionality-level ICE is what /implement
+# consumes. Light by design. Same shape at capability and functionality level.
+
+schema:
+  name: ice
+  version: 1
+
+ice:
+  node_ref: string
+  intent:
+    goals: []
+    constraints: []
+    failures: []
+  context:
+    persona: []     # WHO this serves — refs to persona records in product-os.
+                    # Actor types that can fork the build (e.g. SSO user vs
+                    # password user vs kiosk user).
+    systems: []     # the software the code talks to (auth service, user store,
+                    # token/session service, email/SMS provider, secrets mgr)
+    scope: []       # the rules and boundaries — what's in, what's out, how it
+                    # behaves. e.g. for login: "password + Google only, no
+                    # passwordless", "single tenant", "30-min sessions",
+                    # "must support enterprise SSO", "no remember-me on kiosks".
+  expectations:
+    outcomes: []
+  metadata:
+    created_by: string
+    updated_by: string
+    version: integer
+
+# Where ICE lives in the tree
+attaches_to: [capability, functionality]   # same shape at both levels;
+                                           # functionality ICE is the build unit
+
+# ---- Fill rules -------------------------------------------------------------
+fill_rules:
+  - play: "/vision"
+    writes: "seed intent (goals only), at capability level"
+  - play: "/understand"
+    writes: "full intent, context (persona/systems/scope), expectations"
+  - play: "/shape"
+    writes: "functionality-level ICE when functionalities are created/reshaped;
+             also creates the persona records that context.persona points to"
+  - play: "/learn"
+    writes: "updates to expectations/outcomes from real-world results"
+
+# ---- Enhance rules ----------------------------------------------------------
+enhance_rules:
+  governed_by: "PARKED — see product-os.yaml (future schema-evolution play)"

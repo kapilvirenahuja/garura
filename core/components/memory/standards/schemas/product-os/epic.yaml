@@ -1,0 +1,46 @@
+# Epic Schema — v1
+#
+# An epic is a VERTICAL SLICE of a functionality — the unit of delivery, and the
+# grain an issue is cut at. It is the handoff from the shaping pipeline (/grill)
+# to the delivery pipeline (/start -> /implement).
+#
+# Lifecycle: TEMPORARY. /grill writes the epic into product-os so the delivery
+# pipeline can pick it up across the pipeline boundary. When the epic's issue
+# MERGES (the slice is delivered), the epic is DELETED. We keep the intent and
+# the structure, not the slicing.
+
+schema:
+  name: epic
+  version: 1
+  persistence: temporary    # held in product-os only until delivered, then deleted
+
+epic:
+  id: string
+  functionality_ref: string # the functionality node this slice belongs to
+  title: string             # e.g. "Lock account after repeated failed logins"
+  slice: string             # one line: the end-to-end behavior this delivers
+  context:                  # carried so the delivery pipeline is self-contained
+    persona: []             # actor types in scope for this slice
+    systems: []             # systems this slice touches
+    scope: []               # the rules that bound this slice
+  acceptance: []            # acceptance criteria — done when these pass
+  depends_on: [string]      # other epic ids that must ship first
+  status: string            # one of: ready | in_delivery | delivered
+  priority: integer         # delivery order (from /roadmap)
+  issue_ref: string         # GitHub issue /start opened for this epic; null until started
+  metadata:
+    created_by: string      # /grill
+    version: integer
+
+# ---- Fill rules -------------------------------------------------------------
+fill_rules:
+  - play: "/grill"
+    writes: "creates the epic (vertical slice) with its context and acceptance"
+  - play: "/start"
+    writes: "issue_ref, and status -> in_delivery when the epic is picked up"
+  - play: "/merge"
+    writes: "status -> delivered, then DELETES the epic (per-epic cleanup on merge)"
+
+# ---- Enhance rules ----------------------------------------------------------
+enhance_rules:
+  governed_by: "PARKED — see product-os.yaml (future schema-evolution play)"

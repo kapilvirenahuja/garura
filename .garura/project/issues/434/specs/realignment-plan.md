@@ -29,12 +29,25 @@ A (wipe) → B (schemas) → C (KB rebuild) → D (auto-build rules) → E (play
 
 ## Phase B — Build the schemas (v1)
 
-- **B1** — ProductOS schema v1: Domain → Capability → Functionality.
-- **B2** — ICE schema v1: intent, context, expectations.
-- **B3** — Decision schema v1: title, reason, alternatives, status.
+- **B1** — Product-OS schema v1: Domain → Capability → Functionality (+ personas,
+  journeys, node.depends_on).
+- **B2** — ICE schema v1: intent; context (persona, systems, scope);
+  expectations (outcomes). The build unit.
+- **B3** — Decision schema v1 (= ADR, at any level): title, reason, alternatives,
+  status.
+- **B4** — Epic schema v1: a vertical slice of a functionality, the unit of
+  delivery/issue. TEMPORARY — written by /grill, deleted on its issue merge.
+- **B5** — Capability-intent schema v1: the 5 realize lenses (ux, architecture,
+  delivery, quality, agentic). PERMANENT — stored in product-os intent folders.
 
 Each schema carries its own rules: which plays may fill it, and which plays may
 enhance the schema itself.
+
+**Storage lifecycle (three tiers):**
+- PERMANENT (product-os): structure, ICE, decisions, the 5 capability intents.
+- TEMPORARY (product-os): epics — survive the /grill → /implement pipeline
+  boundary, deleted on merge.
+- STM only: stories, tests, build detail produced by /implement.
 
 ## Phase C — Rebuild the KB as a 3-level search
 
@@ -70,10 +83,12 @@ the right start/end pieces, then retire the superseded play(s).
 - **E5** — /learn
 
 ### Realization
-- **E6** — /realize capability — produces 5 intents: UX, Architecture, Delivery,
-  Quality, Agentic
-- **E7** — /grill — functionality level (epics, dependencies, acceptance criteria)
-- **E8** — /groom — epic level (stories, tests, implementation targets)
+- **E6** — /realize capability — writes the 5 permanent intents (UX,
+  Architecture, Delivery, Quality, Agentic) into product-os intent folders
+- **E7** — /grill — functionality level; cuts vertical-slice epics (with context
+  + acceptance) into product-os as the delivery handoff
+- ~~**E8** — /groom~~ — DROPPED. Issue grain is the epic; /implement absorbs the
+  story/test/implementation-target breakdown (test-first).
 
 ### Engineering
 - **E9** — /implement
@@ -115,3 +130,16 @@ the right start/end pieces, then retire the superseded play(s).
    worktree), mirroring /raise, /review, /merge on the end side.
 7. Evidence recording is play-only and config-driven (D1).
 8. Pipeline position is declared per play and auto-built (D2).
+9. Realization detail is STM and regenerated on demand (Option A), with two
+   exceptions kept in product-os: the 5 capability intents (permanent) and epics
+   (temporary, deleted on merge).
+10. /groom dropped — the epic is the delivery grain and /implement absorbs the
+   story/test/implementation-target breakdown, test-first.
+11. The epic is the unit of delivery and the grain an issue is cut at (a vertical
+   slice). Functionality is the unit of intent; epic is the unit of delivery.
+12. Two pipelines: shaping (/vision → /grill, no delivery issues) defines the
+   epic backlog; delivery opens one issue per epic via /start and closes it at
+   /merge. /shape never cuts a delivery issue.
+13. ICE context = persona, systems, scope (users→persona; dependencies dropped,
+   now node.depends_on; assumptions→scope). Same shape at capability and
+   functionality. Expectations trimmed to outcomes.
