@@ -1,0 +1,12 @@
+result:
+  success: true
+  branch:
+    name: "fix/417-evals-engineer-tools"
+    base_ref: "main"
+    pushed: true
+    tracking: "origin/fix/417-evals-engineer-tools"
+  worktree:
+    used: false
+    path: null
+    reason: "clean working tree — direct checkout used"
+  error: null

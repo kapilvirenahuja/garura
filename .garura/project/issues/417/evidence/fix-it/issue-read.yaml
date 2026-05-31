@@ -1,0 +1,42 @@
+number: 417
+state: open
+title: "evals-engineer agent cannot run its eval-generation skill — missing the tools that skill needs"
+labels:
+  - bug
+url: "https://github.com/kapilvirenahuja/garura/issues/417"
+closed_at: null
+body: |
+  ## Problem
+
+  The `evals-engineer` agent is designed to produce encrypted verification evals
+  by delegating all the real work to the `generate-encrypted-evals` skill. The
+  agent itself reads specs and assembles the request; the skill writes the eval
+  file, encrypts it, deletes the plaintext, and writes the manifest.
+
+  But a skill runs using the tools of the agent that invokes it. The
+  `evals-engineer` agent only carries Read, Grep, Glob, and Skill. The skill it
+  depends on needs to write files and run shell commands. With no Write and no
+  Bash available on the host agent, the skill cannot write the eval YAML, cannot
+  run openssl to encrypt, cannot delete the plaintext, and cannot write the
+  manifest. The delegation is structurally broken — eval generation cannot
+  succeed.
+
+  ## Why it matters
+
+  Any agent that hosts a skill must carry every tool that skill needs at runtime.
+  This agent hosts a write-and-encrypt skill but lacks the tools to run it, so the
+  whole eval-generation path is non-functional wherever evals-engineer is used.
+
+  ## Evidence
+
+  - core/components/agents/evals-engineer.md — tools list is Read, Grep, Glob, Skill only.
+  - core/components/skills/generate-encrypted-evals/SKILL.md — allowed-tools: Read, Write, Bash;
+    its process writes a temp eval file, runs openssl enc, runs rm/ls for plaintext-residue
+    verification, and writes manifest.json.
+
+  ## Note
+
+  A direct one-line patch was attempted and then reverted, on the call to fix this
+  properly through root-cause analysis rather than a guess. The correct resolution
+  may be to grant the tools, or it may be an architectural change — that decision
+  belongs to RCA.

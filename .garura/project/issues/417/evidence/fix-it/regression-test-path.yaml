@@ -1,0 +1,6 @@
+regression_test_path: ".garura/project/issues/417/evidence/fix-it/regression-test.yaml"
+style: yaml_eval_spec
+assertion_count: 2
+red_verified: true
+verified_at: "2026-05-30T00:00:00Z"
+status: written

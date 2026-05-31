@@ -1,0 +1,10 @@
+regression_test_path: ".garura/project/issues/417/evidence/fix-it/regression-test.yaml"
+failing: true
+verified_by: play
+verified_at: "2026-05-30T00:00:00Z"
+method: >
+  Play independently ran the regression test's two grep assertions over
+  core/components/agents/evals-engineer.md before code-builder dispatch:
+  A1 (pattern '^  - Write$') and A2 (pattern '^  - Bash$'). Neither pattern
+  is present in the current source — both greps exit 1 — so pass_when
+  (all_assertions_pass) is not met. Test confirmed RED.

@@ -1,0 +1,155 @@
+based_on_rca: ".garura/project/issues/417/evidence/fix-it/rca.yaml"
+
+strategy: >
+  Add Write and Bash to the evals-engineer agent's frontmatter tools list so that the
+  runtime tool budget available to the hosted generate-encrypted-evals skill covers every
+  operation that skill requires (file write, openssl, rm, ls). The agent's behavioral
+  prohibitions — "do not author YAML eval content inline via Write", "do not invoke
+  openssl directly" — remain in force in the prose and are not changed. Those rules
+  govern what the agent is permitted to do with those tools in its own reasoning steps;
+  they do not restrict the agent from carrying the tools so the skill can use them.
+  The fix is a two-line addition to one file (evals-engineer.md lines 7–11), followed
+  by a /sync-claude deployment to push the updated agent to the global pool.
+
+alternatives_considered:
+  - option: >
+      Extract the write-and-encrypt work into a dedicated utility agent (e.g.,
+      eval-encryptor) that evals-engineer invokes via Task instead of a skill.
+      The eval-encryptor agent would carry Write and Bash and own the file-write,
+      openssl, rm, and manifest steps, keeping evals-engineer free of those tools entirely.
+    rejection_reason: >
+      This adds a new agent boundary for what is a single-purpose, tightly-scoped mechanical
+      pipeline (write → encrypt → delete → verify → manifest). Splitting it forces a Task
+      dispatch and a JSON contract between two agents for a sequence of five steps that
+      belong to one unit of work. It widens the component count, adds a new failure surface
+      (Task coordination, agent availability, contract schema), and provides no information-
+      isolation benefit — the eval-encryptor would still receive the same plaintext eval
+      content that the skill currently receives. The context-isolation guarantee that
+      justifies evals-engineer's restricted inputs is about WHAT the agent sees (no
+      implementation code, no builder output) — not about WHICH tools it carries. Adding an
+      agent layer solves a problem that does not exist while introducing real coordination
+      complexity. Razor 1 — Occam's Razor.
+
+  - option: >
+      Move the encryption and file-write steps out of the skill entirely and into the
+      calling play (validate), implementing encryption as a post-skill step run by
+      repo-orchestrator or a shell script in the play's own context.
+    rejection_reason: >
+      The encryption boundary is deliberately inside the skill so that the plaintext eval
+      content never exits the skill's context in cleartext. Moving encryption to the play
+      level would require passing the plaintext eval YAML back to the play caller, breaking
+      the confidentiality design that justifies the generate-encrypted-evals skill existing
+      at all. The skill's process steps (write plaintext → encrypt → delete → verify residue)
+      are an atomic unit; splitting them across a caller/callee boundary would introduce a
+      window where plaintext eval content exists outside any controlled context and could be
+      logged, surfaced in a checkpoint, or written to STM. This alternative trades a tool-grant
+      gap for a security gap. Razor 2 — Reversibility bias (this change is harder to undo
+      and carries higher blast radius than the two-line tool-grant fix).
+
+  - option: >
+      Rewrite generate-encrypted-evals to avoid Write and Bash entirely — use only Read
+      and output the encrypted content as a return value for the caller to write.
+    rejection_reason: >
+      openssl enc is a Bash-only operation; there is no pure-Read/Write equivalent. Removing
+      Bash from the skill means removing encryption, which defeats the purpose of the skill.
+      Reconstructing equivalent AES-256-CBC + PBKDF2 encryption in-prompt without shell tools
+      is not a viable path. Even if encryption were moved to a different mechanism, the plaintext
+      deletion and residue verification (rm, ls) are also Bash-only. Rewriting the skill to
+      avoid these tools would require fundamental redesign of the encryption model — a much
+      larger scope than the two-line fix to the host agent's tool list.
+
+affected_files:
+  - path: "core/components/agents/evals-engineer.md"
+    role: "Source-of-truth agent definition — its frontmatter tools list is the runtime tool budget for the hosted generate-encrypted-evals skill"
+    action: modify
+    change: >
+      Add two entries to the tools: list (lines 7–11):
+        tools:
+          - Read
+          - Grep
+          - Glob
+          - Skill
+          + Write     ← add
+          + Bash      ← add
+      The prose prohibitions ("Author YAML eval content inline via Write — always delegate"
+      and "Invoke openssl directly — encryption lives inside the skill") remain unchanged.
+    risk: low
+    risk_rationale: >
+      The change is additive — it does not remove or alter any existing capability.
+      The agent's behavioral prohibitions remain in the prose. Granting Write and Bash
+      expands what the skill CAN do, not what the agent WILL do in its own reasoning.
+      No downstream components depend on evals-engineer lacking these tools.
+
+  - path: "~/.claude/agents/evals-engineer.md"
+    role: "Deployed copy of the evals-engineer agent in the global Claude Code agent pool"
+    action: modify
+    change: >
+      Re-deploy via /sync-claude after patching core/components/agents/evals-engineer.md.
+      The deployed copy must mirror the source; /sync-claude propagates the change atomically.
+    risk: low
+    risk_rationale: >
+      /sync-claude is the standard deployment path for all agent changes. The risk is
+      a stale deployed copy if sync is skipped — mitigated by making sync an explicit step.
+
+execution_plan:
+  - id: step-1
+    description: >
+      Add Write and Bash to the evals-engineer agent's frontmatter tools list.
+      Open core/components/agents/evals-engineer.md and update the tools block
+      (lines 7–11) to include Write and Bash. The prose prohibitions must remain
+      unchanged — do not touch any line outside the tools: block.
+    files:
+      - path: "core/components/agents/evals-engineer.md"
+        action: modify
+        details: >
+          Change tools block from:
+            tools:
+              - Read
+              - Grep
+              - Glob
+              - Skill
+          To:
+            tools:
+              - Read
+              - Grep
+              - Glob
+              - Skill
+              - Write
+              - Bash
+          All other lines remain untouched.
+    expected_outcome: >
+      The frontmatter tools list in evals-engineer.md contains exactly six entries:
+      Read, Grep, Glob, Skill, Write, Bash.
+    self_test: >
+      Run: grep -A8 "^tools:" core/components/agents/evals-engineer.md
+      Expected output must include "- Write" and "- Bash" within the tools block.
+      The regression test assertion (Write and Bash both present in the tools list)
+      should pass after this step.
+
+  - id: step-2
+    description: >
+      Deploy the updated agent to the global Claude Code agent pool via /sync-claude.
+      This ensures the live agent definition matches the patched source file.
+    files:
+      - path: "~/.claude/agents/evals-engineer.md"
+        action: modify
+        details: >
+          Automatically updated by /sync-claude from core/components/agents/evals-engineer.md.
+          No manual edit required.
+    expected_outcome: >
+      ~/.claude/agents/evals-engineer.md contains Write and Bash in its tools list,
+      matching the source file.
+    self_test: >
+      Run: grep -A8 "^tools:" ~/.claude/agents/evals-engineer.md
+      Expected output must include "- Write" and "- Bash".
+
+confidence: high
+confidence_rationale: >
+  The root cause is a two-line omission in a declarative frontmatter block. The fix is
+  additive, reversible, and confined to one source file. All three alternatives were
+  examined and rejected on concrete tradeoffs. The agent's behavioral prohibitions are
+  prose-level constraints that do not conflict with carrying the tools for skill hosting.
+  Surveying all 21 agents confirms this is the only agent hosting a Write+Bash skill
+  without those tools in its grant.
+
+produced_at: "2026-05-30T00:00:00Z"

@@ -1,0 +1,52 @@
+resolution_trace:
+
+  - decision: "What is the correct tool budget for an agent that hosts a skill?"
+    resolved_from: "core"
+    source: "knowledge/arch/agentic/agent-orchestration.md"
+    section: "Agent design rules"
+    authority: "draft"
+    value: >
+      Agents should have narrow, well-defined responsibilities. The knowledge file
+      establishes that tool grants are per-agent and the agent is the unit of
+      tool access. A skill invoked inside an agent inherits that agent's grants.
+      Authoritatively, there is no project-scoped (LOCKED) artifact defining the
+      host-agent tool-superset invariant, so resolution falls to core (advisory).
+
+  - decision: "Does context isolation for evals-engineer extend to restricting its tool list?"
+    resolved_from: "core"
+    source: "standards/rules/resolution.md"
+    section: "Context Isolation Exemptions"
+    authority: "draft"
+    value: >
+      The resolution rules explicitly list evals-engineer as context-isolated and
+      state it must never receive implementation code or prior outputs. This is an
+      information-isolation rule about WHAT the agent sees, not about WHAT tools
+      it may carry. The rule governs data flow, not the tool budget needed to host
+      the generate-encrypted-evals skill.
+
+  - decision: "Does the agent's own prohibition on authoring evals inline (its prose) restrict its tool grant?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: >
+      The evals-engineer prose explicitly forbids the agent from authoring YAML
+      eval content inline via Write or invoking openssl directly. No LTM file
+      distinguishes between 'agent using a tool directly' and 'agent holding a tool
+      so a hosted skill can use it'. Resolution via LLM reasoning: the prohibition
+      is a behavioral rule on the agent's reasoning steps, not a constraint on
+      which tools it may carry for skill hosting. Granting Write and Bash does not
+      enable the agent to violate its prohibition — it enables the skill to execute.
+      This distinction is a knowledge gap; flagged for the learn play.
+
+  - decision: "Is there a project-scoped standard defining the host-agent superset invariant?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: >
+      No LOCKED or DRAFT project-scoped artifact defines the invariant 'a host agent
+      must carry a superset of the tools declared in any skill it hosts'. This gap
+      is the structural reason the defect was introduced without detection. Flagged
+      as LLM fallback and primary candidate for the learn play to produce a new
+      standard rule.

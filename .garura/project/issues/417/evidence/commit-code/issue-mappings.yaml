@@ -1,0 +1,5 @@
+auto_resolved: true
+source: branch-name
+issue: 417
+confidence: high
+mappings: []  # all change groups map to #417
