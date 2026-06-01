@@ -1,51 +1,62 @@
 ---
 id: domains/user-management
-title: "User Management: capabilities and when to include each"
+title: "User Management: capabilities and when to include each (profile-driven)"
 conditions:
   trigger: "the product needs accounts, login, profiles, roles, or access control"
-  stage: any
+  selection_keys: [shape.users, shape.surfaces, nfr.security, nfr.accessibility, compliance]
 provenance: seeded
 ---
 
 # User Management: capabilities and when to include each
 
 ## Topic
-The user-management domain — identity, access, and account lifecycle.
+The user-management domain — identity, access, and account lifecycle. WHICH
+capabilities and functionalities to include is decided by the product profile
+(see the product-profile schema), not by default.
 
 ## Conditions
 The product has users who need accounts, sign-in, profiles, roles, or access
-control. Applies at any stage; which capabilities you include depends on the
-product's conditions (see Recommendation).
+control. Which pieces you include is driven by the profile dimensions named in
+each rule below — the user base, the surfaces, security, accessibility, and
+compliance.
 
 ## Recommendation
-Include capabilities as the conditions demand them — not all at once:
+Read each line as "include X when {profile condition}". Start at the floor; add
+only when a profile dimension calls for it.
 
-- **Authentication** — when users must sign in.
-  - Email & password — own credential login (the default for most products).
-  - Social login — when users should reuse a Google/Apple/etc. identity.
-  - MFA — when security needs a second factor.
-  - Passwordless — when you want to avoid passwords entirely.
-  - Enterprise SSO — only when serving organizations with their own IdP.
-- **Registration** — when users create their own accounts.
-  - Self sign-up; invite-based (B2B/teams); email verification.
-- **Profile Management** — when users have data or preferences they manage.
-- **Authorization & Roles** — when different users get different access.
-  - RBAC first; fine-grained permissions only when roles aren't enough.
-- **Account Recovery** — with any credential-based auth.
-  - Password reset; account unlock.
-- **Session Management** — when users stay signed in across requests.
-  - Session/token lifecycle; logout-everywhere for security events.
+- **Authentication** — include when users sign in.
+  - Email & password — the default credential login (the floor).
+  - Social login — when `shape.users: public` and signup friction matters.
+  - MFA — when `nfr.security >= high`, or `compliance` includes SOC2 / HIPAA / PCI-DSS.
+  - Passwordless — when `nfr.security >= high` and you want to remove password risk entirely.
+  - Enterprise SSO — when the user base is organizations (B2B), or `compliance` requires federated identity.
+- **Registration** — include when users create accounts.
+  - Self sign-up — `shape.users: public`.
+  - Invite-based — B2B / teams (`shape.users: small-team` or org).
+  - Email verification — when `nfr.security >= medium`, or any `compliance` regime is in force.
+- **Profile Management** — include when users manage their own data or preferences.
+- **Authorization & Roles** — include when different users get different access.
+  - RBAC — the default once roles exist.
+  - Fine-grained permissions — when `nfr.security >= high`, or access rules outgrow roles.
+- **Account Recovery** — include with any credential-based auth (password reset; account unlock).
+- **Session Management** — include when users stay signed in across requests.
+  - Logout everywhere — when `nfr.security >= high` (revoke all sessions on a security event).
+  - Auth-event audit logging — when any `compliance` regime, or `nfr.security >= high`.
+- **Accessible auth UI** — when `shape.surfaces` includes web/mobile and `nfr.accessibility >= high` (WCAG 2.1 AA on every auth screen).
 
 ## Rationale
-Identity is the most over-built domain. Start with the minimum — usually
-email/password plus recovery plus sessions — and add MFA, SSO, and fine-grained
-permissions only when a real condition (security posture, enterprise customers,
-complex access) forces them. Adding them early is cost without payoff.
+Identity is the most over-built domain, and the profile is what keeps it honest.
+The floor is email/password plus recovery plus sessions. MFA, SSO, passwordless,
+fine-grained permissions, and audit logging each cost real effort and only earn
+it when a profile dimension — security, compliance, or an enterprise user base —
+calls for them. Tying every include-rule to a named profile dimension is what
+turns this from a vague catalog into a defensible selection.
 
 ## Evolve when
-- Enterprise customers appear → add Enterprise SSO.
-- A security or compliance bar rises → add MFA, tighten session policy.
+- `nfr.security` rises, or a `compliance` regime is added → add MFA, audit
+  logging, and tighten session policy.
+- The user base shifts toward organizations → add Enterprise SSO.
 - Access rules outgrow roles → add fine-grained permissions.
 
 ## Provenance
-seeded (#434 — first domain-shelf example)
+seeded (#434 — domain-shelf example, profile-driven selection)

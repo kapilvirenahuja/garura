@@ -1,11 +1,11 @@
-# Product Profile Schema — v1 (DRAFT, pending HITL review)
+# Product Profile Schema — v1
 #
 # The NFR + shape posture of a product. Generated during /understand (or a
 # profiling step) and attached to the product, with optional per-capability
 # overrides. The KB matches its learnings' `conditions` against this profile to
 # pick the best-fit capabilities, functionalities, and architecture.
 #
-# This is the canonical vocabulary the KB's conditions speak. KB learnings
+# This is the canonical vocabulary the KB's conditions speak — KB learnings
 # reference these dimension names so selection is principled, not ad-hoc.
 
 schema:
@@ -15,12 +15,16 @@ schema:
 profile:
   product_ref: string        # the ProductOS root this profiles
 
-  shape:                     # situational dimensions (the product's stage/scale)
+  shape:                     # situational dimensions (stage / scale / surfaces)
     stage: string            # prototype | internal | public | monetized
     users: string            # one | small-team | public
     monetization: string     # none | lead-capture | paywall
+    surfaces: [string]       # which interface types the product exposes:
+                             # web | mobile | cli | api | desktop | embedded
+                             # (a product may have several; drives which KB
+                             # learnings apply — e.g. the frontend shelf needs web)
 
-  nfr:                       # quality posture — each rated on the level scale below
+  nfr:                       # quality posture — each on the level scale below
     performance: string
     security: string
     accessibility: string
@@ -32,9 +36,17 @@ profile:
 
   compliance: [string]       # regimes in force, e.g. [GDPR, HIPAA, PCI-DSS, SOC2]; [] = none
 
+  quality_vision:            # the NFR posture turned into checkable gates
+    statement: string        # one line: what "good" means for this product
+    gates: [string]          # the bars /validate enforces, e.g.
+                             # "no P1 security findings", "WCAG 2.1 AA",
+                             # "unit coverage >= 80%", "p95 latency < 200ms"
+                             # (this is what quality-auditor verifies as the
+                             #  project-defined quality vision gates)
+
   overrides:                 # optional per-capability NFR overrides
     - capability_ref: string
-      nfr: {}                # same nfr keys; override the product default for this capability
+      nfr: {}                # same nfr keys; override the product default
 
   metadata:
     created_by: string       # /understand (or the profiling step)
@@ -44,11 +56,5 @@ profile:
 # none < low < medium < high < critical
 # KB conditions compare against these, e.g. "include MFA when security >= high".
 
-# ---- Open questions for HITL review ----------------------------------------
-# Q1. NFR dimension set: performance, security, accessibility, scalability,
-#     reliability, privacy, observability, maintainability — plus compliance as
-#     a regime list. Add (e.g. cost, i18n/localization, portability) or trim?
-# Q2. Level scale: ordinal words (none/low/medium/high/critical) — or a numeric
-#     scale (e.g. 1-5) as the old three-axis profile (ADR 014) used?
-# Q3. Compliance as a list of named regimes (vs a single level) — agree?
-# Q4. Per-capability overrides in v1, or product-level only for now?
+# Supersedes the old three-axis project profile (ADR 014: scale/complexity/risk)
+# — those collapse into this fuller NFR + shape profile.

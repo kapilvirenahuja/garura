@@ -15,10 +15,14 @@ schema:
 profile:
   product_ref: string        # the ProductOS root this profiles
 
-  shape:                     # situational dimensions (stage / scale)
+  shape:                     # situational dimensions (stage / scale / surfaces)
     stage: string            # prototype | internal | public | monetized
     users: string            # one | small-team | public
     monetization: string     # none | lead-capture | paywall
+    surfaces: [string]       # which interface types the product exposes:
+                             # web | mobile | cli | api | desktop | embedded
+                             # (a product may have several; drives which KB
+                             # learnings apply — e.g. the frontend shelf needs web)
 
   nfr:                       # quality posture — each on the level scale below
     performance: string
@@ -31,6 +35,14 @@ profile:
     maintainability: string
 
   compliance: [string]       # regimes in force, e.g. [GDPR, HIPAA, PCI-DSS, SOC2]; [] = none
+
+  quality_vision:            # the NFR posture turned into checkable gates
+    statement: string        # one line: what "good" means for this product
+    gates: [string]          # the bars /validate enforces, e.g.
+                             # "no P1 security findings", "WCAG 2.1 AA",
+                             # "unit coverage >= 80%", "p95 latency < 200ms"
+                             # (this is what quality-auditor verifies as the
+                             #  project-defined quality vision gates)
 
   overrides:                 # optional per-capability NFR overrides
     - capability_ref: string
