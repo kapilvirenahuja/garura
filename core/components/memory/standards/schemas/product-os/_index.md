@@ -9,7 +9,7 @@ the two delivery artifacts that ride on top.
 | `product-os.yaml` | the Domain → Capability → Functionality tree, personas, journeys | permanent |
 | `ice.yaml` | Intent / Context / Expectations on a node (the build unit at functionality level) | permanent |
 | `decision.yaml` | decision records (ADRs) at any level | permanent |
-| `capability-intent.yaml` | the 5 realize lenses (ux, architecture, delivery, quality, agentic) | permanent |
+| `capability-intent.yaml` | the 5 realize lenses (ux, architecture, run, quality, agentic) | permanent |
 | `epic.yaml` | a vertical slice of a functionality — the delivery/issue grain | temporary (deleted on merge) |
 | `product-profile.yaml` | the NFR + shape posture of a product; the vocabulary the KB matches conditions against | permanent |
 

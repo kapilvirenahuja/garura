@@ -103,7 +103,7 @@ enhance_rules:
 #     node.yaml                      # the capability node (this schema)
 #     ice.yaml                       # capability ICE (ice schema)
 #     intent/                        # the 5 capability intents (PERMANENT)
-#       ux.yaml architecture.yaml delivery.yaml quality.yaml agentic.yaml
+#       ux.yaml architecture.yaml run.yaml quality.yaml agentic.yaml
 #     decisions/                     # decision (ADR) records
 #     personas/  journeys/           # persona + journey records
 #     functionalities/{functionality}/

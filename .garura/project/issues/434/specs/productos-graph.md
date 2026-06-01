@@ -17,7 +17,7 @@ thing a graph.
 
 - **ICE** — 1 per capability and per functionality (via `ice_ref`). Not on domains.
 - **Capability also carries:** the 5 capability-intents (ux / architecture /
-  delivery / quality / agentic), persona records, journey records, decision (ADR)
+  run / quality / agentic), persona records, journey records, decision (ADR)
   records.
 - **Functionality also carries:** epics — the temporary vertical-slice delivery
   units (deleted on merge).
@@ -107,7 +107,7 @@ DOMAIN  d-um  "User Management"   (no ICE — grouping)
 │
 ├─ CAPABILITY  c-7f3a  "Authentication (Login)"
 │    ├─ ice  i-7f3a   goals[2] · context{persona,systems,scope} · nfr_needs
-│    ├─ capability-intents → ux · architecture · delivery · quality · agentic
+│    ├─ capability-intents → ux · architecture · run · quality · agentic
 │    ├─ personas → password-user · enterprise-sso-user
 │    ├─ journeys → "first-time SSO sign-in" (→ enterprise-sso-user)
 │    ├─ decisions → dec-101 (security→xhigh) · dec-102 (reliability→four-nines)  ──> profile

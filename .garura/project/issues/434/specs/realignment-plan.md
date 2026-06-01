@@ -38,7 +38,7 @@ A (wipe) → B (schemas) → C (KB rebuild) → D (auto-build rules) → E (play
 - **B4** — Epic schema v1: a vertical slice of a functionality, the unit of
   delivery/issue. TEMPORARY — written by /grill, deleted on its issue merge.
 - **B5** — Capability-intent schema v1: the 5 realize lenses (ux, architecture,
-  delivery, quality, agentic). PERMANENT — stored in product-os intent folders.
+  run, quality, agentic). PERMANENT — stored in product-os intent folders.
 
 Each schema carries its own rules: which plays may fill it, and which plays may
 enhance the schema itself.
@@ -109,7 +109,7 @@ the right start/end pieces, then retire the superseded play(s).
 
 ### Realization
 - **E6** — /realize capability — writes the 5 permanent intents (UX,
-  Architecture, Delivery, Quality, Agentic) into product-os intent folders
+  Architecture, Run, Quality, Agentic) into product-os intent folders
 - **E7** — /grill — functionality level; cuts vertical-slice epics (with context
   + acceptance) into product-os as the delivery handoff
 - ~~**E8** — /groom~~ — DROPPED. Issue grain is the epic; /implement absorbs the

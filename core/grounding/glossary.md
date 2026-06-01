@@ -57,7 +57,7 @@ The persistent product data model introduced under #434 (Realign Garura to the P
 | **Functionality** | A leaf node under a capability. Its functionality-level ICE is the build input. | `product-os.yaml` | permanent |
 | **ICE (ProductOS)** | Intent (goals, constraints, failures), Context (persona, systems, scope), Expectations (outcomes), attached to a capability or functionality node. The build unit at functionality level. | `ice.yaml` | permanent |
 | **Decision / ADR (ProductOS)** | A decision record = an ADR at any level (product, capability, functionality, framework). Accepted decisions are never edited — superseded by a new record. | `decision.yaml` | permanent |
-| **Capability Intent** | The 5 realization lenses /realize produces for a capability — ux, architecture, delivery, quality, agentic. One canonical copy per capability so deliveries don't drift. | `capability-intent.yaml` | permanent |
+| **Capability Intent** | The 5 realization lenses /realize produces for a capability — ux, architecture, run, quality, agentic. One canonical copy per capability so deliveries don't drift. | `capability-intent.yaml` | permanent |
 | **Epic (ProductOS)** | A vertical slice of a functionality — the unit of delivery and the grain a GitHub issue is cut at. Written by the shaping pipeline, deleted when its issue merges. | `epic.yaml` | temporary |
 
 Storage tiers: permanent items (structure, ICE, decisions, capability intents) and temporary epics both live in the product-os folder; stories, tests, and build detail stay in STM and are regenerated on demand.

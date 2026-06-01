@@ -225,8 +225,8 @@ intent: { capability_ref: c-auth, type: architecture,
     Build order: data model -> auth-api password core -> token-service -> lockout/rate-limit ->
     SSO -> MFA -> audit/anomaly -> GDPR export/delete." }
 
-# delivery
-intent: { capability_ref: c-auth, type: delivery,
+# run
+intent: { capability_ref: c-auth, type: run,
   summary: "Trunk-based, env-gated rollout.",
   body: "Envs: dev -> staging -> prod. Feature-flag SSO and MFA. Blue/green for auth-api.
          Secrets via secrets-manager, never in repo. DB migrations gated and reversible." }

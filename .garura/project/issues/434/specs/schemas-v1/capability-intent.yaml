@@ -1,7 +1,7 @@
 # Capability-Intent Schema — v1
 #
 # The five realization lenses /realize produces for a capability:
-#   ux | architecture | delivery | quality | agentic
+#   ux | architecture | run | quality | agentic
 # These are INTENT — kept forever in product-os, in the capability's intent
 # folder. Every epic of the capability builds against these.
 #
@@ -17,7 +17,7 @@ schema:
 intent:
   id: string
   capability_ref: string  # the capability this lens belongs to
-  type: string            # one of: ux | architecture | delivery | quality | agentic
+  type: string            # one of: ux | architecture | run | quality | agentic
   summary: string         # one line of what this lens establishes
   content: {}             # per-lens structure — see below
   status: string          # one of: proposed | active | superseded
@@ -68,10 +68,8 @@ intent:
 #     component_model: string # e.g. "Primitive -> Block -> Card" (KB technology learning)
 #     surface: string         # e.g. "static web tier on CDN"
 
-# ---- type: delivery  (structure LOCKED #434; NAME under review) ------------
-# NAME: "delivery" collides with project-management "delivery discipline" (and
-# with the /raise-/review-/merge pipeline). Candidate rename: deployment | release.
-# content:
+# ---- type: run  (LOCKED #434; renamed from "delivery") ---------------------
+# How the capability is deployed and runs. content:
 #   environments: [string]   # the path, e.g. dev -> staging -> prod
 #   rollout:
 #     flags: [string]        # feature flags (e.g. SSO, MFA gated independently)

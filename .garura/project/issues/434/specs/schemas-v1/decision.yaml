@@ -35,7 +35,7 @@ fill_rules:
   - play: "/shape"
     writes: "decisions about functionalities, personas, journeys"
   - play: "/realize"
-    writes: "architecture, delivery, quality, and agentic decisions"
+    writes: "architecture, run, quality, and agentic decisions"
   # /implement does NOT write decisions — it executes them, not decides them.
   # Boundary moves: when an ICE specific falls outside the profile box, the
   # approved boundary change is recorded HERE as a decision (level: product),
