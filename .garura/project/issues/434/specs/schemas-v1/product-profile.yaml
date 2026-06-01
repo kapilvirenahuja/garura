@@ -58,3 +58,38 @@ profile:
 
 # Supersedes the old three-axis project profile (ADR 014: scale/complexity/risk)
 # — those collapse into this fuller NFR + shape profile.
+
+# ---- Example: a monetized, public web product that handles payments --------
+# Shows what the NFR levels look like filled in, and what quality_vision turns
+# them into. (Illustrative — not part of the schema shape above.)
+#
+# profile:
+#   product_ref: phoenix
+#   shape:
+#     stage: monetized
+#     users: public
+#     monetization: paywall
+#     surfaces: [web, api]
+#   nfr:
+#     performance: high          # checkout must feel instant
+#     security: critical         # handles payments + PII
+#     accessibility: high        # public consumer product
+#     scalability: medium        # growing, not hyperscale
+#     reliability: high          # downtime = lost revenue
+#     privacy: high              # stores personal + payment data
+#     observability: medium
+#     maintainability: medium
+#   compliance: [PCI-DSS, GDPR]
+#   quality_vision:
+#     statement: "Trustworthy checkout — fast, accessible, and provably secure."
+#     gates:
+#       - "no P1 or P2 security findings"
+#       - "WCAG 2.1 AA on every user-facing screen"
+#       - "p95 checkout latency < 300ms"
+#       - "unit coverage >= 80%, no untested payment paths"
+#       - "all PII encrypted at rest and in transit"
+#
+# Read the two together: nfr says HOW MUCH each quality matters (security:
+# critical); quality_vision says the CHECKABLE BAR that posture implies
+# (no P1/P2 security findings). The KB matches nfr/shape; /validate enforces
+# the gates.
