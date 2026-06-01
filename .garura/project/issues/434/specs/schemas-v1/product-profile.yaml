@@ -1,0 +1,54 @@
+# Product Profile Schema — v1 (DRAFT, pending HITL review)
+#
+# The NFR + shape posture of a product. Generated during /understand (or a
+# profiling step) and attached to the product, with optional per-capability
+# overrides. The KB matches its learnings' `conditions` against this profile to
+# pick the best-fit capabilities, functionalities, and architecture.
+#
+# This is the canonical vocabulary the KB's conditions speak. KB learnings
+# reference these dimension names so selection is principled, not ad-hoc.
+
+schema:
+  name: product-profile
+  version: 1
+
+profile:
+  product_ref: string        # the ProductOS root this profiles
+
+  shape:                     # situational dimensions (the product's stage/scale)
+    stage: string            # prototype | internal | public | monetized
+    users: string            # one | small-team | public
+    monetization: string     # none | lead-capture | paywall
+
+  nfr:                       # quality posture — each rated on the level scale below
+    performance: string
+    security: string
+    accessibility: string
+    scalability: string
+    reliability: string      # availability / uptime
+    privacy: string          # data sensitivity
+    observability: string
+    maintainability: string
+
+  compliance: [string]       # regimes in force, e.g. [GDPR, HIPAA, PCI-DSS, SOC2]; [] = none
+
+  overrides:                 # optional per-capability NFR overrides
+    - capability_ref: string
+      nfr: {}                # same nfr keys; override the product default for this capability
+
+  metadata:
+    created_by: string       # /understand (or the profiling step)
+    version: integer
+
+# ---- Level scale (ordinal) -------------------------------------------------
+# none < low < medium < high < critical
+# KB conditions compare against these, e.g. "include MFA when security >= high".
+
+# ---- Open questions for HITL review ----------------------------------------
+# Q1. NFR dimension set: performance, security, accessibility, scalability,
+#     reliability, privacy, observability, maintainability — plus compliance as
+#     a regime list. Add (e.g. cost, i18n/localization, portability) or trim?
+# Q2. Level scale: ordinal words (none/low/medium/high/critical) — or a numeric
+#     scale (e.g. 1-5) as the old three-axis profile (ADR 014) used?
+# Q3. Compliance as a list of named regimes (vs a single level) — agree?
+# Q4. Per-capability overrides in v1, or product-level only for now?

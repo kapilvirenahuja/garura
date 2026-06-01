@@ -1,0 +1,48 @@
+# Product Profile Schema — v1
+#
+# The NFR + shape posture of a product. Generated during /understand (or a
+# profiling step) and attached to the product, with optional per-capability
+# overrides. The KB matches its learnings' `conditions` against this profile to
+# pick the best-fit capabilities, functionalities, and architecture.
+#
+# This is the canonical vocabulary the KB's conditions speak — KB learnings
+# reference these dimension names so selection is principled, not ad-hoc.
+
+schema:
+  name: product-profile
+  version: 1
+
+profile:
+  product_ref: string        # the ProductOS root this profiles
+
+  shape:                     # situational dimensions (stage / scale)
+    stage: string            # prototype | internal | public | monetized
+    users: string            # one | small-team | public
+    monetization: string     # none | lead-capture | paywall
+
+  nfr:                       # quality posture — each on the level scale below
+    performance: string
+    security: string
+    accessibility: string
+    scalability: string
+    reliability: string      # availability / uptime
+    privacy: string          # data sensitivity
+    observability: string
+    maintainability: string
+
+  compliance: [string]       # regimes in force, e.g. [GDPR, HIPAA, PCI-DSS, SOC2]; [] = none
+
+  overrides:                 # optional per-capability NFR overrides
+    - capability_ref: string
+      nfr: {}                # same nfr keys; override the product default
+
+  metadata:
+    created_by: string       # /understand (or the profiling step)
+    version: integer
+
+# ---- Level scale (ordinal) -------------------------------------------------
+# none < low < medium < high < critical
+# KB conditions compare against these, e.g. "include MFA when security >= high".
+
+# Supersedes the old three-axis project profile (ADR 014: scale/complexity/risk)
+# — those collapse into this fuller NFR + shape profile.

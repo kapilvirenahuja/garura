@@ -11,6 +11,7 @@ the two delivery artifacts that ride on top.
 | `decision.yaml` | decision records (ADRs) at any level | permanent |
 | `capability-intent.yaml` | the 5 realize lenses (ux, architecture, delivery, quality, agentic) | permanent |
 | `epic.yaml` | a vertical slice of a functionality — the delivery/issue grain | temporary (deleted on merge) |
+| `product-profile.yaml` | the NFR + shape posture of a product; the vocabulary the KB matches conditions against | permanent |
 
 Storage tiers (see `product-os.yaml` storage layout):
 - **Permanent** (product-os): structure, ICE, decisions, the 5 capability intents.
