@@ -1,37 +1,83 @@
 # Capability-Intent Schema — v1
 #
-# The five realization intents /realize produces for a capability:
+# The five realization lenses /realize produces for a capability:
 #   ux | architecture | delivery | quality | agentic
 # These are INTENT — kept forever in product-os, in the capability's intent
-# folder. Every epic of the capability builds against these, so one canonical
-# copy prevents drift between deliveries.
+# folder. Every epic of the capability builds against these.
 #
-# v1 uses ONE enveloped schema with a `type` field; `body` holds the
-# lens-specific content.
+# Each lens shares the envelope below; its `content` follows the per-lens
+# structure defined further down. Lenses are locked one at a time as designed.
 
 schema:
   name: capability-intent
   version: 1
   persistence: permanent
 
+# ---- Envelope (common to every lens) ---------------------------------------
 intent:
   id: string
-  capability_ref: string  # the capability this intent belongs to
+  capability_ref: string  # the capability this lens belongs to
   type: string            # one of: ux | architecture | delivery | quality | agentic
-  summary: string         # one line of what this intent establishes
-  body: string            # the design write-up for this lens
+  summary: string         # one line of what this lens establishes
+  content: {}             # per-lens structure — see below
   status: string          # one of: proposed | active | superseded
   metadata:
     created_by: string    # /realize
     updated_by: string
     version: integer
 
+# ---- type: architecture  (LOCKED #434) -------------------------------------
+# Vocabulary locked in plan C3. A component is a HORIZONTAL platform/tier; a
+# capability is a VERTICAL threading top-to-down through components.
+# content:
+#   components:           # the horizontals this capability threads
+#     - name: string
+#       layer: string     # experience | process | domain | cross-cutting
+#       kind: string      # internal | external
+#       part: string      # what this capability occupies inside this component
+#   contracts:            # the seams crossed between components (incl. owned data model)
+#     - between: string   # "A <-> B"
+#       interface: string
+#       data: string      # the data shapes that cross (the data model lives here)
+#   stack:                # locked, WITH versions
+#     - component: string
+#       tech: string
+#       version: string
+#   # principle (not a field): the build is a vertical, end-to-end slice through
+#   # these components — end-to-end or the story failed.
+
+# ---- type: ux  (LOCKED #434) -----------------------------------------------
+# content:
+#   screens:              # the surfaces this capability needs
+#     - name: string
+#       purpose: string
+#   states:               # per screen
+#     - screen: string
+#       states: [string]  # e.g. idle | submitting | error | locked | success | empty | loading
+#   flows:                # journeys across screens (tie to persona/journey records)
+#     - name: string
+#       persona_ref: string
+#       steps: [string]   # no dead ends — every state has a way forward
+#   accessibility:        # a11y posture, from the box's gate
+#     wcag: string        # e.g. "2.1 AA"
+#     focus: string       # focus management
+#     targets: string     # min touch targets
+#     announcements: string  # errors announced to screen readers
+#   design_system:        # binding
+#     system: string         # the design system
+#     component_model: string # e.g. "Primitive -> Block -> Card" (KB technology learning)
+#     surface: string         # e.g. "static web tier on CDN"
+
+# ---- type: delivery   — PENDING (define when the delivery lens is built) ----
+# ---- type: quality    — PENDING --------------------------------------------
+# ---- type: agentic    — PENDING --------------------------------------------
+
 # ---- Fill rules -------------------------------------------------------------
 fill_rules:
   - play: "/realize"
-    writes: "creates/updates the five intents for the capability"
+    writes: "creates/updates the five lenses for the capability"
   - play: "/learn"
-    writes: "may update an intent from real-world outcomes"
+    writes: "may update a lens from real-world outcomes"
 
 # ---- Enhance rules ----------------------------------------------------------
 enhance_rules:
