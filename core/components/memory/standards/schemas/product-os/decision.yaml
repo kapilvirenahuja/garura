@@ -37,6 +37,9 @@ fill_rules:
   - play: "/realize"
     writes: "architecture, delivery, quality, and agentic decisions"
   # /implement does NOT write decisions — it executes them, not decides them.
+  # Boundary moves: when an ICE specific falls outside the profile box, the
+  # approved boundary change is recorded HERE as a decision (level: product),
+  # proposed during /understand and accepted by a human.
 
 # ---- Enhance rules ----------------------------------------------------------
 enhance_rules:

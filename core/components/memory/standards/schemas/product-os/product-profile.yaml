@@ -1,13 +1,12 @@
 # Product Profile Schema — v1
 #
-# A SMART profile: the product's NFR posture is DERIVED bottom-up from what its
-# capabilities need — not declared top-down. /understand records each
-# capability's NFR needs (in its ICE); the product profile is the rollup, the
-# MAX across capabilities — "the product is as demanding as its most-demanding
-# capability." That rollup is the shape of the product.
+# The profile is THE BOX — the product's committed boundaries. Per NFR dimension
+# it holds a LEVEL and a GATE (the standard / how it's measured). ICE holds the
+# concrete specifics that must sit UNDER the box. A specific that falls outside
+# the box halts for human approval; approval moves the boundary and writes a
+# decision (ADR). Capabilities shape the box; they never silently redraw it.
 #
-# The profile has states, and it is the canonical vocabulary the KB matches
-# conditions against.
+# This is the canonical vocabulary the KB matches conditions against.
 
 schema:
   name: product-profile
@@ -15,10 +14,10 @@ schema:
 
 profile:
   product_ref: string
-  state: string              # directional | derived | locked
-                             #   directional — rough, set by /vision from intent
-                             #   derived     — rolled up from capability nfr_needs by /understand
-                             #   locked      — finalized; /shape selects against it
+  state: string              # directional | set | locked
+                             #   directional — rough, from /vision
+                             #   set         — levels + gates firmed by /understand
+                             #   locked      — selection (/shape) runs against it
 
   shape:                     # situational dimensions (directional from /vision)
     stage: string            # prototype | internal | public | monetized
@@ -26,64 +25,51 @@ profile:
     monetization: string     # none | lead-capture | paywall
     surfaces: [string]       # web | mobile | cli | api | desktop | embedded
 
-  nfr:                       # DERIVED — the MAX across all capabilities' nfr_needs.
-                             # Not hand-declared once state is `derived`.
-    performance: string      # speed / latency
-    security: string         # protection of data and access
-    accessibility: string    # usable by everyone (e.g. WCAG)
-    scalability: string      # load and growth headroom
-    reliability: string      # availability / uptime
-    privacy: string          # sensitivity of data handled
-    observability: string    # ability to see what's happening in prod
-    maintainability: string  # ease of change over time
+  nfr:                       # THE BOX — per dimension: a level AND a gate.
+                             # level scale: none < low < medium < high < xhigh
+    performance:    { level: string, gate: string }  # speed/latency, e.g. high, "p99 page load"
+    security:       { level: string, gate: string }  # e.g. high, "OWASP ASVS L2; no P1/P2"
+    accessibility:  { level: string, gate: string }  # e.g. high, "WCAG 2.1 AA"
+    scalability:    { level: string, gate: string }  # e.g. medium, "handles 10x load"
+    reliability:    { level: string, gate: string }  # availability, e.g. high, "99.9% (three-nines)"
+    privacy:        { level: string, gate: string }  # e.g. high, "PII encrypted at rest + transit"
+    observability:  { level: string, gate: string }  # e.g. medium, "tracing + error rates"
+    maintainability:{ level: string, gate: string }  # e.g. medium, "no module > 500 lines"
 
-  compliance: [string]       # union of capability compliance needs (GDPR, PCI-DSS, ...)
+  compliance: [string]       # regimes the box admits, e.g. [GDPR, PCI-DSS]
 
-  quality_vision:            # derived from the rolled-up posture
+  quality_vision:
     statement: string        # one line: what "good" means for this product
-    gates: [string]          # the bars /validate enforces (the project-defined
-                             # quality vision gates quality-auditor verifies)
+    gates: [string]          # the assembled per-dimension gates quality-auditor verifies
 
   metadata:
-    created_by: string       # /vision (directional) then /understand (derived rollup)
+    created_by: string       # /vision (directional) then /understand (firmed)
     version: integer
 
-# ---- Level scale (ordinal) -------------------------------------------------
-# none < low < medium < high < xhigh
-# A capability needing `high`/`xhigh` on a dimension pushes the product profile
-# up to that level. KB conditions compare against it, e.g. "include MFA when
-# security >= high".
+# ---- Governance ------------------------------------------------------------
+# The box moves ONLY by an approved decision. /understand fills each capability's
+# concrete nfr_needs (ICE); if a need exceeds the box on any dimension, it is an
+# out-of-box event — it halts for human approval; approval raises (or lowers) the
+# boundary and records a decision (level: product). Inside the box, no friction.
 
-# ---- The rollup ------------------------------------------------------------
-# product.nfr[d]     = max( capability.ice.nfr_needs[d] ) over all capabilities
-# product.compliance = union( capability compliance needs )
-# The source of truth is the per-capability nfr_needs in each capability's ICE;
-# the product profile is the derived view. Re-rolls as capabilities change.
-
-# ---- Example: a payments product, after rollup -----------------------------
-# The product didn't declare security: xhigh — the payments capability needed it,
-# so the profile rolled up to it.
-#
+# ---- Example: a payments product, box after two boundary moves -------------
 # profile:
-#   product_ref: phoenix
-#   state: derived
+#   product_ref: acme-saas
+#   state: set
 #   shape: { stage: monetized, users: public, monetization: paywall, surfaces: [web, api] }
-#   nfr:                       # rolled up from capabilities
-#     performance: high        # checkout capability needs speed
-#     security: xhigh          # payments capability needs it — pulls product up
-#     accessibility: high      # public web surface
-#     scalability: medium
-#     reliability: high
-#     privacy: high
-#     observability: medium
-#     maintainability: medium
-#   compliance: [PCI-DSS, GDPR]   # union: payments -> PCI-DSS, accounts -> GDPR
+#   nfr:
+#     performance:   { level: high,   gate: "p99 page load" }
+#     security:      { level: xhigh,  gate: "OWASP ASVS L2; no P1/P2; MFA; breach detection" }  # moved up for payments
+#     accessibility: { level: high,   gate: "WCAG 2.1 AA" }
+#     scalability:   { level: medium, gate: "handles 10x current load" }
+#     reliability:   { level: high,   gate: "99.99% uptime (four-nines)" }  # moved up for auth
+#     privacy:       { level: high,   gate: "PII encrypted at rest + in transit" }
+#     observability: { level: medium, gate: "request tracing + error rates" }
+#     maintainability:{ level: medium, gate: "no module > 500 lines; lint clean" }
+#   compliance: [PCI-DSS, GDPR]
 #   quality_vision:
 #     statement: "Trustworthy checkout — fast, accessible, provably secure."
-#     gates:
-#       - "no P1 or P2 security findings"
-#       - "WCAG 2.1 AA on every user-facing screen"
-#       - "p95 checkout latency < 300ms"
-#       - "all PII encrypted at rest and in transit"
+#     gates: ["no P1/P2 security findings", "WCAG 2.1 AA", "p99 page load tracked",
+#             "99.99% uptime", "PII encrypted at rest + in transit"]
 
 # Supersedes the old three-axis project profile (ADR 014: scale/complexity/risk).

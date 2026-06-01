@@ -1,7 +1,7 @@
-# Decision Schema (ADR) — v1 (DRAFT, pending HITL review)
+# Decision Schema (ADR) — v1
 #
 # A decision record IS an ADR — usable at product, capability, functionality, or
-# framework level (Q5). The third thing ProductOS keeps forever: DECISIONS.
+# framework level. The third thing ProductOS keeps forever: DECISIONS.
 # Accepted decisions are never edited — a new decision supersedes them, so the
 # history stays intact.
 
@@ -36,12 +36,11 @@ fill_rules:
     writes: "decisions about functionalities, personas, journeys"
   - play: "/realize"
     writes: "architecture, delivery, quality, and agentic decisions"
-  # /implement does NOT write decisions (Q4) — it executes them, not decides them.
+  # /implement does NOT write decisions — it executes them, not decides them.
+  # Boundary moves: when an ICE specific falls outside the profile box, the
+  # approved boundary change is recorded HERE as a decision (level: product),
+  # proposed during /understand and accepted by a human.
 
 # ---- Enhance rules ----------------------------------------------------------
 enhance_rules:
-  governed_by: "PARKED — see Q6 in product-os.yaml (future schema-evolution play)"
-
-# ---- Review status ----------------------------------------------------------
-# Resolved: Q4 /implement cannot write decisions;
-#           Q5 these records are ADRs, at product or any level.
+  governed_by: "PARKED — see product-os.yaml (future schema-evolution play)"

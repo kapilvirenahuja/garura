@@ -28,10 +28,13 @@ ice:
                     # "must support enterprise SSO", "no remember-me on kiosks".
   expectations:
     outcomes: []
-  nfr_needs:               # the NFR levels THIS node needs (set by /understand).
-                           # The product profile rolls up the MAX of these across
-                           # capabilities — this is the source of the smart profile.
-                           # Each: none | low | medium | high | xhigh
+  nfr_needs:               # CONCRETE NFR targets for THIS node (set by /understand) —
+                           # the specifics that must sit UNDER the profile box.
+                           # A target exceeding the box on any dimension is an
+                           # out-of-box event: it halts for human approval, which
+                           # moves the boundary and records a decision (ADR).
+                           # Values are concrete, e.g. "auth API p99 < 150ms",
+                           # checked against the box's level + gate.
     performance: string    # speed / latency
     security: string
     accessibility: string
@@ -49,6 +52,18 @@ ice:
 # Where ICE lives in the tree
 attaches_to: [capability, functionality]   # same shape at both levels;
                                            # functionality ICE is the build unit
+
+# ---- Rules -----------------------------------------------------------------
+# One node, one ICE, one context.
+#   - intent.goals and expectations.outcomes may be many, and pair up (an outcome
+#     per goal).
+#   - intent.constraints and intent.failures are single node-level lists (NOT
+#     per-goal); they collectively bound the node's intent.
+#   - context is ONE, shared by every goal — it is the binder.
+# Decomposition test: goals share an ICE only if they share the context (persona,
+# systems, scope). A goal that needs its own context is a separate node with its
+# own ICE — a child functionality (a behavior) or a sibling capability (a
+# different concern).
 
 # ---- Fill rules -------------------------------------------------------------
 fill_rules:
