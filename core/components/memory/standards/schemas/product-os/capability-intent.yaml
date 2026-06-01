@@ -68,7 +68,18 @@ intent:
 #     component_model: string # e.g. "Primitive -> Block -> Card" (KB technology learning)
 #     surface: string         # e.g. "static web tier on CDN"
 
-# ---- type: delivery   — PENDING (define when the delivery lens is built) ----
+# ---- type: delivery  (structure LOCKED #434; NAME under review) ------------
+# NAME: "delivery" collides with project-management "delivery discipline" (and
+# with the /raise-/review-/merge pipeline). Candidate rename: deployment | release.
+# content:
+#   environments: [string]   # the path, e.g. dev -> staging -> prod
+#   rollout:
+#     flags: [string]        # feature flags (e.g. SSO, MFA gated independently)
+#     strategy: string       # blue/green | canary | rolling
+#   migrations: string       # data-change strategy — gated, reversible
+#   config_secrets: string   # per-env config; secrets via secrets-manager, never in repo
+#   cicd: string             # pipeline: build -> quality gates -> deploy on green
+
 # ---- type: quality    — PENDING --------------------------------------------
 # ---- type: agentic    — PENDING --------------------------------------------
 
