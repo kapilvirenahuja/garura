@@ -55,6 +55,13 @@ enhance the schema itself.
   shape, using the Phase B schema.
 - **C2** — Make the KB act as a search/router: for any piece of work it answers
   which domain, which capability, and which functionality it belongs to.
+- **C3** — Build the **layer + component + capability inventory** as selectable
+  catalogs (like the domain inventory). Standard layers (experience / process /
+  domain / cross-cutting), standard components (Web, Security, Cache, Identity,
+  BFF, …) with their typical internals + contracts, and capabilities (reconcile
+  with the domain shelf). Profile-aware. Feeds /shape (capability selection) and
+  the /realize architecture lens (layer/component selection) — so a product is
+  assembled from a known menu, not invented each time.
 
 ## Phase D — Lock the auto-build rules before any play
 
