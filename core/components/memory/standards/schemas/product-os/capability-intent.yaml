@@ -6,7 +6,7 @@
 # folder. Every epic of the capability builds against these.
 #
 # Each lens shares the envelope below; its `content` follows the per-lens
-# structure defined further down. Lenses are locked one at a time as designed.
+# structure defined further down. All five lenses are LOCKED (#434).
 
 schema:
   name: capability-intent
@@ -78,8 +78,30 @@ intent:
 #   config_secrets: string   # per-env config; secrets via secrets-manager, never in repo
 #   cicd: string             # pipeline: build -> quality gates -> deploy on green
 
-# ---- type: quality    — PENDING --------------------------------------------
-# ---- type: agentic    — PENDING --------------------------------------------
+# ---- type: quality  (LOCKED #434) ------------------------------------------
+# Gates only — the list of gates this capability's ICE must pass. Drawn from the
+# box's NFR gates that apply + the ICE's constraints/failures made checkable.
+# How to test, coverage, environments are NOT here — that's the builder's job
+# off the ICE. /validate checks these gates independently.
+# content:
+#   gates: [string]   # e.g. "OWASP ASVS L2; no P1/P2", "WCAG 2.1 AA",
+#                     #      "p99 < 150ms", "no user enumeration", "lockout after 5 fails"
+
+# ---- type: agentic  (LOCKED #434) ------------------------------------------
+# The KIND of weight the agent pulls (intent) — not how it's built. The 7
+# principles (reason/plan/orchestrate/act/remember/govern/verify) are build
+# mechanics, not the lens. Empty (all none) when the capability has no agent.
+# content:
+#   weights:
+#     cognitive:  { level: string, note: string }   # analysis + decision-making
+#     creative:   { level: string, note: string }   # visualization + media creation
+#     logistical: { level: string, note: string }   # operational + workflow
+#   bounds: string    # the hard limits — what the agent may NOT do alone, e.g.
+#                     # "read-only on identity; acts only via lockout/MFA; never
+#                     #  bypasses auth; no permanent ban without a human"
+# Level scale: none | low | medium | high. Stated per capability — not
+# box-governed in v1 (the bounds line carries the safety; governance can be
+# added later, parallel to NFR).
 
 # ---- Fill rules -------------------------------------------------------------
 fill_rules:
