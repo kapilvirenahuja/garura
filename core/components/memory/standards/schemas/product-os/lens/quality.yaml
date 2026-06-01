@@ -1,0 +1,14 @@
+# Lens: quality  (LOCKED #434) — shared envelope in lens/_index.md
+#
+# Gates only — the list of gates this capability's ICE must pass. Drawn from the
+# box's NFR gates that apply + the ICE's constraints/failures made checkable.
+# How to test, coverage, environments are NOT here — that's the builder's job
+# off the ICE. /validate checks these gates independently.
+
+schema:
+  name: lens
+  type: quality
+
+content:
+  gates: [string]   # e.g. "OWASP ASVS L2; no P1/P2", "WCAG 2.1 AA",
+                    #      "p99 < 150ms", "no user enumeration", "lockout after 5 fails"

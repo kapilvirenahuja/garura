@@ -9,12 +9,12 @@ the two delivery artifacts that ride on top.
 | `product-os.yaml` | the Domain → Capability → Functionality tree, personas, journeys | permanent |
 | `ice.yaml` | Intent / Context / Expectations on a node (the build unit at functionality level) | permanent |
 | `decision.yaml` | decision records (ADRs) at any level | permanent |
-| `capability-intent.yaml` | the 5 realize lenses (ux, architecture, run, quality, agentic) | permanent |
+| `lens/` (one file per type) | the 5 realize lenses (ux, architecture, run, quality, agentic) | permanent |
 | `epic.yaml` | a vertical slice of a functionality — the delivery/issue grain | temporary (deleted on merge) |
 | `product-profile.yaml` | the NFR + shape posture of a product; the vocabulary the KB matches conditions against | permanent |
 
 Storage tiers (see `product-os.yaml` storage layout):
-- **Permanent** (product-os): structure, ICE, decisions, the 5 capability intents.
+- **Permanent** (product-os): structure, ICE, decisions, the 5 lenses.
 - **Temporary** (product-os): epics — survive the /grill → /implement boundary, deleted on merge.
 - **STM only**: stories, tests, build detail produced by /implement.
 

@@ -169,7 +169,7 @@ ice:
   nfr_needs: { security: "xhigh — OTP single-use + rate-limited" }
 ```
 
-## 5. Capability intents (the 5 realize lenses)
+## 5. Lenses (the 5 realize lenses)
 
 ```yaml
 # ux

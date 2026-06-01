@@ -37,14 +37,14 @@ A (wipe) → B (schemas) → C (KB rebuild) → D (auto-build rules) → E (play
   status.
 - **B4** — Epic schema v1: a vertical slice of a functionality, the unit of
   delivery/issue. TEMPORARY — written by /grill, deleted on its issue merge.
-- **B5** — Capability-intent schema v1: the 5 realize lenses (ux, architecture,
-  run, quality, agentic). PERMANENT — stored in product-os intent folders.
+- **B5** — Lens schemas v1: the 5 realize lenses (ux, architecture,
+  run, quality, agentic). PERMANENT — stored at {capability}/lens/<type>.yaml.
 
 Each schema carries its own rules: which plays may fill it, and which plays may
 enhance the schema itself.
 
 **Storage lifecycle (three tiers):**
-- PERMANENT (product-os): structure, ICE, decisions, the 5 capability intents.
+- PERMANENT (product-os): structure, ICE, decisions, the 5 lenses.
 - TEMPORARY (product-os): epics — survive the /grill → /implement pipeline
   boundary, deleted on merge.
 - STM only: stories, tests, build detail produced by /implement.
@@ -109,7 +109,7 @@ the right start/end pieces, then retire the superseded play(s).
 
 ### Realization
 - **E6** — /realize capability — writes the 5 permanent intents (UX,
-  Architecture, Run, Quality, Agentic) into product-os intent folders
+  Architecture, Run, Quality, Agentic) into the capability lens/ folder
 - **E7** — /grill — functionality level; cuts vertical-slice epics (with context
   + acceptance) into product-os as the delivery handoff
 - ~~**E8** — /groom~~ — DROPPED. Issue grain is the epic; /implement absorbs the
@@ -156,7 +156,7 @@ the right start/end pieces, then retire the superseded play(s).
 7. Evidence recording is play-only and config-driven (D1).
 8. Pipeline position is declared per play and auto-built (D2).
 9. Realization detail is STM and regenerated on demand (Option A), with two
-   exceptions kept in product-os: the 5 capability intents (permanent) and epics
+   exceptions kept in product-os: the 5 lenses (permanent) and epics
    (temporary, deleted on merge).
 10. /groom dropped — the epic is the delivery grain and /implement absorbs the
    story/test/implementation-target breakdown, test-first.
@@ -168,3 +168,18 @@ the right start/end pieces, then retire the superseded play(s).
 13. ICE context = persona, systems, scope (users→persona; dependencies dropped,
    now node.depends_on; assumptions→scope). Same shape at capability and
    functionality. Expectations trimmed to outcomes.
+14. The profile is the BOX (per NFR dimension: level + gate), governed; ICE holds
+   the concrete specifics under it; an out-of-box specific halts for human
+   approval and moves the box as a decision. Capabilities shape the box, never
+   silently redraw it.
+15. The 5 realize lenses are PERMANENT in product-os, per capability — NOT
+   throwaway. Considered generating them on demand pinned by decisions; chose to
+   keep them as the canonical realization. The schema "capability-intent" is
+   renamed **lens** and split into `lens/{type}.yaml` (ux, architecture, run,
+   quality, agentic). The "delivery" lens is renamed **run**.
+16. Lens framings locked: architecture = horizontal components a capability
+   threads + contracts + versioned stack (vertical build); ux = screens/states/
+   flows/a11y/design-system; run = environments/rollout/migrations/config/cicd;
+   quality = gates only (the list the ICE must pass); agentic = the 3 weights
+   (cognitive/creative/logistical) + bounds (the 7 principles are build mechanics,
+   not the lens).

@@ -1,7 +1,7 @@
 # ProductOS — the data graph
 
 The spine is a 3-level tree (Domain → Capability → Functionality). Everything
-else — ICE, decisions, the capability intents, personas, journeys, epics, and
+else — ICE, decisions, the lenses, personas, journeys, epics, and
 the profile — attaches to nodes or links across them, which makes the whole
 thing a graph.
 
@@ -16,7 +16,7 @@ thing a graph.
 ## What hangs off a node
 
 - **ICE** — 1 per capability and per functionality (via `ice_ref`). Not on domains.
-- **Capability also carries:** the 5 capability-intents (ux / architecture /
+- **Capability also carries:** the 5 lenses (ux / architecture /
   run / quality / agentic), persona records, journey records, decision (ADR)
   records.
 - **Functionality also carries:** epics — the temporary vertical-slice delivery
@@ -107,7 +107,7 @@ DOMAIN  d-um  "User Management"   (no ICE — grouping)
 │
 ├─ CAPABILITY  c-7f3a  "Authentication (Login)"
 │    ├─ ice  i-7f3a   goals[2] · context{persona,systems,scope} · nfr_needs
-│    ├─ capability-intents → ux · architecture · run · quality · agentic
+│    ├─ lenses → ux · architecture · run · quality · agentic
 │    ├─ personas → password-user · enterprise-sso-user
 │    ├─ journeys → "first-time SSO sign-in" (→ enterprise-sso-user)
 │    ├─ decisions → dec-101 (security→xhigh) · dec-102 (reliability→four-nines)  ──> profile

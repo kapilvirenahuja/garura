@@ -94,7 +94,7 @@ enhance_rules:
 
 # ---- Storage layout (the product-os folder) --------------------------------
 # Three lifecycle tiers live here:
-#   PERMANENT  — structure, ICE, decisions, the 5 capability intents.
+#   PERMANENT  — structure, ICE, decisions, the 5 lenses.
 #   TEMPORARY  — epics: written by /grill, deleted when their issue merges.
 #   (STM, NOT here) — stories, tests, build detail produced by /implement.
 #
@@ -102,7 +102,7 @@ enhance_rules:
 #   product-os/{capability}/
 #     node.yaml                      # the capability node (this schema)
 #     ice.yaml                       # capability ICE (ice schema)
-#     intent/                        # the 5 capability intents (PERMANENT)
+#     lens/                         # the 5 lenses (PERMANENT)
 #       ux.yaml architecture.yaml run.yaml quality.yaml agentic.yaml
 #     decisions/                     # decision (ADR) records
 #     personas/  journeys/           # persona + journey records

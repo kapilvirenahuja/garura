@@ -1,0 +1,16 @@
+# Lens: run  (LOCKED #434; renamed from "delivery") — envelope in lens/_index.md
+#
+# How the capability is deployed and runs.
+
+schema:
+  name: lens
+  type: run
+
+content:
+  environments: [string]   # the path, e.g. dev -> staging -> prod
+  rollout:
+    flags: [string]        # feature flags (e.g. SSO, MFA gated independently)
+    strategy: string       # blue/green | canary | rolling
+  migrations: string       # data-change strategy — gated, reversible
+  config_secrets: string   # per-env config; secrets via secrets-manager, never in repo
+  cicd: string             # pipeline: build -> quality gates -> deploy on green

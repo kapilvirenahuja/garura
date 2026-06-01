@@ -1,0 +1,26 @@
+# Lens: ux  (LOCKED #434) — shared envelope in lens/_index.md
+
+schema:
+  name: lens
+  type: ux
+
+content:
+  screens:              # the surfaces this capability needs
+    - name: string
+      purpose: string
+  states:               # per screen
+    - screen: string
+      states: [string]  # idle | submitting | error | locked | success | empty | loading
+  flows:                # journeys across screens (tie to persona/journey records)
+    - name: string
+      persona_ref: string
+      steps: [string]   # no dead ends — every state has a way forward
+  accessibility:        # a11y posture, from the box's gate
+    wcag: string        # e.g. "2.1 AA"
+    focus: string       # focus management
+    targets: string     # min touch targets
+    announcements: string  # errors announced to screen readers
+  design_system:        # binding
+    system: string          # the design system
+    component_model: string # e.g. "Primitive -> Block -> Card" (KB technology learning)
+    surface: string         # e.g. "static web tier on CDN"
