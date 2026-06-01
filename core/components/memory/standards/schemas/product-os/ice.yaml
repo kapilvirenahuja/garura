@@ -28,6 +28,19 @@ ice:
                     # "must support enterprise SSO", "no remember-me on kiosks".
   expectations:
     outcomes: []
+  nfr_needs:               # the NFR levels THIS node needs (set by /understand).
+                           # The product profile rolls up the MAX of these across
+                           # capabilities — this is the source of the smart profile.
+                           # Each: none | low | medium | high | xhigh
+    performance: string    # speed / latency
+    security: string
+    accessibility: string
+    scalability: string
+    reliability: string
+    privacy: string
+    observability: string
+    maintainability: string
+  compliance_needs: [string]   # regimes this node triggers (e.g. PCI-DSS); union'd into the profile
   metadata:
     created_by: string
     updated_by: string
@@ -42,7 +55,8 @@ fill_rules:
   - play: "/vision"
     writes: "seed intent (goals only), at capability level"
   - play: "/understand"
-    writes: "full intent, context (persona/systems/scope), expectations"
+    writes: "full intent, context (persona/systems/scope), expectations, and the
+             capability's nfr_needs + compliance_needs — which roll up the product profile"
   - play: "/shape"
     writes: "functionality-level ICE when functionalities are created/reshaped;
              also creates the persona records that context.persona points to"

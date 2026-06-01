@@ -64,15 +64,27 @@ journey:
 # ---- Fill rules: which play writes which part ------------------------------
 fill_rules:
   - play: "/vision"
-    writes: "domain and capability nodes (seed), plus a seed ice_ref"
+    writes: "domain + candidate capability nodes (directional, from intent), a
+             seed ice_ref, and a directional draft product profile"
+  - play: "/understand"
+    writes: "nothing on the node itself — enriches the linked ICE record,
+             including each capability's nfr_needs, which roll the product
+             profile up to state: derived"
   - play: "/shape"
-    writes: "functionality nodes (create + reshape), personas, journeys"
+    writes: "profile-driven selection: confirm/prune capabilities and select
+             functionalities against the profile + KB, plus personas, journeys.
+             Re-runs when the profile changes."
   - play: "/roadmap"
     writes: "priority"
   - play: "/learn"
     writes: "status changes driven by real-world outcomes"
-  - play: "/understand"
-    writes: "nothing on the node itself — enriches the linked ICE record"
+
+# Pipeline ordering: /vision is directional (capabilities + draft profile) ->
+# /understand rolls up the smart profile from capability nfr_needs ->
+# /shape selects capabilities + functionalities against the now-derived profile.
+# So the profile always exists before functionalities are selected. The loop is
+# re-entrant: as intent/profile evolves (climbing the architecture ladder),
+# /shape re-selects.
 
 # ---- Enhance rules: who may change THIS schema -----------------------------
 enhance_rules:

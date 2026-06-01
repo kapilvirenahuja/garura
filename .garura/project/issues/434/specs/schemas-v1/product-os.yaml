@@ -1,11 +1,11 @@
-# Product-OS Schema — v1 (DRAFT, pending HITL review)
+# Product-OS Schema — v1
 #
-# The persistent product model. One of the three things ProductOS keeps
-# forever: STRUCTURE. The tree is always exactly three levels:
+# The persistent product model. One of the three things ProductOS keeps forever:
+# STRUCTURE. The tree is always exactly three levels:
 #   Domain -> Capability -> Functionality
 #
-# Nodes link by id. ICE and Decisions attach to nodes by reference (own
-# schemas). Personas and Journeys are persistent and attach to nodes too.
+# Nodes link by id. ICE, Decisions, Personas, and Journeys attach to nodes by
+# reference (their own schemas).
 
 schema:
   name: product-os
@@ -64,25 +64,37 @@ journey:
 # ---- Fill rules: which play writes which part ------------------------------
 fill_rules:
   - play: "/vision"
-    writes: "domain and capability nodes (seed), plus a seed ice_ref"
+    writes: "domain + candidate capability nodes (directional, from intent), a
+             seed ice_ref, and a directional draft product profile"
+  - play: "/understand"
+    writes: "nothing on the node itself — enriches the linked ICE record,
+             including each capability's nfr_needs, which roll the product
+             profile up to state: derived"
   - play: "/shape"
-    writes: "functionality nodes (create + reshape), personas, journeys"
+    writes: "profile-driven selection: confirm/prune capabilities and select
+             functionalities against the profile + KB, plus personas, journeys.
+             Re-runs when the profile changes."
   - play: "/roadmap"
     writes: "priority"
   - play: "/learn"
     writes: "status changes driven by real-world outcomes"
-  - play: "/understand"
-    writes: "nothing on the node itself — enriches the linked ICE record"
+
+# Pipeline ordering: /vision is directional (capabilities + draft profile) ->
+# /understand rolls up the smart profile from capability nfr_needs ->
+# /shape selects capabilities + functionalities against the now-derived profile.
+# So the profile always exists before functionalities are selected. The loop is
+# re-entrant: as intent/profile evolves (climbing the architecture ladder),
+# /shape re-selects.
 
 # ---- Enhance rules: who may change THIS schema -----------------------------
 enhance_rules:
-  governed_by: "PARKED — a dedicated schema-evolution play will own this later;
-                it implies migrating existing records to the new shape (Q6)"
+  governed_by: "PARKED — a dedicated schema-evolution play will own this; it
+                implies migrating existing records to the new shape"
   immutable_in_v1: [structure.levels]   # the 3-level shape is fixed for v1
 
 # ---- Storage layout (the product-os folder) --------------------------------
-# Three tiers of lifecycle live here:
-#   PERMANENT  — structure, ICE, decisions, and the 5 capability intents.
+# Three lifecycle tiers live here:
+#   PERMANENT  — structure, ICE, decisions, the 5 capability intents.
 #   TEMPORARY  — epics: written by /grill, deleted when their issue merges.
 #   (STM, NOT here) — stories, tests, build detail produced by /implement.
 #
@@ -98,14 +110,3 @@ enhance_rules:
 #       node.yaml  ice.yaml          # functionality node + its build-unit ICE
 #     epics/                         # TEMPORARY — vertical slices awaiting/under
 #                                    # delivery; each deleted on its issue merge
-#
-# Note: epics deliberately sit in product-os (not STM) so they survive the
-# pipeline boundary from /grill to /implement, but they are temporary tenants.
-
-# ---- Review status ----------------------------------------------------------
-# Resolved: Q1 home ok; Q5 decisions are ADRs; Q7 personas/journeys added;
-#           Q8 opaque id + path adopted.
-# Parked:   Q6 schema-evolution governance -> future play + migration.
-# Added in review: epics persist temporarily here (deleted on merge); 5
-#           capability intents persist permanently in intent/; /groom dropped
-#           (/implement absorbs story/test breakdown).
