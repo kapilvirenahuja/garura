@@ -55,13 +55,31 @@ enhance the schema itself.
   shape, using the Phase B schema.
 - **C2** — Make the KB act as a search/router: for any piece of work it answers
   which domain, which capability, and which functionality it belongs to.
-- **C3** — Build the **layer + component + capability inventory** as selectable
-  catalogs (like the domain inventory). Standard layers (experience / process /
-  domain / cross-cutting), standard components (Web, Security, Cache, Identity,
-  BFF, …) with their typical internals + contracts, and capabilities (reconcile
-  with the domain shelf). Profile-aware. Feeds /shape (capability selection) and
-  the /realize architecture lens (layer/component selection) — so a product is
-  assembled from a known menu, not invented each time.
+- **C3** — Build the **component + capability inventory** as selectable catalogs
+  (like the domain inventory), profile-aware. NOT built now — this task HOLDS the
+  locked definition below for when it is.
+
+  **Locked architecture vocabulary (#434):**
+  - **Component** (a.k.a. platform / tier) — a HORIZONTAL: a platform or tech
+    tier such as CMS, DXP, a microservices tier, web/experience, channel/BFF,
+    cache, security, the data tier. Shared across the product; it holds parts of
+    many domains. Its internal apis/services/stores can change; the component
+    SET and the CONTRACTS between components are the stable seams.
+  - **Layer** — the horizontal organisation of components (experience → process
+    → domain, plus cross-cutting like security/infra). Components sit in layers.
+  - **Domain / Capability** — a VERTICAL. A domain and its capabilities/
+    functionalities thread top-to-down THROUGH the components; data and logic
+    flow through them. "Capability" is reserved for the domain-tree vertical
+    (e.g. Authentication) — never for a horizontal.
+  - **Contract** — the seam between two components; includes the data model the
+    component owns.
+  - **Build / epic** — a vertical end-to-end slice of a capability through its
+    components. End-to-end or the story failed.
+
+  The inventory is two orthogonal menus: horizontal components/platforms ×
+  vertical domains/capabilities. /shape selects capabilities (verticals);
+  /realize's architecture lens selects the components (horizontals) a capability
+  threads. Assemble from a known menu, never invent each time.
 
 ## Phase D — Lock the auto-build rules before any play
 
