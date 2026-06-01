@@ -1,5 +1,12 @@
 # ProductOS instance — "Acme Identity" (Authentication), full, backend included
 
+**Sample run 1 — VALIDATED.** Handed to a fresh agent in `~/cto/builder/testruns/ice-run1`,
+this instance produced a working build with no step-by-step prompting: Postgres
+migration, Fastify auth-api, shared wire contract, unit + integration tests,
+and a React sign-in with behaviour + a11y tests — the agent self-orchestrated
+(wrote its own BUILD-CONTRACT.md). Kept as the reference sample of a sufficient
+ICE + realize-intents instance.
+
 **Purpose — stress test.** This is a complete, populated ProductOS instance for
 an authentication product. Hand it to a fresh agent and say: *build this.*
 Everything an implementer needs — UX, backend, data, APIs, NFR targets, quality
