@@ -31,13 +31,16 @@ server is also where the KB becomes truly hidden from product users.
 
 One learning per file, grouped into shelves:
 
-- `architecture/` — product-condition → best-fit architecture learnings
-  (e.g. the simulator ladder: throwaway → internal → monetized).
-- `domains/` — domain → capability → feature learnings (the stable backbone),
-  with the empirical guidance for each.
+- `domains/` — per-domain learnings: which capabilities/features to include and
+  when (the stable backbone).
+- `architecture/` — product-condition → best-fit architecture ladders
+  (e.g. throwaway → internal → monetized).
+- `technology/` — specific technology/stack choices and the conditions they fit.
 
 Every file follows `_TEMPLATE.md`: Topic, Conditions, Recommendation, Rationale,
-Evolve when, Provenance.
+Evolve when, Provenance. The frontmatter Conditions facet keys vary by shelf
+(e.g. stage/users for architecture, trigger for a domain, surface/stack for
+technology) — the model reads whatever is present.
 
 ## Status (#434 Phase C — v1)
 

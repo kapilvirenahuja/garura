@@ -1,6 +1,7 @@
 # KB Design — empirical learnings bank
 
-Decided under #434 Phase C. This is the reference for how the KB works.
+**Status: LOCKED (#434 Phase C).** This is the reference for how the KB works.
+Changes to it go through a decision record, not an ad-hoc edit.
 
 ## What the KB is
 
