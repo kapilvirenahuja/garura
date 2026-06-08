@@ -7,7 +7,7 @@ the register; it does not standardize the content.
 This rule is guidance, not compiled scaffolding. It is loaded on every
 session in this repo via project `CLAUDE.md` Section 5 — that is the active
 enforcement surface. (Earlier the rule was also pasted into every compiled
-play with lint anchors and a `/create-play` compiler gate; that paste-block
+play with lint anchors and a `/play-creator` compiler gate; that paste-block
 mechanism was reverted under #386 — see History.)
 
 ## Scope
@@ -69,7 +69,7 @@ when traceability matters. Two registers, in that order.
   every compiled play, HTML-comment lint anchors enforced by
   `core/tools/lint-components/lib/rules/structural.js` (rule IDs
   `structural/missing-user-facing-voice` and
-  `structural/user-facing-voice-order`), plus `/create-play` gate
+  `structural/user-facing-voice-order`), plus `/play-creator` gate
   `G13 — User-Facing Voice`. Scope was orchestrator-to-user surfaces only.
 - **#386** was the open follow-on to extend the same paste-the-block
   mechanism to artifact templates inside each play. The user dropped the
@@ -77,7 +77,7 @@ when traceability matters. Two registers, in that order.
   talks to the user.
 - **Revert (#386, commits `70fa56a` + `a82aabd`).** Stripped the block from
   all 26 compiled plays, removed gate G13 and the required-section row from
-  `/create-play`, removed the lint anchor checks from `structural.js`.
+  `/play-creator`, removed the lint anchor checks from `structural.js`.
 - The rule file itself was kept. Project `CLAUDE.md` Section 5 inlines the
   short version and points here for the long form — that became the active
   enforcement surface in place of the play-block mechanism.

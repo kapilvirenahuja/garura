@@ -71,6 +71,10 @@ stm:
 standards:
   pr-severity-taxonomy: ./core/components/memory/standards/rules/pr.md
 
+# start-change play configuration
+start-change:
+  worktree: false   # set up a git worktree on start only when true (C3)
+
 # review-pr play configuration
 review-pr:
   bypass: true

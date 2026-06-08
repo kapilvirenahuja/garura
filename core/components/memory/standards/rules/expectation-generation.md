@@ -2,7 +2,7 @@
 
 How the harness generates a **play's** Expectation (`success_scenarios` + `recovery`)
 from its Intent triple. Consumed by the `draft-play-expectation` skill. Output is
-always human-validated at the create-play checkpoint — these rules exist to make the
+always human-validated at the play-creator checkpoint — these rules exist to make the
 generation reviewable, not magic.
 
 > Scope: this is the **play** case (a play's intent → that play's expectation). The
@@ -68,5 +68,5 @@ judgment); "a below-confidence mapping was committed without approval" → human
 
 Every generated expectation carries:
 - `generated_from.intent` — the intent it was derived from.
-- `vetted.status: pending` — set to `approved` only by a human at the create-play
+- `vetted.status: pending` — set to `approved` only by a human at the play-creator
   checkpoint. Nothing downstream consumes a `pending` expectation.
