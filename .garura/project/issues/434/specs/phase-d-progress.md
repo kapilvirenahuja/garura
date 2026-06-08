@@ -106,8 +106,17 @@ Audited the five plays for "mechanical work → called script." Result, layer-co
 - This confirms the #434 direction: build/meta plays are garura-NATIVE, not `/sud:`-owned.
 
 ## Open / follow-ups
-- The 5 new plays + play-editor + **fix-bug** + **install-garura/uninstall-garura** are **not
-  yet deployed** to `.claude/skills/` (only play-creator is). Deploy before they're invocable.
+- **Local deployable surface (`.claude/`) trimmed 2026-06-09.** `.claude/skills/` now holds
+  exactly the build/meta plays (play-creator, play-editor, install-garura, uninstall-garura)
+  + the 5 orchestration plays (start-change, commit-change, propose-change, review-change,
+  merge-change) + the 10 helper skills those orchestration plays call (analyze-changes,
+  analyze-pr, create-commit, manage-issue, merge-pr, platform-adapter, quality-check-scoped,
+  resolve-issues, setup-branch, submit-pr). `.claude/agents/` trimmed to the 3 those plays
+  use (project-orchestrator, repo-orchestrator, quality-auditor). `model:` sentinel stripped
+  on deploy. `.claude/` is gitignored (ephemeral, machine-local) — not committed.
+- **fix-bug is intentionally NOT in the local deployable set** — the garura repo's runnable
+  surface is the build + orchestration plays only; consumer plays like fix-bug deploy into a
+  product via install-garura, not here.
 - The reused worker skills (draft-rca, draft-fix-design, author-regression-test) still say
   "the fix-it play" in their description/prose — stale now that fix-it is fix-bug. Paths flow
   through the contract so function is unaffected; prose cleanup pending.
