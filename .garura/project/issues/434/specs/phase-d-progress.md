@@ -71,11 +71,27 @@ Audited the five plays for "mechanical work → called script." Result, layer-co
 - `start-change.worktree: false` (default) added to `.garura/core/config.yaml`.
 - New standards: `self-review.md` (base, overrideable).
 
+## Phase E started — first consumer play
+
+- **create-pr** (old play) — **retired** (deleted source + both deployed copies). Superseded
+  by propose-change. The `create-pr` *verb* in platform-adapter/submit-pr is unrelated and
+  stays.
+- **fix-it** (old play) — **rebuilt as `fix-bug`** (Phase E11, the `/fix` command; user chose
+  the name `fix-bug`, a divergence from the plan's `/fix` label). First **consumer** play of
+  the D2 pipeline (`position: both`): start-change injected at the head; commit-change →
+  propose-change → review-change → merge-change as the closing chain. The play now owns only
+  its defect-resolution core (validate-open → RCA & design + failing regression test →
+  inline checkpoint → implement → independent verify, retry cap 2). Dropped from the old
+  intent: branch creation, the `ship` sub-play, partial-ship failure — all now pipeline-owned.
+  Source: `core/components/plays/fix-bug/` (ice.md + SKILL.md + scripts/check_scope.py).
+  Lint PASS; check_scope.py smoke-tested. Old fix-it folder deleted.
+
 ## Open / follow-ups
-- The 5 new plays + play-editor are **not yet deployed** to `.claude/skills/` (only
-  play-creator is). Deploy before they're invocable.
-- **create-pr** and **fix-it** (old plays) still reference the deleted commit-code/ship in
-  prose/short-circuits — stale; clean up or retire in Phase E.
+- The 5 new plays + play-editor + **fix-bug** are **not yet deployed** to `.claude/skills/`
+  (only play-creator is). Deploy before they're invocable.
+- The reused worker skills (draft-rca, draft-fix-design, author-regression-test) still say
+  "the fix-it play" in their description/prose — stale now that fix-it is fix-bug. Paths flow
+  through the contract so function is unaffected; prose cleanup pending.
 - **ship** deleted — its post-merge **distill** (learning) trigger is now orphaned; rewire
   into merge-change or the future /learn play.
 - **ship** also referenced review-pr only in its bypass=false path (now gone); n/a while
