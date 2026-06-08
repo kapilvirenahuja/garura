@@ -52,10 +52,17 @@ only when a profile dimension calls for it.
   - Invite-based — B2B / teams (`shape.users: small-team` or org).
   - Email verification — when `nfr.security >= medium`, or any `compliance` regime is in force.
 - **Profile Management** — include when users manage their own data or preferences.
+  - Level 1 — basic attributes: core identity + PII, a **structured** model. The floor — whenever the product holds user profiles.
+  - Level 2 — extended attributes (address, etc.): **structured**, optional. Add when `shape.monetization: paywall` (shipping/billing) or `compliance` needs fuller identity.
+  - Level 3 — enhanced attributes (preferences, etc.): **non-structured** (NoSQL-type), to extend into a graph. Add when `personalization` / `experience` needs preference signals.
 - **Authorization & Roles** — include when different users get different access.
   - RBAC — the default once roles exist.
   - Fine-grained permissions — when `nfr.security >= high`, or access rules outgrow roles.
-- **Account Recovery** — include with any credential-based auth (password reset; account unlock).
+- **Account Recovery** — include with any credential-based auth.
+  - Password reset — the floor; any credential login.
+  - Unlock — when a lockout policy is in force (`nfr.security >= medium`).
+  - Auto-unlock — when `nfr.security >= high`, or to cut support load (timed / self-service).
+  - Multi-channel support — when `shape.surfaces` spans more than one, or `shape.users: public`.
 - **Session Management** — include when users stay signed in across requests.
   - Logout everywhere — when `nfr.security >= high` (revoke all sessions on a security event).
   - Auth-event audit logging — when any `compliance` regime, or `nfr.security >= high`.

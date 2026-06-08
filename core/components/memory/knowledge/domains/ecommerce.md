@@ -94,19 +94,44 @@ off it.
 - **Product content & SKU management** — the big variable. WHERE it lives is set
   by the quadrant above (CMS / commerce / PIM; assets in CMS or DAM). Decide the
   system of record before modelling anything.
+  - SKU record & core attributes — the structured product model (id, title, price, core specs). The floor — every commerce build.
+  - Rich content & assets — descriptions, media, on-brand copy in CMS/DAM. Add when content leads the glass (quadrants 1–2), or `nfr.accessibility >= high` needs alt-text.
+  - PIM-governed enrichment — centralised attribute authoring across many SKUs. Add for large catalogues (quadrants 3–4) where `nfr.scalability >= high`.
 - **Catalog & variants** — model variants (size/colour/bundle) as **first-class,
   separately** — never as ad-hoc attributes, and never copy-pasted from the last
   project. Variant handling is the thing teams get wrong by treating every
   commerce build as identical.
+  - Level 1 — flat catalogue: products with simple categories. The floor — low SKU count (quadrants 1–2).
+  - Level 2 — first-class variants: size/colour/bundle modelled separately, never as ad-hoc attributes. Add whenever products have real variation.
+  - Level 3 — faceted, deep taxonomy: many attributes and category trees. Add for large catalogues where `nfr.scalability >= high` (quadrants 3–4).
+  - Level 4 — multi-seller / marketplace catalogue: per-seller listings and offers. Add only for marketplace shapes (`nfr.scalability >= xhigh`).
 - **Experience management & authoring** — rich for quadrants 1–2 (marketer-driven,
   full experience manager, enrichment by marketers); light for 3–4.
+  - Level 1 — templated pages: fixed layouts, developer-managed. The floor — commerce-heavy shapes (quadrants 3–4).
+  - Level 2 — marketer authoring: content blocks marketers edit without a developer. Add for content-led builds (quadrants 1–2).
+  - Level 3 — full experience manager: visual composition, personalised layouts, A/B. Add when experience is the differentiator and `shape.stage: monetized`.
 - **Merchandising** — heavy for quadrant 3; products edited in PIM/commerce.
+  - Manual curation — hand-ordered PLPs, featured products, promos. The floor wherever an operator presents the catalogue.
+  - Rules-based merchandising — boost/bury and category rules at scale. Add for heavy-catalogue shapes (quadrant 3, `nfr.scalability >= high`).
+  - Automated / personalised — learning-to-rank and per-shopper ordering (see intelligence). Add when `shape.monetization: paywall`/monetized and conversion is the goal.
 - **Search & discovery** — grows with SKU count; see `experience`.
+  - Level 1 — keyword search: basic text match over the catalogue. The floor — any browsable store.
+  - Level 2 — faceted search & filters: refine by attribute/category. Add as SKU count grows (`nfr.scalability >= high`).
+  - Level 3 — semantic / NL & visual search: intent-aware and search-by-image (see intelligence). Add when discovery is a differentiator (`shape.stage: monetized`).
 - **Reviews & ratings** — plus analysis of them (see intelligence below).
+  - Ratings & written reviews — collect and display buyer feedback. The floor when shoppers evaluate before buying.
+  - Moderation & verified-purchase — gate UGC and mark genuine buyers. Add when `shape.users: public` invites abuse, or `compliance` needs records.
+  - Review intelligence — AI summaries and consumer review Q&A on the PDP (see intelligence). Add for public, conversion-focused storefronts.
 - **Inventory & order management** — core commerce; real-time stock when traffic
   and reliability push (quadrants 3–4).
+  - Level 1 — basic stock & orders: simple counts and order records. The floor — every store that sells.
+  - Level 2 — real-time stock & reservations: live availability under load. Add when `nfr.reliability >= high` and `nfr.performance >= high` (quadrants 3–4).
+  - Level 3 — distributed / omnichannel fulfilment: multi-warehouse, BOPIS, returns. Add when `shape.surfaces` spans channels or `nfr.scalability >= xhigh`.
 - **Integration / SOA layer** — heavy for quadrant 4: many back-end systems,
   elastic deployment, contract-governed seams.
+  - Owned API contracts — stable, governed seams between MACH components. The floor — non-negotiable in every build.
+  - Back-end integrations — ERP/OMS/payment/fulfilment connectors. Add as transactional volume rises (quadrant 4).
+  - Event-driven & elastic seams — async events, elastic deployment for high traffic. Add when `nfr.scalability >= xhigh` and `nfr.reliability >= high`.
 
 ## Intelligence features (increasingly the differentiator)
 These are becoming key and should be on the table early, not bolted on. Mapped to

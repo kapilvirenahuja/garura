@@ -56,6 +56,42 @@ Intent-first. (Confirm or correct.)
 - **Launch fast** — "stand up a campaign page in hours, not weeks, and scale it."
 - **Know what worked** — "campaign intelligence and web-driven attribution."
 
+## Capabilities
+Read each line as "include X when {profile condition}". Three capabilities only —
+reach, page production, measurement. No martech (orchestration / CDP / delivery is
+out of scope, not listed here).
+
+- **Discoverability / reach optimisation** — include when the product needs to be
+  found and cited for campaigns. Functionalities are independent (flat list — run
+  the ones the channel mix needs):
+  - SEO — be ranked by search engines for campaign terms. The floor for reach.
+  - AEO — be answerable/citable by answer engines. Add when `shape.surfaces`
+    includes web and answer-engine traffic matters.
+  - GEO — be surfaced by generative engines. Add as generative reach grows.
+  - Agent-visibility — be readable by agents crawling on a user's behalf. Add when
+    agent-driven discovery is part of the channel mix.
+  - Consent & privacy for reach — opt-in, opt-out, suppression on any reach
+    activity. The floor whenever `nfr.privacy >= medium` or `compliance` includes
+    GDPR / CAN-SPAM; never ship reach without it.
+- **Campaign page production** — include when campaigns need landing pages.
+  Progressive (maturity ladder — climb as volume and reuse grow):
+  - Level 1 — single campaign page stood up fast on the MACH / drag-and-drop spine.
+    The floor whenever a campaign needs a page.
+  - Level 2 — repeatable templated pages: reuse blocks/components across campaigns.
+    Add when more than one campaign ships off the same spine.
+  - Level 3 — page production at scale: many pages with shared structure and
+    governance. Add when `shape.stage: monetized` or campaign volume is high.
+- **Campaign measurement** — include when operators need to know what worked.
+  Independent (flat list):
+  - Campaign intelligence via analytics — read performance through `analytics`. The
+    floor for any measured campaign.
+  - Dwell-time tracking — capture engagement depth signals. Add when content
+    quality, not just clicks, drives the campaign.
+  - Send-time optimisation — time delivery for impact. Add when delivery timing is a
+    lever in the channel mix.
+  - Web attribution — clean path from web behaviour to campaign credit. Add when
+    `shape.monetization` is `lead-capture` or `paywall` and reach must tie to credit.
+
 ## Where it goes wrong (our burns — fix these)
 These are the recurring traps that have burned us; treat them as must-handle, not
 optional:

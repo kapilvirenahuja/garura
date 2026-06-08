@@ -61,6 +61,30 @@ the nudge adapts to it.
 - **Nudge in-session** — "if they're here, move the experience" → route to `experience`.
 - **Tailor by player type** — "make it land for who they are" → gamified tailoring.
 
+## Capabilities
+The capabilities this shelf implies, each with functionalities at baseline depth.
+Read each functionality line as "include when {profile condition}". Start at the
+floor; add only when a profile dimension calls for it. These serve the POV above —
+they do not replace it.
+
+- **Channel delivery** — reach the user wherever they are. Multi-channel is the
+  floor, not a stretch (flat list — channels are independent, add per surface).
+  - In-app — the floor; messages and badges inside the product (`shape.surfaces` includes web/mobile/desktop).
+  - Push — when `shape.surfaces` includes mobile (or web with push support) and timely re-engagement matters.
+  - Email — when `shape.surfaces` includes web/api and you need durable, away-from-app reach.
+  - SMS — when `shape.surfaces` includes mobile and reach must not depend on app/email; add `nfr.privacy >= high` care for phone numbers.
+- **Templating** — one message, channel-appropriate renderings, authored via the experience layer.
+  - Per-channel templates — the floor once more than one channel exists; one message, channel-specific rendering composed where the experience is.
+  - Brand-tone consistency — when `content-management` governs voice, or `shape.stage` is public/monetized so off-voice messages cost trust.
+- **Nudge routing** — the differentiator: route on presence, not a blind send.
+  - Level 1 — presence detection: is the person in-session right now (the floor for routing at all).
+  - Level 2 — in-session experience-nudge vs channel-bell: present → hand to `experience`'s nudge layer; away → fire the channel. Add when real-time presence signals are reliable.
+  - Level 3 — player-type tailoring: shape the nudge to gamified behaviour (progress/achievement/exploration/social). Add when `personalization` supplies a behavioural profile.
+- **Preferences & frequency** — let the user stay in control; never spam.
+  - Opt-in / opt-out — the floor; consent to be reached at all (`nfr.privacy >= medium`, or `compliance` includes GDPR).
+  - Per-channel preference — when more than one channel exists, so the user picks where each message type lands.
+  - Fatigue / frequency control — when message volume rises, or `shape.stage` is public/monetized; cap low-value sends to protect attention.
+
 ## Where it goes wrong
 - **Fatigue & noise** — too many low-value messages; no frequency discipline.
 - **Wrong channel** — bell when an in-session experience nudge would have been better;

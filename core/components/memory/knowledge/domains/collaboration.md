@@ -42,12 +42,25 @@ capability you build only when the product is collaborative, or a hand-off. Conf
 
 ## Capabilities
 - **Presence** — who's here now, where their cursor/focus is.
+  - Online/last-seen status — who's on the object now or recently — when `shape.users: small-team`/`public` and people share work.
+  - Live cursors & focus — where each person's cursor/selection is, live — only when concurrent editing is genuinely needed (real-time path).
 - **Real-time co-editing** — concurrent edits without conflict (CRDT/OT-class) —
   the hard, high-value core when real-time is genuinely needed.
+  - Level 1 — async first: one editor at a time, comments/handoff cover the rest — the floor; most products stop here.
+  - Level 2 — soft locking / check-out: lock the object or section while one person edits, others see it's busy — when `shape.users: small-team` and edit collisions actually happen.
+  - Level 3 — true concurrent co-editing (CRDT/OT): many people edit live without clobbering — only when concurrent editing is a genuine requirement and `nfr.reliability >= high`.
 - **Comments & annotations** — threaded, resolvable, anchored to the object.
+  - Threaded comments — discuss in place, reply, resolve — the floor for any shared object.
+  - Anchored annotations — pin a comment to a region/selection of the object — when the work is spatial (design, doc) and `shape.users: small-team`/`public`.
 - **Mentions** — @-people; routes through `notifications` (nudge if present).
+  - @-mention — pull a named person in; delivery routes through `notifications` — the floor once comments exist and users have identities.
 - **Sharing & permissions** — share links, roles, granular access (with `user-management`).
+  - Level 1 — private + explicit invite: owner shares to named people — the floor.
+  - Level 2 — role-based access (view/comment/edit): tiers on the shared object — when `shape.users: small-team`.
+  - Level 3 — share links / public access: link-based or open sharing — when `shape.users: public`; tighten when `nfr.privacy >= high` or `compliance` includes GDPR/SOC2.
 - **Activity feed & history** — what changed, by whom; versioning and rollback.
+  - Activity feed — chronological "who did what" on the object — the floor whenever more than one person touches it.
+  - Version history & rollback — snapshots with restore — when concurrent or frequent editing happens; required when `nfr.reliability >= high` or `compliance` includes SOC2/GDPR (audit trail).
 
 ## Where it goes wrong (proposed)
 - **Real-time when you didn't need it** — co-editing infra (CRDT/OT) is expensive;

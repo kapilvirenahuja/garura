@@ -98,18 +98,78 @@ Intent-first. (Kapil delegated the intent list — confirm or correct.)
 - **Govern the agents** — "see and control agents, tools, memory, guardrails, HITL" → the agent ops plane.
 
 ## Capabilities
+Each capability lists its functionalities — a name, what it is, a maturity ladder
+(Level 1/2/3) where the progression is real or a flat list where the pieces are
+independent, and a profile condition for when to add it. Start at the floor.
+
 - **Intent-centric ontology & experience graph** — the moat; the semantic model.
+  - Ontology / node-edge model — the structured intent-content-channel-outcome
+    schema. The floor — nothing downstream works without it.
+  - Evidence binding — every node/edge/inference carries URL, snippet, timestamp,
+    method, confidence. The floor — evidence-first is non-negotiable.
+  - Gap detection — surface where intent has no supporting content/channel. Add
+    when intent intelligence or discovery runs off the graph.
+  - Graph storage & query at scale — add when `nfr.scalability >= high` (large
+    catalog / many intents) or `nfr.performance >= high` on graph reads.
 - **Discovery intelligence** — visibility/citability/answerability/agent-readiness
-  across SEO/AEO/GEO/agent.
+  across SEO/AEO/GEO/agent. Maturity ladder — channels light up as that traffic grows.
+  - Level 1 — SEO visibility: classic search indexability/citability. The floor.
+  - Level 2 — AEO (answer-engine) visibility: add when answer-engine traffic grows.
+  - Level 3 — GEO (generative-engine) visibility: add when generative traffic grows.
+  - Agent visibility — citability/answerability to AI agents. Add when agent-mediated
+    discovery matters or `shape.surfaces` includes `api` for agent consumption.
 - **Intent intelligence** — intent capture, intent journeys, content-to-intent gaps.
+  - Intent capture — infer what a visitor is trying to do from public signals. The floor.
+  - Intent journey modelling — research → compare → evaluate → act (not funnel stages).
+    Add once capture is in place and you reason over multi-step intent.
+  - Content-to-intent gap analysis — where intent is unmet by content. Add when the
+    graph is populated and you drive "what to change" off it.
 - **Conversational / generative / orchestrated surfaces** — with agentic logic.
+  Flat list — the three surfaces are independent, agentic is an orthogonal pattern.
+  - Conversational — dialogue: intent inference, clarification, evidence retrieval,
+    escalation. Add when `shape.surfaces` includes `web`/`mobile` and guided dialogue helps.
+  - Generative — adaptive content/answers/comparisons from governed evidence. Add when
+    answers must be synthesised, not retrieved; needs evidence binding in place.
+  - Orchestrated — coordination across tools, systems, agents, workflows. Add when
+    a task spans systems and `nfr.reliability >= high` on the coordination path.
+  - Agentic reasoning/planning — reason, plan, orchestrate, act, remember in
+    guardrails, escalate. Add only within guardrails; requires the agent ops plane
+    and `nfr.observability >= high` for traceable action.
 - **Behavioural signals & governed nudges** — real-time intervention, HITL escalation.
+  - Signal reading — in-session: hesitation, abandonment risk, backtracking, stalled
+    stage. The floor for any behavioural intervention.
+  - Governed nudge library — progress visibility, completion cues, recovery nudges;
+    each measurable, no dark patterns. Add once signals are read reliably.
+  - HITL escalation — hand off when confidence drops or risk rises. Add when nudges
+    act autonomously or `nfr.reliability >= high` on the intervention path.
 - **Experience simulation** — model what an experience change would do before shipping.
+  - What-if modelling — project an experience change against the intent graph before
+    shipping. Add when the graph is deep enough to model off (`nfr.scalability >= high`).
+  - Confidence-scored outcomes — every projection carries confidence/trace. Add with
+    simulation; evidence-first applies to predictions too.
 - **Search & faceted discovery** — the classic baseline still lives here (full-text,
   facets, autocomplete, relevance) but is reframed under intent + discovery above.
+  Maturity ladder — search deepens from keyword to semantic to conversational.
+  - Level 1 — keyword / full-text search: the floor whenever there's a corpus to search.
+  - Level 2 — faceted navigation + autocomplete: add when the catalog is large enough
+    to need filtering, or `shape.users: public` raises query volume.
+  - Level 3 — semantic / vector search: add when intent-match beats keyword-match;
+    pairs with the ontology. Watch `nfr.performance >= high` on the search hot path.
+  - Relevance tuning — ranking signals, boosts, A/B. Add when `nfr.performance >= high`
+    on the search path or conversion depends on result quality.
+  - Conversational search — dialogue over the corpus. Add when the conversational
+    surface is live and search becomes a guided exchange.
 - **Agent ops plane (Agent Factory)** — manage agents, capabilities, tools (MCP),
   memory rules, guardrails, HITL queues, approvals, audit. Governance is
-  architectural, not bolted on.
+  architectural, not bolted on. Flat list — independent governance facets.
+  - Agent & capability registry — define agents, capabilities, tool (MCP) bindings.
+    The floor once any agentic capability ships.
+  - Guardrail & memory policy — scope what agents may do/remember. The floor with
+    any agent; tighten when `nfr.security >= high` or `nfr.privacy >= high`.
+  - HITL queues & approvals — human review gates for agent actions. Add when agents
+    act with side effects or `nfr.reliability >= high`.
+  - Audit & observability — full action trace. Add when `nfr.observability >= high`,
+    or `compliance` includes SOC2 / GDPR / HIPAA.
 
 ## Where it goes wrong
 - **Funnel thinking** — optimising a funnel whose top LLMs now own.

@@ -68,14 +68,41 @@ Intent-first. (Kapil delegated the intent list — confirm or correct.)
 
 ## Capabilities (by level)
 - **Tagging & rules** (L1) — content/audience tags; simple targeting rules.
+  Pinned at L1 — flat list of the rules-light primitives.
+  - Content tagging — label content with attributes for targeting. The floor.
+  - Audience tags — group visitors by simple attributes/behaviour. The floor.
+  - If-then targeting rules — "if tag X, show Y"; no engine needed. The floor.
 - **Customer data platform / profiles** (L2) — unified profile, identity stitching,
   segmentation; typically external tooling.
+  Pinned at L2 — flat list of the data-platform primitives.
+  - Unified profile — one clean view per person across sources. Include when L2 is reached.
+  - Identity stitching — resolve one person across visits/devices. Include when `shape.users: public` and cross-device recognition matters.
+  - Segmentation — build audiences from profile + behaviour. Include when `marketing` needs segments (overlaps `marketing`).
 - **Decisioning engine** (L2→L3) — choose what to show; batch → real-time.
+  Progressive — ladder aligned to the domain maturity levels.
+  - Level 1 — rules-based selection: "if-then" picks what to show; no models. The floor for decisioning.
+  - Level 2 — batch/model-driven: propensity, next-best-action computed offline. Add at L2 when `personalization` need outgrows static rules.
+  - Level 3 — real-time decisioning: choose-in-the-moment per request. Add at L3 when `nfr.performance >= high` and live adaptation is required.
 - **Experience personalization** (L3, the moat) — adapt layout/journey live.
+  Pinned at L3 — flat list of the moat's primitives.
+  - Layout adaptation — reshape page structure per person. Include at L3, `shape.surfaces` includes web/mobile.
+  - Journey/sequence adaptation — reorder the path through the experience. Include at L3 when the journey varies by person.
+  - Contextual adaptation — respond to where the visitor is and what they're doing now. Include at L3 when `nfr.performance >= high`.
 - **Content personalization** — tailor message and offers (on `content-management`).
+  Progressive — ladder aligned to the domain maturity levels.
+  - Level 1 — rules-based content swaps: show tagged content by simple rule. The floor.
+  - Level 2 — segment/model recommendations: offers and copy by segment or propensity. Add at L2 when a CDP/segments exist.
+  - Level 3 — real-time recommendations: message/offer chosen live per person. Add at L3 when `nfr.performance >= high`.
 - **Consent & preference management** — mandatory whenever `nfr.privacy >= high`
   or a regime governs profiling.
+  Independent — flat list; gated by privacy, not by maturity level.
+  - Consent capture — record permission to profile/personalize. Mandatory when `nfr.privacy >= high` or `compliance` includes GDPR.
+  - Preference centre — let people control what's known and used. Add when `nfr.privacy >= high`.
+  - Transparency/disclosure — show what data drives personalization. Add when `compliance` includes GDPR.
 - **Experimentation & measurement** — prove lift (shared with `analytics`/`experience`).
+  Independent — flat list; shared with `analytics`.
+  - A/B testing — compare personalized vs. control variant. The floor for proving lift.
+  - Lift measurement — attribute metric movement to personalization. Add when `nfr.observability >= medium` (shared with `analytics`).
 
 ## Where it goes wrong
 - **Privacy & consent** — profiling without consent or transparency; design it in,

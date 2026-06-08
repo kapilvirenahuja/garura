@@ -41,14 +41,29 @@ the money movement behind it.
 ## Capabilities (selected by risk, scale, regime)
 - **Payment Processing** — the floor: card via PSP; bank transfer/ACH/wallets when
   the region or user base expects non-card rails. Tokenise; never store raw PANs.
+  - Card via PSP / hosted fields — charge through Stripe/Adyen with hosted fields so card data never touches your servers. The floor.
+  - Tokenised vaulting — store a PSP token in place of the PAN for later charges. The floor whenever you reuse a method; mandatory when `compliance` includes PCI-DSS.
+  - Bank transfer / ACH — direct-debit / bank rails for lower-fee or non-card payers. Add when `shape.users: public` and a broad consumer base expects them.
+  - Wallets — Apple Pay / Google Pay one-tap. Add when `shape.surfaces` includes mobile.
 - **Checkout / Payment UX** — accessible payment screens (`nfr.accessibility`);
   localised currency and methods across regions. (Pairs with `ecommerce`.)
+  - Hosted / redirect checkout — PSP-hosted page or drop-in widget that keeps you out of PCI scope. The floor.
+  - Accessible payment screens — keyboard, labels, contrast on every pay screen. Add when `nfr.accessibility >= high`.
+  - Localised currency & methods — currency, formatting, and method mix per market. Add when `shape.users: public`.
 - **Fraud Detection** — provider risk rules at the floor; custom rules + manual
   review when `nfr.security >= high` or fraud loss outgrows defaults.
+  - Level 1 — provider risk rules: the PSP's built-in risk scoring and blocklists. The floor.
+  - Level 2 — custom rules: your own velocity / threshold rules on top. Add when `nfr.security >= high`.
+  - Level 3 — manual review queue: flagged transactions held for human decision. Add when `nfr.security >= xhigh`, or `compliance` includes PCI-DSS.
 - **Refunds & Disputes** — full/partial refunds; chargeback handling; dispute
   evidence workflow when a regime or volume requires the audit trail.
+  - Level 1 — full / partial refunds: reverse a charge in whole or part via the PSP. The floor.
+  - Level 2 — chargeback handling: receive and process issuer-initiated reversals. Add when `shape.monetization: monetized`.
+  - Level 3 — dispute-evidence workflow: assemble and submit evidence with an audit trail. Add when `nfr.observability >= high`, or `compliance` includes PCI-DSS.
 - **Saved Methods / One-Click** — when repeat purchase or conversion speed matters;
   tokenised vaulting only (mandatory under PCI-DSS).
+  - Tokenised vaulting — store the PSP token, never the card, for one-click reuse. The floor of this capability; mandatory when `compliance` includes PCI-DSS.
+  - One-click checkout — charge a saved token without re-entry. Add when `shape.monetization: monetized` and repeat purchase matters.
 
 ## Where it goes wrong (proposed)
 - **Touching card data you didn't need to** — blowing PCI scope by not using hosted

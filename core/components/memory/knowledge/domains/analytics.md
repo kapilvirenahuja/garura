@@ -54,13 +54,33 @@ Mostly operator intents; the consumer's stake is privacy.
 
 ## Capabilities
 - **Event tracking** — beyond page-load + CTA: meaningful product events.
+  - Level 1 — page-load + CTA clicks: the activity floor we already have, kept but never the whole story.
+  - Level 2 — meaningful product events: the few actions that mean something (signup, activate, convert). Add when the product has a goal to measure against.
+  - Level 3 — full event taxonomy: named events with consistent properties, versioned. Add when `nfr.maintainability >= high` or multiple teams emit events.
 - **Goals** — explicit success definitions, the spine of value.
+  - Goal definition — name the success outcome and its event. The floor — without it you measure motion, not value.
+  - Goal hierarchy — primary vs assist goals, weighted. Add when one surface drives several outcomes worth ranking.
 - **Funnels** — product/conversion funnels with drop-off, not discovery funnels.
+  - Product-conversion funnel — the in-product path to a goal (signup → activate → convert → retain) with drop-off at each step. The floor for this shelf.
+  - Segmented funnel — same funnel split by cohort or property to locate where which users fall out. Add when one funnel hides divergent behaviour.
 - **Product analytics** — feature usage, adoption, retention, cohorts, paths.
+  - Feature usage & adoption — who uses which feature and how often. The floor for measuring the product, not just the site.
+  - Retention — do people come back; D1/D7/D30 or rolling. Add once adoption is tracked and durability matters.
+  - Cohort analysis — behaviour grouped by signup window or trait, compared over time. Add when retention differs across groups.
+  - Path analysis — the real routes users take to (or away from) a goal. Add when `nfr.observability >= high` or funnels need explaining.
 - **Web analytics** — the existing page-load/CTA layer, kept but no longer the whole story.
+  - Pageviews & sessions — traffic, sessions, basic engagement. The floor — the layer we already run.
+  - On-page engagement — scroll, dwell, click maps feeding `marketing` signals. Add when `marketing` needs engagement input.
 - **Web attribution** — source-to-outcome on the web (supports `marketing`).
+  - Source/medium attribution — credit the channel that brought a session. The floor for closing the `marketing` loop.
+  - Multi-touch attribution — credit across several touches on the path to a goal. Add when `marketing` spend spans channels worth comparing.
 - **Dashboards & exploration** — make goals/funnels/usage legible and decidable.
+  - Fixed dashboards — the standing view of goals, funnels, usage. The floor — make the numbers legible.
+  - Self-serve exploration — ad-hoc query and breakdown without an engineer. Add when `shape.users: small-team` or more and decision cadence grows.
 - **Privacy-aware collection** — consent and minimisation where a regime applies.
+  - Consent gating — collect only after consent. The floor when `compliance` includes GDPR or `nfr.privacy >= medium`.
+  - Data minimisation & anonymisation — drop or hash PII, IP truncation. Add when `nfr.privacy >= high` or `compliance` includes GDPR / HIPAA.
+  - Retention & deletion controls — TTLs and subject-deletion paths. Add when `compliance` includes GDPR / HIPAA / SOC2.
 
 ## Where it goes wrong (our gaps)
 - **Page-load + CTA only** — activity metrics with no goals or funnels → no value derived.

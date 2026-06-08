@@ -56,19 +56,38 @@ administrators** — plus the reader who consumes the result.
 ## Capabilities
 - **Content modelling** — the core discipline; model per product feature (above).
   Separate content from presentation, always.
+  - Level 1 — fixed page model: a page maps to one feature, fields inline. The floor — every product that holds content.
+  - Level 2 — structured content types: typed, reusable entries decoupled from any one page. Add when `shape.surfaces` spans more than one, or content is reused across features.
+  - Level 3 — reusable components/blocks: composable blocks that feed drag-and-drop assembly. Add when `shape.stage: public`/`monetized` and the experience is composed, not page-built.
 - **Authoring & editing** — rich authoring; draft/preview; editorial workflow and
   roles (authors → editors → publish).
+  - Rich authoring + draft/preview — author content with preview before publish. The floor.
+  - Editorial workflow (author → editor → publish) — review-and-approve gates. Add when `shape.users: small-team`/`public` (more than one author), or `compliance` needs review records.
+  - Content versioning & rollback — history and revert on entries. Add when `nfr.reliability >= high`, or `compliance` needs an edit trail.
 - **Experience composition** — the spine: drag-and-drop assembly of pages and
   experiences on MACH-first components.
+  - Drag-and-drop page assembly — compose pages from reusable blocks. The spine itself — include when `shape.stage: public`/`monetized`.
+  - Reusable experience templates — saved layouts marketers re-apply. Add when `shape.users: small-team`/`public` reuse layouts across features.
 - **Presentation & rendering** — **responsive is the default**. **Adaptive is
   nice-to-have** — only take on its complexity when the experience is *genuinely
   different per dimension* (device/context), not by reflex.
+  - Responsive rendering — one experience that reflows across viewports. The floor — always.
+  - Adaptive rendering — a genuinely different experience per device/context. Add ONLY when the experience truly differs per dimension — never merely because `shape.surfaces` has more than one entry.
 - **Publishing & delivery** — scheduled publish/expiry; headless/content API when
   more than one surface; CDN-backed delivery at scale.
+  - Scheduled publish & expiry — ship and retire content on a chosen date. The floor.
+  - Headless / content API — serve content to surfaces over an API. Add when `shape.surfaces` spans more than one (e.g. web + mobile/api).
+  - CDN-backed delivery — edge-cached delivery at scale. Add when `nfr.performance >= high` or `nfr.scalability >= high`.
 - **Digital Asset Management** — assets live here as a capability (not a separate
   domain); upload + transform pipeline; asset library.
+  - Asset upload & library — store and browse media in one place. The floor whenever the product holds assets.
+  - Transform pipeline (resize/format) — derive renditions on demand. Add when `nfr.performance >= high`, or assets serve more than one of `shape.surfaces`.
 - **Localization** — translation workflow when content ships in more than one locale.
+  - Translation workflow — manage locale variants of content. The floor once content ships in more than one locale.
+  - AI-assisted translation — machine-draft locale variants for review. Add when locale count or `nfr.scalability >= high` makes manual translation a bottleneck.
 - **Administration & governance** — roles, environments, versioning, audit.
+  - Roles & environments — who can do what, across dev/stage/prod. The floor for any operated product.
+  - Audit logging — record of who changed what, when. Add when `compliance` is in force, or `nfr.security >= high`.
 
 ## Where it goes wrong
 - **Migration** — underestimated; plan it as first-class work, not a cutover.
