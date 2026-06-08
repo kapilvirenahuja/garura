@@ -67,6 +67,12 @@ stm:
     context: "{issue-number}/context/"
     review: "{issue-number}/review/"
 
+# Product model (ProductOS) — the persistent product structure, ICE, profile, and
+# decisions. The product-os tree lives at {product.base-path}product-os/; the
+# product profile at {product.base-path}product-os/profile.yaml.
+product:
+  base-path: .garura/product/
+
 # Standards resolution — first play-specific section; pattern for future plays
 standards:
   pr-severity-taxonomy: ./core/components/memory/standards/rules/pr.md
