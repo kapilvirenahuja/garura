@@ -38,6 +38,12 @@ def main():
     check("domains include user-management & payments",
           {"user-management", "payments"} <= {e["domain"] for e in d["domains"]})
 
+    # shelf() returns the full shelf markdown for the second reasoning step
+    sh = kb.shelf("payments")
+    check("shelf returns text with Capabilities",
+          "## Capabilities" in sh.get("text", ""))
+    check("shelf bad domain -> error", "error" in kb.shelf("nope"))
+
     # search shape
     s = kb.search("reset password sms recovery")
     check("search returns query/candidates/unmatched",

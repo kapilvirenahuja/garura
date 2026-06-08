@@ -176,18 +176,38 @@ def read(node_id):
     return {"error": f"node {node_id} not found"}
 
 
-VERBS = {"domains": domains, "search": search, "read": read, "rebuild": rebuild}
+def shelf(name):
+    """Full markdown of one domain shelf — the input for the skill's second
+    reasoning step (reason over Capabilities to pick capability + functionality).
+    Shelves are small, so reasoning over the whole shelf is reliable.
+    """
+    index = _load_index()
+    for doc in index.get("documents", []):
+        if _domain_of(doc["doc_name"]) == name:
+            src = os.path.join(index["root"], doc["doc_name"])
+            with open(src, "r", encoding="utf-8") as f:
+                return {"domain": name, "text": f.read()}
+    return {"error": f"domain {name} not found"}
+
+
+VERBS = {"domains": domains, "shelf": shelf, "search": search,
+         "read": read, "rebuild": rebuild}
 
 
 def main(argv):
     if not argv or argv[0] not in VERBS:
-        print(json.dumps({"error": "usage: kb.py {domains|search <q>|read <node_id>|rebuild}"}))
+        print(json.dumps({"error": "usage: kb.py {domains|shelf <domain>|search <q>|read <node_id>|rebuild}"}))
         return 2
     verb, rest = argv[0], argv[1:]
     if verb == "rebuild":
         result = rebuild()
     elif verb == "domains":
         result = domains()
+    elif verb == "shelf":
+        if not rest:
+            print(json.dumps({"error": "shelf needs a domain name"}))
+            return 2
+        result = shelf(rest[0])
     elif verb == "search":
         if not rest:
             print(json.dumps({"error": "search needs a query"}))
