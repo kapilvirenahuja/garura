@@ -86,9 +86,28 @@ Audited the five plays for "mechanical work → called script." Result, layer-co
   Source: `core/components/plays/fix-bug/` (ice.md + SKILL.md + scripts/check_scope.py).
   Lint PASS; check_scope.py smoke-tested. Old fix-it folder deleted.
 
+## Build/meta plays brought into garura (self-hosting)
+
+- **install-garura** + **uninstall-garura** — ported from the sudarshan harness
+  (`Sudarshan/chakra/harness/src/skills/sud-{install,uninstall}`) into
+  `core/components/plays/{install-garura,uninstall-garura}/` as bootstrap meta-plays (like
+  play-creator/play-editor: hand-authored SKILL.md + bundled script, no ice.md). Sud framing
+  stripped: dropped the `modules/` submodule indirection, `--modules`, the recipe registry;
+  source is now the garura checkout itself. install copies garura's core/components into a
+  target's `.claude/` (skills + plays + agents) + `.garura/` (config + STM scaffold), shared
+  memory to `--memory-dest` (default `~/.garura/core/memory`). Two correctness adds over the
+  sud original: (1) `--memory-dest` override so tests never touch the real machine KB; (2)
+  frontmatter normalize on deploy — strips the `model:` sentinel (132 source files carry it;
+  Claude Code can't read `model: best`). uninstall is manifest-driven, preserves STM + shared
+  memory unless `--purge`. The sud-install SKILL.md prose describes an adapter the script does
+  not use — ignored; the script is ground truth. Full round-trip tested 2026-06-09 (install →
+  verify → default uninstall preserving STM → re-install → `--purge` against a temp memory
+  dir; real `~/.garura/core/memory` untouched).
+- This confirms the #434 direction: build/meta plays are garura-NATIVE, not `/sud:`-owned.
+
 ## Open / follow-ups
-- The 5 new plays + play-editor + **fix-bug** are **not yet deployed** to `.claude/skills/`
-  (only play-creator is). Deploy before they're invocable.
+- The 5 new plays + play-editor + **fix-bug** + **install-garura/uninstall-garura** are **not
+  yet deployed** to `.claude/skills/` (only play-creator is). Deploy before they're invocable.
 - The reused worker skills (draft-rca, draft-fix-design, author-regression-test) still say
   "the fix-it play" in their description/prose — stale now that fix-it is fix-bug. Paths flow
   through the contract so function is unaffected; prose cleanup pending.
