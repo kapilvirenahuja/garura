@@ -37,7 +37,7 @@ trying to do; the capabilities below serve these.
 - **Keep accounts secure** — "MFA, revoke sessions, detect abuse" → security policy, logout-everywhere.
 - **Stay compliant** — "audit and consent records" → auth-event audit logging.
 
-## Recommendation
+## Capabilities
 Read each line as "include X when {profile condition}". Start at the floor; add
 only when a profile dimension calls for it.
 
