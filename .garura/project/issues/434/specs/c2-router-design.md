@@ -150,3 +150,22 @@ it shapes up":
 - Retrieval is **section-level**; the skill reasons down to the functionality.
 - Index is derived + gitignored; shelves are source of truth.
 - Server + enforced opacity + functionality-level index = **future shape**, deferred.
+
+## 14. Who calls the router — T30 scope (deferred)
+
+T30 (wiring `search-kb` into plays) happens **when the Phase E plays exist**, not now.
+The scope is fixed (Kapil): **only the plays that BUILD the ProductOS model use the
+router** — the ones that place/fill work into the Domain → Capability → Functionality
+tree. The rest do not.
+
+- **Use search-kb** (the productos-building plays — strategic + realization):
+  `/vision`, `/understand`, `/shape`, `/roadmap`, `/learn`, `/realize`, `/grill`.
+  They locate or place a piece of work in the model, so they route through search-kb
+  (and propose-kb-node on a miss).
+- **Do NOT use it** (engineering / maintenance / navigation / git): `/implement`,
+  `/validate`, `/fix`, `/refactor`, `/operate`, `/status`, `/next`, `/start`,
+  commit-code, `/raise`, `/review`, `/merge`. They act on already-placed work; they
+  don't fill the model.
+
+When each productos-building play is compiled (via `/sud:create-play`), wire search-kb
+in as its placement step; leave the rest untouched.
