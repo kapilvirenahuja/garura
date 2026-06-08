@@ -54,10 +54,16 @@ budget. This play uses **zero domain agents**.
 | Resolve self-review rules file via `standards_order` (project override → base `standards/rules/self-review.md`) | C6 | Hard halt |
 | Existing-PR check for the branch | C5 | Resume / update |
 
-Resolve the working base once. Resolve the self-review rules path here: take the
-most-specific `self-review.md` under `standards_order`, else the base file; record the
-resolved path for the run. Extract the issue number from the branch name
-(`feature/<issue>-slug` → `<issue>`).
+Resolve the working base once. Resolve the self-review rules path mechanically: read the
+`standards_order` base dirs from config (most-specific first) and run
+
+```
+python3 scripts/resolve_standard.py --file self-review.md --dir <most-specific> … --dir <base>
+```
+
+which returns the resolved path and an `is_override` flag — record both for the run (this
+is the C6 resolution; the play does not pick the file in prose). Extract the issue number
+from the branch name (`feature/<issue>-slug` → `<issue>`).
 
 **Resume / update (C5, F5):** if an open PR already exists for the branch, this run updates
 it (refreshes the self-review and body) instead of opening a second one.
@@ -94,8 +100,9 @@ pre-flight, and writes the checklist to disk. The contract moves only paths:
                    "resolved_rules": "<working>/resolved-rules.json" }
     }
 
-`resolved-rules.json` records the resolved rules path and whether it was a project override
-or the base.
+`resolved-rules.json` is the output of `scripts/resolve_standard.py` from pre-flight (the
+resolved path + `is_override`); the agent passes that path to `analyze-pr`, it does not
+re-resolve.
 **SE-1 (F1/C1):** `self-review.md` exists and is produced before any PR is opened.
 **SE-2 (F6/C6):** `resolved-rules.json` names the project override when one exists under
 `standards_order`, else the base file — the rules were read from the standards file, not
@@ -212,7 +219,14 @@ it rather than opening a new one (C5, F5).
 | utility_agents | 1 (repo-orchestrator) |
 | skills_reused | analyze-pr, submit-pr |
 | standards_consumed | standards/rules/self-review.md (overrideable per project) |
-| scripts | 0 |
+| scripts | 1 (resolve_standard.py — standards-file precedence; pure, no git/gh) |
 | step_evals | 6 (SE-1…SE-6) |
 | scenario_evals | 4 (SCE-1…SCE-4) |
 | recovery_entries | 6 (one per failure condition; 5 autonomous / 1 human) |
+
+## Direct-edit deviation note (#434, harness-led sweep)
+
+Non-intent edit: the C6 self-review file resolution was moved from prose into a called
+script (`scripts/resolve_standard.py`, pure filesystem precedence — no git/gh). No
+constraint/failure/scenario/eval text changed; `reference/ice.md` and the fingerprint are
+unchanged. play-creator step 3 is taught the same discipline so a rebuild reproduces it.

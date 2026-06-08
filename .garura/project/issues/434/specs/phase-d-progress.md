@@ -46,6 +46,27 @@ Status as of this session. Source of plan: `specs/realignment-plan.md`.
 - Kept worker skills: submit-pr, merge-pr (skill), create-commit, analyze-changes,
   resolve-issues, manage-issue — reused by the new plays.
 
+## Harness-led scripting sweep (post-Phase-D audit)
+
+Audited the five plays for "mechanical work → called script." Result, layer-correct:
+- **Durable home:** play-creator step 3 now mandates the discipline with two hard rules —
+  (1) a script computes/asserts over already-captured state, NEVER shells out to git/gh
+  (live VCS/host work stays in skills via agents); (2) deterministic logic (thresholds,
+  precedence, table classification, counts) is a script, never an LLM agent. So rebuilds
+  reproduce it and Phase E inherits it.
+- **New pure scripts:** `propose-change/scripts/resolve_standard.py` (standards-file
+  precedence) and `review-change/scripts/compute_verdict.py` (verdict over the
+  already-classified findings). Both smoke-tested. `start-change/scripts/init_stm.py`
+  already covered its mechanical bit.
+- **Reuse found:** `quality-check-scoped` already resolves standards and classifies by the
+  no-LLM `pr.md` taxonomy — so review-change's redundant re-classify step and its
+  `tech-designer` agent were dropped (domain agents 2 → 1; verdict now a script).
+- **Left in the worker layer (correct, not a gap):** checks needing live git/gh state
+  (HEAD==remote, open-PR count, worktree presence, branch base) stay with the skill/agent
+  that captures the state — not bolted into a script.
+- Fingerprints unchanged (no `ice.md` edits); all five still lint PASS. Direct-edit
+  deviation notes added to propose-change and review-change.
+
 ## Config
 - `start-change.worktree: false` (default) added to `.garura/core/config.yaml`.
 - New standards: `self-review.md` (base, overrideable).

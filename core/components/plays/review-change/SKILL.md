@@ -40,11 +40,12 @@ judgment instead of the severity taxonomy.
 
 | Agent | Domain | Skill it invokes | Phases | Role type |
 |-------|--------|------------------|--------|-----------|
-| `repo-orchestrator` | Fetch PR diff/changed-paths/body; post the verdict comment | `platform-adapter` | Pre-flight, Execution | Utility (exempt) |
-| `tech-designer` | Resolve the standards set via `standards_order`; classify findings by taxonomy; compute the verdict | — | Execution | Domain |
-| `quality-auditor` | Run `quality-check-scoped` against the diff; emit findings | `quality-check-scoped` | Execution | Domain |
+| `repo-orchestrator` | Fetch PR diff/changed-paths/body + read `standards_order` from config; post the verdict comment | `platform-adapter` | Pre-flight, Execution | Utility (exempt) |
+| `quality-auditor` | Run `quality-check-scoped` against the diff; emit classified findings | `quality-check-scoped` | Execution | Domain |
 
-Domain agents: 2 (`tech-designer`, `quality-auditor`) — within the ≤5 budget.
+Domain agents: 1 (`quality-auditor`). Severity classification and standards resolution are
+owned by `quality-check-scoped` (no-LLM taxonomy); the verdict is a deterministic script —
+so no separate `tech-designer` step is needed.
 
 ## Pre-flight
 
@@ -67,7 +68,7 @@ The play owns this DAG; agents must not edit its top-level tasks.
 ```
 [T1] Resolve Standards + PR Context   blockedBy: []
 [T2] Scoped Quality Eval              blockedBy: [T1]
-[T3] Classify + Compute Verdict       blockedBy: [T2]
+[T3] Compute Verdict (script)         blockedBy: [T2]
 [T4] Post Verdict to PR               blockedBy: [T3]
 [T5] Scenario Validation              blockedBy: [T4]
 [T6] Close                            blockedBy: [T5]
@@ -80,19 +81,21 @@ runtime reordering. On resume, skip completed and reset in-progress to pending.
 
 ### Phase: Execution
 
-**Step 1 — Resolve Standards + PR Context** · Owner: `tech-designer` (+ `repo-orchestrator` fetch) · Depends on: pre-flight
-`repo-orchestrator` fetches the PR diff/changed-paths; `tech-designer` resolves the
-standards set via `standards_order` and writes it to disk. Contract moves only paths:
+**Step 1 — Bind PR Context** · Owner: `repo-orchestrator` · Depends on: pre-flight
+`repo-orchestrator` fetches the PR diff/changed-paths and reads the `standards_order`
+config into `context.yaml`. Standards *resolution per finding* is owned downstream by
+`quality-check-scoped` (it walks `standards_order` itself); this step only binds the
+diff, the changed paths, and the standards_order config. Contract moves only paths:
 
     {
-      "task":    "resolve standards via standards_order; bind PR diff + changed_paths",
+      "task":    "fetch PR diff + changed_paths; bind standards_order from config",
       "inputs":  { "pr": "<working>/pr.json" },
       "outputs": { "context": "<working>/context.yaml" }
     }
 
-`context.yaml` records the resolved standards set and `changed_paths`.
-**SE-3 (F6/C3):** `context.yaml`'s resolved standards set matches the `standards_order`
-resolution (project → KB → LTM), not a hardcoded list.
+`context.yaml` records `standards_order`, the standards set, and `changed_paths`.
+**SE-3 (F6/C3):** `context.yaml`'s standards set comes from the config `standards_order`
+(project → KB → LTM), not a hardcoded list.
 
 **Step 2 — Scoped Quality Eval** · Owner: `quality-auditor` · Depends on: Step 1
 The agent invokes `quality-check-scoped` against the diff, bounded to `changed_paths`,
@@ -107,16 +110,23 @@ and emits findings:
 **SE-1 (F1/C1):** every path the eval touched is within the PR's `changed_paths` — no
 file outside the diff was read (diff-scope invariant).
 
-**Step 3 — Classify + Compute Verdict** · Owner: `tech-designer` · Depends on: Step 2
-Classify every finding by the PR severity taxonomy (`standards/rules/pr.md`) into P1–P4,
-then compute the verdict: **reject** if any P1 finding or sub-threshold confidence,
-otherwise **approve**. Write `verdict.yaml` (verdict + cited blocking findings).
-**SE-2 (F2/C2):** every finding in `findings.yaml` carries a P1–P4 class assigned by the
-taxonomy match rules, not ad-hoc.
+**Step 3 — Compute Verdict** · Owner: play (script) · Depends on: Step 2
+The findings are already classified by `quality-check-scoped` (the no-LLM `pr.md`
+taxonomy). The verdict is a fixed rule, so the play runs the script — no agent, no
+re-classification:
+
+```
+python3 scripts/compute_verdict.py --findings <working>/findings.yaml --threshold <conf>
+```
+
+It writes `verdict.yaml` (verdict + reason + cited blocking findings + counts): **reject**
+if any P1 finding or sub-threshold confidence, otherwise **approve**.
+**SE-2 (F2/C2):** every finding in `findings.yaml` carries a P1–P4 class — assigned
+upstream by the taxonomy match rules in `quality-check-scoped` (Step 2), not ad-hoc here.
 **SE-4 (F3/C4):** `verdict.yaml` contains exactly one verdict value — `approve` or
-`reject`.
+`reject` (the script emits exactly one).
 **SE-5 (F4/C5):** if the verdict is `reject`, the cited blocking findings are non-empty
-and each is P1/sub-threshold; if `approve`, no P1 finding remains in `findings.yaml`.
+(every P1) or the reason is sub-threshold confidence; if `approve`, no P1 remains.
 
 **Step 4 — Post Verdict to PR** · Owner: `repo-orchestrator` · Depends on: Step 3
 The agent posts the verdict comment (verdict + cited findings + routing) to the PR via
@@ -208,11 +218,22 @@ re-run re-posts the current verdict rather than adding a conflicting second one.
 | compiled_by | play-creator |
 | pipeline_position | end |
 | workflow_structure | A (multi-agent; computed verdict gate) |
-| domain_agents | 2 (tech-designer, quality-auditor) |
+| domain_agents | 1 (quality-auditor) |
 | utility_agents | 1 (repo-orchestrator) |
 | skills_reused | quality-check-scoped, platform-adapter |
 | standards_consumed | standards/rules/pr.md (severity taxonomy); standards_order set |
-| scripts | 0 |
+| scripts | 1 (compute_verdict.py — verdict over classified findings; pure, no git/gh) |
 | step_evals | 6 (SE-1…SE-6) |
 | scenario_evals | 4 (SCE-1…SCE-4) |
 | recovery_entries | 6 (one per failure condition; all autonomous) |
+
+## Direct-edit deviation note (#434, harness-led sweep)
+
+Non-intent edit: the verdict moved from an LLM agent (`tech-designer`) into a called script
+(`scripts/compute_verdict.py`, pure threshold over the already-classified `findings.yaml` —
+no git/gh, no re-classification). Severity classification and standards resolution were
+already owned by `quality-check-scoped`, so the redundant re-classify step and the
+`tech-designer` agent were dropped (domain agents 2 → 1). No constraint/failure/scenario/
+eval text changed; `reference/ice.md` and the fingerprint are unchanged. play-creator
+step 3 is taught the layer boundary + no-LLM-for-deterministic-logic so a rebuild
+reproduces this shape.

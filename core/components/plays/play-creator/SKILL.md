@@ -145,8 +145,21 @@ expectation for a quick approve/revise.
 From the intent, work out what the play actually has to *do*, and split each piece of work
 by its nature — this split is where the token savings live:
 - **Scripts** — bundled programs for the **mechanical, deterministic** actions (parse,
-  count, validate, transform, hash, format). The step calls the script; the script does
-  the work. Prefer a script for anything a script can do reliably.
+  count, validate, transform, hash, format, threshold/precedence logic). The step calls
+  the script; the script does the work. Prefer a script for anything a script can do
+  reliably. **Two hard rules for scripts:**
+  - **Layer boundary — a script computes/asserts over state already captured to disk; it
+    NEVER shells out to git/gh/network or any external system.** Live VCS/host/issue/PR
+    work belongs to a skill invoked through an agent (the worker layer). The pattern is:
+    the skill/agent step captures the live state to a file, then a later script asserts
+    over that file. If an assertion needs state no prior step captured, either have the
+    capturing step record it, or leave that check as prose — do not bolt git/gh into a
+    script.
+  - **Don't put deterministic logic on an LLM.** If a step's work is a fixed rule — a
+    threshold verdict, a precedence/most-specific-wins resolution, a table-driven
+    classification, a count or a diff-scope check — it is a script, not an agent or
+    re-reasoned prose. Assigning such work to a subagent is a harness-led failure; flag
+    and convert it.
 - **Skills** — where the actual work happens: build, generate, transform, produce the
   artifact.
 - **Subagents** — gather the context a skill needs and verify that what the skill produced
