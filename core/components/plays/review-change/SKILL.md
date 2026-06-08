@@ -57,8 +57,18 @@ so no separate `tech-designer` step is needed.
 | Resolve standards set via `standards_order` (project, KB, LTM) | C3 | Hard halt |
 | Fetch PR diff + `changed_paths` (the only files in scope) | C1 | Hard halt |
 
-Resolve the working base once. Record the resolved standards set and the PR's
-`changed_paths`; everything downstream is bounded to those paths.
+Resolve the deterministic pre-flight facts with the bundled resolver — config tokens,
+`branch`, `issue`, `evidence_record`:
+
+```
+python3 scripts/preflight.py --play review-change \
+    --config .garura/core/config.yaml --branch "$(git branch --show-current)"
+```
+
+The open-PR check, `gh` availability, the standards set, and the PR diff/`changed_paths` are
+live host state resolved through repo-orchestrator (kept in the table), not the resolver.
+Record the resolved standards set and the PR's `changed_paths`; everything downstream is
+bounded to those paths.
 
 ## Task DAG
 
@@ -222,7 +232,7 @@ re-run re-posts the current verdict rather than adding a conflicting second one.
 | utility_agents | 1 (repo-orchestrator) |
 | skills_reused | quality-check-scoped, platform-adapter |
 | standards_consumed | standards/rules/pr.md (severity taxonomy); standards_order set |
-| scripts | 1 (compute_verdict.py — verdict over classified findings; pure, no git/gh) |
+| scripts | 2 (compute_verdict.py — verdict over classified findings; preflight.py — pre-flight facts; both pure, no git/gh) |
 | step_evals | 6 (SE-1…SE-6) |
 | scenario_evals | 4 (SCE-1…SCE-4) |
 | recovery_entries | 6 (one per failure condition; all autonomous) |
@@ -237,3 +247,13 @@ already owned by `quality-check-scoped`, so the redundant re-classify step and t
 eval text changed; `reference/ice.md` and the fingerprint are unchanged. play-creator
 step 3 is taught the layer boundary + no-LLM-for-deterministic-logic so a rebuild
 reproduces this shape.
+
+## Direct-edit deviation note (#434, pre-flight resolver)
+
+Also non-intent: pre-flight resolution moved from orchestrator inference to the bundled
+`scripts/preflight.py` (config/branch/issue facts as JSON; the play keeps the halt policy).
+The open-PR/`gh`/standards-set/PR-diff checks stay live (repo-orchestrator), not the
+resolver. The script is the canonical resolver stamped from
+`play-creator/references/preflight.py`; a rebuild reproduces it (play-creator step 4).
+`reference/ice.md` and the fingerprint are unchanged. Direct edit — recompiling would clobber
+this play's hand-added scripts, so the wiring is hand-added here.

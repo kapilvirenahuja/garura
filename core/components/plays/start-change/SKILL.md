@@ -54,8 +54,19 @@ This play uses **zero domain agents** — its work is deterministic issue/git se
 | Read `start-change.worktree` flag (default `false`) | C3 | — |
 | Resume marker check for this issue's start-change | C6 | Resume |
 
-Resolve the working base once and hold it for every later path. Resolve `stm.base-path`
-and the `start-change.worktree` flag (absent ⇒ `false`) from config here.
+Resolve the deterministic pre-flight facts with the bundled resolver — not by inference. The
+orchestrator captures the current branch and passes it in:
+
+```
+python3 scripts/preflight.py --play start-change \
+    --config .garura/core/config.yaml --branch "$(git branch --show-current)"
+```
+
+It returns the facts as JSON — `stm_base`, `worktree` (the `start-change.worktree` flag,
+absent ⇒ false), `branch`, `issue` (null when starting fresh), `on_default_branch`,
+`evidence_record`, `ltm_project_target`. The orchestrator holds these for every later path;
+the table keeps the policy. The live checks (git repo present, `gh` available) stay as the
+orchestrator's environment reads, not the resolver.
 
 **Resume check (C6, F5):** if an issue is already known (passed in, or a status marker /
 existing `feature/<issue>-*` branch is found), resume — switch to the existing branch,
@@ -235,7 +246,17 @@ branch (C6, F5).
 | domain_agents | 0 |
 | utility_agents | 2 (project-orchestrator, repo-orchestrator) |
 | skills_reused | manage-issue, setup-branch |
-| scripts | 1 (init_stm.py) |
+| scripts | 2 (init_stm.py, preflight.py) |
 | step_evals | 6 (SE-1…SE-6) |
 | scenario_evals | 4 (SCE-1…SCE-4) |
 | recovery_entries | 5 (one per failure condition; all autonomous) |
+
+## Direct-edit deviation note (#434, pre-flight resolver)
+
+Pre-flight resolution moved from orchestrator inference to the bundled `scripts/preflight.py`
+(harness-led: config/branch/issue/worktree/changeset resolution is a script returning JSON
+facts; the play keeps only the halt policy; the live git-repo and `gh` checks stay in the
+table). The script is the canonical resolver stamped from
+`play-creator/references/preflight.py`; a rebuild reproduces it (play-creator step 4).
+Non-intent change — no constraint, failure, scenario, eval, or `reference/ice.md` touched, so
+the fingerprint stands and no recompile is required. Direct edit; no recompile needed.

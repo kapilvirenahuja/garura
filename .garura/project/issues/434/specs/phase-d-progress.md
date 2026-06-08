@@ -105,6 +105,29 @@ Audited the five plays for "mechanical work → called script." Result, layer-co
   dir; real `~/.garura/core/memory` untouched).
 - This confirms the #434 direction: build/meta plays are garura-NATIVE, not `/sud:`-owned.
 
+## Pre-flight resolver — harness-led (2026-06-09)
+
+Closed a harness-led gap: the member plays resolved pre-flight (config tokens, branch, issue,
+evidence flag, changeset, on-default-branch) by orchestrator inference instead of a script.
+
+- **Canonical resolver** `play-creator/references/preflight.py` — dependency-free
+  (indent-aware config parse, no PyYAML), pure: the orchestrator passes the two live reads
+  (`git branch --show-current`, `git status --porcelain`) in; the script never shells to
+  git/gh (layer rule). Emits one JSON of facts. Fixture-tested (nested `evidence.plays.<name>`
+  override, `<play>.worktree`, issue regex, default-branch/changes flags).
+- **Facts vs policy split:** the script returns facts; each play's Pre-flight **table keeps
+  the halt policy** (same fact, opposite action across plays — e.g. `changes_present==false`
+  is a graceful exit for commit-change but a clean-tree precondition for propose-change).
+- **play-creator taught it:** step 4 + a hard rule + the step-6 output note now require
+  stamping `scripts/preflight.py` (copied from `references/preflight.py`) and wiring
+  Pre-flight to call it. `lint_play.py` gained a non-breaking check (if a SKILL references
+  `scripts/preflight.py`, the file must exist); synced to play-editor's copy.
+- **Back-filled all 5 member plays** by direct edit (recompile would clobber propose/review's
+  sweep scripts): preflight.py bundled in each `scripts/`, Pre-flight wired, deviation notes
+  added, metadata script-counts bumped. All 5 lint PASS; each bundled resolver runs.
+- Redeployed the changed plays (play-creator, play-editor, and the 5 member plays) into
+  local `.claude/` with frontmatter normalized.
+
 ## Open / follow-ups
 - **Local deployable surface (`.claude/`) trimmed 2026-06-09.** `.claude/skills/` now holds
   exactly the build/meta plays (play-creator, play-editor, install-garura, uninstall-garura)

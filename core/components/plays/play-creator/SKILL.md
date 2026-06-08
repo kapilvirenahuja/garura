@@ -184,6 +184,23 @@ play's **pre-flight checks** here too: every constraint that is really an enviro
 precondition ("must be on a feature branch", "config must exist") becomes a pre-flight
 check with an action-on-failure (hard halt, graceful exit, or hard block).
 
+**Pre-flight resolver (harness-led — emit it).** The deterministic part of pre-flight is
+not orchestrator inference. Stamp the canonical resolver into the compiled play at
+`scripts/preflight.py`, copied verbatim from
+[`references/preflight.py`](references/preflight.py), and have the Pre-flight phase **call
+it** instead of resolving facts in prose. It parses config for the path tokens + the
+resolved `evidence_record` (per-play override → global → true), extracts the issue from the
+branch, and reports `on_default_branch` and `changes_present` — returning one JSON object.
+The orchestrator captures the only two live reads (`git branch --show-current` and `git
+status --porcelain`) and passes them in (`--branch`, `--porcelain-file`); the script never
+shells out to git/gh (layer rule). The Pre-flight **table keeps only the policy** — which
+fact maps to a hard halt / graceful exit / hard block, which differs per play (e.g.
+`changes_present == false` is a graceful exit for `commit-change` but a *clean-tree*
+precondition for `propose-change`). Live host checks that need git/gh state (open-PR,
+mergeability, worktree presence) stay in the skill/agent layer, never the resolver. A
+purely interactive play with no environmental pre-flight may omit it; anything that resolves
+config/branch/issue/changeset must use it.
+
 ### 4b — Pipeline position (D2)
 Read the play's declared `position` (frontmatter: `start | end | both | none`, default
 `none`) and fold in the standard delivery machinery per
@@ -229,7 +246,9 @@ Emit the play. If it has mechanical steps, emit a **folder** — `<play-name>/SK
 `<play-name>/scripts/` for the scripts those steps call (and `references/` for anything it
 reads); a pure-judgment play can be a single `SKILL.md`. Write each mechanical step's
 script into `scripts/` and have that step invoke it by relative path — don't also inline
-the logic the script now owns. Wire every step that dispatches to a subagent or skill as a
+the logic the script now owns. **Unless the play has no environmental pre-flight, stamp the
+canonical `scripts/preflight.py` (copy `references/preflight.py` verbatim) per step 4 and
+wire the Pre-flight phase to call it.** Wire every step that dispatches to a subagent or skill as a
 **JSON contract**: it names the input file paths and the output file path, the piece writes
 to disk and returns the path, never inline data (see the worked example). The `SKILL.md` is
 a **full compiled play** and must carry every required section — match the worked example in
@@ -305,6 +324,10 @@ the user wants the gaps fixed, they correct the intent and re-run the skill (or 
   whole point.
 - Build plays the harness-led way — a step's mechanical work goes into a bundled script
   the step calls, not into prose the play re-reasons each run; judgment stays in prose.
+- Always emit the pre-flight resolver (unless the play has no environmental pre-flight) —
+  stamp `scripts/preflight.py` from `references/preflight.py` and have the Pre-flight phase
+  call it; never leave deterministic config/branch/issue/changeset resolution as
+  orchestrator prose or inference. The Pre-flight table keeps only the halt policy.
 - Wire every play you build as JSON-contract handoffs over files on disk — play
   orchestrates, subagents gather context and verify, skills do the work. No piece does
   another's job, and no piece passes inline data where a file path belongs.
@@ -327,3 +350,13 @@ rule: step **4b** and a hard rule inject `start-change` (position `start`) and t
 per `standards/rules/pipeline-position.md`. D1 (evidence) needs no compiler change — plays
 emit it via the referenced Standard Play Close. `scripts/lint_play.py` gained the D1 (close
 anchors) and D2 (valid `position` frontmatter) checks. Non-intent change.
+
+**Pre-flight resolver (#434).** Added the harness-led pre-flight rule: step **4**, a hard
+rule, and the step-6 output note now require stamping the canonical
+[`references/preflight.py`](references/preflight.py) into each compiled play at
+`scripts/preflight.py` and wiring the Pre-flight phase to call it (config/branch/issue/
+changeset resolution is a script returning JSON facts; the play keeps only the halt policy;
+the script never shells to git/gh — the orchestrator passes the two live reads in).
+`scripts/lint_play.py` gained a non-breaking check: if a SKILL's pre-flight references
+`scripts/preflight.py`, the file must exist. The five member plays were back-filled by
+direct edit (each carries its own deviation note). Non-intent change.

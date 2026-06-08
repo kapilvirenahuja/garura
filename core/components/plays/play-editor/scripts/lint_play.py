@@ -30,6 +30,7 @@ The "declared set" comes from the "Compiled From" section, which states the rang
 That is the source of truth for what must exist; references outside it are orphans.
 """
 
+import os
 import re
 import sys
 
@@ -183,6 +184,16 @@ def main(argv):
     results.append((close_ok, "standard play close (D1)",
                     "evidence close block present"
                     if close_ok else "missing or misordered Standard Play Close anchors"))
+
+    # --- pre-flight resolver (non-breaking: only if the SKILL references it) -
+    if "scripts/preflight.py" in text:
+        pf_path = os.path.join(os.path.dirname(os.path.abspath(argv[1])),
+                               "scripts", "preflight.py")
+        pf_ok = os.path.isfile(pf_path)
+        results.append((pf_ok, "pre-flight resolver",
+                        "scripts/preflight.py present"
+                        if pf_ok else "Pre-flight references scripts/preflight.py but the "
+                                      "file is missing — stamp it from references/preflight.py"))
 
     # --- fingerprint --------------------------------------------------------
     meta = section_body(text, "Compilation Metadata") or ""

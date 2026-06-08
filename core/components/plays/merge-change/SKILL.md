@@ -54,8 +54,17 @@ budget. This play uses **zero domain agents**.
 | PR is mergeable (no conflicts, required checks not failing) | C4 | Hard halt |
 | Already-merged check | C5 | Graceful no-op |
 
-Resolve the working base once. If the PR is already merged, exit cleanly as a no-op (C5).
-Extract the issue number from the branch name.
+Resolve the deterministic pre-flight facts with the bundled resolver — config tokens,
+`branch`, `issue` (from the branch name), `evidence_record`:
+
+```
+python3 scripts/preflight.py --play merge-change \
+    --config .garura/core/config.yaml --branch "$(git branch --show-current)"
+```
+
+The open-PR check, `gh` availability, the approval verdict, mergeability, and the
+already-merged check are live host state resolved through repo-orchestrator (kept in the
+table), not the resolver. If the PR is already merged, exit cleanly as a no-op (C5).
 
 ## Task DAG
 
@@ -192,7 +201,18 @@ pending, and continue. A re-run on an already-merged PR is a clean no-op (C5, F5
 | domain_agents | 0 |
 | utility_agents | 1 (repo-orchestrator) |
 | skills_reused | merge-pr, platform-adapter |
-| scripts | 0 |
+| scripts | 1 (preflight.py) |
 | step_evals | 5 (SE-1…SE-5) |
 | scenario_evals | 4 (SCE-1…SCE-4) |
 | recovery_entries | 5 (one per failure condition; 3 autonomous / 2 human) |
+
+## Direct-edit deviation note (#434, pre-flight resolver)
+
+Pre-flight resolution moved from orchestrator inference to the bundled `scripts/preflight.py`
+(harness-led: config/branch/issue/changeset resolution is a script returning JSON facts; the
+play keeps only the halt policy; the live open-PR/`gh`/approval/mergeability/already-merged
+checks stay in the table, resolved through repo-orchestrator). The script is the canonical
+resolver stamped from `play-creator/references/preflight.py`; a rebuild reproduces it
+(play-creator step 4). Non-intent change — no constraint, failure, scenario, eval, or
+`reference/ice.md` touched, so the fingerprint stands and no recompile is required. Direct
+edit; no recompile needed.

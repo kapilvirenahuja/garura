@@ -55,9 +55,25 @@ domain agents**.
 | Sensitive-file scan (against `analyze-changes` risk patterns) | C6 | Hard block |
 | Issue resolvable (from the `feature/<issue>-*` branch, else open issues) | C3 | Hard halt |
 
-Resolve the working base once. Extract the issue number from the branch name; when present,
-issue resolution short-circuits (`auto_issue_resolved = true`) and the checkpoint is
-skipped.
+Resolve the pre-flight facts mechanically with the bundled resolver — do not derive them by
+inference. The orchestrator captures the two live reads and hands them to the script:
+
+```
+git branch --show-current                          # current branch
+git status --porcelain > <working>/porcelain.txt    # changeset
+python3 scripts/preflight.py --play commit-change \
+    --config .garura/core/config.yaml \
+    --branch "<current branch>" \
+    --porcelain-file <working>/porcelain.txt
+```
+
+It returns one JSON object of facts: `stm_base`, `ltm_project_target`, `evidence_record`,
+`platform`, `branch`, `issue`, `on_default_branch`, `changes_present`. The orchestrator reads
+those and applies the **policy** in the table above (the script resolves facts, the play
+decides halts): `on_default_branch == true` → hard halt (C1); `changes_present == false` →
+graceful exit (C5); a non-null `issue` short-circuits issue resolution
+(`auto_issue_resolved = true`) and skips the checkpoint (C3). The sensitive-file scan stays
+with `analyze-changes` in Step 1 (live risk patterns), not the resolver.
 
 **Resume check:** if `{stm_base}/{issue}/status/commit-change.json` exists, resume — skip
 completed steps, reset any in-progress step to pending, continue from the first incomplete.
@@ -220,7 +236,18 @@ start with no marker runs everything and creates the marker at Step 1.
 | domain_agents | 0 |
 | utility_agents | 2 (repo-orchestrator, project-orchestrator) |
 | skills_reused | analyze-changes, resolve-issues, manage-issue, create-commit |
-| scripts | 0 |
+| scripts | 1 (preflight.py) |
 | step_evals | 6 (SE-1…SE-6) |
 | scenario_evals | 4 (SCE-1…SCE-4) |
 | recovery_entries | 6 (one per failure condition; 4 autonomous / 2 human) |
+
+## Direct-edit deviation note (#434, pre-flight resolver)
+
+Pre-flight resolution moved from orchestrator prose/inference to the bundled
+`scripts/preflight.py` (the harness-led rule: deterministic config/branch/issue/changeset
+resolution is a script, not LLM inference; the play keeps only the halt **policy**). The
+script is the canonical resolver stamped from `play-creator/references/preflight.py`; a
+rebuild reproduces it (play-creator emits `scripts/preflight.py` per its step 4). Non-intent
+change — no constraint, failure, scenario, eval, or `ice.md` touched, so the fingerprint
+stands and no recompile is required. Direct edit (recompile is unnecessary; this play carries
+no other hand-edits to preserve).

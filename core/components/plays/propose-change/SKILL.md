@@ -54,16 +54,25 @@ budget. This play uses **zero domain agents**.
 | Resolve self-review rules file via `standards_order` (project override → base `standards/rules/self-review.md`) | C6 | Hard halt |
 | Existing-PR check for the branch | C5 | Resume / update |
 
-Resolve the working base once. Resolve the self-review rules path mechanically: read the
-`standards_order` base dirs from config (most-specific first) and run
+Resolve the deterministic pre-flight facts with the bundled resolver — config tokens,
+`branch`, `issue` (from the branch name), `on_default_branch`, `evidence_record`:
+
+```
+python3 scripts/preflight.py --play propose-change \
+    --config .garura/core/config.yaml --branch "$(git branch --show-current)"
+```
+
+The resolver does NOT pick the self-review standards file (that stays with
+`resolve_standard.py` below — live precedence) and does NOT run the clean-tree or open-PR
+checks (live git/gh, kept in the table). Resolve the self-review rules path mechanically:
+read the `standards_order` base dirs from config (most-specific first) and run
 
 ```
 python3 scripts/resolve_standard.py --file self-review.md --dir <most-specific> … --dir <base>
 ```
 
 which returns the resolved path and an `is_override` flag — record both for the run (this
-is the C6 resolution; the play does not pick the file in prose). Extract the issue number
-from the branch name (`feature/<issue>-slug` → `<issue>`).
+is the C6 resolution; the play does not pick the file in prose).
 
 **Resume / update (C5, F5):** if an open PR already exists for the branch, this run updates
 it (refreshes the self-review and body) instead of opening a second one.
@@ -219,7 +228,7 @@ it rather than opening a new one (C5, F5).
 | utility_agents | 1 (repo-orchestrator) |
 | skills_reused | analyze-pr, submit-pr |
 | standards_consumed | standards/rules/self-review.md (overrideable per project) |
-| scripts | 1 (resolve_standard.py — standards-file precedence; pure, no git/gh) |
+| scripts | 2 (resolve_standard.py — standards-file precedence; preflight.py — pre-flight facts; both pure, no git/gh) |
 | step_evals | 6 (SE-1…SE-6) |
 | scenario_evals | 4 (SCE-1…SCE-4) |
 | recovery_entries | 6 (one per failure condition; 5 autonomous / 1 human) |
@@ -230,3 +239,13 @@ Non-intent edit: the C6 self-review file resolution was moved from prose into a 
 script (`scripts/resolve_standard.py`, pure filesystem precedence — no git/gh). No
 constraint/failure/scenario/eval text changed; `reference/ice.md` and the fingerprint are
 unchanged. play-creator step 3 is taught the same discipline so a rebuild reproduces it.
+
+## Direct-edit deviation note (#434, pre-flight resolver)
+
+Also non-intent: pre-flight resolution moved from orchestrator inference to the bundled
+`scripts/preflight.py` (config/branch/issue/changeset facts as JSON; the play keeps the halt
+policy). It does NOT resolve the self-review standards file (that stays with
+`resolve_standard.py`) nor the clean-tree/open-PR checks (live git/gh). The script is the
+canonical resolver stamped from `play-creator/references/preflight.py`; a rebuild reproduces
+it (play-creator step 4). `reference/ice.md` and the fingerprint are unchanged. Direct edit —
+recompiling would clobber this play's hand-added scripts, so the wiring is hand-added here.
