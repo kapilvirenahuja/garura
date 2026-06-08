@@ -20,6 +20,23 @@ control. Which pieces you include is driven by the profile dimensions named in
 each rule below — the user base, the surfaces, security, accessibility, and
 compliance.
 
+## Intents this domain captures
+Intent-first (standard shelf section): lead with what the user and the operator are
+trying to do; the capabilities below serve these.
+
+**User intents**
+- **Get in** — "sign in or sign up" → authentication, registration.
+- **Prove it's me** — "verify my identity" → MFA, email/identity verification.
+- **Recover access** — "I'm locked out" → account recovery (reset, unlock).
+- **Manage myself** — "update my profile and preferences" → profile management.
+- **Stay signed in safely** — "keep me in across requests, securely" → session management.
+- **Control my access & data** — "manage consent and what's shared" → preferences, consent.
+
+**Operator intents**
+- **Control who can do what** — "roles and permissions" → authorization & roles (RBAC, fine-grained).
+- **Keep accounts secure** — "MFA, revoke sessions, detect abuse" → security policy, logout-everywhere.
+- **Stay compliant** — "audit and consent records" → auth-event audit logging.
+
 ## Recommendation
 Read each line as "include X when {profile condition}". Start at the floor; add
 only when a profile dimension calls for it.
