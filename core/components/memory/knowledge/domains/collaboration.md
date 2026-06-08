@@ -1,18 +1,17 @@
 ---
 id: domains/collaboration
-title: "Collaboration: people working together on shared things — real-time, presence, co-editing (Claude's cut, pending review)"
+title: "Collaboration: people working together on shared things — real-time, presence, co-editing"
 conditions:
   trigger: "more than one person works on the same content/object — comments, sharing, presence, co-editing"
   selection_keys: [real-time-need, co-edit-depth, sharing-permission-model, presence-need, scale]
-provenance: Claude's cut (#434 — Kapil away) — pending review
+provenance: Claude-drafted while Kapil away, reviewed and accepted (#434)
 ---
 
 # Collaboration: how we build it
 
-> **Claude's cut — pending Kapil's review.** Written while Kapil was away, so the
-> stance and tier calls are my best judgment, not captured POV. I've leaned it
-> toward this practice's known themes (real-time, the experience layer, content,
-> brand-tone) so it's easy to correct. Treat as a draft.
+> **Claude-drafted while Kapil was away; reviewed and accepted by Kapil (#434).**
+> Leaned toward this practice's themes (real-time, the experience layer, content,
+> brand-tone). Accepted as the working shelf.
 
 ## Stance (proposed)
 Collaboration is **more than one person working on the same thing** — content,
@@ -91,7 +90,7 @@ presence-first, real-time-when-needed domain rather than a heavy standalone buil
 - Activity volume rises → add AI activity summaries and smarter mention routing.
 
 ## Provenance
-Claude's cut (#434) — written while Kapil was away; not interviewed. Built on the
-locked shelf template and leaned toward the practice's real-time/experience/content
-themes. Stance, intents, and tier calls are PROPOSED and await correction. Open
-question: is collaboration a core build or a hand-off / productivity-only capability?
+Claude-drafted while Kapil away, reviewed and accepted (#434). Built on the locked
+shelf template, leaned toward the practice's real-time/experience/content themes.
+Treated as a productivity-product capability / likely hand-off unless the product is
+inherently collaborative.

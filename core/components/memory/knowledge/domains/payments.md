@@ -1,20 +1,19 @@
 ---
 id: domains/payments
-title: "Payments: taking money safely — PSP-first, PCI-scope-minimised (Claude's cut, pending review)"
+title: "Payments: taking money safely — PSP-first, PCI-scope-minimised"
 conditions:
   trigger: "the product takes money — card charges, wallets, refunds, fraud control"
   selection_keys: [shape.monetization, nfr.security, compliance, fraud-risk, regions]
-provenance: Claude's cut (#434 — Kapil delegated) + distilled from the wiped payments shelf
+provenance: Claude-drafted on delegation, reviewed and accepted by Kapil (#434) + distilled from the wiped payments shelf
 ---
 
 # Payments: taking money safely
 
-> **Claude's cut — pending Kapil's review.** Kapil asked me to take a first pass at
-> this domain rather than interview him. The stance and tier calls below are my
-> best judgment from the old knowledge plus general practice — treat them as a
-> draft to correct, not as captured POV. Payments is infrastructure, not the
-> content-led strength of this practice, so it may well be a **hand-off / partner
-> domain** like the commerce-heavy quadrants in `ecommerce` — flag if so.
+> **Claude-drafted on delegation; reviewed and accepted by Kapil (#434).** Kapil
+> asked me to take the first pass here rather than be interviewed, and signed off on
+> this version. Payments is infrastructure, not the content-led strength of this
+> practice, so it's treated as a likely **hand-off / partner domain** — same logic
+> as the commerce-heavy quadrants in `ecommerce`.
 
 ## Stance (proposed)
 The one organising rule: **never hold card data you don't have to.** Charge through
@@ -90,7 +89,6 @@ heavy payments work — same logic as commerce-heavy `ecommerce`.
 - Repeat purchase becomes the norm → add saved methods / one-click.
 
 ## Provenance
-Claude's cut (#434) — Kapil delegated this domain instead of interviewing. Distilled
-from the wiped `payments.md` and re-expressed against the v1 product profile and the
-locked shelf template. Stance, intents, and tier calls are PROPOSED and await
-Kapil's correction. Open question flagged: is payments a hand-off/partner domain?
+Claude-drafted on delegation, reviewed and accepted by Kapil (#434). Distilled from
+the wiped `payments.md` and re-expressed against the v1 product profile and the
+locked shelf template. Treated as a likely hand-off / partner domain.
