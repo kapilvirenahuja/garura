@@ -4,7 +4,7 @@ validate_quality.py — assert /quality's draft lens is schema-true, gates-only,
 
 Run over the draft before the checkpoint. Enforces /quality's artifact-side constraints:
 
-  - C9/F9  schema: the lens carries the v1 envelope (id, capability_ref, type=quality,
+  - C9/F9  schema: the lens carries the v1 envelope (id, slice_ref, type=quality,
            content, status) and any decision carries its required v1 fields.
   - C3/F3  gates-only: content has exactly the `gates` key, a non-empty list, each gate
            a non-trivial string — no how-to-test / coverage / environments keys.
@@ -70,7 +70,7 @@ def main(argv=None):
     for lp in lenses:
         counts["lens"] += 1
         doc = (load(lp).get("lens") or {})
-        for f in ("id", "capability_ref", "type", "status"):
+        for f in ("id", "slice_ref", "type", "status"):
             if _empty(doc.get(f)):
                 errors.append(f"{lp}: lens missing '{f}' (F9)")
         if doc.get("type") != "quality":

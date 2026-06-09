@@ -1,34 +1,30 @@
 #!/usr/bin/env python3
 """
 validate_ux.py — assert /ux's draft lens is schema-true, just-enough, grounded, and covers
-the capability's shaped slices.
+the slice's functionalities.
 
-Run over the draft before the checkpoint. The ux lens is three blocks only — screens (with
-a low-fidelity layout), states, and the visual core (palette + typography). Enforces /ux's
-artifact-side constraints:
+Run over the draft before the checkpoint. The ux lens is three blocks only — screens (with a
+low-fidelity layout), states, and the visual core (palette + typography). The lens realizes a
+SLICE; its hub is the slice's functionalities' ICE. Enforces /ux's artifact-side constraints:
 
-  - C10/F10  schema: the lens carries the v1 envelope (id, capability_ref, type=ux, content,
+  - C10/F10  schema: the lens carries the v1 envelope (id, slice_ref, type=ux, content,
              status) and any decision carries its required v1 fields.
   - C3/F3    shape: content has exactly the three keys screens/states/design_system, each
              present and non-empty — no flows, no accessibility, no gates/components/envs.
   - C5/F5    just enough: every screen has a purpose and a layout; every states entry names a
              declared screen and enumerates states; design_system carries palette + typography.
-  - C4/F4    grounded: every screen in the manifest names >=1 real source; the visual core
-             grounds on a decision that resolves.
+  - C4/F4    grounded: every screen in the manifest names >=1 real source (a functionality of
+             the slice, or a persona/journey); design_system grounds on the KB or a decision.
   - C7/F7    hub-only: no screen grounds on another lens (quality/agentic/architecture/run).
-  - C8/F8    decision: the design_system names a `decision` resolving to a drafted record.
-  - C6/F6    coverage: the to-cover set (this capability's functionalities that appear in a
-             slice, recomputed independently from the live slices + capability dirs) equals
-             the manifest's `covers`, and every covered functionality is grounded by a
-             screen — so nothing shaped is left unvisualized. If the live slices name
-             functionalities but none resolve under the capability dir, that is almost
-             certainly a misread tree, not a legitimately-empty set — so it is a LOUD error,
-             not a silent pass. (The human checkpoint is the final coverage authority.)
+  - C8/F8    decisions: a grounding flagged `material: true` names a `decision` that resolves.
+  - C6/F6    coverage: the slice's functionalities (read straight from the slice record) are
+             each visualized by at least one screen — so nothing shaped is left unvisualized.
+             (The human checkpoint is the final coverage authority; this catches gaps.)
 
 Layer rule: reads files on disk only; no git/gh/network.
 
     python3 validate_ux.py --draft <draft_dir> --manifest <ux-manifest.yaml> \
-            --capability-dir <live capability folder> --slices-dir <live domain slices folder>
+            --slice-file <live slice record .yaml>
 
 Prints {ok, errors[], warnings[], counts} JSON. Exit 0 clean, 1 on violation, 2 usage.
 """
@@ -74,7 +70,7 @@ def validate_lens(draft_root, errors):
         return screens
     for lp in lenses:
         doc = (load(lp).get("lens") or {})
-        for f in ("id", "capability_ref", "type", "status"):
+        for f in ("id", "slice_ref", "type", "status"):
             if _blank(doc.get(f)):
                 errors.append(f"{lp}: lens missing '{f}' (F10)")
         if doc.get("type") != "ux":
@@ -88,7 +84,6 @@ def validate_lens(draft_root, errors):
             if _blank(content.get(k)):
                 errors.append(f"{lp}: content.{k} is empty (F3)")
 
-        # screens: name + purpose + low-fidelity layout
         for s in (content.get("screens") or []):
             nm = (s or {}).get("name")
             if _blank(nm):
@@ -100,7 +95,6 @@ def validate_lens(draft_root, errors):
             if _blank((s or {}).get("layout")):
                 errors.append(f"{lp}: screen {nm!r} has no low-fidelity layout (F5)")
 
-        # states: each names a declared screen + enumerates states
         for st in (content.get("states") or []):
             scr = (st or {}).get("screen")
             if _blank(scr):
@@ -110,7 +104,6 @@ def validate_lens(draft_root, errors):
             if _blank((st or {}).get("states")):
                 errors.append(f"{lp}: states for screen {scr!r} are not enumerated (F5)")
 
-        # design_system: palette + typography
         ds = content.get("design_system") or {}
         for f in ("palette", "typography"):
             if _blank(ds.get(f)):
@@ -146,64 +139,49 @@ def check_grounding(man, decision_ids, errors):
                 continue
             if st in OTHER_LENSES:
                 errors.append(f"{label} grounds on another lens '{st}' — "
-                              f"/ux reads the hub + shape, never a lens (C7/F7)")
-            elif st not in ("slice", "ice", "persona", "journey"):
-                errors.append(f"{label} source_type '{st}' is not slice/ice/persona/journey (C4/F4)")
-            if st == "slice":
+                              f"/ux reads the slice's hub, never a lens (C7/F7)")
+            elif st not in ("ice", "persona", "journey"):
+                errors.append(f"{label} source_type '{st}' is not ice/persona/journey (C4/F4)")
+            if st == "ice":
                 fr = e.get("functionality_ref")
-                if _blank(fr):
-                    errors.append(f"{label} grounds on a slice with no functionality_ref (C4/F4)")
-                else:
+                if not _blank(fr):
                     grounded_funcs.add(fr)
+            if e.get("material") is True:
+                dec = e.get("decision")
+                if _blank(dec):
+                    errors.append(f"{label} is a material choice with no decision recorded (C8/F8)")
+                elif dec not in decision_ids:
+                    errors.append(f"{label} names decision '{dec}' with no drafted record (C8/F8)")
 
     for s in (man.get("screens") or []):
         nm = s.get("name", "<screen>")
         scr_names.add(nm.strip() if isinstance(nm, str) else nm)
         walk_grounds(f"screen '{nm}'", s.get("grounds"))
 
-    # visual core grounds on a decision that resolves (C4/C8)
     ds = man.get("design_system") or {}
-    if (ds.get("source_type") or "").strip().lower() != "decision":
-        errors.append("design_system (visual core) must ground on a decision (C4/F4)")
-    dec = ds.get("decision")
-    if _blank(dec):
-        errors.append("the visual core has no decision recorded (C8/F8)")
-    elif dec not in decision_ids:
-        errors.append(f"the visual core names decision '{dec}' with no drafted record (C8/F8)")
+    if (ds.get("source_type") or "").strip().lower() not in ("kb", "decision"):
+        errors.append("design_system must ground on the KB technology learning or a decision (C4/F4)")
+    if (ds.get("source_type") or "").strip().lower() == "decision":
+        dec = ds.get("decision")
+        if _blank(dec):
+            errors.append("design_system visual core has no decision recorded (C8/F8)")
+        elif dec not in decision_ids:
+            errors.append(f"design_system names decision '{dec}' with no drafted record (C8/F8)")
 
     return grounded_funcs, scr_names
 
 
-def capability_functionalities(cap_dir, warnings):
-    """Independently enumerate this capability's functionality node ids from the live tree."""
-    ids = set()
-    if not cap_dir or not os.path.isdir(cap_dir):
-        warnings.append("capability-dir absent — coverage recompute is vacuous")
-        return ids
-    for fp in glob.glob(os.path.join(cap_dir, "**", "*.yaml"), recursive=True):
-        try:
-            node = (load(fp).get("node") or {})
-        except (OSError, yaml.YAMLError):
-            continue
-        if (node.get("type") or "").strip().lower() == "functionality" and node.get("id"):
-            ids.add(node["id"])
-    return ids
-
-
-def slice_bound_functionalities(slices_dir, warnings):
-    """Functionality refs that appear in any slice of the domain (live tree)."""
+def slice_functionalities(slice_file, errors):
+    """The slice's own functionalities (read straight from the slice record) — the to-cover set."""
+    if not slice_file or not os.path.isfile(slice_file):
+        errors.append(f"slice record not found at {slice_file} — cannot verify coverage (C6/F6)")
+        return set()
+    sl = (load(slice_file).get("slice") or {})
     refs = set()
-    if not slices_dir or not os.path.isdir(slices_dir):
-        warnings.append("slices-dir absent — coverage recompute is vacuous")
-        return refs
-    for fp in glob.glob(os.path.join(slices_dir, "*.yaml")):
-        if os.path.basename(fp).startswith("_"):     # skip _deferred.yaml
-            continue
-        sl = (load(fp).get("slice") or {})
-        for f in (sl.get("functionalities") or []):
-            fr = (f or {}).get("functionality_ref")
-            if fr:
-                refs.add(fr)
+    for f in (sl.get("functionalities") or []):
+        fr = (f or {}).get("functionality_ref")
+        if fr:
+            refs.add(fr)
     return refs
 
 
@@ -211,8 +189,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="Validate /ux's draft lens.")
     ap.add_argument("--draft", required=True)
     ap.add_argument("--manifest", required=True)
-    ap.add_argument("--capability-dir", required=True)
-    ap.add_argument("--slices-dir", required=True)
+    ap.add_argument("--slice-file", required=True)
     args = ap.parse_args(argv)
 
     draft_root = os.path.join(args.draft, "product-os")
@@ -233,29 +210,16 @@ def main(argv=None):
 
     grounded_funcs, man_screens = check_grounding(man, decision_ids, errors)
 
-    # reconcile lens <-> manifest screens (every lens screen must be grounded)
     for s in sorted(lens_screens - man_screens):
         errors.append(f"lens screen {s!r} has no grounding entry in the manifest (C4/F4)")
     for s in sorted(man_screens - lens_screens):
         errors.append(f"manifest grounds screen {s!r} that is not in the lens (C4/F4)")
 
-    # coverage (C6/F6): recompute to-cover independently, compare to manifest covers
-    cap_funcs = capability_functionalities(args.capability_dir, warnings)
-    slice_funcs = slice_bound_functionalities(args.slices_dir, warnings)
-    # Loud guard: live slices name functionalities but none resolve under the capability —
-    # almost certainly a misread tree, not a legitimately empty set.
-    if slice_funcs and not cap_funcs:
-        errors.append("slices name functionalities but none resolve under the capability dir "
-                      "— coverage cannot be verified (likely a misread model tree) (C6/F6)")
-    to_cover = cap_funcs & slice_funcs
-    covers = set(man.get("covers") or [])
-    for missing in sorted(to_cover - covers):
-        errors.append(f"slice-bound functionality {missing!r} missing from manifest covers (C6/F6)")
-    for extra in sorted(covers - to_cover):
-        warnings.append(f"manifest covers {extra!r} which is not a slice-bound capability functionality")
+    # coverage (C6/F6): the slice's own functionalities must each be visualized
+    to_cover = slice_functionalities(args.slice_file, errors)
     for fid in sorted(to_cover):
         if fid not in grounded_funcs:
-            errors.append(f"slice-bound functionality {fid!r} is visualized by no screen (C6/F6)")
+            errors.append(f"slice functionality {fid!r} is visualized by no screen (C6/F6)")
 
     counts = {
         "lens_screens": len(lens_screens), "manifest_screens": len(man_screens),
