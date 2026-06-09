@@ -62,9 +62,16 @@ deferred:
 
 # ---- Storage ----------------------------------------------------------------
 # Per domain:
-#   product-os/{domain}/slices/{slice-id}.yaml   # one file per slice
+#   product-os/{domain}/slices/{slice-id}.yaml   # one file per slice (shape/roadmap own it)
 #   product-os/{domain}/slices/_deferred.yaml    # the deferred bucket (if any)
 # A functionality may appear in MORE THAN ONE slice (deepened over time).
+#
+# The slice is the UNIT OF REALIZATION (#434). The realize lenses hang OFF the
+# slice, in a per-slice folder beside the record:
+#   product-os/{domain}/slices/{slice-id}/lens/{type}.yaml   # the five realize lenses
+#   product-os/{domain}/slices/{slice-id}/decisions/*.yaml   # decisions a lens records
+# You pick a slice and run quality -> ux -> agentic -> arch -> run on it, then ship
+# it — the slice (not the capability) is what you deliver. See lens/_index.md.
 
 # ---- Fill rules -------------------------------------------------------------
 fill_rules:
