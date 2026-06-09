@@ -1,0 +1,174 @@
+---
+name: author-run-lens
+description: Draft /run's run lens for one SLICE — how it is deployed and runs. Reads the slice's hub (its functionalities' ICE + the profile box) AND its architecture lens (the parts to deploy), then grounds every operational choice in the KB's architecture/technology shelves via kb-search — rollout strategy, migration stance, environment topology, CI/CD shape, and a run target for every architecture component — basing each on what has worked for us, never on the model's taste. Anything the KB does not cover is raised as a KB-learning-gap proposal (a candidate architecture/technology learning for review), never invented. Writes a draft only (the run lens + a grounding manifest in STM), never the live model. The generative work for the /run play; it reads the architecture lens (run deploys arch's parts) but never the quality/ux/agentic lens.
+version: 0.1.0
+user-invocable: false
+model: opus
+allowed-tools: Read, Write, Bash, Glob
+---
+
+# author-run-lens
+
+Turns one shaped, **architected** slice into its **run lens** — how the slice is deployed and
+runs. A slice is a vertical product increment; its **hub** is the union of its functionalities'
+ICE (which may span several capabilities) plus the product profile. /run is the fifth and last
+realize lens, and the run lens is six things and only six:
+
+- **environments** — the path the slice moves through (dev → staging → prod).
+- **rollout** — the feature `flags` it gates behind and the `strategy` (blue/green | canary |
+  rolling).
+- **migrations** — the data-change strategy (gated, reversible) — or an explicit "none,
+  additive only".
+- **config_secrets** — per-environment config; secrets via a secrets manager, never in the
+  repo.
+- **cicd** — the pipeline: build → quality gates → deploy on green.
+- **targets** — for **every** architecture component, where (which environment) and how
+  (container | service | function | static | managed) it runs. Each target binds to a real
+  component in the slice's **architecture lens** — no dangling target.
+
+/run **deploys what /arch designed**, so it reads the architecture lens (the components to run)
+— it is the one realize lens that reads another. It never reads the quality, ux, or agentic
+lens.
+
+**Every operational choice is grounded in the KB, never invented.** Before drafting, search the
+KB's `architecture/` and `technology/` shelves for the learnings whose conditions match this
+product's situation, and base the rollout strategy, the migration stance, the environment
+topology, and the CI/CD shape on what has worked for us. Anything the shelves do not cover is a
+recorded KB-learning-gap proposal — never a silent guess.
+
+It writes a draft only — /run's checkpoint and apply step persist it; /run alone stamps the
+slice done.
+
+## Inputs
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `slice_ref` | yes | The slice, `{domain}/{slice-id}`. |
+| `slice_file` | yes | The slice record path (read-only) — its `functionalities` (the hub set). |
+| `functionality_ices` | yes | The resolved ICE file paths for the slice's functionalities (the hub), from the readiness gate. Their `context.scope`/`context.systems` shape the operational picture. |
+| `arch_lens` | yes | The slice's **architecture lens** path (read-only) — its `content.components` are the parts to give run targets. |
+| `profile_path` | yes | The product profile (read-only) — its condition facets (stage, scale, persistence, monetization) feed the KB query, and the `nfr` box sizes the rollout/migration risk. |
+| `kb_search` | yes | Path to the `kb-search` skill's `scripts/kb_search.py` (the condition-search engine over the architecture/technology shelves). |
+| `kb_root` | yes | The `knowledge/` dir, so the manifest can name resolvable learning ids. |
+| `product_base` | yes | The product model root — read-only, to reuse an existing run decision if one exists. |
+| `lens_rel` | yes | The slice's lens path to mirror in the draft, e.g. `product-os/{domain}/slices/{slice-id}/lens/run.yaml`. |
+| `draft_dir` | yes | Output folder under STM for the draft lens + manifest + any proposals. |
+| `stm_base` | yes | From config. |
+
+## Procedure
+
+The environment path, the rollout/migration taste, and the per-component deploy shape are
+**chosen from KB learnings**, not invented; the grounding, the targets-bind-to-arch coverage,
+and the six-block shape are non-negotiable.
+
+1. **Read the hub + the architecture lens.** Load the slice record (its functionalities) and
+   every functionality ICE in `functionality_ices` (their `context.scope`/`context.systems`),
+   the profile (its condition facets + `nfr` box), and the **architecture lens** (its
+   `content.components` — the parts that must run). Do NOT read the quality, ux, or agentic
+   lens — /run reads the hub + the architecture lens + the KB only.
+
+2. **Read the product's conditions + search the KB.** Build the condition profile from the
+   product profile (`stage`, `users`, `persistence`, `monetization`). Then query the KB's
+   architecture/technology shelves through kb-search:
+
+   ```bash
+   python3 {kb_search} index           # all learnings + their conditions facets
+   python3 {kb_search} get <id>        # e.g. architecture/microservices, technology/backend-nodejs
+   ```
+
+   Reason over each candidate's **Conditions** (this is judgment, not keyword match) and pick
+   the architecture/technology learnings that fit this product. Their Recommendation tells you
+   the rollout, migration, and operational shape that has worked for a product in this
+   situation. Base every operational choice on a matched learning.
+
+3. **Raise gaps, never invent.** For any operational aspect the shelves do not cover (e.g. a
+   migration pattern no learning addresses), write a **KB-learning-gap proposal** into
+   `{draft_dir}/proposals/<gap>.yaml` — a *candidate architecture/technology learning* shaped to
+   the KB's `_TEMPLATE.md` (Topic, Conditions, Recommendation, Rationale, Evolve when,
+   Provenance), with the conditions facets that shelf uses (stage/scale/persistence). It is a
+   proposal for review, **never** written to the KB here. (Do NOT use propose-kb-node — that
+   proposes domain/capability/functionality nodes for the domains shelf, the wrong shape for an
+   operational learning.) The manifest references the proposal path; the play surfaces it at the
+   checkpoint. Never ground an operational choice on the model's taste alone.
+
+4. **Draft the run lens.** Write the six blocks: the `environments` path; `rollout` (the
+   `flags` the slice gates behind + the `strategy` from the matched learning); `migrations`
+   (the gated/reversible stance, or an explicit none); `config_secrets`; `cicd` (build → quality
+   gates → deploy on green); and `targets` — one entry per architecture component, with the
+   `environment` it deploys to and how it `deploy`s. Every component in the architecture lens
+   gets a target; every target's `component` is a real architecture-lens component.
+
+5. **Record material decisions.** The rollout strategy, the migration strategy, and the
+   environment topology are material choices — record each as a slice-level decision (ADR). If
+   the product already has a run decision that fits (look under `product_base`), **reuse it** —
+   do not re-invent.
+
+6. **Write the draft + manifest.** Write the run lens (the v1 lens envelope with `type: run`,
+   `slice_ref`, and the six content blocks) under `draft_dir`, mirroring `lens_rel`, plus the
+   decisions, plus a `run-manifest.yaml` that grounds **every** operational choice and **every**
+   target in a KB learning id or a proposal path, so the play's validate + grounding steps are
+   mechanical:
+
+```yaml
+run:
+  slice: <domain>/<slice-id>
+  choices:                              # the material operational choices, each grounded
+    - aspect: rollout                   # rollout | migrations | environments | cicd | runtime
+      value: "canary"
+      grounds:
+        - source_type: kb               # kb | proposal | profile
+          source: "architecture/microservices"   # a learning id under kb_root, or a proposal path
+          material: true
+          decision: "<decision-id>"     # required when material (the slice-level ADR)
+    - aspect: migrations
+      value: "expand-contract, reversible"
+      grounds:
+        - source_type: kb
+          source: "architecture/modular-monolith"
+          material: true
+          decision: "<decision-id>"
+  targets:                              # one per architecture component (binds to arch)
+    - component: "channel-bff"          # MUST be a real architecture-lens component
+      grounds:
+        - source_type: kb
+          source: "technology/frontend-react-nextjs"
+  decisions: ["<decision-id>", ...]
+```
+
+## Output — the draft
+
+```
+{draft_dir}/
+  product-os/<domain>/slices/<slice-id>/
+    lens/run.yaml
+    decisions/<decision-id>.yaml        # the rollout/migration/environment decision(s)
+  proposals/<gap>.yaml                   # any KB-learning-gap proposal (referenced by the manifest)
+  run-manifest.yaml
+```
+
+## Boundaries
+
+### NEVER
+- Read or reference the quality, ux, or agentic lens — /run reads the hub + the architecture
+  lens + the KB only. (Reading the architecture lens is required, not forbidden — run deploys
+  its parts.)
+- Write the slice record, a functionality's ICE, the profile, another lens, or other slices —
+  draft only this slice's run lens (+ the decisions). The slice `status` stamp is /run's job,
+  after lines-up — never the skill's.
+- Invent an operational choice — every rollout/migration/environment/cicd/runtime choice traces
+  to a matched KB learning or a recorded proposal.
+- Leave an architecture component with no run target, or point a target at a component the
+  architecture lens does not declare.
+- Smear architecture, ux, quality, or agentic content into the run lens. Keep `content` to the
+  six keys environments/rollout/migrations/config_secrets/cicd/targets.
+- Over-specify — no literal pipeline YAML, no per-resource sizing, no environment-by-environment
+  secret values. Operational shape only.
+
+### ALWAYS
+- Ground every operational choice (in a KB learning on the architecture/technology shelf or a
+  recorded proposal) and every target in the manifest.
+- Give every architecture component a target; bind every target to a real architecture
+  component.
+- Record material choices (rollout strategy, migration strategy, environment topology) as
+  decisions that resolve.
+- Return the draft paths, not the contents.
