@@ -130,12 +130,14 @@ for approval. Approve → continue; cancel → halt.
 ### Phase: Execution
 
 **Step 4 — Create Commits** · Owner: `repo-orchestrator` · Depends on: Step 3
-The agent invokes `create-commit` once per change group, committing only that group's files
-with a conventional message that references the issue. **No push** — the contract carries no
-push flag and the agent performs no push (C7).
+The agent invokes `create-commit` **once**, handing it the whole commit plan (every change
+group + its message). `create-commit` is a direct-execution tool step: it loops the groups
+and runs `git add` + `git commit` for each in that single invocation — no per-group call, no
+per-commit reasoning, no sub-agent per commit (the grouping was already decided in Step 1).
+**No push** — the contract carries no push flag and the skill performs no push (C7).
 
     {
-      "task":    "create one conventional commit per change group, referencing the issue; do NOT push",
+      "task":    "execute the commit plan: for EACH group, git add its files + git commit with its conventional message referencing the issue, all in one pass; do NOT push",
       "inputs":  { "analysis": "<working>/analysis.yaml",
                    "issue_mappings": "<working>/issue-mappings.yaml" },
       "outputs": { "commit_record": "<working>/commits.yaml" }
@@ -251,3 +253,14 @@ rebuild reproduces it (play-creator emits `scripts/preflight.py` per its step 4)
 change — no constraint, failure, scenario, eval, or `ice.md` touched, so the fingerprint
 stands and no recompile is required. Direct edit (recompile is unnecessary; this play carries
 no other hand-edits to preserve).
+
+## Direct-edit deviation note (#434, one-pass commit execution)
+
+Step 4 changed from "invoke `create-commit` once per change group" to "invoke
+`create-commit` **once** with the whole plan; it loops the groups and runs git directly in
+that single invocation." This applies the tool-first principle — committing is decided work
+(grouping happened in Step 1), so it is a direct git tool call, not a per-commit reasoning
+step or a sub-agent per group. `create-commit` was upgraded to v2.0.0 (batch, direct
+execution). Non-intent change — no constraint, failure (F1–F6 unchanged), scenario, or eval
+touched; SE-1…SE-6 still hold over the same commits, just produced in one pass. `ice.md`
+untouched, so the fingerprint stands and no recompile is required. Direct edit.
