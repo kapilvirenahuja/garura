@@ -1,573 +1,275 @@
 ---
-name: garura:arch
-description: Produce the architecture shape of the product as six artifacts — refined quality profile, systems inventory, layered logical architecture, layered physical architecture, tech stack with industry-documented patterns, and technical risk register. Every decision is grounded in upstream inputs, the user, or KB memory; nothing is invented by the play. Components in logical and physical are SELECTED from the systems inventory (Stage 1), never invented at logical-time or physical-time. Six human review checkpoints in dependency order.
+name: arch
+position: none
+description: 'Write a SLICE''s architecture lens — the shape of the software that delivers it: the horizontal components the slice threads (each in a layer, with the part it occupies), the contracts (seams) crossed between them with the data that flows, and the stack (tech + versions) per component, behind material-choice decisions. Components are SELECTED from the slice''s functionalities'' systems and the profile surfaces, never invented; the build is one vertical end-to-end slice through them. The fourth of the five realize plays in the ProductOS command model (quality → ux → agentic → arch → run), run on a shaped slice. Reads the hub + the profile box, never another lens. Writes only the slice''s architecture lens; opens no delivery issue.'
 user-invocable: true
-deprecated: true
-deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # arch
 
-The architecture play in Garura's SDLC. Reads upstream artifacts from `/specify` and `/design` when present and falls back to interactive questions when they are missing (soft pre-flight per C1). Produces SIX canonical artifacts under `{product_base}architecture/`:
+Take one shaped **slice** — a vertical product increment from /shape, the thing you actually
+deliver — and write its **architecture lens**: the shape of the software that delivers the
+slice. The slice is the unit of realization: you pick a slice and run quality → ux → agentic →
+arch → run on it, then ship it. A slice has no ICE of its own — its **hub** is the union of its
+functionalities' ICE (which may span several capabilities) plus the profile.
 
-1. `quality-profile.yaml` — REFINED quality profile (the /specify draft refined against architectural reality, with a delta_log per adjustment). Describes the NFRs the software must deliver.
-2. `systems-inventory/{system-id}.md` — one file per system the product depends on (ERP, CRM, CMS, DAM, identity, payment gateway, etc.). KB-pulled (origin: kb) or in-product research (origin: stm_research). Supports sub-systems nested in the parent system file.
-3. `logical-architecture.yaml` — components organized into a product-chosen LAYER MODEL, where every component IS a system or sub-system from inventory. No cycles. Every selected capability has an end-to-end trace through layers from the user-facing entry layer to a serving component.
-4. `physical-architecture.yaml` — runtime shape. Where each logical box runs, comms with retry/idempotency stance, and `nfr_delivery[]` per component citing the QP target each mechanism satisfies. Inherits system_ref from logical.
-5. `tech-stack.yaml` — languages, runtimes, frameworks, libraries, tools, and DESIGN PATTERNS picked per box. Patterns must be industry-documented (GoF, microservices.io, PoEAA, RFCs, OWASP, etc.) with literature citations. System-level decisions (monolith / microservice / serverless) ARE patterns and live here.
-6. `technical-risks.yaml` — produced LAST. Eight discovery scans walk the locked artifacts. Each risk has risk_statement, trigger_conditions, business_cost, likelihood, mitigation with owner, residual_risk, and driver_refs.
+The lens is three things and only three: the **components** the slice threads — the horizontal
+platforms/tiers (experience/channel, process, domain, cross-cutting like security/cache/data),
+each in a layer with the part the slice occupies; the **contracts** — the seams crossed
+between them, each carrying the data model that flows across; and the **stack** — the
+technology picked per component, with versions. A component is a HORIZONTAL; the slice is a
+VERTICAL that threads top-to-down through them — and the build is that vertical, end-to-end:
+end-to-end or the story failed. Components are SELECTED, not invented — each is a system the
+slice's functionalities talk to (their ICE `context.systems`) or a surface the product exposes
+(the profile's `shape.surfaces`). The stack picks are sized by the profile box and recorded as
+decisions the product references. It writes only the architecture lens, plus the decisions.
 
-Plus one `decision-manifest-{skill}.yaml` per emitting skill, walked by the orchestrator and surfaced to the user via the C19 tiered flow before downstream skills consume the artifact.
-
-No code, no test suites, no implementation work products.
+**Pipeline position: none.** /arch is a realization, model-building play. It opens no delivery
+issue and cuts no branch, so the D2 pipeline-position rule injects neither a `start-change`
+head nor a close sequence. It writes the persistent product model directly. It runs after
+/shape, and by convention fourth in the realize sequence — but takes **no** dependency on the
+quality, ux, or agentic lens. It reads the hub (the slice's functionalities' ICE + the profile
+box) only; never another lens. The NFRs it sizes the stack against come from the profile box
+directly, not from the quality lens.
 
 ## Compiled From
 
-This play was compiled from `reference/intent.yaml` (the clean triple) and `reference/expectation.yaml` (success_scenarios + recovery) by `/create-play`. To modify this play, update `reference/intent.yaml` or `reference/expectation.yaml` and re-run `/create-play --build arch`.
-
-**Hash guard:** If `sha256(reference/intent.yaml)` ≠ `59bd74b8a443995c97b4d1f75365706ca40dfa7848aea3fa8499553a13bae000` OR `sha256(reference/expectation.yaml)` ≠ `19a6f1c5100a9c6498f1e5152fe8932610773c2b6e84dc26456b75f637929dba`, rebuild is required before running.
-
+This play was compiled from the arch ICE (`reference/ice.md`) by play-creator.
+Intent defines constraints (C1–C11) and failure conditions (F1–F11); the expectation
+defines success scenarios (S1–S7) and one recovery entry per failure condition.
+To modify this play, update `reference/ice.md` and recompile with play-creator.
 Do NOT edit this file manually — it is a compiled artifact.
 
 ## Role
 
-You are the orchestrator. You own the workflow. You delegate domain tasks to agents via JSON contracts — never execute domain work directly.
+You are the orchestrator. You own the workflow and the step order. You delegate the one piece
+of judgment — turning the slice's functionalities' systems and the profile surfaces into
+components (with layers and parts), the contracts between them, and the stack (tech +
+versions), with a decision for every material choice — to the `product-os-keeper` agent via a
+JSON contract over files on disk, and you run every mechanical part (the readiness + hub
+resolution, the draft validation, the snapshot, the allowlisted persist, and the post-apply
+checks) through bundled scripts. You never write the model YAML yourself, you never write the
+slice record, the profile, or another lens, and you never persist before the human approves
+the single checkpoint (C11).
 
-**Forbidden direct actions:**
-- Authoring any of the six artifacts inline. All artifact authorship goes through the named skill.
-- Writing evidence, checkpoint, or status files directly. All such writes go through `scriber`.
-- Picking a multi-candidate slot unilaterally. C20 requires either a grounding question or a checkpoint defer.
-- Emitting code, tests, or implementation surfaces. C26 — /arch is design-shape only.
-- Hard-halting on missing /specify or /design artifacts. C1 — fall back to the question path.
+**Forbidden:** hand-writing lens/decision YAML; writing the slice record, the functionalities'
+ICE, the profile, or another lens by any route; reading another realize lens to derive the
+components (arch reads the hub + the profile box); smearing concrete tech/versions into
+`components` instead of `stack`; persisting by any route other than `scripts/apply_arch.py`;
+persisting before Step 3 approval.
 
-**Agent boundary:**
+**Agent boundaries:**
 
-| Agent | Domain | Stages |
-|-------|--------|--------|
-| `tech-architect` | Systems inventory, logical architecture, physical architecture, tech stack, post-generation validation | 1, 3, 4, 5, validator |
-| `tech-designer` | Refined quality profile, technical risks | 2, 6 |
-| `scriber` | Evidence, checkpoint, status writes (whitelist enforcement) | All — background |
+| Agent | Domain | Skill it invokes | Phases |
+|-------|--------|------------------|--------|
+| `product-os-keeper` | Select the horizontal components the slice threads (from its functionalities' ICE systems + the profile surfaces), draw the contracts between them, pick the stack (tech + versions) sized by the profile box, record material choices as decisions; thread every functionality end-to-end with an acyclic, orphan-free graph | `author-architecture-lens` | Draft |
 
-**Agent budget:** 2 domain agents (tech-architect, tech-designer) within the ≤5 budget. `scriber` is utility (exempt).
+`product-os-keeper` is the single **domain agent** this play uses (1 of the ≤5 budget).
+No utility agents are needed — git/issue machinery is absent (position none).
 
 ## Pre-flight
 
-C1 — Soft pre-flight. The play probes for upstream artifacts. **Missing or DRAFT artifacts DO NOT hard-halt.** The play asks the user the equivalent questions at the relevant stage and writes the answers into a stand-in file with `origin: stm_user_answer` so downstream stages have something to read.
+| Check | Constraint | Action on Failure |
+|-------|-----------|-------------------|
+| Resolve config + `product_base` (`.garura/core/config.yaml`) | — | Hard halt |
+| Profile firmed (`set`) AND the slice exists with every functionality ICE resolved + rich | C1 | Hard halt (REC1) |
 
-Pre-flight steps executed before Stage 1:
+Resolve config mechanically, then resolve the slice + hub. /arch has no branch or issue
+(position none):
 
-| Check | Action on Pass | Action on Fail |
-|-------|----------------|----------------|
-| Resolve `stm_base`, `product_base`, `ltm_project_target` from `.garura/core/config.yaml` | Continue | Hard halt — config required |
-| Git repository present | Continue | Hard halt — not a git repo |
-| Issue context (from branch name or supplied issue) | Continue | Hard halt — no issue context |
-| Probe `{product_base}scope/scope.yaml` | Read | Mark stage 1 capabilities for question fallback |
-| Probe `{product_base}scope/garura:enriched-capabilities.yaml` | Read | Mark stage 1 enrichment for question fallback |
-| Probe `{product_base}scope/epics/*.yaml` | Read | Mark stages 2/6 epic-derived context for question fallback |
-| Probe `{product_base}research/*.md` (one per domain) | Read | Mark stage 1 domain context for question fallback |
-| Probe `{product_base}specification/quality-profile.yaml` | Read | Mark stage 2 QP for question fallback |
-| Probe `{product_base}experience/personas.md`, `screens/`, `flows/`, `design-spec.md` | Read | Mark stage 3 design context for question fallback |
-| Probe `{product_base}user-provided/project-profile.yaml` | Read for pins | Mark all stages for project-profile question fallback |
-| Resume check — `{stm_base}/{issue}/status/arch.json` | If present, resume from first incomplete stage | Fresh run |
-
-```bash
-stm_base=$(yq '.stm.base-path' .garura/core/config.yaml)
-product_base=$(yq '.product.base-path' .garura/core/config.yaml)
-ltm_project_target=$(yq '.ltm.project-target' .garura/core/config.yaml)
-git rev-parse --is-inside-work-tree
-issue=$(echo "$(git branch --show-current)" | grep -oE '/[0-9]+' | tr -d '/')
-test -n "$issue" || { echo "no issue in branch"; exit 1; }
-# Probes inform per-stage question fallback; the play does NOT hard-halt on any probe failure.
 ```
+python3 scripts/preflight.py --play arch --config .garura/core/config.yaml
+python3 scripts/check_ready_slice.py --product-base <product_base> --slice <slice>
+```
+
+`preflight.py` returns config facts (`product_base`, `stm_base`, `evidence_record`).
+`check_ready_slice.py` is the readiness gate **and hub resolver** (C1): it halts unless the
+profile is `set` and the slice — the play argument (e.g. `/arch slice-token-data-spine` or
+`/arch <domain>/<slice-id>`) — exists with every `functionalities[].ice_ref` resolving to a
+rich ICE. An ice_ref that does not resolve **fails loud** (a broken hub, never a silent pass).
+On success it emits the slice context the draft step uses: `slice_file`, `domain`, `lens_dir`,
+and the resolved `functionality_ices`. If the profile is `directional`, the slice is missing,
+or a functionality ICE is unresolved/thin, hard halt and route to /understand or /shape (REC1).
+
+**Resume check:** if `{stm_base}_realize/arch/status/<slice-id>.json` exists, resume — skip
+completed steps, reset any in-progress step to pending, continue from the first incomplete.
 
 ## Task DAG
 
-Create ALL tasks at start. Order via `blockedBy`; the sequential ID prefix `[T1]`, `[T2]`, etc. labels the step.
+Create ALL tasks immediately after resolving config — before any domain work.
+The play owns this DAG; the agent must not edit its top-level tasks.
 
 ```
-TaskCreate [T1]  "Pre-flight + scaffold STM"
-TaskCreate [T2]  "Stage 1 — Systems Inventory"      blockedBy=[T1]
-TaskCreate [T3]  "Stage 1 Checkpoint"               blockedBy=[T2]
-TaskCreate [T4]  "Stage 2 — Refine Quality Profile" blockedBy=[T1]
-TaskCreate [T5]  "Stage 2 Checkpoint"               blockedBy=[T4]
-TaskCreate [T6]  "Stage 3 — Logical Architecture"   blockedBy=[T3, T5]
-TaskCreate [T7]  "Stage 3 Checkpoint"               blockedBy=[T6]
-TaskCreate [T8]  "Stage 4 — Physical Architecture"  blockedBy=[T7]
-TaskCreate [T9]  "Stage 4 Checkpoint"               blockedBy=[T8]
-TaskCreate [T10] "Stage 5 — Tech Stack"             blockedBy=[T7, T9]
-TaskCreate [T11] "Stage 5 Checkpoint"               blockedBy=[T10]
-TaskCreate [T12] "Stage 6 — Technical Risks"        blockedBy=[T3, T5, T7, T9, T11]
-TaskCreate [T13] "Stage 6 Checkpoint"               blockedBy=[T12]
-TaskCreate [T14] "Post-generation Validation"       blockedBy=[T13]
-TaskCreate [T15] "Evidence + Close"                 blockedBy=[T14]
+[T1] Draft architecture lens  blockedBy: []
+[T2] Validate the draft       blockedBy: [T1]
+[T3] Checkpoint (approval)    blockedBy: [T2]
+[T4] Persist                  blockedBy: [T3]
+[T5] Verify persisted         blockedBy: [T4]
+[T6] Scenario Validation      blockedBy: [T5]
+[T7] Close                    blockedBy: [T6]
 ```
 
-Stages 1 (Systems Inventory) and 2 (Refined QP) are independent — they may run in either order or in parallel (C3). Stages 3-6 are strictly sequential. Stage 5 needs both logical (Stage 3) and physical (Stage 4). Stage 6 needs every other stage complete.
-
-**Task ownership:** the play owns the DAG. Agents MAY call `TaskCreate` for discovered sub-work with `addBlockedBy` to the current step; they MUST NOT call `TaskUpdate` on play-level tasks.
-
-**TaskUpdate protocol per step:**
-- `TaskUpdate [Tn] → in_progress` before agent dispatch
-- `TaskUpdate [Tn] → completed` after step evals pass
+Mark each task in-progress before its step and completed right after its eval passes.
+No runtime reordering. On resume, skip completed and reset in-progress to pending.
 
 ## Workflow
 
-### Phase: Pre-flight + Scaffold
+### Phase: Draft
 
-**Step 1 — Pre-flight + scaffold STM**
-Owner: play (orchestrator)
-Task: `TaskUpdate [T1] → in_progress`
+**Step 1 — Draft architecture lens** · Owner: `product-os-keeper` · Depends on: pre-flight
+The agent invokes `author-architecture-lens` to read the slice's hub (its functionalities'
+ICE — resolved by the readiness gate — and their `context.systems`) and the profile box
+(`shape.surfaces` + the `nfr` box), then select the components (in their layers, with the part
+the slice occupies), draw the contracts between them, pick the stack (tech + versions) sized by
+the profile box, and — for every material choice (the component set, the system-level shape,
+significant tech picks) — record a decision, drafting to STM and grounding every component,
+contract, and stack pick in the manifest with the seam-graph for the end-to-end check:
 
-Execute every probe in the Pre-flight table. Capture each probe result in `{stm_base}/{issue}/evidence/arch/preflight.yaml`. Scaffold:
-
-```bash
-mkdir -p "${product_base}architecture/systems-inventory"
-mkdir -p "${stm_base}${issue}/evidence/arch"
-mkdir -p "${stm_base}${issue}/checkpoint/arch"
-mkdir -p "${stm_base}${issue}/status"
-```
-
-Dispatch `scriber` for the directory scaffold and preflight.yaml write.
-
-`TaskUpdate [T1] → completed`
-
----
-
-### Phase: Stage 1 — Systems Inventory
-
-**Step 2 — Derive systems inventory**
-Owner: `tech-architect`
-Task: `TaskUpdate [T2] → in_progress`
-
-```json
-{
-  "intent_path": "core/components/plays/arch/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "scope_path": "{product_base}scope/scope.yaml",
-      "scope_standin_path": "{product_base}specification/capabilities-stand-in.yaml",
-      "enriched_capabilities_path": "{product_base}scope/garura:enriched-capabilities.yaml",
-      "domain_research_dir": "{product_base}research/",
-      "project_profile_path": "{product_base}user-provided/project-profile.yaml",
-      "kb_systems_dir": "{ltm_project_target}components/memory/knowledge/arch/systems/",
-      "kb_extension_rules_path": "{ltm_project_target}components/memory/standards/rules/kb-extension.md",
-      "preflight_path": "{stm_base}{issue}/evidence/arch/preflight.yaml"
-    },
-    "output": {
-      "inventory_dir": "{product_base}architecture/systems-inventory/",
-      "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-systems-inventory.yaml",
-      "grounding_questions_path": "{product_base}user-provided/grounding-questions.md"
+    {
+      "task":    "from this slice's functionalities' ICE systems + the profile surfaces, draft the architecture lens — the horizontal components it threads (layer + part), the contracts (seams) between them with the data that flows, and the stack (tech + versions) sized by the profile nfr box; record a decision for every material choice; thread every functionality end-to-end through an acyclic, orphan-free graph",
+      "inputs":  { "slice_ref": "<domain>/<slice-id>",
+                   "slice_file": "<product_base>/<slice_file>",
+                   "functionality_ices": [ "<product_base>/<ice_ref>", "..." ],
+                   "profile_path": "<product_base>/product-os/profile.yaml",
+                   "product_base": "<product_base>",
+                   "lens_rel": "<lens_dir>/architecture.yaml" },
+      "outputs": { "draft_dir":  "<working>/draft/",
+                   "lens":       "<working>/draft/<lens_dir>/architecture.yaml",
+                   "manifest":   "<working>/draft/architecture-manifest.yaml" }
     }
-  },
-  "task_id": "stage-1-systems-inventory"
-}
+
+`slice_file`, `lens_dir`, and `functionality_ices` come from `check_ready_slice.py`. The skill
+reads the hub + the profile box **read-only** and never another lens. It returns the contract
+with the output paths on disk — never inline content.
+**SE-1 (F1/C1):** the readiness + hub gate passed at pre-flight — the profile is `set` and the
+slice exists with every functionality ICE resolved + rich; otherwise the run halted (REC1).
+
+### Phase: Validate
+
+**Step 2 — Validate the draft** · Owner: play · Depends on: Step 1
+Run the architecture validator over the draft before the checkpoint. Coverage is read straight
+from the slice record — every functionality the slice bundles must be threaded end-to-end:
+
+```
+python3 scripts/validate_arch.py --draft <working>/draft \
+        --manifest <working>/draft/architecture-manifest.yaml \
+        --slice-file <product_base>/<slice_file>
 ```
 
-Agent invokes `derive-systems-inventory` skill. When `scope_path` probe failed at pre-flight, agent first runs the question fallback — interviews the user for selected capabilities and writes `capabilities-stand-in.yaml` with `origin: stm_user_answer`, then proceeds.
+**SE-3 (F3/C3):** the lens is the three blocks only — `content` has exactly
+components/contracts/stack, each non-empty; no concrete product/version smeared into
+`components`.
+**SE-5 (F5/C5):** just enough — every component has layer/kind/part, every contract has
+interface + data, every stack entry has component + tech + version.
+**SE-4 (F4/C4):** every component grounds on a real source (a functionality's ICE system or a
+profile surface), every contract on a functionality, every stack pick on a decision / profile
+pin / KB; no element ungrounded, and lens ↔ manifest component names agree.
+**SE-6 (F6/C6):** vertical build — every functionality the slice bundles (read from the slice
+record) is threaded by at least one component/contract; the seam-graph (manifest `depends_on`)
+is acyclic; no component is an orphan (unreachable from an entry-layer component).
+**SE-7 (F7/C7):** no grounding source is another lens — arch read the hub + the profile box
+only.
+**SE-8 (F8/C8):** every grounding flagged `material` carries a decision that resolves to a
+drafted record (the component set, the system-level shape, the tech picks).
+**SE-10 (F10/C10):** the lens and any decision carry their required v1 fields and valid enums
+(`type: architecture`, a `slice_ref`).
+On any GAP, apply REC3/REC4/REC5/REC6/REC7/REC8/REC10 and re-run before the checkpoint.
 
-**Step 2 Evals:**
+### Phase: Checkpoint (mandatory — never skipped, C11)
 
-**SE-19 (F22 — system provenance):** Every file in `architecture/systems-inventory/` has non-empty frontmatter id, origin ∈ {kb, stm_research}, provenance_summary, capabilities_served[]. kb-origin files carry kb_path, kb_version_sha, copied_at, editable: false; the body matches the KB master at kb_path byte-for-byte; recomputed SHA-256 of KB content matches kb_version_sha. stm_research files carry editable: true and have all 7 required sections populated.
+**Step 3 — Human review** · Owner: play · Depends on: Step 2
+Present the proposed architecture lens **inline** — the components with their layers and the
+part the slice occupies, the contracts (seams) with the data that crosses, and the stack (tech
++ versions), each grounded in the system/surface/decision it came from, plus any decision — for
+the human to confirm the shape of the software that delivers this slice. This checkpoint is
+always presented and never skippable. Approve → continue to persist; cancel → halt with nothing
+written to the model.
+**SE-11 (F11/C11):** the lens is persisted only after this approval — Step 4 is the sole writer
+and depends on this step; no product-model file is written before Step 4.
 
-**SE-20 (F23 — inventory grounding, prep for Stage 3):** Every capability in `scope.selected_capabilities` (or the stand-in equivalent) is named in `capabilities_served[]` of at least one inventory file (system-level or sub-system-level).
+### Phase: Apply
 
-`TaskUpdate [T2] → completed`
+**Step 4 — Persist** · Owner: play · Depends on: Step 3
+First **snapshot** the slice's lens folder, the slice record, and the profile (so Step 5 can
+prove only the architecture lens changed). The snapshot is taken here, at the gated apply step
+— never at pre-flight — so a resume can never compare post-apply against post-apply.
+`<slice_dir>` is `<product_base>/product-os/<domain>/slices/<slice-id>` (the folder beside the
+record):
 
----
-
-**Step 3 — Stage 1 Checkpoint**
-Owner: play (orchestrator)
-Task: `TaskUpdate [T3] → in_progress`
-
-Surface the inventory + decision manifest to the user. Drive the tiered surfacing per C19:
-
-- HIGH-tier decisions (project_profile_pin, kb_catalog_single_candidate) → batch confirmation.
-- MID-tier decisions (kb_catalog_multi_candidate_user_approved with grounding-question pending) → present each grounding question for the user's pick.
-- LOW-tier decisions (agent_default_with_user_approval for stm_research systems) → present one-by-one.
-
-Present the YAML artifact paths as the review surface:
-- `{product_base}architecture/systems-inventory/` — list of files
-- `{product_base}architecture/decision-manifest-derive-systems-inventory.yaml`
-
-Wait for Tether / Vanish / Orbit:
-- **Tether** — proceed to Stage 3 (when Stage 2 also complete) and update each manifest entry's `user_response` to `accept` (or per the user's per-decision input).
-- **Orbit** — cycle back to Stage 1 with the user's feedback captured in `{stm_base}{issue}/checkpoint/arch/stage-1-orbit-notes.md`.
-- **Vanish** — halt the play.
-
-Dispatch `scriber` to write the checkpoint artifact at `{stm_base}{issue}/checkpoint/arch/stage-1.md` (Tether/Orbit/Vanish + timestamp + summary).
-
-`TaskUpdate [T3] → completed`
-
----
-
-### Phase: Stage 2 — Refine Quality Profile
-
-**Step 4 — Refine quality profile**
-Owner: `tech-designer`
-Task: `TaskUpdate [T4] → in_progress`
-
-Runs in parallel with Stage 1 (independent per C3).
-
-```json
-{
-  "intent_path": "core/components/plays/arch/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "specify_qp_path": "{product_base}specification/quality-profile.yaml",
-      "specify_qp_standin_path": "{product_base}specification/quality-profile-stand-in.yaml",
-      "scope_path": "{product_base}scope/scope.yaml",
-      "epics_dir": "{product_base}scope/epics/",
-      "inventory_dir": "{product_base}architecture/systems-inventory/",
-      "project_profile_path": "{product_base}user-provided/project-profile.yaml",
-      "kb_quality_dir": "{ltm_project_target}components/memory/knowledge/quality/"
-    },
-    "output": {
-      "output_path": "{product_base}architecture/quality-profile.yaml",
-      "decision_manifest_path": "{product_base}architecture/decision-manifest-refine-quality-profile.yaml"
-    }
-  },
-  "task_id": "stage-2-refine-qp"
-}
+```
+mkdir -p <working>/slice-before
+cp -R <slice_dir>/. <working>/slice-before/ 2>/dev/null || true   # lens/ + decisions/ (may not exist yet)
+cp <product_base>/<slice_file> <working>/slice-record-before.yaml
+cp <product_base>/product-os/profile.yaml <working>/profile-before.yaml
 ```
 
-Agent invokes `refine-quality-profile` skill. When `specify_qp_path` probe failed, the question fallback interviews the user for ISO 25010 characteristic relevance and targets, writes `quality-profile-stand-in.yaml` with `origin: stm_user_answer`, then refines.
+Then persist on the fixed allowlist. `apply_arch.py` writes the architecture lens (overwrite —
+the re-derive) and copies decisions skip-if-exists; it is handed only the draft, which holds
+only the lens + decisions, so it cannot write the slice record, the ICE, the profile, or
+another lens:
 
-**Step 4 Evals:**
-
-**SE-12 (F12 — QP delta uncited):** Every characteristic in the refined QP that differs from the upstream specify QP is covered by a delta_log entry with non-empty field, before, after, direction, driver.kind ∈ {inventory_constraint, project_profile_pin, epic_constraint, regulatory_pin}, driver.reference resolvable, and rationale. No delta_log entry has characteristic: security AND direction: loosened.
-
-`TaskUpdate [T4] → completed`
-
----
-
-**Step 5 — Stage 2 Checkpoint**
-Owner: play (orchestrator)
-Task: `TaskUpdate [T5] → in_progress`
-
-Surface the refined QP + delta_log + decision manifest. Tiered surfacing per C19. Present:
-- `{product_base}architecture/quality-profile.yaml`
-- `{product_base}architecture/decision-manifest-refine-quality-profile.yaml`
-
-Wait for Tether / Vanish / Orbit. Scriber writes `{stm_base}{issue}/checkpoint/arch/stage-2.md`.
-
-`TaskUpdate [T5] → completed`
-
----
-
-### Phase: Stage 3 — Logical Architecture
-
-**Step 6 — Derive logical architecture**
-Owner: `tech-architect`
-Task: `TaskUpdate [T6] → in_progress`
-
-Blocked on Stages 1 AND 2 both completing.
-
-```json
-{
-  "intent_path": "core/components/plays/arch/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "inventory_dir": "{product_base}architecture/systems-inventory/",
-      "refined_qp_path": "{product_base}architecture/quality-profile.yaml",
-      "scope_path": "{product_base}scope/scope.yaml",
-      "scope_standin_path": "{product_base}specification/capabilities-stand-in.yaml",
-      "enriched_capabilities_path": "{product_base}scope/garura:enriched-capabilities.yaml",
-      "epics_dir": "{product_base}scope/epics/",
-      "design_spec_path": "{product_base}experience/design-spec.md",
-      "flows_dir": "{product_base}experience/flows/",
-      "personas_path": "{product_base}experience/personas.md",
-      "project_profile_path": "{product_base}user-provided/project-profile.yaml",
-      "kb_layer_models_dir": "{ltm_project_target}components/memory/knowledge/arch/layer-models/"
-    },
-    "output": {
-      "output_path": "{product_base}architecture/logical-architecture.yaml",
-      "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-logical-architecture.yaml",
-      "grounding_questions_path": "{product_base}user-provided/grounding-questions.md"
-    }
-  },
-  "task_id": "stage-3-logical"
-}
+```
+python3 scripts/apply_arch.py --draft <working>/draft --product-base <product_base> \
+        --out-manifest <working>/apply-manifest.json
 ```
 
-Agent invokes `derive-logical-architecture` skill. The agent first establishes the layer model (project-profile pin OR KB blueprint OR user pick from blueprints). Then walks capabilities and places systems from inventory into layers, wires edges with sync_mode, runs cycle detection and end-to-end traceability checks.
+**SE-2 (F2/C2):** the apply manifest's `written` set holds only the slice's
+`lens/architecture.yaml` and `decisions/*.yaml`; its `refused` set is empty (the draft held
+nothing out of scope).
 
-**Step 6 Evals:**
+**Step 5 — Verify persisted** · Owner: play · Depends on: Step 4
+Confirm the slice record is byte-identical (realize never writes it), then check the lens
+folder against the snapshot:
 
-**SE-2 (F2 — logical tech tokens):** No string in logical-architecture.yaml matches the tech-token deny-list. Case-insensitive.
-
-**SE-3 (F3 — component shape):** Every component has non-null system_ref AND layer matching a layer in layer_model.layers AND capability_ids[] length ≥ 1.
-
-**SE-4 (F4 — capability orphan / no E2E):** Every selected capability is named in at least one entry-layer component's capability_ids[] AND a graph traversal reaches a serving component.
-
-**SE-5a (F5 logical cycle):** Logical graph (with sync/hybrid edges) is acyclic.
-
-**SE-18 (F21 — layer model integrity):** layer_model.source valid, layers[] ≥ 2, exactly one is_entry: true, unique order ints, kebab-case ids.
-
-**SE-20 (F23 — system_ref resolution):** Every component's system_ref resolves to inventory; sub_system_ref resolves to a sub_systems[].id inside that file.
-
-`TaskUpdate [T6] → completed`
-
----
-
-**Step 7 — Stage 3 Checkpoint**
-Owner: play (orchestrator)
-Task: `TaskUpdate [T7] → in_progress`
-
-Surface logical-architecture.yaml + decision manifest. Tiered surfacing per C19. Present:
-- `{product_base}architecture/logical-architecture.yaml`
-- `{product_base}architecture/decision-manifest-derive-logical-architecture.yaml`
-
-Wait for Tether / Vanish / Orbit. When a cycle was detected during Step 6, this checkpoint surfaces the cycle + candidate breaks for user pick (F5 / REC5 human handoff). Scriber writes `{stm_base}{issue}/checkpoint/arch/stage-3.md`.
-
-`TaskUpdate [T7] → completed`
-
----
-
-### Phase: Stage 4 — Physical Architecture
-
-**Step 8 — Derive physical architecture**
-Owner: `tech-architect`
-Task: `TaskUpdate [T8] → in_progress`
-
-```json
-{
-  "intent_path": "core/components/plays/arch/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "logical_path": "{product_base}architecture/logical-architecture.yaml",
-      "refined_qp_path": "{product_base}architecture/quality-profile.yaml",
-      "inventory_dir": "{product_base}architecture/systems-inventory/",
-      "project_profile_path": "{product_base}user-provided/project-profile.yaml",
-      "kb_platforms_dir": "{ltm_project_target}components/memory/knowledge/arch/platforms/",
-      "kb_data_dir": "{ltm_project_target}components/memory/knowledge/arch/data/",
-      "kb_operations_dir": "{ltm_project_target}components/memory/knowledge/arch/operations/",
-      "flows_dir": "{product_base}experience/flows/"
-    },
-    "output": {
-      "output_path": "{product_base}architecture/physical-architecture.yaml",
-      "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-physical-architecture.yaml",
-      "grounding_questions_path": "{product_base}user-provided/grounding-questions.md"
-    }
-  },
-  "task_id": "stage-4-physical"
-}
+```
+cmp <working>/slice-record-before.yaml <product_base>/<slice_file>   # must match (F2/F9)
+python3 scripts/check_arch.py --cap-before <working>/slice-before \
+        --cap-dir <slice_dir> \
+        --profile-before <working>/profile-before.yaml \
+        --profile-after <product_base>/product-os/profile.yaml
 ```
 
-Agent invokes `derive-physical-architecture` skill. The agent decides cardinality per logical component, picks deployment targets (named specifically), sizes resources, wires comms with retry/idempotency, names NFR delivery mechanisms.
+**SE-9 (F9/C9):** the slice record and profile are byte-identical; within the slice folder
+every file is byte-identical to its snapshot except `lens/architecture.yaml`; no accepted
+decision was edited in place; nothing was removed.
+On any GAP, apply REC2/REC9 and re-run.
 
-**Step 8 Evals:**
+### Phase: Scenario Validation
 
-**SE-6 (F6 — physical fields and category terms):** Every physical component has logical_ref, system_ref equal to logical's system_ref, layer equal to logical's, deployment_target.kind + name (not category-term), resources block.
-
-**SE-7 (F7 — cardinality + layer match):** Every non-`one-to-one` cardinality has cardinality_rationale. Every physical layer equals linked logical layer.
-
-**SE-8 (F8 — NFR delivery):** Every refined-QP characteristic with relevance != not_applicable appears in at least one physical component's nfr_delivery[] with mechanism, target_reference, rationale.
-
-**SE-5b (F5 physical sync cycle):** Physical graph (with sync/hybrid edges) is acyclic.
-
-`TaskUpdate [T8] → completed`
-
----
-
-**Step 9 — Stage 4 Checkpoint**
-Owner: play (orchestrator)
-Task: `TaskUpdate [T9] → in_progress`
-
-Surface physical-architecture.yaml + manifest. Tiered surfacing. Present:
-- `{product_base}architecture/physical-architecture.yaml`
-- `{product_base}architecture/decision-manifest-derive-physical-architecture.yaml`
-
-When a physical sync cycle was detected, surface the cycle + breaks for user pick. Scriber writes `{stm_base}{issue}/checkpoint/arch/stage-4.md`.
-
-`TaskUpdate [T9] → completed`
-
----
-
-### Phase: Stage 5 — Tech Stack
-
-**Step 10 — Derive tech stack**
-Owner: `tech-architect`
-Task: `TaskUpdate [T10] → in_progress`
-
-```json
-{
-  "intent_path": "core/components/plays/arch/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "logical_path": "{product_base}architecture/logical-architecture.yaml",
-      "physical_path": "{product_base}architecture/physical-architecture.yaml",
-      "inventory_dir": "{product_base}architecture/systems-inventory/",
-      "refined_qp_path": "{product_base}architecture/quality-profile.yaml",
-      "project_profile_path": "{product_base}user-provided/project-profile.yaml",
-      "kb_stacks_dir": "{ltm_project_target}components/memory/knowledge/arch/stacks/",
-      "kb_patterns_dir": "{ltm_project_target}components/memory/knowledge/arch/patterns/",
-      "kb_agentic_dir": "{ltm_project_target}components/memory/knowledge/arch/agentic/",
-      "kb_tech_dir": "{ltm_project_target}components/memory/knowledge/tech/"
-    },
-    "output": {
-      "output_path": "{product_base}architecture/tech-stack.yaml",
-      "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-tech-stack.yaml",
-      "grounding_questions_path": "{product_base}user-provided/grounding-questions.md"
-    }
-  },
-  "task_id": "stage-5-tech-stack"
-}
-```
-
-Agent invokes `derive-tech-stack` skill. Picks languages, runtimes, frameworks, libraries, tools, and patterns per box. Patterns gate through industry-citation allowlist + KB extensibility check.
-
-**Step 10 Evals:**
-
-**SE-9 (F9 — pattern citation + system-level placement):** Every category: pattern entry has pattern_citation.source + .reference; source on allowlist OR KB pattern file. System-level decisions appear here.
-
-**SE-10 (F10 — entry shape):** Every entry has id, scope.kind, category, name, source_type, rationale; scope.targets[] non-empty when kind != global.
-
-`TaskUpdate [T10] → completed`
-
----
-
-**Step 11 — Stage 5 Checkpoint**
-Owner: play (orchestrator)
-Task: `TaskUpdate [T11] → in_progress`
-
-Surface tech-stack.yaml + manifest. Tiered surfacing. Scriber writes `{stm_base}{issue}/checkpoint/arch/stage-5.md`.
-
-`TaskUpdate [T11] → completed`
-
----
-
-### Phase: Stage 6 — Technical Risks
-
-**Step 12 — Derive technical risks**
-Owner: `tech-designer`
-Task: `TaskUpdate [T12] → in_progress`
-
-Blocked on Stages 1, 2, 3, 4, AND 5 all complete. Runs LAST per C3.
-
-```json
-{
-  "intent_path": "core/components/plays/arch/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "refined_qp_path": "{product_base}architecture/quality-profile.yaml",
-      "inventory_dir": "{product_base}architecture/systems-inventory/",
-      "logical_path": "{product_base}architecture/logical-architecture.yaml",
-      "physical_path": "{product_base}architecture/physical-architecture.yaml",
-      "tech_stack_path": "{product_base}architecture/tech-stack.yaml",
-      "epics_dir": "{product_base}scope/epics/",
-      "project_profile_path": "{product_base}user-provided/project-profile.yaml",
-      "kb_quality_dir": "{ltm_project_target}components/memory/knowledge/quality/",
-      "prior_decision_manifests_dir": "{product_base}architecture/"
-    },
-    "output": {
-      "output_path": "{product_base}architecture/technical-risks.yaml",
-      "decision_manifest_path": "{product_base}architecture/decision-manifest-derive-technical-risks.yaml"
-    }
-  },
-  "task_id": "stage-6-risks"
-}
-```
-
-Agent invokes `derive-technical-risks` skill. Walks eight discovery scans (logical_cycles, physical_single_region / saas_lockin, tech_eol / bleeding_edge, inventory_stm_research, qp_unmet_target, epic_failure_scenario, compliance_pattern, agent_pattern_match) and produces the risk register.
-
-**Step 12 Evals:**
-
-**SE-11 (F11 — risk shape + stage order):** Every risk has id, risk_statement, ≥1 trigger_conditions, all business_cost subfields, all likelihood subfields, all mitigation subfields, residual_risk non-empty AND not in zero-residual deny-list, ≥1 driver_refs resolvable, discovered_by.scan in the eight scans. Stage-order: technical-risks.yaml mtime ≥ every prior arch artifact's mtime.
-
-`TaskUpdate [T12] → completed`
-
----
-
-**Step 13 — Stage 6 Checkpoint**
-Owner: play (orchestrator)
-Task: `TaskUpdate [T13] → in_progress`
-
-Surface technical-risks.yaml + manifest. Tiered surfacing. LOW-tier risks surface one-by-one for explicit user confirmation. Scriber writes `{stm_base}{issue}/checkpoint/arch/stage-6.md`.
-
-`TaskUpdate [T13] → completed`
-
----
-
-### Phase: Post-generation Validation
-
-**Step 14 — Validate full architecture spec**
-Owner: `tech-architect`
-Task: `TaskUpdate [T14] → in_progress`
-
-```json
-{
-  "intent_path": "core/components/plays/arch/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "refined_qp_path": "{product_base}architecture/quality-profile.yaml",
-      "inventory_dir": "{product_base}architecture/systems-inventory/",
-      "logical_path": "{product_base}architecture/logical-architecture.yaml",
-      "physical_path": "{product_base}architecture/physical-architecture.yaml",
-      "tech_stack_path": "{product_base}architecture/tech-stack.yaml",
-      "risks_path": "{product_base}architecture/technical-risks.yaml",
-      "manifest_inventory_path": "{product_base}architecture/decision-manifest-derive-systems-inventory.yaml",
-      "manifest_refine_qp_path": "{product_base}architecture/decision-manifest-refine-quality-profile.yaml",
-      "manifest_logical_path": "{product_base}architecture/decision-manifest-derive-logical-architecture.yaml",
-      "manifest_physical_path": "{product_base}architecture/decision-manifest-derive-physical-architecture.yaml",
-      "manifest_tech_stack_path": "{product_base}architecture/decision-manifest-derive-tech-stack.yaml",
-      "manifest_risks_path": "{product_base}architecture/decision-manifest-derive-technical-risks.yaml",
-      "specify_qp_path": "{product_base}specification/quality-profile.yaml",
-      "scope_path": "{product_base}scope/scope.yaml",
-      "epics_dir": "{product_base}scope/epics/",
-      "project_profile_path": "{product_base}user-provided/project-profile.yaml",
-      "kb_systems_dir": "{ltm_project_target}components/memory/knowledge/arch/systems/",
-      "kb_patterns_dir": "{ltm_project_target}components/memory/knowledge/arch/patterns/"
-    },
-    "output": {
-      "output_path": "{product_base}architecture/validation-result.yaml"
-    }
-  },
-  "task_id": "post-generation-validation"
-}
-```
-
-Agent invokes `validate-architecture-spec` skill — single 22-check pass covering F1-F12, F14-F16, F20-F23.
-
-**Step 14 Evals:**
-
-**SE-1 (F1 — artifact existence):** Every one of the six canonical artifact surfaces exists with a non-empty primary section.
-
-**SE-13 (F13 — source-type discipline):** No decision has agent_default_unilateral; no missing source_type; no override of grounded_tools pin.
-
-**SE-14 (F14 — multi-candidate discipline):** Every kb_catalog_multi_candidate_user_approved decision cites a Q-arch-NNN or checkpoint id.
-
-**SE-15 (F15 — decision surfacing):** No inferred decision committed without recorded surfacing; pending warnings are flagged not blocked.
-
-**SE-16 (F16 — manifest completeness):** All six manifests exist; every entry has all required fields.
-
-**SE-17 (F20 — stage order mtime):** File mtime ordering holds per Stages 1+2 → 3 → 4 → 5 → 6.
-
-On `validation_status: failed`, the play cycles back to the stage that owns the first blocker (per recovery handoffs). On `validation_status: passed`, proceed to Step 15.
-
-`TaskUpdate [T14] → completed`
-
----
+**Step 6 — Scenario evals** · Owner: play · Depends on: Step 5
+- **SCE-1 (S1 — architect, first run):** the slice's `architecture.yaml` exists with a
+  `slice_ref` and non-empty components/contracts/stack; every other product-model file is
+  byte-identical; the lens validates v1.
+- **SCE-2 (S2 — platform engineer, grounded):** every component names an ICE system or profile
+  surface, every contract a functionality, every stack pick a profile target or decision; none
+  ungrounded.
+- **SCE-3 (S3 — architect, vertical build):** every functionality of the slice threads
+  end-to-end across the components, no component is an orphan, and the graph has no cycle.
+- **SCE-4 (S4 — architect, hub-only):** no quality/ux/agentic/run lens of the slice was touched
+  and no element grounds on another lens.
+- **SCE-5 (S5 — product owner, re-run):** a second run changes only the slice's
+  `architecture.yaml` (and possibly a new decision); the slice record, other lenses, ICE, and
+  profile are byte-identical; no accepted decision edited in place.
+- **SCE-6 (S6 — reviewer, the checkpoint):** the checkpoint showed the components (with
+  layers), contracts, and stack, plus any decision, inline before any write.
+- **SCE-7 (S7 — platform engineer, clean split):** no `components` entry names a product or
+  version; every `stack` entry carries a component, a tech, and a version; the lens validates
+  v1.
 
 ### Phase: Evidence & Close
 
-**Step 15 — Evidence + Close**
-Owner: play (orchestrator)
-Task: `TaskUpdate [T15] → in_progress`
+**Step 7 — Close** · Owner: play · Depends on: Step 6
+Run the Standard Play Close. /arch is a **product-scoped** play (no issue) — use the
+product-scoped evidence base and slug. Evidence recording is play-only and config-gated per the
+D1 evidence rule (`standards/rules/evidence-recording.md`).
 
 ```bash
 # --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
 # Path tokens resolved at pre-flight (resolve here if not already):
 #   ltm_project_target  = yq '.ltm.project-target' .garura/core/config.yaml
 #   evidence_base, slug:
-#     project-scoped play : evidence_base="${stm_base}${issue}/evidence/arch/"   ; slug="#${issue}"
-#     product-scoped play : (N/A — arch is project-scoped)
+#     project-scoped play : evidence_base="${stm_base}${issue}/evidence/arch/"  ; slug="#${issue}"
+#     product-scoped play : evidence_base="${product_base}_evidence/arch/"        ; slug="${product_slug}"
 evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
 delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
 ts=$(date -u +%Y%m%d-%H%M%S)
@@ -575,17 +277,23 @@ evidence_dest="${evidence_base}${ts}.md"
 mkdir -p "$(dirname "$evidence_dest")"
 ```
 
-**Step C1 — Evidence file** (gated by `evidence.record`). When recording, fill the `evidence-file.md` slots — run_id `arch-${ts}`, issue `#${issue}`, started_at per the precedence in play-close.md, completed_at now, status COMPLETED, Artifacts Produced (six artifacts + six manifests + validation-result.yaml + checkpoint files), Step Eval Results (SE-1..SE-20 with PASS/FAIL/N-A), Scenario Eval Results (SCE-1..SCE-8), Checkpoint Decisions (six rows: stage-1..stage-6 Tether/Orbit/Vanish + timestamps), Commit Reference. Dispatch `scriber` to write to `$evidence_dest`. When `evidence.record: false`, skip the write and record `evidence skipped (record=false)` in C2's pointer line.
+`/arch` is product-scoped: `evidence_base="${product_base}_evidence/arch/"` and
+`slug="${product_slug}"` (the slice, e.g. `ai-usage-intelligence/slice-token-data-spine`).
 
-**Step C2 — Delivery report** (always, unless `parent_run_id` present in input contract). Fill the `delivery-report.md` slots and output to the user:
-- `## Arch Delivered — #${issue}`
-- Run Summary: Play `arch`, Issue `#${issue}`, Status, Started, Completed.
-- Pipeline Steps: derived from the task DAG — Stage 1 Systems Inventory, Stage 1 Checkpoint, Stage 2 Refine QP, Stage 2 Checkpoint, Stage 3 Logical, Stage 3 Checkpoint, Stage 4 Physical, Stage 4 Checkpoint, Stage 5 Tech Stack, Stage 5 Checkpoint, Stage 6 Risks, Stage 6 Checkpoint, Validation, Evidence/Close.
-- Artifacts Produced: six architecture artifacts + six decision manifests + validation-result.yaml + six checkpoint files + evidence file pointer.
-- Next Steps: `/prepare` consumes these artifacts for per-feature scoping.
-- End with a pointer to the evidence file at `${evidence_dest}`.
+**Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag (global +
+per-play `evidence.plays.arch`; first match wins, absent ⇒ record). When false, skip the write
+and record `evidence skipped (record=false)` in the report's pointer line. Otherwise fill the
+`evidence-file.md` slots (play `arch`, run_id `arch-${ts}`, product_slug = the slice,
+started_at/completed_at, status; artifacts produced: the architecture lens, the
+stack/shape decisions, the architecture + apply manifests; step and scenario eval results
+SE-1…SE-11 / SCE-1…SCE-7; checkpoint decision from Step 3 including the component set) and write
+to `$evidence_dest`. Do NOT hand-author the body.
 
-`TaskUpdate [T15] → completed`
+**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output the
+report: `## arch Delivered — ${product_slug}`, the Run Summary table, the Pipeline Steps table
+from the task DAG, the Artifacts Produced table (the components + contracts + stack, the
+decisions), Next Steps (run /run next — the fifth realize lens — to set how the slice is
+deployed and runs), and a pointer to `$evidence_dest`. Always emitted; never gated.
 
 ```bash
 # --- end Standard Play Close ---
@@ -593,121 +301,53 @@ mkdir -p "$(dirname "$evidence_dest")"
 
 ## Scenario Validation
 
-E2E scenarios from `reference/expectation.yaml` `success_scenarios`. Each SCE is the `measure` line copied verbatim. The play evaluates the SCE matching the run's persona context at close; others are skipped.
-
-**SCE-1 (S1 — Technical Architect):** Every component in logical-architecture.yaml and physical-architecture.yaml resolves to a system or sub-system entry in systems-inventory; every tech-stack entry carries a populated source_type and rationale; every NFR target in quality-profile appears in physical-architecture with a named delivery mechanism; every technical-risks entry has a risk_statement, business_cost, and mitigation.
-
-**SCE-2 (S2 — Integration Lead):** Every system or sub-system that appears as a component in logical or physical architecture exists in systems-inventory/, carries provenance (origin: kb OR origin: stm_research), and lists the capabilities it serves; no logical or physical component bypasses inventory.
-
-**SCE-3 (S3 — Implementation Lead):** Every selected capability has at least one end-to-end logical path from the user-facing entry layer to a serving system; every logical component has at least one physical component implementing it; every component in scope of a feature has at least one tech-stack entry covering it; no cycles in either logical or physical graphs.
-
-**SCE-4 (S4 — Security Architect):** Every security-classified characteristic in quality-profile.yaml appears in at least one physical component's nfr_delivery[] with a named mechanism; every security-related pattern in tech-stack carries an industry literature citation; auth-related physical components reverse-trace to a system in systems-inventory.
-
-**SCE-5 (S5 — DevOps / Platform Engineer):** physical-architecture.yaml carries a deployment_target and resource shape for every component; an observability stack is named in physical or tech-stack; cross-cutting resilience patterns (circuit breaker, retry, idempotency key, etc.) appear in tech-stack with literature citations whenever any NFR names resilience or consistency.
-
-**SCE-6 (S6 — Product Manager):** quality-profile.yaml carries plain-English narrative per relevant ISO 25010 characteristic; technical-risks.yaml lists each risk with a quantified or qualified business_cost; the tech-stack system-level pattern entries (monolith / microservice / serverless / etc.) each cite an upstream driver and at least one alternative considered.
-
-**SCE-7 (S7 — Risk Owner / Engineering Director):** Every entry in technical-risks.yaml has risk_statement, trigger_conditions, business_cost, likelihood with rationale, mitigation with owner, residual_risk, and driver_refs pointing at the components / NFRs / tech picks the risk surfaces from; no entry is missing any of those fields.
-
-**SCE-8 (S8 — Senior Developer onboarding):** Every tech-stack entry with category = pattern carries a literature citation (GoF, microservices.io, PoEAA, an RFC, etc.); the layer model is named and load-bearing in both logical and physical; system-level pattern decisions live in tech-stack with a cited alternative considered.
+| Scenario | Persona | Eval |
+|----------|---------|------|
+| S1 — first run | architect | SCE-1 |
+| S2 — grounded | platform engineer | SCE-2 |
+| S3 — vertical build | architect | SCE-3 |
+| S4 — hub-only | architect | SCE-4 |
+| S5 — re-run | product owner | SCE-5 |
+| S6 — the checkpoint | reviewer | SCE-6 |
+| S7 — clean split | platform engineer | SCE-7 |
 
 ## Recovery
 
-Sourced from `reference/expectation.yaml` `recovery` — one entry per failure condition. The validator turns a tripped failure into a recovery handoff plan: `autonomous` loops back to the builder; `human` escalates for a manual call.
-
-| ID | For | Symptom (trigger) | Direction | Handoff |
-|----|-----|-------------------|-----------|---------|
-| REC1 | F1 | A canonical artifact surface is missing, empty, or carrying zero primary entries | Re-run the stage that owns the missing or empty artifact so it carries ≥1 entry | autonomous |
-| REC2 | F2 | logical-architecture.yaml contains a product / runtime / language / protocol / wire format / schema / library token | Re-author offending entries with pure structural and role vocabulary grounded in inventory system_ref | autonomous |
-| REC3 | F3 | A logical component lacks system_ref, layer, or capability_ids | Re-derive the offending component so missing fields are populated from inventory and capability list | autonomous |
-| REC4 | F4 | A capability has no logical mapping or no E2E path through layers from entry to serving | Re-derive logical so the orphan capability gains a component and a complete path is drawn | autonomous |
-| REC5 | F5 | Cycle in logical or sync-only cycle in physical | Breaking a cycle is a design call — surface detected cycle with candidate breaks to user for choice before re-deriving | human |
-| REC6 | F6 | Physical missing logical_ref / layer / deployment_target OR uses category term | Re-derive with concrete product names and structural fields populated | autonomous |
-| REC7 | F7 | N:1 collapse without rationale OR physical layer != logical layer | Re-derive with rationale recorded or layer corrected | autonomous |
-| REC8 | F8 | NFR target with no mapped delivery mechanism | Re-derive relevant physical components so the orphan NFR target is delivered by a named mechanism with rationale | autonomous |
-| REC9 | F9 | Pattern without literature citation OR system-level decision outside tech-stack | Re-derive offending entry — add citation OR move decision | autonomous |
-| REC10 | F10 | Tech-stack entry missing scope / category / name / source_type / rationale | Re-derive offending entry with all required fields | autonomous |
-| REC11 | F11 | Risk missing fields OR risks produced before all prior stages complete | Re-run Stage 6 after prior stages confirmed, re-author with missing fields populated | autonomous |
-| REC12 | F12 | QP delta without delta_log entry citing the architectural driver | Re-derive refined QP so every delta carries a log entry with field/before/after/direction/driver/rationale | autonomous |
-| REC13 | F13 | Missing source_type OR agent_default_unilateral OR pin override | Missing source_type re-tag autonomous; unilateral default or pin override cannot be self-legitimized — surface for explicit user approval | human |
-| REC14 | F14 | Multi-candidate slot committed without asking | Multi-candidate is a user pick — surface candidate set via grounding-questions or next checkpoint and obtain user's selection | human |
-| REC15 | F15 | Inferred decision committed without surfacing | Run tier-appropriate surfacing flow for the unsurfaced decision before it influences downstream | human |
-| REC16 | F16 | Decision manifest missing or malformed OR user_response not updated | Re-run the skill so a well-formed manifest is written alongside its primary artifact | autonomous |
-| REC17 | F17 | Mandatory stage checkpoint artifact missing | Pause at the checkpoint and obtain the human Tether/Vanish/Orbit — cannot be self-granted | human |
-| REC18 | F18 | Artifact written outside ADR 017 whitelist OR evidence file bypassed scriber | Re-route the offending write to a whitelisted path via scriber dispatch | autonomous |
-| REC19 | F19 | Play produced code, tests, or implementation-level work products | Remove the offending implementation product so architecture output stays specification-only | autonomous |
-| REC20 | F20 | Stage order violated OR refined QP gated Stages 1, 5, or 6 | Discard the out-of-order artifact and re-run the affected stage only after every declared dependency completes | autonomous |
-| REC21 | F21 | Layer model not established before Stage 3 OR component in non-existent layer OR layer model changed post-lock without approval | Establishing or changing the layer model is a user decision — surface model choice with KB blueprints OR escalate for change approval | human |
-| REC22 | F22 | System without KB-or-stm_research provenance | Re-populate the offending inventory file with correct provenance header and required sections | autonomous |
-| REC23 | F23 | Component system_ref does not resolve to inventory | Either populate the missing inventory entry (return to Stage 1) OR re-derive component to reference existing inventory entry | autonomous |
-| REC24 | F24 | Play hard-halted on missing or DRAFT upstream instead of falling back to C1 question path | Re-run the affected stage using the C1 question fallback so missing upstream is replaced by user answers written to stand-in with origin: stm_user_answer | autonomous |
+| For | Trigger | Direction | Handoff |
+|-----|---------|-----------|---------|
+| F1 | the slice is absent, a functionality ICE is unresolved/thin, or the profile is not firmed | halt and route to /shape (to shape the slice) or /understand (to enrich + firm) before /arch | human |
+| F2 | a write touched something beyond this slice's architecture lens or a decision | revert the out-of-scope write; /arch writes only the slice's architecture lens (and decisions) | autonomous |
+| F3 | the lens carries content beyond the three blocks, the wrong shape, or tech/versions in components | strip it back to the components/contracts/stack shape and move concrete tech/versions into stack | autonomous |
+| F4 | an invented/ungrounded element | drop it, or re-tie the component to an ICE system / profile surface, the contract to the functionality whose seam it is, and the stack pick to a recorded decision; never keep an invented element | autonomous |
+| F5 | the lens over- or under-specifies (a component missing layer/kind/part, a contract missing interface/data, a stack entry missing tech/version) | complete the missing fields or trim the over-specification back to the intent-level shape | autonomous |
+| F6 | a functionality not threaded end-to-end, an orphan component, or a cycle in the seam-graph | add the missing component/contract to thread it, drop the orphan, or break the cycle (remove a seam, split a component, or make a boundary async) | autonomous |
+| F7 | /arch read or depended on another lens | remove the dependency; /arch derives only from the slice's hub + the profile box | autonomous |
+| F8 | a material architecture choice was made with no decision recorded | record the slice-level decision (component set, system-level shape, or tech pick) before persisting | autonomous |
+| F9 | a non-lens/non-decision file changed, or an accepted decision was edited in place | restore it and re-apply only the architecture lens (and the new decision), after a human confirms the restore | human |
+| F10 | the lens or a decision fails v1 schema validation | re-emit the failing artifact to conform before the play completes | autonomous |
+| F11 | the lens was persisted before the checkpoint was approved | revert the premature write and re-present the checkpoint; persist only after the human approves | human |
 
 ## Pause and Resume
 
-Issue detection in pre-flight: extract issue number from branch name (e.g. `fix/403-...` → `403`). If on a feature branch with an issue number, check for status file before starting.
-
-Status file: `{stm_base}{issue}/status/arch.json`
-
-```json
-{
-  "play": "arch",
-  "issue": 403,
-  "started_at": "2026-05-28T..:..Z",
-  "tasks": {
-    "preflight":             { "status": "completed", "completed_at": "..." },
-    "stage-1-systems-inv":   { "status": "completed", "completed_at": "..." },
-    "stage-1-checkpoint":    { "status": "completed", "completed_at": "..." },
-    "stage-2-refine-qp":     { "status": "completed", "completed_at": "..." },
-    "stage-2-checkpoint":    { "status": "completed", "completed_at": "..." },
-    "stage-3-logical":       { "status": "in_progress", "started_at": "..." },
-    "stage-3-checkpoint":    { "status": "pending" },
-    "stage-4-physical":      { "status": "pending" },
-    "stage-4-checkpoint":    { "status": "pending" },
-    "stage-5-tech-stack":    { "status": "pending" },
-    "stage-5-checkpoint":    { "status": "pending" },
-    "stage-6-risks":         { "status": "pending" },
-    "stage-6-checkpoint":    { "status": "pending" },
-    "validation":            { "status": "pending" },
-    "evidence-close":        { "status": "pending" }
-  }
-}
-```
-
-**Executor loop:**
-```
-resolve issue from branch
-check status file at {stm_base}{issue}/status/arch.json
-
-for each step in compiled order:
-  if status file shows step "completed" → skip
-  if status file shows step "in_progress" → reset to pending (may not have finished)
-  mark step "in_progress" in status file
-  execute step
-  mark step "completed" in status file
-```
-
-**Fresh start:** no status file → execute all steps, create status file on first step.
-**Resume:** status file exists → skip completed, continue from first incomplete.
+Steps run top to bottom. On entry, resolve config, run the readiness + hub gate, resolve the
+target slice from the play argument or the in-progress draft, check the status marker, skip
+completed steps, reset any in-progress step to pending, and continue. The pre-apply snapshot is
+captured at Step 4 (the gated apply step) and preserved on resume, so the non-destructive
+comparison always diffs against true pre-apply state. A fresh start with no marker runs
+everything and creates the marker at Step 1.
 
 ## Compilation Metadata
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:59bd74b8a443995c97b4d1f75365706ca40dfa7848aea3fa8499553a13bae000 |
-| expectation_hash | sha256:19a6f1c5100a9c6498f1e5152fe8932610773c2b6e84dc26456b75f637929dba |
-| compiled_by | create-play (rebake) |
-| compiled_at | 2026-05-28 |
-| maturity | L4 (autonomous-derivable for the 19 autonomous recovery entries; 5 human-handoff entries pause for user) |
-| workflow_structure | A (full checkpoint flow, six checkpoints) |
-| domain_agents | 2 — tech-architect, tech-designer |
-| utility_agents | 1 — scriber (exempt from budget) |
-| step_evals | 20 (SE-1..SE-20) covering F1-F12, F14-F16, F20-F23 |
-| scenario_evals | 8 (SCE-1..SCE-8) one per success_scenario |
-| recovery_entries | 24 (REC1-REC24) — 19 autonomous, 5 human |
-| issue | #403 — model change from 5-artifact to 6-artifact contract |
-
-**Issue #403 — model change**
-
-Prior shape: 5 artifacts (logical, physical, nfr-spec, quality-vision, design-patterns) with 5 checkpoints, 19 constraints, 19 failure conditions.
-
-New shape: 6 artifacts (refined QP, systems-inventory, logical, physical, tech-stack, technical-risks) with 6 checkpoints, 26 constraints, 24 failure conditions, soft pre-flight, layer model as per-product input, systems-grounded components, industry-documented patterns in tech-stack, technical risks last via 8 discovery scans.
+| fingerprint | sha256:7ea8d966cfa7dc2d864205de45a9ec2316820dc32c47496fc08e3592fde65098 (of `reference/ice.md`) |
+| compiled_by | play-creator |
+| pipeline_position | none |
+| workflow_structure | A (mandatory, non-skippable checkpoint) |
+| domain_agents | 1 (product-os-keeper) |
+| utility_agents | 0 |
+| skills_used | author-architecture-lens |
+| scripts | 5 (preflight.py, check_ready_slice.py, validate_arch.py, apply_arch.py, check_arch.py) |
+| step_evals | 11 (SE-1…SE-11) |
+| scenario_evals | 7 (SCE-1…SCE-7) |
+| recovery_entries | 11 (one per failure condition; 8 autonomous / 3 human) |
