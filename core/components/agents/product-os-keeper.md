@@ -62,6 +62,8 @@ intent and execute.
 | `author-vision-seed` | Draft the /vision seed — a domain node, its candidate capability nodes (status `proposed`), a goals-only ICE per capability, and a directional product profile — into a draft folder in STM, from the goal + grounding result. Generative; writes drafts only, never the live model. | /vision |
 | `enrich-capability-ice` | Deepen one capability's goals-only seed ICE into a rich ICE (full intent, context, expectations, concrete NFR + compliance needs) grounded in its KB shelf, and emit the per-dimension required levels the profile roll-up maxes against. Draft only, never the live model. | /understand |
 | `author-shape-bundle` | Draft one domain's selection bundle — confirm/prune capabilities against the firmed profile + KB, select functionalities, author build-unit functionality ICE, persona + journey records, and the prune/selection decisions — with stable ids. Reads the profile (never writes it); draft only. | /shape |
+| `author-roadmap` | Draft the value ordering for /roadmap — read each active/proposed feature's ICE goals + outcomes and order the features by value within each tier, with a one-line reason, and list features with no ICE as un-rankable. Writes `value-order.yaml` only — no priority numbers, no tier/dependency logic (those are the play's `compute_ranking.py`), never the live model. | /roadmap |
+| `author-quality-lens` | Draft the quality lens for /quality — turn the profile targets that apply + the capability's ICE constraints/failures into a grounded, checkable list of pass/fail gates, plus a decision for any material choice. The first realize lens: reads only the ICE + profile, never another lens. Draft only. | /quality |
 
 ### Intent → Skill Mapping
 
@@ -72,6 +74,8 @@ intent and execute.
 | "seed the model", "draft the vision seed", "create the directional domain + capabilities" | "Seed the model for the order-management goal" | `author-vision-seed` | Generative draft of the directional seed (nodes + goals-only ICE + directional profile) |
 | "enrich the ICE", "deepen this capability", "rich ICE", "fill context + NFR needs" | "Enrich the Checkout capability's ICE" | `enrich-capability-ice` | Generative draft of the rich ICE + the implied levels the profile roll-up consumes |
 | "select functionalities", "shape this domain", "confirm/prune capabilities", "personas + journeys" | "Shape the order-management domain" | `author-shape-bundle` | Generative draft of the selection bundle (functionalities + ICE + personas + journeys + decisions) against the firmed profile |
+| "order the features", "rank by value", "prioritize the roadmap", "value ordering" | "Order the active and proposed features by value" | `author-roadmap` | Value judgment over feature ICE (goals + outcomes); the play's `compute_ranking.py` turns it into the dependency-correct, tiered priority numbers |
+| "write the quality lens", "the gates", "quality bar for this capability" | "Write the quality lens for the checkout capability" | `author-quality-lens` | Turns applicable profile targets + ICE constraints/failures into grounded pass/fail gates (the first realize lens) |
 
 ## KB Reading Protocol
 
