@@ -64,6 +64,7 @@ intent and execute.
 | `author-shape-bundle` | Draft one domain's selection bundle — confirm/prune capabilities against the firmed profile + KB, select functionalities, author build-unit functionality ICE, persona + journey records, and the prune/selection decisions — with stable ids. Reads the profile (never writes it); draft only. | /shape |
 | `author-roadmap` | Draft the plan for /roadmap over /shape's vertical slices — for each slice estimate effort, resolve its dependency_notes (+ shared functionalities + their ICE depends_on) into concrete depends_on slice ids, and propose a value order. Writes `plan-draft.yaml` only — no final order numbers, no topological sort/cycle logic (those are the play's `compute_plan.py`), never the live model. | /roadmap |
 | `author-quality-lens` | Draft the quality lens for /quality — turn the profile targets that apply + the capability's ICE constraints/failures into a grounded, checkable list of pass/fail gates, plus a decision for any material choice. The first realize lens: reads only the ICE + profile, never another lens. Draft only. | /quality |
+| `author-ux-lens` | Draft the ux lens for /ux — turn the capability's shaped slices (and the functionality ICE they reference) and its personas/journeys into low-fidelity screens (each with a layout), the states each screen holds, and the product's visual core (color + typography) recorded as a decision; cover every slice-bound functionality so a human can validate the shape. Just enough to anchor intent — no flows, no a11y block (a11y lives in the profile). Reads the hub + the shape, never another lens. Draft only. | /ux |
 
 ### Intent → Skill Mapping
 
@@ -76,6 +77,7 @@ intent and execute.
 | "select functionalities", "shape this domain", "confirm/prune capabilities", "personas + journeys" | "Shape the order-management domain" | `author-shape-bundle` | Generative draft of the selection bundle (functionalities + ICE + personas + journeys + decisions) against the firmed profile |
 | "plan the roadmap", "order the slices", "estimate effort", "resolve dependencies" | "Plan the vertical slices into a build order" | `author-roadmap` | Effort + dependency + value judgment over /shape's slices; the play's `compute_plan.py` turns it into the dependency-correct global order |
 | "write the quality lens", "the gates", "quality bar for this capability" | "Write the quality lens for the checkout capability" | `author-quality-lens` | Turns applicable profile targets + ICE constraints/failures into grounded pass/fail gates (the first realize lens) |
+| "write the ux lens", "screens + states", "the layouts", "the visual core / color + typography", "let me validate the shape" | "Write the ux lens for the checkout capability" | `author-ux-lens` | Turns the shaped slices + personas/journeys into low-fidelity screens (with layouts) + states + the product visual core that visualize the shape for human validation |
 
 ## KB Reading Protocol
 
