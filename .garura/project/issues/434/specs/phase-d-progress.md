@@ -147,6 +147,47 @@ evidence flag, changeset, on-default-branch) by orchestrator inference instead o
   into merge-change or the future /learn play.
 - **ship** also referenced review-pr only in its bypass=false path (now gone); n/a while
   `review-pr.bypass: true`.
-- Phase E (the remaining ProductOS commands: /vision, /understand, /shape, /roadmap,
-  /learn, /realize, /grill, /implement, /validate, /fix, /refactor, /operate, /status,
-  /next) not started.
+- Phase E status moved to its own section below (audited 2026-06-09).
+
+## Phase E — ProductOS command plays (audited 2026-06-09)
+
+The model is 20 commands. Two groups are complete; strategy + realization are partway;
+maintenance/navigation barely started. Build state below is by what is actually on disk
+(a new ProductOS play = compiled `SKILL.md` + `reference/ice.md` + `scripts/`). The
+`/realize` command (old E6) is superseded by the five-lens split locked in
+`realize-split-design.md`: build order `quality → ux → agentic → arch → run`.
+
+### Built (11 command plays)
+- **Git / delivery pipeline (E16–E20) — DONE, this was Phase D.** start-change (/start),
+  commit-change (commit-code), propose-change (/raise), review-change (/review),
+  merge-change (/merge). All five compiled, lint PASS, deployed.
+- **Strategy (E1–E4) — DONE.** vision (43b1545), understand (43b1545), shape (7f43545),
+  roadmap (6d8064f). E5 /learn NOT built.
+- **Realization lens 1 of 5 — DONE.** quality (ecf0e19).
+- **Maintenance E11 /fix — DONE** as fix-bug (Phase E11 section above). First consumer play
+  of the D2 pipeline.
+
+### Not built (12 command plays remaining)
+- **Realize lenses 2–5** (in build order): **/ux → /agentic → /arch → /run.** Next up: /ux.
+  Each is position `none`, one capability per run, reads capability ICE + profile, writes its
+  one lens. /run (last) also runs the lines-up check and stamps the capability done.
+- **E5 /learn** — also absorbs the orphaned post-merge distill trigger (see ship note above).
+- **E7 /grill** — functionality level; cuts vertical-slice epics into product-os.
+- **E9 /implement, E10 /validate** — engineering.
+- **E12 /refactor, E13 /operate** — maintenance.
+- **E14 /status, E15 /next** — navigation.
+- (E8 /groom DROPPED.)
+
+### Old plays to retire (collision risk)
+These carry the old SDLC pipeline, no `ice.md`, old `garura:` namespace — NOT the new
+ProductOS plays. Retire each as the new play supersedes it (per realignment-plan: "as each
+new play lands, delete the old play(s) it supersedes"):
+- `arch` (`garura:arch`) → superseded by realize lens /arch
+- `implement` (`garura:implement`) → superseded by E9 /implement
+- `validate` (`garura:validate`) → superseded by E10 /validate
+- `refactor` (`garura:refactor`) → superseded by E12 /refactor
+- `grill-me` → superseded by E7 /grill
+- `define`, `design`, `enhance` (`garura:*`) → old SDLC shaping, superseded by vision/understand/shape
+- Also still present from the old pipeline: start-feature-planning, plus the learning plays
+  (capture, codify, decode, distill, reap, enrich, craft-ice, algorithm, prepare) — review
+  for retirement vs. fold-into-/learn when E5 is built.
