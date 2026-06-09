@@ -22,8 +22,12 @@ how tight the guardrails are and how readily it hands off to a human. All five a
 five-level scale: low / medium / high / xhigh / ultra. There is no "none" — "not agentic" is
 a gate up front. Every level traces to the slice's hub — the weights to the load its
 functionalities carry, the controls to their constraints and failure modes; nothing is
-invented. A slice that should offload nothing comes out is_agent=false with a note saying
-why. It writes only the slice's agentic lens (and a decision for any material autonomy
+invented. The **control approach** — how tightly an agent of this kind is fenced and when it
+defers to a human — is grounded in the KB's architecture/technology shelves where a fitting
+pattern exists (found via kb-search), or, where the KB has none yet, recorded as a
+KB-learning-gap proposal — not the model's taste. A slice that should offload nothing comes out
+is_agent=false with a note saying why. It writes only the slice's agentic lens (and a decision
+for any material autonomy
 choice) — never the slice record, the functionalities' ICE, the profile, another lens, or
 any other model file. One slice per run; one human checkpoint before anything persists.
 
@@ -70,6 +74,13 @@ only; never another lens.
   schemas (lens v1, decision v1).
 - C10 — Exactly one human checkpoint, presenting the is_agent decision, the five axes, and
   any decision, before anything is written. Nothing persists before approval.
+- C11 — The control approach is KB-grounded: on an agentic slice, the guardrail-tightness
+  pattern and the handoff-cadence pattern (how an agent of this kind is fenced and when it
+  defers to a human) trace to a best-fit learning on the KB's architecture or technology shelf
+  (matched via kb-search), or — where the KB has no fitting pattern yet — to a recorded
+  KB-learning-gap proposal. The weights and every axis level still trace to the slice's hub per
+  C4; C11 grounds the cross-cutting control pattern in what has worked, not the model's taste.
+  On an is_agent=false slice there are no controls, so there is nothing to KB-ground.
 
 ### Failure conditions
 
@@ -91,6 +102,9 @@ only; never another lens.
   or an accepted decision was edited in place rather than superseded.
 - F9 — The agentic lens or a decision violates its v1 schema.
 - F10 — The lens was persisted before the human approved the checkpoint.
+- F11 — On an agentic slice, the control approach (the guardrail-tightness or handoff-cadence
+  pattern) rests on neither a matched KB learning nor a recorded KB-learning-gap proposal — it
+  was invented from the model's taste.
 
 ## Expectation
 
@@ -129,6 +143,12 @@ only; never another lens.
   /agentic runs, then the lens comes out is_agent=false with a note saying why and no axis
   rated — a valid lens, not a forced one. Measure: `is_agent` is false, no weight or control
   carries a level, the note explains the call, and the lens still validates v1.
+- S8 — (AI engineer, KB-grounded controls) Given an agentic slice's lens is drafted, when
+  inspected, then the guardrail and handoff approach trace to a KB learning or a recorded
+  proposal. Measure: the manifest's `choices` block lists the control approach, each grounded in
+  an `architecture/*` or `technology/*` learning that resolves on a shelf, or a proposal file
+  that exists; `check_kb_grounding.py` is clean. An is_agent=false slice has no controls, so the
+  grounding check is not run.
 
 ### Recovery (one per failure condition)
 
@@ -159,3 +179,7 @@ only; never another lens.
 - REC10 (F10) — trigger: the lens was persisted before the checkpoint was approved. direction:
   revert the premature write and re-present the checkpoint; persist only after the human
   approves. handoff: human.
+- REC11 (F11) — trigger: on an agentic slice, the control approach with no KB learning and no
+  recorded proposal. direction: search the KB's architecture/technology shelves via kb-search
+  for the best-fit control/guardrail pattern and ground it, or raise a KB-learning-gap proposal
+  (a candidate learning); never keep a taste-only control approach. handoff: autonomous.

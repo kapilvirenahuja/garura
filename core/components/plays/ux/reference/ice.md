@@ -18,7 +18,11 @@ ICE under it are right. Accessibility is **not** restated in the lens — it liv
 product profile, and the build connects it. Flows are not specified — the build derives them
 from the screens and the journeys. Every screen is grounded in one of the slice's
 functionalities' ICE or a persona/journey; the visual core is a deliberate choice recorded as
-a decision the whole product references. Nothing is invented. It writes only the ux lens (and
+a decision the whole product references. Nothing is invented: the cross-cutting pattern
+choices — the visual core, the navigation pattern, the responsive strategy — are grounded in
+the KB's technology/architecture shelves (the patterns that have worked for products with these
+conditions and surfaces, found via kb-search), or, where the KB does not cover one, recorded as
+a KB-learning-gap proposal for review. It writes only the ux lens (and
 the visual-core decision for any material choice) — never the slice record, the
 functionalities' ICE, the profile, another lens, structure, status, personas, journeys, or
 other slices. One slice per run; one human checkpoint before anything persists.
@@ -65,6 +69,13 @@ the profile box) only; never another lens.
 - C11 — Exactly one human checkpoint, presenting the proposed screens (with layouts), states,
   and visual core, plus any decision, before anything is written. Nothing persists before
   approval.
+- C12 — UX pattern choices are KB-grounded: the visual core (palette + typography), the
+  navigation pattern, and the responsive strategy trace to a best-fit learning on the KB's
+  technology or architecture shelf (matched to the product's conditions + surfaces via
+  kb-search), or to a recorded KB-learning-gap proposal — never the model's taste alone. The
+  screens themselves stay grounded in the slice's functionalities' ICE per C4; C12 governs the
+  cross-cutting pattern choices (and pairs with C8: the visual core is also recorded as a
+  decision).
 
 ### Failure conditions
 
@@ -87,6 +98,9 @@ the profile box) only; never another lens.
   decision was edited in place rather than superseded.
 - F10 — The ux lens or a decision violates its v1 schema.
 - F11 — The lens was persisted before the human approved the checkpoint.
+- F12 — A UX pattern choice (the visual core, the navigation pattern, or the responsive
+  strategy) rests on neither a matched KB learning nor a recorded KB-learning-gap proposal — it
+  was invented from the model's taste.
 
 ## Expectation
 
@@ -124,6 +138,11 @@ the profile box) only; never another lens.
   then it presents the screens (with layouts), states, and visual core as the validation
   surface for the shape, plus the decision, before any write. Measure: the checkpoint shows the
   lens inline; no product-model file is written before approval.
+- S8 — (ux researcher, KB-grounded) Given the lens is drafted, when inspected, then the visual
+  core, the navigation pattern, and the responsive strategy trace to a KB learning or a recorded
+  proposal. Measure: the manifest's `choices` block lists each, grounded in a `technology/*` or
+  `architecture/*` learning that resolves on a shelf, or a proposal file that exists;
+  `check_kb_grounding.py` is clean.
 
 ### Recovery (one per failure condition)
 
@@ -158,3 +177,7 @@ the profile box) only; never another lens.
 - REC11 (F11) — trigger: the lens was persisted before the checkpoint was approved. direction:
   revert the premature write and re-present the checkpoint; persist only after the human
   approves. handoff: human.
+- REC12 (F12) — trigger: a UX pattern choice with no KB learning and no recorded proposal.
+  direction: search the KB's technology/architecture shelves via kb-search for the best-fit
+  learning and ground the choice in it, or raise a KB-learning-gap proposal (a candidate
+  technology/architecture learning); never keep a taste-only choice. handoff: autonomous.

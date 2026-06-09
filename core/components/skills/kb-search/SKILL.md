@@ -1,8 +1,8 @@
 ---
 name: kb-search
-description: Search the empirical Knowledge Base for the best-fit capabilities and architecture given a product's conditions. Use during context-building (e.g. in /realize, /shape) when you need to know what worked before for a product in this situation — its stage, scale, persistence, and monetization. Returns ranked learnings with their recommendation, rationale, and provenance.
-deprecated: true
-deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
+description: Search the empirical Knowledge Base for the best-fit architecture and technology learnings given a product's conditions. Use during context-building in the realize lenses (/arch, /run, /ux, /agentic) when you need to know what worked before for a product in this situation — its stage, scale, persistence, and monetization. Reads the architecture/ and technology/ shelves (the condition-matched, "what works for us" engine), distinct from search-kb which routes work to a domain. Returns the learnings that fit, with recommendation, rationale, and provenance.
+version: 0.1.0
+user-invocable: false
 ---
 
 # kb-search

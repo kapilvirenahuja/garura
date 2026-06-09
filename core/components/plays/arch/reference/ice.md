@@ -23,7 +23,10 @@ is a system the slice's functionalities talk to (their ICE `context.systems`) or
 the product exposes (the profile's `shape.surfaces`), placed in a layer. Contracts are the
 seams those components must cross to serve the slice's functionalities. The stack picks are
 deliberate technology choices, sized by the profile box (its NFR levels and gates) and
-recorded as decisions the product references. Nothing is invented. It writes only the
+recorded as decisions the product references. Nothing is invented: the system-level shape and
+the material technology picks are grounded in the KB's architecture/technology shelves — the
+patterns that have worked for products in this situation, found via kb-search — or, where the
+KB does not cover one, recorded as a KB-learning-gap proposal for review. It writes only the
 architecture lens (and a decision for any material choice) — never the slice record, the
 functionalities' ICE, the profile, another lens, structure, status, personas, journeys, or
 other slices. One slice per run; one human checkpoint before anything persists.
@@ -83,6 +86,13 @@ against come from the profile box directly, not from the quality lens.
 - C11 — Exactly one human checkpoint, presenting the proposed components (with layers),
   contracts, and stack, plus any decision, before anything is written. Nothing persists before
   approval.
+- C12 — Material pattern choices are KB-grounded: the system-level shape (monolith /
+  modular-monolith / microservices / serverless) and each significant technology pick trace to a
+  best-fit learning on the KB's architecture or technology shelf (matched to the product's
+  conditions via kb-search), or to a recorded KB-learning-gap proposal — never the model's taste
+  alone. C8 still requires each such choice to be recorded as a decision; C12 requires it to be
+  grounded in a known-good pattern (the decision says what we chose; the KB grounding says it is
+  proven, not invented).
 
 ### Failure conditions
 
@@ -109,6 +119,9 @@ against come from the profile box directly, not from the quality lens.
   accepted decision was edited in place rather than superseded.
 - F10 — The architecture lens or a decision violates its v1 schema.
 - F11 — The architecture lens was persisted before the human approved the checkpoint.
+- F12 — A material architecture pattern choice (the system-level shape or a significant
+  technology pick) rests on neither a matched KB learning nor a recorded KB-learning-gap
+  proposal — it was invented from the model's taste.
 
 ## Expectation
 
@@ -148,6 +161,11 @@ against come from the profile box directly, not from the quality lens.
   platforms sit in `components` and the concrete technology with versions sits only in `stack`.
   Measure: no `components` entry names a product or version; every `stack` entry carries a
   component, a tech, and a version; the lens validates v1.
+- S8 — (architect, KB-grounded) Given the lens is drafted, when inspected, then the system-level
+  shape and every material technology pick trace to a KB learning or a recorded proposal.
+  Measure: the manifest's `choices` block lists the shape and each material tech pick, each
+  grounded in an `architecture/*` or `technology/*` learning that resolves on a shelf, or a
+  proposal file that exists; `check_kb_grounding.py` is clean.
 
 ### Recovery (one per failure condition)
 
@@ -187,3 +205,8 @@ against come from the profile box directly, not from the quality lens.
 - REC11 (F11) — trigger: the architecture lens was persisted before the checkpoint was
   approved. direction: revert the premature write and re-present the checkpoint; persist only
   after the human approves. handoff: human.
+- REC12 (F12) — trigger: a material architecture pattern choice with no KB learning and no
+  recorded proposal. direction: search the KB's architecture/technology shelves via kb-search
+  for the best-fit learning and ground the choice in it, or raise a KB-learning-gap proposal (a
+  candidate architecture/technology learning); never keep a taste-only choice. handoff:
+  autonomous.

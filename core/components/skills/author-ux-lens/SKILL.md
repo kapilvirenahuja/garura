@@ -37,9 +37,12 @@ It writes a draft only — /ux's checkpoint and apply step persist it. It reads 
 | `slice_ref` | yes | The slice, `{domain}/{slice-id}`. |
 | `slice_file` | yes | The slice record path (read-only) — its `functionalities` list (the to-cover set). |
 | `functionality_ices` | yes | The resolved ICE file paths for the slice's functionalities (the hub), from the readiness gate. |
+| `profile_path` | yes | The product profile (read-only) — its condition facets (stage/users/persistence/monetization) + surfaces feed the KB query. |
+| `kb_search` | yes | Path to the `kb-search` skill's `scripts/kb_search.py` — the condition-search engine over the technology/architecture shelves. |
+| `kb_root` | yes | The `knowledge/` dir, so the manifest can name resolvable learning ids. |
 | `product_base` | yes | The product model root — read-only, to reuse an existing visual-core decision if one exists. |
 | `lens_rel` | yes | The slice's lens path to mirror in the draft, e.g. `product-os/{domain}/slices/{slice-id}/lens/ux.yaml`. |
-| `draft_dir` | yes | Output folder under STM for the draft lens + manifest. |
+| `draft_dir` | yes | Output folder under STM for the draft lens + manifest + any proposals. |
 | `stm_base` | yes | From config. |
 
 ## Procedure
@@ -59,17 +62,30 @@ and the three-block shape are non-negotiable.
 3. **Enumerate the states.** For each screen, list the states it can hold (idle / submitting /
    error / locked / success / empty / loading, as applies).
 
-4. **Set the visual core + record its decision.** Choose the product's palette (color + mood)
-   and typography. If the product already has a visual-core decision (look under
-   `product_base` for an existing one), **reuse it** — do not re-invent. Otherwise draft a
-   slice-level decision (ADR) naming the palette + typography and why. The lens embeds the
-   resolved palette + typography; the decision is the single source the whole product
-   references.
+4. **Search the KB, then set the pattern choices + the visual core.** Build the product's
+   condition profile (stage / users / persistence / monetization + surfaces, from the profile)
+   and query the KB's technology/architecture shelves through kb-search:
+
+   ```bash
+   python3 {kb_search} index            # all learnings + their conditions facets
+   python3 {kb_search} get <id>         # e.g. technology/frontend-react-nextjs
+   ```
+
+   Reason over each candidate's **Conditions** (judgment, not keyword match) to pick the
+   best-fit learnings, and base the **visual core** (palette + typography), the **navigation
+   pattern**, and the **responsive strategy** on them — what has worked for products with these
+   conditions and surfaces, not your taste. Record the visual core as a slice-level decision
+   (reuse the product's existing visual-core decision if one exists under `product_base`).
+   For any pattern choice the shelves do not cover, write a **KB-learning-gap proposal** into
+   `{draft_dir}/proposals/<gap>.yaml` (a candidate technology/architecture learning shaped to
+   the KB's `_TEMPLATE.md`, for review — never written to the KB here), and reference it instead
+   of a learning id.
 
 5. **Write the draft + manifest.** Write the ux lens (the v1 lens envelope with `type: ux`,
    `slice_ref`, and the three content blocks) under `draft_dir`, mirroring `lens_rel`, plus the
    visual-core decision, plus a `ux-manifest.yaml` that grounds **every screen** to its source
-   so the play's validate step is mechanical and coverage is checkable:
+   and records the KB-grounded pattern **choices**, so the play's validate + grounding steps are
+   mechanical and coverage is checkable:
 
 ```yaml
 ux:
@@ -83,11 +99,21 @@ ux:
   design_system:
     source_type: decision               # decision (the visual-core ADR) or kb
     decision: "<decision-id>"
+  choices:                              # the KB-grounded PATTERN choices
+    - choice: "visual core: clean sans, high-contrast palette"
+      grounds: [ { source_type: kb, source: "technology/frontend-react-nextjs", decision: "<decision-id>" } ]
+    - choice: "navigation: sidebar + breadcrumb"
+      grounds: [ { source_type: kb, source: "technology/frontend-component-orchestration" } ]
+    - choice: "responsive: mobile-first, reflow"
+      grounds: [ { source_type: kb, source: "technology/frontend-react-nextjs" } ]
+    # for a gap: { source_type: proposal, source: "proposals/<gap>.yaml" }
   decisions: ["<decision-id>", ...]
 ```
 
 Every functionality the slice bundles must appear as a `functionality_ref` on at least one
-screen — that is the coverage the validate step checks against the slice record.
+screen — that is the coverage the validate step checks against the slice record. The visual
+core, the navigation pattern, and the responsive strategy must appear in `choices` with a KB
+learning or a proposal — that is the KB grounding `check_kb_grounding.py` checks.
 
 ## Output — the draft
 
@@ -96,6 +122,7 @@ screen — that is the coverage the validate step checks against the slice recor
   product-os/<domain>/slices/<slice-id>/
     lens/ux.yaml
     decisions/<decision-id>.yaml      # the visual-core decision (or reused id, not re-written)
+  proposals/<gap>.yaml                 # any KB-learning-gap proposal (referenced by choices)
   ux-manifest.yaml
 ```
 
@@ -117,6 +144,10 @@ screen — that is the coverage the validate step checks against the slice recor
 ### ALWAYS
 - Ground every screen in the manifest to one of the slice's functionalities' ICE or a
   persona/journey; ground the visual core on a decision that resolves.
+- Search the KB first and ground every pattern choice (the visual core, the navigation pattern,
+  the responsive strategy) in a best-fit `technology/*` or `architecture/*` learning — or a
+  recorded KB-learning-gap proposal — in the manifest's `choices` block. Never pick them on
+  taste alone.
 - Cover every functionality the slice bundles with at least one screen.
 - Keep `content` to the three keys screens/states/design_system.
 - Return the draft paths, not the contents.

@@ -45,9 +45,11 @@ It writes a draft only — /arch's checkpoint and apply step persist it.
 | `slice_file` | yes | The slice record path (read-only) — its `functionalities` list (the to-thread set). |
 | `functionality_ices` | yes | The resolved ICE file paths for the slice's functionalities (the hub), from the readiness gate. Their `context.systems` are the candidate components. |
 | `profile_path` | yes | The product profile (read-only) — its `shape.surfaces` (entry components) and `nfr` box (sizes the stack). |
+| `kb_search` | yes | Path to the `kb-search` skill's `scripts/kb_search.py` — the condition-search engine over the architecture/technology shelves. |
+| `kb_root` | yes | The `knowledge/` dir, so the manifest can name resolvable learning ids. |
 | `product_base` | yes | The product model root — read-only, to reuse an existing architecture decision if one exists. |
 | `lens_rel` | yes | The slice's lens path to mirror in the draft, e.g. `product-os/{domain}/slices/{slice-id}/lens/architecture.yaml`. |
-| `draft_dir` | yes | Output folder under STM for the draft lens + manifest. |
+| `draft_dir` | yes | Output folder under STM for the draft lens + manifest + any proposals. |
 | `stm_base` | yes | From config. |
 
 ## Procedure
@@ -73,12 +75,27 @@ non-negotiable.
    components it calls) so the seam-graph is checkable — keep it **acyclic** (break a cycle by
    removing a seam, splitting a component, or making a boundary async).
 
-4. **Pick the stack + record its decisions.** For each component, pick the tech and a
-   **version**, sized by the profile `nfr` box. Each significant pick — and the system-level
-   shape (monolith / modular-monolith / microservices / serverless), and the component set
-   itself — is a material choice: record it as a slice-level decision (ADR). If the product
-   already has an architecture decision that fits (look under `product_base`), **reuse it** —
-   do not re-invent.
+4. **Search the KB, then pick the stack + record its decisions.** Build the product's condition
+   profile (stage / users / persistence / monetization, from the profile) and query the KB's
+   architecture/technology shelves through kb-search:
+
+   ```bash
+   python3 {kb_search} index            # all learnings + their conditions facets
+   python3 {kb_search} get <id>         # e.g. architecture/microservices, technology/backend-nodejs
+   ```
+
+   Reason over each candidate's **Conditions** (judgment, not keyword match) to pick the
+   best-fit architecture/technology learnings. Base the **system-level shape** (monolith /
+   modular-monolith / microservices / serverless) and each significant **technology pick** on a
+   matched learning — what has worked for a product in this situation, not your taste. For each
+   component, pick the tech and a **version** sized by the profile `nfr` box. Each significant
+   pick and the system-level shape is a **material** choice: record it as a slice-level decision
+   (ADR) **and** ground it in the matched KB learning in the manifest's `choices` block. For any
+   choice the shelves do not cover, write a **KB-learning-gap proposal** into
+   `{draft_dir}/proposals/<gap>.yaml` (a candidate architecture/technology learning shaped to the
+   KB's `_TEMPLATE.md`, for review — never written to the KB here), and reference it instead of a
+   learning id. If the product already has an architecture decision that fits (look under
+   `product_base`), **reuse it** — do not re-invent.
 
 5. **Write the draft + manifest.** Write the architecture lens (the v1 lens envelope with
    `type: architecture`, `slice_ref`, and the three content blocks) under `draft_dir`,
@@ -115,12 +132,28 @@ architecture:
           source: "sized by profile.nfr.performance"
           material: true
           decision: "<decision-id>"
+  choices:                              # the KB-grounded PATTERN choices (shape + material tech)
+    - choice: "system-level shape: microservices"
+      grounds:
+        - source_type: kb               # kb (a learning id under kb_root) | proposal (a gap file)
+          source: "architecture/microservices"
+          decision: "<decision-id>"
+    - choice: "order-orchestrator stack: node"
+      grounds:
+        - source_type: kb
+          source: "technology/backend-nodejs"
+          decision: "<decision-id>"
+    # for a gap the KB does not cover:
+    # - choice: "<the pattern choice>"
+    #   grounds: [ { source_type: proposal, source: "proposals/<gap>.yaml" } ]
   decisions: ["<decision-id>", ...]
 ```
 
 Every functionality the slice bundles must appear as a `functionality_ref` on at least one
 component or contract — that is the end-to-end coverage the validate step checks against the
-slice record.
+slice record. Every material pattern choice (the system-level shape + each significant tech
+pick) must appear in `choices` with a KB learning or a proposal — that is the KB grounding
+`check_kb_grounding.py` checks.
 
 ## Output — the draft
 
@@ -129,6 +162,7 @@ slice record.
   product-os/<domain>/slices/<slice-id>/
     lens/architecture.yaml
     decisions/<decision-id>.yaml      # the stack/shape decision(s) (or reused id, not re-written)
+  proposals/<gap>.yaml                 # any KB-learning-gap proposal (referenced by choices)
   architecture-manifest.yaml
 ```
 
@@ -155,4 +189,8 @@ slice record.
   keep the seam-graph acyclic, and leave no orphan component.
 - Size the stack against the profile `nfr` box; record material choices (the component set,
   the system-level shape, significant tech picks) as decisions that resolve.
+- Search the KB first and ground every material pattern choice (the system-level shape + each
+  significant tech pick) in a best-fit `architecture/*` or `technology/*` learning — or a
+  recorded KB-learning-gap proposal — in the manifest's `choices` block. Never pick the shape or
+  a tech on taste alone.
 - Return the draft paths, not the contents.

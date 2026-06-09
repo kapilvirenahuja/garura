@@ -39,7 +39,8 @@ slice:
 
   dependency_notes: string  # human note on what this slice leans on (free text from /shape)
   acceptance_intent: string # what "this increment works" means (slice-level, not per-ICE)
-  status: string            # proposed (from /shape) | planned (after /roadmap) | deferred
+  status: string            # proposed (from /shape) | planned (after /roadmap) |
+                            # realized (after /run — all five lenses line up) | deferred
 
   # ---- filled by /roadmap (the plan) ----
   order: integer            # global build position across all slices; null until planned
@@ -84,6 +85,13 @@ fill_rules:
     writes: "the plan onto existing slices across all domains — order, effort, and
              resolved depends_on; flips status proposed -> planned (or deferred).
              Never creates a slice or edits its composition (that is /shape's)."
+  - play: "/run"
+    writes: "the done stamp ONLY — flips status -> realized when all five realize
+             lenses exist for the slice and line up (every architecture component has a
+             run target; every run target binds a real component). Surgical: changes
+             status + metadata and nothing else of the record; never composition, order,
+             effort, or depends_on. The single marker /grill checks before cutting
+             delivery work."
 
 # ---- Enhance rules ----------------------------------------------------------
 enhance_rules:

@@ -1,6 +1,10 @@
 # Lens: run  (LOCKED #434; renamed from "delivery") — envelope in lens/_index.md
 #
-# How the capability is deployed and runs.
+# How the SLICE is deployed and runs. The fifth and last realize lens. /run reads the
+# slice's hub + the ARCHITECTURE lens (it deploys arch's parts) + the KB, and grounds every
+# operational choice in a best-fit architecture/technology learning. As the last lens it also
+# runs the lines-up check (all five lenses present + cross-refs resolve) and, on lines-up,
+# stamps the slice record `status: realized`.
 
 schema:
   name: lens
@@ -14,3 +18,8 @@ content:
   migrations: string       # data-change strategy — gated, reversible
   config_secrets: string   # per-env config; secrets via secrets-manager, never in repo
   cicd: string             # pipeline: build -> quality gates -> deploy on green
+  targets:                 # per ARCHITECTURE component: where + how it runs (the seam to arch)
+    - component: string    # MUST match an architecture-lens component name (no dangling target)
+      environment: string  # which env(s) it deploys to (e.g. prod, staging+prod)
+      deploy: string       # how it runs — container | service | function | static | managed
+      notes: string        # optional one-liner
