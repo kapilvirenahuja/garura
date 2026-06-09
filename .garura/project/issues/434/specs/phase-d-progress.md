@@ -157,15 +157,17 @@ maintenance/navigation barely started. Build state below is by what is actually 
 `/realize` command (old E6) is superseded by the five-lens split locked in
 `realize-split-design.md`: build order `quality → ux → agentic → arch → run`.
 
-### Built (11 command plays)
+### Built (13 command plays)
 - **Git / delivery pipeline (E16–E20) — DONE, this was Phase D.** start-change (/start),
   commit-change (commit-code), propose-change (/raise), review-change (/review),
   merge-change (/merge). All five compiled, lint PASS, deployed.
 - **Strategy (E1–E4) — DONE.** vision (43b1545), understand (43b1545), shape (7f43545),
   roadmap (6d8064f). E5 /learn NOT built.
-- **Realization lenses 1–3 of 5 — DONE and SLICE-SCOPED.** quality, ux, agentic — all three
-  built and reworked to run on a **slice** (not a capability), lint PASS + apply round-trip
-  green (slice record byte-untouched). See the slice update below.
+- **Realization lenses — ALL 5 of 5 DONE and SLICE-SCOPED.** quality, ux, agentic, arch, run.
+  quality/ux/agentic built and reworked to a **slice**; arch rebuilt onto the slice (90c451a);
+  run built KB-grounded with the lines-up + stamp duties (see the /run section below). All lint
+  PASS; apply round-trip green. (KB grounding is wired on /run now; arch/ux/agentic retrofit is
+  the tracked follow-up below.)
 - **Maintenance E11 /fix — DONE** as fix-bug (Phase E11 section above). First consumer play
   of the D2 pipeline.
 
@@ -185,10 +187,82 @@ maintenance/navigation barely started. Build state below is by what is actually 
   handoff). No "none" (the gate handles it). Schema `lens/agentic.yaml` rewritten.
 - Verified against the live token-burn-dash model (real slice spanning two capabilities).
 
-### Not built (12 command plays remaining)
-- **Realize lenses 4–5** (in build order): **/arch → /run.** They inherit the slice model
-  from the start (copy `check_ready_slice.py`, slice_ref, lens on the slice). /run (last) also
-  runs the lines-up check and stamps the slice done.
+### Realize lens 5 of 5 — /run — DONE + KB-GROUNDED (2026-06-09)
+- **/run built** (`core/components/plays/run/`): SKILL.md + reference/ice.md + 8 scripts; lint
+  PASS (all 10 gates); full smoke round-trip green (happy path + every guard fires). The five
+  realize lenses are now complete: quality → ux → agentic → arch → run.
+- **Two duties beyond the arch template, both verified:**
+  - **Lines-up gate** (`check_lines_up.py`, two phases): pre-flight asserts the architecture
+    lens is present (run deploys arch's parts — hard halt if absent); the gate asserts all five
+    lens files exist + every arch component has a run target + no dangling target.
+  - **The done stamp** — /run is the ONE realize lens that writes the slice record. On lines-up
+    it flips `slice.status → realized` (surgical writer `stamp_slice.py`; only status+metadata;
+    `check_run.py` semantic-compares composition). Schema touches: `slice.yaml` status gains
+    `realized` (proposed → planned → realized) + a `/run` fill-rule; `lens/run.yaml` gains a
+    per-component `targets` block (the seam to arch, so "every part has a run target" is
+    checkable).
+- **KB grounding wired (the big change this session, at Kapil's direction).** The realize
+  lenses must ground choices in the KB — what works for us, not LLM taste — the way /vision
+  does. /run grounds every operational choice (rollout/migration/environment/cicd/runtime + each
+  target) in a best-fit `architecture/` or `technology/` learning via the **kb-search** skill
+  (un-deprecated this session — it is the condition-search engine over those two shelves, distinct
+  from `search-kb`/`kb.py` which only routes to a domain). Uncovered choices become recorded
+  `propose-kb-node` gaps; `grounding_check.py` fails the run on anything ungrounded. No new KB
+  shelves: architecture + technology serve run, ux, agentic, and arch (Kapil's call).
+- **author-run-lens** skill added (models author-architecture-lens; reads hub + arch lens + KB;
+  calls kb-search + propose-kb-node).
+
+### Retrofit KB grounding onto arch / ux / agentic — DONE (2026-06-09)
+All three already-built lenses now ground their PATTERN choices in the KB, the way /run and
+/vision do — search the architecture/technology shelves via kb-search, ground each choice in a
+matched learning, record a KB-learning-gap proposal for anything uncovered, and enforce with a
+shared `check_kb_grounding.py` (byte-identical across all three plays). Intent-first: each
+play's `reference/ice.md` gained a KB-grounding constraint + failure + recovery + scenario, the
+SKILL was recompiled (new Draft KB-search step, a Grounding-check step, agent boundary +=
+kb-search, fingerprint recomputed), and each author skill (author-architecture-lens / -ux-lens /
+-agentic-lens) gained a KB-search step + a `choices` manifest block. All three lint PASS;
+fingerprints match ice.md; grounding script smoke-tested.
+
+What grounds in the KB, per lens (the product-specific content stays ICE-grounded as before):
+- **arch** — the system-level shape (monolith/microservices/...) + each material tech pick.
+- **ux** — the visual core (palette + typography), the navigation pattern, the responsive
+  strategy. Screens stay ICE-grounded.
+- **agentic** — the control approach (guardrail tightness + handoff cadence), and only on an
+  agentic slice; the weights + axis levels stay hub/load-grounded, and an is_agent=false slice
+  has no controls so the grounding check is not run.
+
+NOTE: the KB has only architecture/ + technology/ shelves (Kapil's call: these serve all the
+realize lenses — no ux/agentic shelves needed). The deprecated `kb-search` skill was
+un-deprecated (it is the condition-search engine over those two shelves; distinct from
+`search-kb`/`kb.py` which only routes to a domain).
+
+### KB seeded to fill the run / agentic / ux gaps — 2026-06-09
+The gap audit (KB was web-product build-time only — nothing on running, agents, or UX patterns)
+was closed by seeding 15 learnings (all on the existing architecture/ + technology/ shelves, no
+new structure — content growth is the sanctioned "grows over time" path, not a locked-design
+change). KB went 21 → 36 learnings; `kb_search.py index` lists all 36; grounding resolves the
+new ids. This makes /run, /agentic, /ux genuinely groundable instead of proposal-heavy
+(agentic especially — it now matches real learnings).
+
+- **run (1):** `technology/gcp-modular-monolith-runtime` — Kapil's stance: Cloud Run + Cloud SQL
+  Postgres, cache only on proven hot paths, secure-by-default (private DB, Secret Manager, least
+  privilege, locked ingress), gradual rollout + expand-contract migrations.
+- **agentic (8), on Bedrock + GCP/Vertex (Kapil's platforms):**
+  - build — `technology/agent-building-blocks`, `architecture/agent-orchestration-patterns`,
+    `technology/agent-model-selection`
+  - control — `architecture/agent-assistive` → `architecture/agent-supervised-autonomous`
+    (autonomy ladder) + `architecture/agentic-guardrails-baseline` (the floor)
+  - run — `technology/agent-platform-bedrock-gcp`, `technology/agent-deploy-dev-uat-prod`
+    (dev→uat→prod, promotion gated on an EVAL suite not just tests, canary model/prompt changes)
+- **ux (6):** `technology/ux-{responsive-default-adaptive-on-evidence, navigation-by-shape,
+  accessibility-floor, state-and-feedback, design-system-tokens, forms-and-validation}`.
+  responsive-default-adaptive-on-evidence + accessibility-floor encode Kapil's POV; a11y floor
+  grounds the profile's a11y NFR.
+
+Provenance on each file records seeded/documented + Kapil/#434. `/learn` (E5, not built) is the
+play that will keep these growing from real outcomes.
+
+### Not built (11 command plays remaining)
 - **E5 /learn** — also absorbs the orphaned post-merge distill trigger (see ship note above).
 - **E7 /grill** — functionality level; cuts vertical-slice epics into product-os.
 - **E9 /implement, E10 /validate** — engineering.
