@@ -121,8 +121,12 @@ the right start/end pieces, then retire the superseded play(s).
 
 ### Maintenance
 - **E11** — /fix
-- **E12** — /refactor
-- **E13** — /operate
+- **E12** — /refactor — improves an existing slice without changing its behavior
+- **E13** — /enhance — extends or changes the behavior of an existing slice
+  (slice grain; distinct from /shape, which reshapes/enhances at the capability grain)
+- **E13b** — /find-drift — detects drift between the implementation and the slice/shape
+  it was built from
+- ~~/operate~~ — DROPPED (was E13). Day-to-day running is not a Garura command.
 
 ### Navigation
 - **E14** — /status
@@ -137,7 +141,9 @@ the right start/end pieces, then retire the superseded play(s).
 
 ## Count
 
-1 wipe, 3 schemas, 2 KB rebuild tasks, 2 auto-build rules, 20 plays.
+1 wipe, 3 schemas, 2 KB rebuild tasks, 2 auto-build rules, 21 plays
+(was 20 before the 2026-06-09 maintenance reshape; /operate dropped, /enhance and
+/find-drift added → net +1).
 
 ## Decisions log (forks resolved during planning)
 
@@ -183,3 +189,9 @@ the right start/end pieces, then retire the superseded play(s).
    quality = gates only (the list the ICE must pass); agentic = the 3 weights
    (cognitive/creative/logistical) + bounds (the 7 principles are build mechanics,
    not the lens).
+17. Maintenance group reshaped (2026-06-09): /operate dropped (day-to-day running
+   is not a Garura command). /enhance added — extends/changes behavior of an
+   existing slice (slice grain, vs /shape at capability grain, vs /refactor which
+   holds behavior). /find-drift added — detects drift between implementation and
+   the slice/shape it was built from; can be built on the existing `check-drift`
+   skill (`core/components/skills/check-drift`).

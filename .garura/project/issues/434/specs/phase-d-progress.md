@@ -151,7 +151,8 @@ evidence flag, changeset, on-default-branch) by orchestrator inference instead o
 
 ## Phase E — ProductOS command plays (audited 2026-06-09)
 
-The model is 20 commands. Two groups are complete; strategy + realization are partway;
+The model is 21 commands (was 20 before the 2026-06-09 maintenance reshape; /operate
+dropped, /enhance + /find-drift added — see realignment-plan decision 17). Two groups are complete; strategy + realization are partway;
 maintenance/navigation barely started. Build state below is by what is actually on disk
 (a new ProductOS play = compiled `SKILL.md` + `reference/ice.md` + `scripts/`). The
 `/realize` command (old E6) is superseded by the five-lens split locked in
@@ -262,13 +263,17 @@ new ids. This makes /run, /agentic, /ux genuinely groundable instead of proposal
 Provenance on each file records seeded/documented + Kapil/#434. `/learn` (E5, not built) is the
 play that will keep these growing from real outcomes.
 
-### Not built (11 command plays remaining)
+### Not built (9 command plays remaining)
 - **E5 /learn** — also absorbs the orphaned post-merge distill trigger (see ship note above).
 - **E7 /grill** — functionality level; cuts vertical-slice epics into product-os.
 - **E9 /implement, E10 /validate** — engineering.
-- **E12 /refactor, E13 /operate** — maintenance.
+- **E12 /refactor, E13 /enhance, E13b /find-drift** — maintenance.
+  - /enhance: extends/changes behavior of an existing slice (slice grain, vs /shape's
+    capability grain; vs /refactor which holds behavior).
+  - /find-drift: detects drift between implementation and the slice/shape it was built
+    from. Build on the existing `core/components/skills/check-drift` skill.
 - **E14 /status, E15 /next** — navigation.
-- (E8 /groom DROPPED.)
+- (E8 /groom DROPPED; /operate DROPPED 2026-06-09 — day-to-day running is not a Garura command.)
 
 ### Old plays to retire (collision risk)
 These carry the old SDLC pipeline, no `ice.md`, old `garura:` namespace — NOT the new

@@ -163,9 +163,9 @@ tree. The rest do not.
   They locate or place a piece of work in the model, so they route through search-kb
   (and propose-kb-node on a miss).
 - **Do NOT use it** (engineering / maintenance / navigation / git): `/implement`,
-  `/validate`, `/fix`, `/refactor`, `/operate`, `/status`, `/next`, `/start`,
-  commit-code, `/raise`, `/review`, `/merge`. They act on already-placed work; they
-  don't fill the model.
+  `/validate`, `/fix`, `/refactor`, `/enhance`, `/find-drift`, `/status`, `/next`,
+  `/start`, commit-code, `/raise`, `/review`, `/merge`. They act on already-placed
+  work; they don't fill the model.
 
 When each productos-building play is compiled (via `/sud:create-play`), wire search-kb
 in as its placement step; leave the rest untouched.
