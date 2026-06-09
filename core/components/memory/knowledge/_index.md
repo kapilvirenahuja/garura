@@ -47,7 +47,14 @@ technology) — the model reads whatever is present.
 - Design: `_DESIGN.md`. Template: `_TEMPLATE.md` (frontmatter facets).
 - Search engine v1: `core/components/skills/kb-search/` (skill + `kb_search.py`:
   index / get / grep). The model does the matching; the script serves structure.
-- Seeded content: the simulator ladder under `architecture/` (throwaway →
-  internal → monetized).
-- Growing over time: the domain shelf and more architecture learnings, added as
-  we build and as `/learn` writes them back.
+- Seeded content:
+  - `domains/` — 10 domain learnings.
+  - `architecture/` — the simulator ladder (throwaway → internal → monetized) plus
+    the structural ladder: `modular-monolith` → `microservices`.
+  - `technology/` — stack choices: `frontend-react-nextjs` (+ its companion
+    `frontend-component-orchestration` pattern), `backend-nodejs`,
+    `backend-java-spring`, `astro-content-sites`, and the `quick-prototype-html-first`
+    flow (HTML-first → Astro to share).
+- Growing over time: more learnings on every shelf, added as we build and as
+  `/learn` writes them back. The technology and architecture shelves were recovered
+  from the prior KB and authored fresh under #434.
