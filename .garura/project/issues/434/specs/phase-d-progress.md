@@ -163,14 +163,32 @@ maintenance/navigation barely started. Build state below is by what is actually 
   merge-change (/merge). All five compiled, lint PASS, deployed.
 - **Strategy (E1–E4) — DONE.** vision (43b1545), understand (43b1545), shape (7f43545),
   roadmap (6d8064f). E5 /learn NOT built.
-- **Realization lens 1 of 5 — DONE.** quality (ecf0e19).
+- **Realization lenses 1–3 of 5 — DONE and SLICE-SCOPED.** quality, ux, agentic — all three
+  built and reworked to run on a **slice** (not a capability), lint PASS + apply round-trip
+  green (slice record byte-untouched). See the slice update below.
 - **Maintenance E11 /fix — DONE** as fix-bug (Phase E11 section above). First consumer play
   of the D2 pipeline.
 
+### Realize reworked: the SLICE is the unit (2026-06-09)
+- The realize lenses run **one slice per run**, not one capability — the slice is the
+  deliverable; you pick one and run quality → ux → agentic → arch → run on it, then ship it.
+- Lenses live ON the slice: `{domain}/slices/{slice-id}/lens/{type}.yaml` (+ `decisions/`),
+  beside the flat slice record. Shared envelope key is now `slice_ref`. /shape + /roadmap
+  untouched (their slice globs don't see the lens subfolder — Option L).
+- New shared script `check_ready_slice.py` resolves the slice + every functionality `ice_ref`
+  (the hub, may span capabilities) and **fails loud** on an unresolved ref. apply/check work
+  on the slice folder unchanged; the slice record is never written (apply allowlist + a `cmp`
+  guard).
+- **agentic redefined** (how garura thinks about agentic): an `is_agent` gate by how much
+  load to offload, then five axes on one **low/medium/high/xhigh/ultra** scale — three
+  weights (cognitive/creative/logistical = degree of offload) + two controls (guardrails,
+  handoff). No "none" (the gate handles it). Schema `lens/agentic.yaml` rewritten.
+- Verified against the live token-burn-dash model (real slice spanning two capabilities).
+
 ### Not built (12 command plays remaining)
-- **Realize lenses 2–5** (in build order): **/ux → /agentic → /arch → /run.** Next up: /ux.
-  Each is position `none`, one capability per run, reads capability ICE + profile, writes its
-  one lens. /run (last) also runs the lines-up check and stamps the capability done.
+- **Realize lenses 4–5** (in build order): **/arch → /run.** They inherit the slice model
+  from the start (copy `check_ready_slice.py`, slice_ref, lens on the slice). /run (last) also
+  runs the lines-up check and stamps the slice done.
 - **E5 /learn** — also absorbs the orphaned post-merge distill trigger (see ship note above).
 - **E7 /grill** — functionality level; cuts vertical-slice epics into product-os.
 - **E9 /implement, E10 /validate** — engineering.

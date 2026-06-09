@@ -2,6 +2,19 @@
 
 Issue: #434. Supersedes the single `/realize` play in `realignment-plan.md` (E6).
 
+## UPDATE 2026-06-09 — the SLICE is the unit of realization (supersedes "per capability")
+
+The realize lenses run on **one slice per run**, NOT one capability. The slice (from
+/shape) is the vertical product increment — the thing you actually deliver. You pick a
+slice and run quality → ux → agentic → arch → run on it, then ship it; you don't realize
+every slice first. A slice has no ICE of its own — its **hub** is the union of its
+functionalities' ICE (each `functionalities[].ice_ref`, which may span several capabilities)
+plus the profile. The lenses are stored ON the slice:
+`{domain}/slices/{slice-id}/lens/{type}.yaml` (+ `decisions/`), beside the flat slice
+record. The shared lens envelope key is `slice_ref`. Readiness = the slice exists (shaped)
+and every functionality ICE resolves + is rich; an unresolved ice_ref fails loud.
+Everywhere below that says "capability", read "slice".
+
 ## Why
 
 `/realize` is jargon — nobody can guess what it does. Replace it with five named
@@ -54,6 +67,10 @@ arch defines parts to meet those needs and ties back; run targets arch's parts.
 ## Build order
 
 Build the plays in sequence order, starting with `/quality`. Each is a play via
-play-creator: position `none` (model-building), one capability per run, reads the
-capability ICE + profile, writes its one lens, marks it done. `/run` (last) also
-runs the lines-up check and stamps the capability done.
+play-creator: position `none` (model-building), **one slice per run**, reads the slice's
+hub (its functionalities' ICE + profile), writes its one lens to the slice, marks it done.
+`/run` (last) also runs the lines-up check and stamps the slice done.
+
+Build status (2026-06-09): /quality, /ux, /agentic built AND slice-scoped (lint + apply
+round-trip green; slice record untouched). /arch, /run pending — they inherit the slice
+model from the start.
