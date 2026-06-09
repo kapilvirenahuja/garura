@@ -1,0 +1,83 @@
+# Slice Schema — v1
+#
+# A SLICE is a vertical PRODUCT INCREMENT: a bundle of functionalities — possibly
+# across several capabilities of ONE domain — that together deliver something usable.
+# It is what /shape hands you as a buildable unit ("pick a slice, open its ICE, build
+# it"), and what /roadmap plans (order, dependencies, effort).
+#
+# NOT an epic. An `epic` (epic.yaml) is the engineering delivery grain — one
+# functionality sliced end-to-end through its components, cut by /grill. A `slice` is
+# higher: it groups whole functionalities into a usable increment. The chain is:
+#   /shape -> slices (this schema)
+#   /roadmap -> plans the slices (order + dependencies + effort, written here)
+#   /grill -> per functionality inside a chosen slice, cuts epics (epic.yaml)
+#
+# A slice REFERENCES functionality ICE — it never copies it. The functionality ICE
+# stays the single source of truth for each unit.
+#
+# Lifecycle: PERMANENT (lives in product-os with the structure). One domain's slices
+# live under that domain; /roadmap reads slices across all domains to plan globally.
+
+schema:
+  name: slice
+  version: 1
+  persistence: permanent
+
+# ---- The slice record ------------------------------------------------------
+slice:
+  id: string                # stable, derived from name/slug
+  domain_ref: string        # the domain this slice belongs to (slices are domain-scoped)
+  name: string              # e.g. "Token data spine"
+  outcome: string           # one line: the usable thing this increment delivers
+
+  # the functionalities this slice bundles — REFERENCES, never copies of ICE
+  functionalities:
+    - functionality_ref: string   # functionality node id
+      ice_ref: string             # path/id of that functionality's ICE (the source of truth)
+      delivery: string            # full | partial — is this functionality fully delivered
+                                  # in this slice, or only partially used / deepened later
+
+  dependency_notes: string  # human note on what this slice leans on (free text from /shape)
+  acceptance_intent: string # what "this increment works" means (slice-level, not per-ICE)
+  status: string            # proposed (from /shape) | planned (after /roadmap) | deferred
+
+  # ---- filled by /roadmap (the plan) ----
+  order: integer            # global build position across all slices; null until planned
+  effort: string            # /roadmap's size estimate for this slice; null until planned
+  depends_on: [string]      # other slice ids that must come first (resolved by /roadmap,
+                            # within and across domains); null/[] until planned
+
+  metadata:
+    created_by: string      # /shape
+    updated_by: string      # /roadmap when it plans
+    version: integer
+
+# ---- The deferred bucket (per domain) --------------------------------------
+# Functionalities /shape selected but did not place in any slice yet. Every selected
+# functionality MUST appear in at least one slice OR here — nothing falls through.
+deferred:
+  domain_ref: string
+  functionalities: [string] # functionality node ids parked for a later slice
+  reason: string            # one line on why deferred
+
+# ---- Storage ----------------------------------------------------------------
+# Per domain:
+#   product-os/{domain}/slices/{slice-id}.yaml   # one file per slice
+#   product-os/{domain}/slices/_deferred.yaml    # the deferred bucket (if any)
+# A functionality may appear in MORE THAN ONE slice (deepened over time).
+
+# ---- Fill rules -------------------------------------------------------------
+fill_rules:
+  - play: "/shape"
+    writes: "creates the slices for its one domain — name, outcome, the bundled
+             functionalities (referencing their ICE), dependency_notes,
+             acceptance_intent, delivery full/partial; and the _deferred bucket.
+             Does NOT set order, effort, or resolved depends_on."
+  - play: "/roadmap"
+    writes: "the plan onto existing slices across all domains — order, effort, and
+             resolved depends_on; flips status proposed -> planned (or deferred).
+             Never creates a slice or edits its composition (that is /shape's)."
+
+# ---- Enhance rules ----------------------------------------------------------
+enhance_rules:
+  governed_by: "PARKED — see product-os.yaml (future schema-evolution play)"

@@ -27,7 +27,9 @@ node:
   ice_ref: string         # id of this node's ICE record (null until seeded)
   decision_refs: [string] # ids of decisions (ADRs) affecting this node
   journey_refs: [string]  # ids of journeys linked to this node
-  priority: integer       # set by /roadmap; null until prioritized
+  priority: integer       # DEPRECATED for v1 — /roadmap now plans SLICES, not nodes
+                          # (see slice.yaml: order/effort/depends_on on the slice).
+                          # Left for back-compat; null on the node.
   metadata:
     created_by: string
     updated_by: string
@@ -73,9 +75,13 @@ fill_rules:
   - play: "/shape"
     writes: "profile-driven selection: confirm/prune capabilities and select
              functionalities against the profile + KB, plus personas, journeys.
-             Re-runs when the profile changes."
+             ALSO writes the domain's SLICES (slice.yaml) — bundling its
+             functionalities into usable increments, referencing their ICE — plus the
+             _deferred bucket. Re-runs when the profile changes."
   - play: "/roadmap"
-    writes: "priority"
+    writes: "the PLAN onto slices (slice.yaml): order, effort, resolved depends_on,
+             across all shaped domains. It does NOT write node.priority (deprecated)
+             and does NOT create/edit slice composition (that is /shape's)."
   - play: "/learn"
     writes: "status changes driven by real-world outcomes"
 
