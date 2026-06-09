@@ -30,7 +30,7 @@ lens:
 
 | File | Holds |
 |------|-------|
-| `ux.yaml` | screens, states, flows, accessibility, design-system binding |
+| `ux.yaml` | screens (with low-fidelity layout), states, visual core (color + typography). a11y lives in the profile; flows are derived by the build |
 | `architecture.yaml` | components, contracts, stack (versions), vertical-build |
 | `run.yaml` | environments, rollout, migrations, config/secrets, CI/CD |
 | `quality.yaml` | the gates the ICE must pass |

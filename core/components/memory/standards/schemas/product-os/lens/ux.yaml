@@ -1,26 +1,27 @@
 # Lens: ux  (LOCKED #434) — shared envelope in lens/_index.md
+#
+# Scope (#434): the ux lens drives INTENT, not a full spec. It anchors the experience
+# with just enough that the build can figure the rest on the fly:
+#   - screens (each with a low-fidelity layout) that make the shaped slices visible,
+#   - the states each screen can hold,
+#   - the product's visual core (color + typography).
+# Accessibility is NOT restated here — it lives in the product profile, and the build
+# connects it. Flows are NOT specified here — the build derives them from the screens +
+# the capability's journeys.
 
 schema:
   name: lens
   type: ux
 
 content:
-  screens:              # the surfaces this capability needs
+  screens:              # the surfaces this capability needs, made visible to validate the shape
     - name: string
       purpose: string
+      layout: string    # low-fidelity layout — the blocks/regions on the screen and what
+                        # each holds (where the slice's functionality sits). NOT pixel design.
   states:               # per screen
     - screen: string
       states: [string]  # idle | submitting | error | locked | success | empty | loading
-  flows:                # journeys across screens (tie to persona/journey records)
-    - name: string
-      persona_ref: string
-      steps: [string]   # no dead ends — every state has a way forward
-  accessibility:        # a11y posture, from the box's gate
-    wcag: string        # e.g. "2.1 AA"
-    focus: string       # focus management
-    targets: string     # min touch targets
-    announcements: string  # errors announced to screen readers
-  design_system:        # binding
-    system: string          # the design system
-    component_model: string # e.g. "Primitive -> Block -> Card" (KB technology learning)
-    surface: string         # e.g. "static web tier on CDN"
+  design_system:        # the product's visual core (set once, referenced by every capability)
+    palette: string     # the core colors + mood (e.g. "ink #11181C on paper #FCFCFD, brand teal #0E7C86")
+    typography: string  # the type character (e.g. "Inter for UI, Spectral for long-form")
