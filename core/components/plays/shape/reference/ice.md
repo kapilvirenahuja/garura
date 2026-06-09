@@ -9,10 +9,18 @@ Given one domain whose capabilities /understand has enriched and whose product
 profile is firmed (`set`), select what to build: confirm the capabilities that stay
 (and prune the ones that don't), choose the functionalities to build under each kept
 capability, and author each functionality's build-unit ICE, the personas it serves,
-and the journeys those personas travel. /shape selects **against** the firmed box —
-it reads the profile to judge fit but never writes it. A selection that would need
-more than the box halts for the human to run /understand. One domain per run; one
-human checkpoint approves the whole selection bundle before anything persists.
+and the journeys those personas travel. Then bundle those functionalities into the
+domain's **vertical slices** — usable product increments that may cross capabilities,
+each referencing its functionalities' ICE (never copying it). /shape selects
+**against** the firmed box — it reads the profile to judge fit but never writes it. A
+selection that would need more than the box halts for the human to run /understand.
+One domain per run; one human checkpoint approves the whole selection bundle before
+anything persists.
+
+/shape produces the **scope map + the slices** — it does NOT order the slices, size
+them, or resolve cross-slice dependencies. That plan (order, effort, dependencies) is
+/roadmap's job. So /shape's output is a product breakdown you can pick a slice from
+and build, not a build sequence.
 
 Pipeline position: **none**. /shape is a strategic, model-building play in the
 shaping pipeline. It opens no delivery issue and cuts no branch, so the D2 rule
@@ -51,10 +59,22 @@ product model directly.
   Pruning marks a node `deprecated` (never hard-deletes); an existing ICE or decision
   is superseded by a new record, never overwritten in place.
 - C9 — There is exactly one human checkpoint, presenting the domain's selection bundle
-  — kept and pruned capabilities, selected functionalities, personas, and journeys.
-  Nothing is persisted before the checkpoint is approved.
+  — kept and pruned capabilities, selected functionalities, personas, journeys, AND the
+  vertical slices (with their bundled functionalities and the deferred bucket). Nothing
+  is persisted before the checkpoint is approved.
 - C10 — Decisions: every prune and every material selection choice is recorded as a
   decision (ADR) at the right level (capability or functionality).
+- C11 — /shape produces the domain's vertical slices: each slice (slice v1) bundles
+  selected functionalities — possibly across capabilities of THIS domain — into a
+  usable increment, with a name, an outcome, an acceptance intent, and a full/partial
+  flag per functionality. A slice REFERENCES each functionality's ICE by path; it never
+  copies ICE content (the functionality ICE stays the single source of truth).
+- C12 — Slice coverage: every selected functionality appears in at least one slice OR
+  in the explicit `_deferred` bucket — nothing selected is left unplaced. A
+  functionality MAY appear in more than one slice (deepened over time).
+- C13 — /shape stops at slice composition. It never writes a slice's `order`, `effort`,
+  or resolved `depends_on` — that plan is /roadmap's. Free-text `dependency_notes` on a
+  slice are allowed; resolved cross-slice ordering is not.
 
 ### Failure conditions
 
@@ -76,6 +96,12 @@ product model directly.
   journey, or functionality.
 - F8 — The selection was persisted without the human approving the checkpoint.
 - F9 — A prune or a material selection was made with no decision recorded.
+- F10 — A selected functionality is in neither a slice nor the `_deferred` bucket — it
+  fell through unplaced.
+- F11 — A slice copied ICE content instead of referencing it by path, or references a
+  functionality with no resolvable ICE.
+- F12 — /shape wrote a slice's `order`, `effort`, or resolved `depends_on` — it reached
+  into /roadmap's plan.
 
 ## Expectation
 
@@ -107,9 +133,21 @@ product model directly.
   after the first; the second run's written set holds only genuinely new selections.
 - S6 — (QA engineer, the checkpoint) Given the selection bundle is ready, when the
   checkpoint is presented, then it shows the kept and pruned capabilities, the selected
-  functionalities, the personas, and the journeys, inline, before any write. Measure:
-  each of those sections is present in the checkpoint; no product-model file was
-  written before the approval.
+  functionalities, the personas, the journeys, AND the vertical slices (with the
+  deferred bucket), inline, before any write. Measure: each of those sections —
+  including the slices and any deferred functionalities — is present in the checkpoint;
+  no product-model file was written before the approval.
+- S7 — (delivery lead, slices) Given the selection is drafted, when the slices are
+  inspected, then each slice bundles functionalities into a usable increment and points
+  at their ICE rather than copying it. Measure: each `slices/{id}.yaml` has a name, an
+  outcome, an acceptance_intent, and a non-empty `functionalities` list where every
+  entry carries a `functionality_ref` and an `ice_ref` that resolves to an existing ICE;
+  no slice file embeds ICE body content; no slice carries `order`, `effort`, or resolved
+  `depends_on`.
+- S8 — (planner, full coverage) Given the slices and the deferred bucket, when the
+  selected functionalities are checked, then every one is placed. Measure: the union of
+  all slices' `functionality_ref`s and the `_deferred` bucket's functionalities equals
+  the set of selected functionalities for the domain; none is missing from both.
 
 ### Recovery (one per failure condition)
 
@@ -143,3 +181,12 @@ product model directly.
 - REC9 (F9) — trigger: a prune or material selection with no decision record.
   direction: write the decision (ADR) for each prune and material selection before
   persisting. handoff: autonomous.
+- REC10 (F10) — trigger: a selected functionality is in neither a slice nor the
+  `_deferred` bucket. direction: place it — add it to an appropriate slice, or record it
+  in `_deferred` with a reason — before persisting. handoff: autonomous.
+- REC11 (F11) — trigger: a slice copied ICE content, or references a functionality whose
+  ICE does not resolve. direction: replace the copied content with an `ice_ref` path, or
+  fix the reference to point at the real ICE; never duplicate ICE. handoff: autonomous.
+- REC12 (F12) — trigger: a slice carries `order`, `effort`, or resolved `depends_on`.
+  direction: strip those fields — /shape composes slices; /roadmap plans them. handoff:
+  autonomous.

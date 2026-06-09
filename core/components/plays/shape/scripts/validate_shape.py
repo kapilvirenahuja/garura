@@ -77,6 +77,7 @@ def main(argv=None):
         persona_ids |= collect_persona_ids(os.path.join(args.product_base, "product-os"))
 
     # --- functionality nodes -------------------------------------------------
+    selected_fns = set()        # ids of all functionalities selected in this draft
     for node in glob.glob(os.path.join(draft_root, "**", "functionalities", "*", "node.yaml"),
                           recursive=True):
         counts["functionality"] += 1
@@ -88,6 +89,8 @@ def main(argv=None):
             errors.append(f"{node}: type is '{n.get('type')}', must be functionality (F2)")
         if _empty(n.get("parent")):
             errors.append(f"{node}: functionality has no parent capability (F4)")
+        if n.get("id"):
+            selected_fns.add(n["id"])
 
     # --- functionality ICE ---------------------------------------------------
     for ice_path in glob.glob(os.path.join(draft_root, "**", "functionalities", "*", "ice.yaml"),
@@ -142,6 +145,59 @@ def main(argv=None):
         for fn in cap.get("functionalities") or []:
             if _empty(fn.get("grounding")):
                 errors.append(f"functionality '{fn.get('id','<fn>')}' has no grounding (C3/F3)")
+
+    # --- slices (C11/C12/C13 -> F10/F11/F12) ---------------------------------
+    counts["slice"] = 0
+    placed_fns = set()              # functionality ids that landed in some slice
+    PLAN_KEYS = ("order", "effort", "depends_on")
+    ICE_BODY_KEYS = ("ice", "intent", "context", "expectations")  # signs of copied ICE
+    for sp in glob.glob(os.path.join(draft_root, "**", "slices", "*.yaml"), recursive=True):
+        if os.path.basename(sp) == "_deferred.yaml":
+            continue
+        counts["slice"] += 1
+        sl = (load(sp).get("slice") or {})
+        for f in ("id", "domain_ref", "name", "outcome", "acceptance_intent", "functionalities"):
+            if _empty(sl.get(f)):
+                errors.append(f"{sp}: slice missing '{f}' (F2)")
+        # C13/F12 — shape must not plan
+        for k in PLAN_KEYS:
+            if not _empty(sl.get(k)):
+                errors.append(f"{sp}: slice carries '{k}' — that is /roadmap's plan, not /shape (F12)")
+        for entry in sl.get("functionalities") or []:
+            if not isinstance(entry, dict):
+                errors.append(f"{sp}: functionality entry is not a mapping (F11)")
+                continue
+            fref = entry.get("functionality_ref")
+            iref = entry.get("ice_ref")
+            if _empty(fref) or _empty(iref):
+                errors.append(f"{sp}: slice functionality entry missing functionality_ref/ice_ref (F11)")
+            else:
+                placed_fns.add(fref)
+                # C11/F11 — referenced ICE must resolve (draft first, then live model)
+                cands = [os.path.join(args.draft, iref), iref]
+                if args.product_base:
+                    cands.append(os.path.join(args.product_base, iref))
+                if not any(os.path.isfile(c) for c in cands):
+                    errors.append(f"{sp}: ice_ref '{iref}' resolves to no ICE file (F11)")
+            # C11/F11 — no copied ICE body inside the slice entry
+            for bad in ICE_BODY_KEYS:
+                if bad in entry:
+                    errors.append(f"{sp}: slice embeds ICE content ('{bad}') — reference, don't copy (F11)")
+            if entry.get("delivery") not in ("full", "partial"):
+                errors.append(f"{sp}: functionality '{fref}' delivery must be full|partial (F2)")
+
+    # deferred bucket
+    deferred_fns = set()
+    for dp in glob.glob(os.path.join(draft_root, "**", "slices", "_deferred.yaml"), recursive=True):
+        dd = (load(dp).get("deferred") or {})
+        for fid in dd.get("functionalities") or []:
+            deferred_fns.add(fid)
+
+    # C12/F10 — every selected functionality is in a slice or the deferred bucket
+    unplaced = selected_fns - placed_fns - deferred_fns
+    if unplaced:
+        errors.append(f"selected functionalities placed in no slice and not deferred: "
+                      f"{sorted(unplaced)} (C12/F10)")
 
     result = {"ok": not errors, "errors": errors, "counts": counts}
     print(json.dumps(result, indent=2))

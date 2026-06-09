@@ -1,6 +1,6 @@
 ---
 name: author-shape-bundle
-description: Draft /shape's selection bundle for one domain — confirm or prune each capability against the firmed profile + KB, select the functionalities to build, and author each functionality's build-unit ICE, the persona records, and the journey records, plus the decisions for every prune and material selection. Writes a draft only, never the live model, with stable ids so re-runs don't duplicate. Generative artifact production for the /shape play.
+description: Draft /shape's selection bundle for one domain — confirm or prune each capability against the firmed profile + KB, select the functionalities to build, author each functionality's build-unit ICE, the persona and journey records, the decisions, AND the domain's vertical slices (usable increments bundling functionalities, referencing their ICE, with a deferred bucket). Writes a draft only, never the live model, with stable ids so re-runs don't duplicate. Slices carry no order/effort/dependencies — that is /roadmap's plan. Generative artifact production for the /shape play.
 version: 0.1.0
 user-invocable: false
 model: opus
@@ -64,10 +64,22 @@ ids are non-negotiable.
 6. **Record decisions.** One decision (ADR) per prune and per material selection
    choice, at the right level (capability or functionality).
 
-7. **Write the draft + manifest.** Write the bundle under `draft_dir` mirroring the
+7. **Compose vertical slices.** Bundle the selected functionalities into the domain's
+   slices (slice v1) — usable increments that may cross capabilities of THIS domain.
+   For each slice: a stable id (from name/slug), a name, an outcome (the usable thing
+   it delivers), an `acceptance_intent`, and a `functionalities` list where each entry
+   carries the `functionality_ref`, the `ice_ref` (the path to that functionality's
+   ICE — a REFERENCE, never a copy), and a `delivery` flag (`full` | `partial`). Add
+   free-text `dependency_notes` if useful. Do NOT set `order`, `effort`, or resolved
+   `depends_on` — that is /roadmap's plan. Every selected functionality must land in at
+   least one slice OR in the `_deferred` bucket (a list of functionality ids parked for
+   later, with a reason). A functionality may appear in more than one slice.
+
+8. **Write the draft + manifest.** Write the bundle under `draft_dir` mirroring the
    live model's relative paths, plus a `shape-manifest.yaml` carrying the keep/prune
    list, the status flips, the grounding per kept capability + selected functionality,
-   and the stable ids — so the play's validate, apply, and check steps are mechanical.
+   the slices + deferred bucket, and the stable ids — so the play's validate, apply, and
+   check steps are mechanical.
 
 ## Output — the draft bundle
 
@@ -79,7 +91,31 @@ ids are non-negotiable.
     personas/{persona-id}.yaml
     journeys/{journey-id}.yaml
     decisions/{decision-id}.yaml
+  product-os/{domain}/
+    slices/{slice-id}.yaml                       # slice v1 — bundles functionalities, refs ICE
+    slices/_deferred.yaml                        # functionalities parked for later (if any)
   shape-manifest.yaml
+```
+
+A slice file (`slices/{slice-id}.yaml`) references ICE, never copies it:
+
+```yaml
+slice:
+  id: slice-token-data-spine
+  domain_ref: ai-usage-intelligence
+  name: "Token data spine"
+  outcome: "Trusted per-tool token burn lands and reconciles"
+  functionalities:
+    - functionality_ref: fn-ai-tool-source-ingest
+      ice_ref: product-os/ai-usage-intelligence/tool-burn-accounting/functionalities/ai-tool-source-ingest/ice.yaml
+      delivery: full
+    - functionality_ref: fn-source-token-reconciliation
+      ice_ref: product-os/ai-usage-intelligence/tool-burn-accounting/functionalities/source-token-reconciliation/ice.yaml
+      delivery: full
+  dependency_notes: "needs the shared trust contract"
+  acceptance_intent: "ingested tokens reconcile to source within tolerance"
+  status: proposed
+  # order / effort / depends_on intentionally absent — /roadmap fills these
 ```
 
 `shape-manifest.yaml`:
@@ -101,6 +137,11 @@ shape:
   journeys: [journey-first-guest-checkout]
   decisions: [dec-prune-cap-wishlist, dec-select-fn-guest-checkout]
   deferred_out_of_box: []                         # functionalities left for /understand (box move)
+  slices:                                         # the domain's vertical slices
+    - id: slice-token-data-spine
+      functionalities: [fn-ai-tool-source-ingest, fn-source-token-reconciliation]
+  deferred_functionalities: []                    # selected but not yet placed in a slice
+                                                  # (mirrors slices/_deferred.yaml)
 ```
 
 Return the enriched contract with the `draft_dir` and `shape-manifest.yaml` path —
@@ -118,6 +159,13 @@ paths, never inline content.
 - **Status + create only.** Draft new functionality/persona/journey/decision records
   and capability status flips; never reparent, rename, or delete a node, and never edit
   a capability beyond its status (C7).
+- **Slices reference ICE.** A slice points at each functionality's ICE by path; it never
+  copies ICE content (C11). The functionality ICE stays the single source of truth.
+- **Cover every functionality.** Every selected functionality lands in a slice or the
+  `_deferred` bucket — nothing unplaced (C12). A functionality may appear in more than
+  one slice.
+- **Compose, don't plan.** Slices carry no `order`, `effort`, or resolved `depends_on` —
+  that is /roadmap's job (C13). Free-text `dependency_notes` are fine.
 - **Light functionality ICE.** Functionality-specific goals + scope + persona refs;
   not a re-do of capability enrichment, not epic acceptance (C2).
 - **Draft only.** Write under `draft_dir`; never touch the live model.
