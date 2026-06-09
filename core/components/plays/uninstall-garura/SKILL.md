@@ -1,17 +1,17 @@
 ---
 name: uninstall-garura
-description: 'Remove Garura from a target project or repository — the reverse of install-garura. Reads the target''s install manifest and deletes exactly the .claude skills/agents/plays and .garura bootstrap files that install-garura created, while preserving the user''s own work (the issue/STM tree) unless explicitly told to purge. Use when the user wants to uninstall, remove, tear down, disable, or clean up Garura from a folder or repo — "uninstall garura from X", "remove garura", "tear down garura in this repo", "undo the garura install". Takes the target path as its argument. For the forward direction, see install-garura.'
+description: 'Remove Garura from a target project or repository — the reverse of sud:install-garura. Reads the target''s install manifest and deletes exactly the host skills/agents/plays (.claude for Claude Code, .agents for Codex) and .garura bootstrap files that sud:install-garura created, while preserving the user''s own work (the issue/STM tree) unless explicitly told to purge. Use when the user wants to uninstall, remove, tear down, disable, or clean up Garura from a folder or repo — "uninstall garura from X", "remove garura", "tear down garura in this repo", "undo the garura install". Takes the target path as its argument. For the forward direction, see sud:install-garura.'
 user-invocable: true
 ---
 
 # uninstall-garura
 
-Remove Garura from a **target** project — undo what `install-garura` did there. You run this
+Remove Garura from a **target** project — undo what `sud:install-garura` did there. You run this
 from the garura repo; the target is the folder or repo the user names.
 
 ## How this play is built (read this first)
 
-This is a **bootstrap meta-play** — like install-garura, hand-authored (not compiled from an
+This is a **bootstrap meta-play** — like sud:install-garura, hand-authored (not compiled from an
 ICE source) and **harness-led**: the play decides and reports, a bundled script does the
 deterministic file work. The mechanical removal lives in
 [`scripts/uninstall.py`](scripts/uninstall.py). Don't re-implement deletions in prose — call
@@ -19,7 +19,7 @@ the script and reason about its result.
 
 ## What makes this safe: the manifest
 
-`install-garura` writes `.garura/install-manifest.json` in the target, recording the exact set
+`sud:install-garura` writes `.garura/install-manifest.json` in the target, recording the exact set
 of skills, agents, plays, config, CLAUDE.md, and the shared-memory path it created.
 `uninstall-garura` reads that manifest and removes **only that set**. It never guesses and
 never removes a file it cannot prove the installer placed. No manifest means nothing was

@@ -3,7 +3,7 @@
 uninstall.py — remove Garura from a target project.
 
 The mechanical hand of the `uninstall-garura` play, and the exact reverse of
-`install-garura`. It reads the target's `.garura/install-manifest.json` — which
+`sud:install-garura`. It reads the target's `.garura/install-manifest.json` — which
 records every skill/agent/play/config/CLAUDE.md/memory path install placed — and
 removes precisely that set. It never guesses and never deletes a file it cannot
 prove the installer created.
@@ -88,18 +88,43 @@ def uninstall(target, *, purge, quiet, dry):
     rec = manifest.get("record", {})
     removed = []
     claude = os.path.join(target, ".claude")
+    agents_dir = os.path.join(target, ".agents")
 
-    # skills + plays both live under .claude/skills/<name>
-    for name in rec.get("skills", []) + rec.get("plays", []):
-        rm_dir(os.path.join(claude, "skills", name), removed, dry)
-    for name in rec.get("agents", []):
-        rm_file(os.path.join(claude, "agents", name), removed, dry)
-    # target-local config the installer wrote
+    if "components" in rec:
+        # v2 manifest — the adapter-based installer records the exact
+        # target-relative path of every component it wrote (claude: .claude/*,
+        # codex: .agents/skills/*). Remove precisely those.
+        for rel in rec.get("components", []):
+            p = os.path.join(target, rel)
+            if os.path.isdir(p):
+                rm_dir(p, removed, dry)
+            else:
+                rm_file(p, removed, dry)
+        # instruction surface: only the .new variant we wrote (never the user's
+        # own CLAUDE.md / AGENTS.md)
+        surface = rec.get("instruction_surface")
+        if surface and surface.endswith(".new"):
+            rm_file(os.path.join(target, surface), removed, dry)
+        # machine-global host config (Codex model/sandbox profiles): purge-only,
+        # exact paths, same rule as shared memory
+        for g in rec.get("global_files", []):
+            if purge:
+                rm_file(g, removed, dry)
+                info(quiet, f"  purged host config {g}")
+            else:
+                info(quiet, f"  kept host config {g} (use --purge to remove)")
+    else:
+        # v1 manifest — legacy flat copier (skills/plays/agents under .claude)
+        for name in rec.get("skills", []) + rec.get("plays", []):
+            rm_dir(os.path.join(claude, "skills", name), removed, dry)
+        for name in rec.get("agents", []):
+            rm_file(os.path.join(claude, "agents", name), removed, dry)
+        if rec.get("claude_md") == "CLAUDE.md.new":
+            rm_file(os.path.join(target, "CLAUDE.md.new"), removed, dry)
+
+    # target-local config the installer wrote (both manifest formats)
     if rec.get("config"):
         rm_file(os.path.join(target, rec["config"]), removed, dry)
-    # CLAUDE.md only if the installer wrote the .new variant (never the user's own)
-    if rec.get("claude_md") == "CLAUDE.md.new":
-        rm_file(os.path.join(target, "CLAUDE.md.new"), removed, dry)
     # shared memory: only on explicit purge, and only the exact recorded path
     if rec.get("memory"):
         if purge:
@@ -116,6 +141,8 @@ def uninstall(target, *, purge, quiet, dry):
         os.path.join(claude, "skills"),
         os.path.join(claude, "agents"),
         claude,
+        os.path.join(agents_dir, "skills"),
+        agents_dir,
         os.path.join(target, ".garura", "core"),
         os.path.join(target, ".garura", "project", "specs"),
         os.path.join(target, ".garura", "project"),
