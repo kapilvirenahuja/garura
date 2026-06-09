@@ -4,6 +4,8 @@ description: Systematically enumerate import and call relationships across a cod
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write, Grep, Glob, Bash
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # build-dependency-graph

@@ -4,6 +4,8 @@ description: Execute generated tests against the current codebase using the dete
 user-invocable: false
 model: sonnet
 allowed-tools: Bash, Read, Write
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # run-generated-tests-isolated

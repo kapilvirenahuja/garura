@@ -3,6 +3,8 @@ name: enhance
 description: "Autonomous enhancement workflow with scope gate, two-role implementer/tester isolation, judge-gated approval, and PR checkpoint. Fills the gap between fix-it and prepare→implement→validate. Triggers: 'enhance', 'implement enhancement', 'build feature'."
 user-invocable: true
 model: opus
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # enhance

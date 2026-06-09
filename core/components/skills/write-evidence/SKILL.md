@@ -4,6 +4,8 @@ description: Write a content string to a target path inside the `.garura/` folde
 user-invocable: false
 model: haiku
 allowed-tools: Write, Bash
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # write-evidence

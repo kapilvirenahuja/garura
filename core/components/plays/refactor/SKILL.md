@@ -7,6 +7,8 @@ description: >
   structure without altering observable behaviour. Use when code is hard to read
   or change but its tests are green.
 user-invocable: true
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # garura:refactor

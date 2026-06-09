@@ -3,6 +3,8 @@ name: derive-quality-vision
 description: Read quality-profile, nfr-spec, logical architecture, and physical architecture to produce quality-vision.yaml — a vision statement plus per-ISO-25010-characteristic entries carrying vision narrative, target level, design linkage, concrete named tooling, quantified thresholds, and lifecycle gates. Merges and extends the prior quality-standards artifact.
 version: 0.1.0
 user-invocable: false
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # derive-quality-vision

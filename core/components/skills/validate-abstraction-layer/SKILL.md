@@ -4,6 +4,8 @@ description: Scan product-stage artifacts (research/, specification/, scope/) fo
 user-invocable: false
 model: haiku
 allowed-tools: Read, Write, Grep, Glob
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # validate-abstraction-layer

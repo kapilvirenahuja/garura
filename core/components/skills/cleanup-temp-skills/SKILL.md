@@ -4,6 +4,8 @@ description: Remove ephemeral tech skills synthesized during a /decode run. Dele
 user-invocable: false
 model: sonnet
 allowed-tools: Bash, Read, Write
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # cleanup-temp-skills

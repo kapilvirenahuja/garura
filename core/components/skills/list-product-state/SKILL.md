@@ -4,6 +4,8 @@ description: Render the current product state — domain → capability → feat
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Glob
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # list-product-state

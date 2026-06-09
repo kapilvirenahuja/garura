@@ -4,6 +4,8 @@ description: Read the locked intent epics from specify output and extract JTBD p
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write, Glob, Grep
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # synthesize-personas

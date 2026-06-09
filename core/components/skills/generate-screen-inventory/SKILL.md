@@ -4,6 +4,8 @@ description: For each selected capability, derive screens from the capability's 
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write, Glob, Grep
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # generate-screen-inventory

@@ -3,6 +3,8 @@ name: garura:decode
 description: "Brownfield behavior extraction with executable verification. For each feature in a codebase's feature catalog, extract business logic, data contracts, integration behaviors, and scenarios the code encodes — as three cross-linked artifact streams (feature specs, user-flow specs, cross-cutting aspect specs) — plus a tiered suite of generated tests that must pass green against the current codebase before capture. Pairs with /codify: codify captures shape, decode captures logic."
 user-invocable: true
 model: opus
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # decode

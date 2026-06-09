@@ -4,6 +4,8 @@ description: Append a structured `## Wireframe` section to every existing screen
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write, Glob, Grep, Edit
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # generate-wireframes

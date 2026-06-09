@@ -4,6 +4,8 @@ description: Scan a project's key documents and produce a concise planning summa
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Glob, Grep
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # scout-project

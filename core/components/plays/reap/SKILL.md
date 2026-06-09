@@ -3,6 +3,8 @@ name: reap
 description: Post-epic learning extraction. Reads the build trinity (prepare context baseline + implement milestones + validate verdicts) and produces taxonomy-classified learning proposals staged in STM for human review.
 user-invocable: true
 model: opus
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # reap

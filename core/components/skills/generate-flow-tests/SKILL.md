@@ -4,6 +4,8 @@ description: "Generate Tier-B E2E tests for a single flow-spec — end-to-end us
 user-invocable: false
 model: opus
 allowed-tools: Read, Write, Grep, Glob
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # generate-flow-tests

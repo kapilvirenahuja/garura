@@ -66,12 +66,16 @@ def lay_components(components, target, info):
 
     paths = []
     counts = {"agents": 0, "skills": 0, "plays": 0}
+    deprecated = 0
 
     # agents — single .md files; resolve + keep model
     src = os.path.join(components, "agents")
     if os.path.isdir(src):
         for name in sorted(os.listdir(src)):
             if common.skippable(name) or not name.endswith(".md"):
+                continue
+            if common.file_is_deprecated(os.path.join(src, name)):
+                deprecated += 1
                 continue
             dest = os.path.join(agents_dest, name)
             shutil.copy2(os.path.join(src, name), dest)
@@ -93,6 +97,9 @@ def lay_components(components, target, info):
             # (dev/iteration leftovers); skip it rather than deploy a broken one
             if not os.path.isdir(sp) or not os.path.isfile(os.path.join(sp, "SKILL.md")):
                 continue
+            if common.file_is_deprecated(os.path.join(sp, "SKILL.md")):
+                deprecated += 1
+                continue
             dest = os.path.join(skills_dest, name)
             common.copy_tree_fresh(sp, dest)
             _rewrite_md(os.path.join(dest, "SKILL.md"), drop_model=True)
@@ -100,6 +107,8 @@ def lay_components(components, target, info):
             counts[kind] += 1
         info(f"  {kind}: {counts[kind]}")
 
+    if deprecated:
+        info(f"  (skipped {deprecated} deprecated component(s))")
     return paths, counts, []
 
 

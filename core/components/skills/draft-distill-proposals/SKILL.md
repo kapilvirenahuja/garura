@@ -4,6 +4,8 @@ description: Lightweight diff-to-proposal analysis. Reads a merged PR diff and a
 user-invocable: false
 model: sonnet
 allowed-tools: Bash, Read, Write, Grep, Glob
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # draft-distill-proposals

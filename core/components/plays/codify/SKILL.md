@@ -3,6 +3,8 @@ name: garura:codify
 description: Brownfield bootstrap. Reverse-engineer a product's full LTM artifact tree from an existing codebase — producing the same file set that /specify + /design + /arch would have produced, but via code inference rather than user interview. All output is staged as proposals in STM. /garura:enrich is the only promotion gate to product LTM.
 user-invocable: true
 model: opus
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # codify

@@ -9,6 +9,8 @@ tools:
   - Write
   - Skill
   - Glob
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # doc-builder

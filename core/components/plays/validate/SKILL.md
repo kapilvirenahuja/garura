@@ -3,6 +3,8 @@ name: garura:validate
 description: "System-level verification of a deployed product against acceptance criteria, per-milestone. E2E testing via Playwright/Cypress, system-level judge evaluation, manual test scenario generation. Consumes committed code from implement for a specific milestone and locked scenarios from prepare. Produces per-milestone QA verdict: ACCEPT or REJECT. Epic-level ACCEPT requires all milestones ACCEPTED."
 user-invocable: true
 model: opus
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # validate

@@ -4,6 +4,8 @@ description: Take a feature idea (free-text description or a FEAT-ID from the pr
 user-invocable: true
 model: opus
 allowed-tools: Task, Read, Write, Grep, Glob, Skill, SendMessage, Bash
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # define

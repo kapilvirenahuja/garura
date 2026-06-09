@@ -4,6 +4,8 @@ description: Archive a closed issue's STM directory into year-month buckets
 user-invocable: false
 model: haiku
 allowed-tools: Bash, Read
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # archive-issue-stm

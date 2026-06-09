@@ -2,6 +2,8 @@
 name: check-drift
 description: "Analyze implementation drift against locked specs — compares what was built vs what was specified. Produces drift report, ADRs, debt catalog, memory items, and actionable recommendations. Use when checking for spec drift, tech drift, alignment issues, spec mismatches, or implementation review. Trigger on: 'check for drift', 'spec drift', 'tech drift', 'specs mismatch', 'spec review', 'alignment check', 'what drifted', 'implementation review'."
 user-invocable: false
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # check-drift

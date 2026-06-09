@@ -2,6 +2,8 @@
 name: "garura:capture"
 description: Accept a structured capture request from any caller, infer or accept issue type, file as a labeled GitHub Issue asynchronously, and return a crisp single-line dispatched confirmation.
 user-invocable: true
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # garura:capture

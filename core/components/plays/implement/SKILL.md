@@ -3,6 +3,8 @@ name: garura:implement
 description: "Implement a feature from a locked plan.yaml DAG through a spec-driven development loop with strict context isolation. /implement is agentic and self-locating: it reads the plan DAG plus the current branch state, determines the next runnable node itself, and runs nodes continuously following DAG edges. It halts ONLY at two boundary types — a gate node (readiness/tooling stop, auto-resumes when its exit condition clears) or a milestone node (human-acceptance stop: evals + scenario gates run and validate must confirm ACCEPTED before resuming). No milestone_id is required at invocation. Test-writer and code-builder work independently from the SPEC — builder NEVER sees test files. Judge-as-arbiter resolves stuck loops after 2 consecutive failures on the same contract."
 user-invocable: true
 model: opus
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # implement

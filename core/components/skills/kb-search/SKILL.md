@@ -1,6 +1,8 @@
 ---
 name: kb-search
 description: Search the empirical Knowledge Base for the best-fit capabilities and architecture given a product's conditions. Use during context-building (e.g. in /realize, /shape) when you need to know what worked before for a product in this situation — its stage, scale, persistence, and monetization. Returns ranked learnings with their recommendation, rationale, and provenance.
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # kb-search

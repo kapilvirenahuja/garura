@@ -3,6 +3,8 @@ name: garura:enrich
 description: Terminal stage of the Learning Pipeline. Promote tier-classified, taxonomy-tagged proposals staged in per-issue STM by distill, reap, codify, or decode into product LTM artifacts under reviewer control, then archive the processed issue STM. Sole LTM write boundary.
 user-invocable: true
 model: opus
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # garura:enrich

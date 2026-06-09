@@ -4,6 +4,8 @@ description: Parse a product idea, query web and LTM for market context, produce
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write, Glob, Grep, WebSearch, WebFetch
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # research-market-opportunity

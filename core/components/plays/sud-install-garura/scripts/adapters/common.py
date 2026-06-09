@@ -54,6 +54,27 @@ def skippable(name):
     return name.startswith(".") or name.startswith("_") or name.endswith(".bak")
 
 
+_TRUTHY = {"true", "yes", "1", "on"}
+
+
+def is_deprecated(fm_text):
+    """True if frontmatter carries `deprecated: true` (or yes/1/on)."""
+    v = frontmatter_value(fm_text, "deprecated")
+    return v is not None and str(v).strip().lower() in _TRUTHY
+
+
+def file_is_deprecated(md_path):
+    """Read a SKILL.md/agent.md and report whether it is flagged deprecated.
+
+    Deprecated components are excluded from install — the old pipeline is retired,
+    not shipped. Missing file / no frontmatter -> not deprecated.
+    """
+    if not os.path.isfile(md_path):
+        return False
+    parts = split_frontmatter(read_text(md_path))
+    return is_deprecated(parts[1]) if parts else False
+
+
 # --- filesystem helpers -------------------------------------------------------
 
 def read_text(path):

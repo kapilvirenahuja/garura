@@ -5,6 +5,8 @@ version: 0.1.0
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write, Grep, Glob
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # infer-mvp-recommendation-from-code

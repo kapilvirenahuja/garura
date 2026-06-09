@@ -6,6 +6,8 @@ model: opus
 allowed-tools: Read, Write
 category: framework
 version: 2.0.0
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # evals-creator

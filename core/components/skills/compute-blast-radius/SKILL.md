@@ -4,6 +4,8 @@ description: Given a change surface (file list) and a dependency graph, compute 
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write, Grep, Glob
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # compute-blast-radius

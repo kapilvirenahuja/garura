@@ -93,6 +93,7 @@ def lay_components(components, target, info):
 
     paths = []
     counts = {"agents": 0, "skills": 0, "plays": 0}
+    deprecated = 0
 
     # skills + plays — folders with a SKILL.md
     for kind in ("skills", "plays"):
@@ -106,6 +107,9 @@ def lay_components(components, target, info):
             md = os.path.join(sp, "SKILL.md")
             if not os.path.isdir(sp) or not os.path.isfile(md):
                 continue
+            if common.file_is_deprecated(md):
+                deprecated += 1
+                continue
             _emit_skill(md, name, sp, skills_root, paths)
             counts[kind] += 1
         info(f"  {kind}: {counts[kind]}")
@@ -116,10 +120,15 @@ def lay_components(components, target, info):
         for name in sorted(os.listdir(src)):
             if common.skippable(name) or not name.endswith(".md"):
                 continue
+            if common.file_is_deprecated(os.path.join(src, name)):
+                deprecated += 1
+                continue
             _emit_skill(os.path.join(src, name), name[:-3], None, skills_root, paths)
             counts["agents"] += 1
         info(f"  agents: {counts['agents']}")
 
+    if deprecated:
+        info(f"  (skipped {deprecated} deprecated component(s))")
     return paths, counts, []
 
 

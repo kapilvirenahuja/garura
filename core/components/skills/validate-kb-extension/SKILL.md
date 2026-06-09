@@ -4,6 +4,8 @@ description: Walk every feature in every domain-taxonomy markdown file and asser
 user-invocable: false
 model: haiku
 allowed-tools: Read, Glob, Grep, Bash
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # validate-kb-extension

@@ -4,6 +4,8 @@ description: "Extract a structured aspect-spec.yaml for a single cross-cutting c
 user-invocable: false
 model: opus
 allowed-tools: Read, Write, Grep, Glob, Skill
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # extract-aspect-spec

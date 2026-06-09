@@ -4,6 +4,8 @@ description: For each selected capability, merge project-profile-specific overri
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write, Grep
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # enrich-capabilities

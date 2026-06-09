@@ -2,6 +2,8 @@
 name: start-feature-planning
 description: Resolve issue, plan with IDD principles, create branch, deliver planning artifacts. NEVER call EnterPlanMode.
 user-invocable: true
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # start-feature-planning

@@ -3,6 +3,8 @@ name: garura:prepare
 description: "Produce implementation-ready design artifacts for an epic. Deep codebase understanding within locked architecture, blast radius analysis, interface-level LLD, 3-tier scenarios, and task DAG. Requires locked upstream artifacts from specify, design, and arch. Outputs: tech.yaml (LLD), scenarios.yaml, plan.yaml — all locked."
 user-invocable: true
 model: opus
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # prepare

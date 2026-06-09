@@ -4,6 +4,8 @@ description: Promote one approved Tier 1 enrichment proposal's ADR draft into th
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write, Glob, Bash
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # promote-adr-draft

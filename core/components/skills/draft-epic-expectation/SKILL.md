@@ -4,6 +4,8 @@ description: "Generate the Expectations block (success_scenario + recovery) for 
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write, Glob, Grep
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # draft-epic-expectation

@@ -2,6 +2,8 @@
 name: garura:arch
 description: Produce the architecture shape of the product as six artifacts — refined quality profile, systems inventory, layered logical architecture, layered physical architecture, tech stack with industry-documented patterns, and technical risk register. Every decision is grounded in upstream inputs, the user, or KB memory; nothing is invented by the play. Components in logical and physical are SELECTED from the systems inventory (Stage 1), never invented at logical-time or physical-time. Six human review checkpoints in dependency order.
 user-invocable: true
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # arch
