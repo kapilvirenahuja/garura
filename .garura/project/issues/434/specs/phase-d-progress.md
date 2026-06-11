@@ -308,14 +308,111 @@ new ids. This makes /run, /agentic, /ux genuinely groundable instead of proposal
 Provenance on each file records seeded/documented + Kapil/#434. `/learn` (E5, not built) is the
 play that will keep these growing from real outcomes.
 
-### Not built (8 command plays remaining)
+- **Engineering E9 /implement — DONE (2026-06-11).** Builds ONE ready epic (the tightest
+  box) to "specs passing, awaiting validation" — position **start** only: start-change
+  injected at the head (one issue per epic), NO end sequence (an epic merges + deletes
+  only after /validate accepts; the close chain belongs to the validation side — Kapil's
+  call, overturning the position-both draft). Absorbs /groom + old prepare's breakdown:
+  test-first plan (stories/tasks/tests/docs as a grounded DAG) in STM only, PUBLISHED to
+  the epic's issue and kept current as the working spine (project-orchestrator over
+  manage-issue/gh; config `implement.plan-tracking`, default true) — the plan survives a
+  lost session; the executor anchors to it (deviations = recorded plan revisions, never
+  silent). Spec separation kept from old implement (builder never sees tests/evals);
+  encryption dropped — isolation by sub-agent; milestone/gate taxonomy + multi-mode judge
+  dropped (build–test–judge ordering inside a piece is the agent's call, C8 structural).
+  Anti-reward-hack: steelman evals (evals-engineer → NEW author-steelman-evals) +
+  steelman verdict (quality-auditor refutes "done"; refuted → plan revisions, cap 2
+  rounds then human). Hard scripting pass (Kapil): 9 bundled scripts — preflight,
+  check_ready_epic (eligibility + box resolution), update_epic_status (surgical
+  in_delivery flip — the epic schema's /start fill executed by implement; move into
+  start-change later if wanted), validate_plan, render_plan (issue markdown +
+  fingerprint), run_gates (runs tests/lint/build mechanically; verifier only judges),
+  check_box (changed files ↔ piece reports; product-model guard), check_plan_sync (drift
+  gate), check_done (verdict assembly). Lint PASS (10 gates); 41/41 smoke checks green
+  (happy + every guard). Skills created: author-build-plan, author-steelman-evals
+  (registered in tech-designer; evals-engineer + test-engineer UN-deprecated with
+  implement-mode updates). 5 domain agents (tech-designer, test-engineer, code-builder,
+  evals-engineer, quality-auditor) — at budget; project-orchestrator + repo-orchestrator
+  utility. Checkpoint is skippable (presents only on plan open_questions). Design spec:
+  `specs/implement-design.md`. NOT deployed to local .claude/ (consumer play, fix-bug
+  precedent). **RETIRED with it:** old `garura:implement` (replaced in place),
+  `garura:prepare` (breakdown absorbed; old validate — its only other consumer — dies at
+  E10), `start-feature-planning` (+ its `prepare:` config block; live references swept
+  from standards templates + tech-designer example).
+
+- **/grill repositioned to position END (#437, P1, 2026-06-11).** Grill persists the
+  approved cut into the product model — a durable change — so the D2 rule now injects the
+  end sequence (commit-change → propose-change → review-change → merge-change) after the
+  verified persist; no more manual /commit-change (the token-burn-dash drift). ICE-first
+  via play-editor (position paragraph + F13/REC13/SE-14; fingerprint recomputed; lint
+  PASS). Grill still opens no implementation issue (/start's job). lint_play.py gained
+  **D2b** (all 4 copies): model-writing play (Apply/Persist phase, apply_*.py, or
+  `model_writes` metadata) + position none ⇒ FAIL unless `| position_exception |
+  <reason> |`; play-creator step 4b teaches it. **Follow-up:** 9 model-writing plays
+  (agentic, arch, quality, run, ux, vision, understand, shape, roadmap) are position
+  none and will gap at next compile — each needs a conscious end-vs-exception call.
+
+- **Pipeline position map applied to all 9 model-writing plays (#437, 2026-06-11).**
+  Kapil locked the pipelines: strategy = vision (start) → understand/shape (middle,
+  exception) → roadmap (end); slice = quality (start, selects the slice) →
+  ux/agentic/arch/run (middle, exception) → grill (end, done earlier); epic = implement
+  (start, done) → validate (end — DECIDED for E10); feedback = learn (start) →
+  **reconcile** (end; name locked — brings the model to match the implementation). Middles expect an
+  already-started branch, stop, and leave the branch for the next play. All nine
+  recompiled ICE-first (position paragraphs, frontmatter, start-change head injected
+  into vision + quality, end sequence injected into roadmap, position_exception
+  metadata on the six middles, fingerprints recomputed). All ten pipeline plays lint
+  PASS including the D2b check.
+
+- **Pipeline map EXTENDED (Kapil, 2026-06-11): four new commands.** Strategy grows to 5
+  (prototype opens — REFRAMED: a throwaway VISUAL model, html/css sketch, one shot for
+  early alignment, lean build-to-learn; output = the aligned story; walls: never ground
+  truth, vision interviews against the goal with the prototype as exhibit; brownfield
+  meaning open). Slice stays 6 — extract was
+  proposed and DROPPED same day (duplicated existing gates; its interview would park
+  ungoverned knowledge in STM outside the model — interview knowledge flows into
+  ICE/profile via /understand //shape instead). Epic grows to 3 (deep-review
+  play closes after /validate — PROPOSED: name collides with E19 /review = review-change,
+  suggested /audit; relation to close-chain review + verdict force open). Feedback grows
+  to 3 (capture suggested as opener → learn → reconcile) — and runs ON A SLICE (grain
+  locked 2026-06-11): one run = one delivered slice; capture harvests the signals its
+  measure lens declared, learn distills, reconcile updates that slice's model records. vision/quality keep their start
+  heads until prototype/extract land, then flip to middle. Details in
+  realignment-plan.md "Pipeline extensions".
+
+- **Lens set grows 5 → 6 (Kapil, 2026-06-11, corrected same day): measure added; data
+  folds INSIDE agentic.** measure REFRAMED (Kapil, same day): the DELIVERY measurement
+  lens — DORA, Flow, SPACE, DX (team experience) per slice; after arch, before run
+  (confirmed). CLOSED (same day): product outcomes are measured in the STRATEGY
+  pipeline, not at slice level — the measure lens is delivery-pipe measurement ONLY
+  (DORA, Flow, SPACE, DX). data is NOT a lens: the agentic lens schema gains a data-substrate block
+  (entities, ownership, groundable data, privacy/retention). Slice pipeline = 7 plays:
+  quality → ux → agentic → arch → measure → run → grill (measure before run because
+  run stamps realized and its lines-up gate must see all lenses). RIPPLE when /measure
+  is built: the five-lens hard-asserts in /run lines-up, /grill realized gate,
+  /implement check_ready_epic (LENS_TYPES) go to six, plus author-epics, B5 schemas
+  (measure.yaml; agentic data block), product-os-keeper.
+
+- **Epic pipeline locked at 3 plays (Kapil, 2026-06-11): implement → validate →
+  /launch.** launch (end, NEW — E10b) is the HITL gate: UAT/preview deploy per the run
+  lens, manual test list generated from the epic's user_check + acceptance, EVIDENCED
+  human sign-off (the #436 no-forged-evidence discipline), then the close chain merges
+  and prod rollout follows from main. /validate flips to MIDDLE and absorbs the audit
+  concerns (security, non-runnable quality bars in anger, cross-epic blast radius) —
+  the standalone audit play idea is retired. Also CLOSED same day: the measure lens is
+  delivery-pipe ONLY (DORA/Flow/SPACE/DX); product outcomes are strategy's to measure.
+
+### Not built (7 command plays remaining)
 - **E5 /learn** — also absorbs the orphaned post-merge distill trigger (see ship note above).
-- **E9 /implement, E10 /validate** — engineering.
-- **E12 /refactor, E13 /enhance, E13b /find-drift** — maintenance.
+- **E10 /validate** — engineering (E9 /implement DONE 2026-06-11, see above). Decide at its build: /validate takes `position: end` and carries the close chain (recommendation recorded in implement-design.md).
+- **E12 /refactor, E13 /enhance, E13b /reconcile** — maintenance.
   - /enhance: extends/changes behavior of an existing slice (slice grain, vs /shape's
     capability grain; vs /refactor which holds behavior).
-  - /find-drift: detects drift between implementation and the slice/shape it was built
-    from. Build on the existing `core/components/skills/check-drift` skill.
+  - /reconcile (name locked 2026-06-11; was /find-drift): brings the PRODUCT MODEL up
+    to match the implementation — product means all the schemas (strategy, shape,
+    slices, lenses). Implementation is ground truth; the model reconciles to it.
+    Position END of the feedback pipeline (learn starts it). Build on the existing
+    `core/components/skills/check-drift` skill.
 - **E14 /status, E15 /next** — navigation.
 - (E8 /groom DROPPED; /operate DROPPED 2026-06-09 — day-to-day running is not a Garura command.)
 
@@ -324,11 +421,10 @@ These carry the old SDLC pipeline, no `ice.md`, old `garura:` namespace — NOT 
 ProductOS plays. Retire each as the new play supersedes it (per realignment-plan: "as each
 new play lands, delete the old play(s) it supersedes"):
 - `arch` (`garura:arch`) → superseded by realize lens /arch
-- `implement` (`garura:implement`) → superseded by E9 /implement
 - `validate` (`garura:validate`) → superseded by E10 /validate
 - `refactor` (`garura:refactor`) → superseded by E12 /refactor
 - ~~`grill-me`~~ → RETIRED 2026-06-11 (superseded by E7 /grill; play + 3 exclusive skills + 2 exclusive agents deleted)
 - `define`, `design`, `enhance` (`garura:*`) → old SDLC shaping, superseded by vision/understand/shape
-- Also still present from the old pipeline: start-feature-planning, plus the learning plays
-  (capture, codify, decode, distill, reap, enrich, craft-ice, algorithm, prepare) — review
+- Also still present from the old pipeline: the learning plays
+  (capture, codify, decode, distill, reap, enrich, craft-ice, algorithm) — review
   for retirement vs. fold-into-/learn when E5 is built.
