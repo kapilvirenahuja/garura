@@ -24,6 +24,11 @@ play declared `position: end`. Positions are start and end only — there is no 
 - C6 — Sensitive files (secrets, credentials, keys) are never committed; their presence
   blocks the commit.
 - C7 — The play commits only; it never pushes (pushing is propose-change's job).
+- C8 — Mechanical work runs as bundled scripts, not model inference: the changeset scan
+  and triviality classification always run as a script; a single-concern changeset is
+  analyzed entirely by script; commit execution is always a script over the decided plan.
+  The analyze agent is dispatched only when the script classifies the changeset as
+  multi-concern, i.e. when grouping genuinely requires judgment.
 
 ### Failure conditions
 
@@ -34,6 +39,9 @@ play declared `position: end`. Positions are start and end only — there is no 
 - F4 — Work is committed on main.
 - F5 — A secret or sensitive file gets committed.
 - F6 — The play pushes, overstepping into propose-change.
+- F7 — The fast path swallows a judgment call: the script analyzes a changeset it should
+  have classified as multi-concern, or an agent is dispatched for a changeset the script
+  already analyzed.
 
 ## Expectation
 
@@ -53,6 +61,11 @@ play declared `position: end`. Positions are start and end only — there is no 
 - S4 — (developer, sensitive file) Given a secret or sensitive file among the changes,
   when commit-change runs, then it blocks before committing. Measure: no commit is created;
   the sensitive file is flagged.
+- S5 — (developer, trivial changeset) Given uncommitted changes that form a single concern,
+  when commit-change runs, then the entire run completes through bundled scripts with no
+  sub-agent spawned for analysis or commit execution. Measure: analysis.yaml and
+  commits.yaml are script-emitted; zero analyze/commit agent dispatches occurred; the
+  commit satisfies the same C2–C4 guarantees as the agent path.
 
 ### Recovery (one per failure condition)
 
@@ -70,3 +83,8 @@ play declared `position: end`. Positions are start and end only — there is no 
   and confirm it is excluded before committing. handoff: human.
 - REC6 (F6) — trigger: the play attempted a push. direction: this play commits only —
   drop the push; leave pushing to propose-change. handoff: autonomous.
+- REC7 (F7) — trigger: the script's triviality classification disagrees with the changeset
+  (a "single-concern" analysis spans unrelated file sets, or an agent was dispatched over a
+  script-classified-trivial changeset). direction: discard the fast-path analysis and
+  re-run Step 1 through the analyze agent (or, for a needless dispatch, record the
+  redundancy); the agent's grouping wins. handoff: autonomous.
