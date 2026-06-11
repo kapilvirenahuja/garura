@@ -60,10 +60,14 @@ the answer before the next. No recommendations attached, no option menus, no adv
 wrapped around the question. The steelman lives in *what* gets challenged, never in
 dressing up the question.
 
-Pipeline position: **none**. /grill is a model-building play: it writes epics into the
-product model and opens no delivery issue and cuts no branch itself (that is /start's job,
-one epic at a time), so the D2 rule injects neither a `start-change` head nor a close
-sequence.
+Pipeline position: **end** (#437). /grill persists the approved delivery cut into the
+product model — a durable product change — and durable model changes ride the end
+pipeline: after the approved epics are persisted and verified, the D2 rule injects the
+close sequence `commit-change → propose-change → review-change → merge-change`, so the
+locked cut is committed, raised, reviewed, and merged without the human having to remember
+`/commit-change`. The end sequence closes the MODEL change only; /grill still opens no
+delivery issue and cuts no branch for implementation work — picking up an epic remains
+/start's job, one epic at a time. No `start-change` head is injected.
 
 ### Constraints
 
@@ -127,6 +131,9 @@ sequence.
 - F12 — An epic is cut on a delivery-method assumption the human never chose — an
   unresolved method shaping the cut with no decision question asked, or one asked but
   never answered.
+- F13 — The approved cut is persisted and verified but never enters the end pipeline —
+  the durable model change sits uncommitted on the branch, drifting from the model,
+  unless the human remembers to close it by hand.
 
 ## Expectation
 
@@ -206,3 +213,8 @@ sequence.
   a missing or unanswered decision question at the write-gate. direction: ask the cited
   decision question, capture the choice, revise the cut to match it, and record the
   decision in the round. handoff: human.
+- REC13 (F13) — trigger: the persist is verified but no end-sequence member has run —
+  the model change is uncommitted with the play heading to close. direction: enter the
+  injected end sequence (commit → propose → review → merge) before the close; a member's
+  own halt (e.g. a review reject) stops the chain by its own rules, never silently.
+  handoff: autonomous.
