@@ -155,3 +155,7 @@ test-project/
 .github/actions/artifacts/
 contributor-stats.json
 badge-cache/
+
+# Play run-state markers — machine-local, mutated by the running play itself;
+# the durable record is the evidence system, never these (#434)
+.garura/project/issues/*/status/
