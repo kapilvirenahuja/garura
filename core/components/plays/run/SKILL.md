@@ -43,11 +43,7 @@ the slice record's `status` to `realized` — the single marker `/grill` checks 
 delivery work. If a lens is missing or a reference dangles, /run writes the run lens, reports
 what is missing, and does not stamp.
 
-**Pipeline position: none.** /run is a realization, model-building play. It opens no delivery
-issue and cuts no branch, so the D2 pipeline-position rule injects neither a `start-change` head
-nor a close sequence. It writes the persistent product model directly. It runs after /arch (it
-reads the architecture lens) and last in the realize sequence; it never reads the quality, ux,
-or agentic lens to derive content.
+**Pipeline position: none.** /run is a MIDDLE play of the slice pipeline (quality → ux → agentic → arch → run → grill): it expects to run on the branch /quality already started, injects no head and no close, stops after the realized stamp, and leaves the branch as-is for /grill to close. It runs after /arch (it reads the architecture lens) and last in the realize sequence. It writes the persistent product model directly, on the already-started branch. (#437)
 
 ## Compiled From
 
@@ -453,9 +449,10 @@ checkpoint approved. A fresh start with no marker runs everything and creates th
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:9c73aab690534836a8779ffa5e39f5ba6b7592399eac913f6b0e2fbd05340cbf (of `reference/ice.md`) |
-| compiled_by | play-creator (edited via play-editor, #435) |
+| fingerprint | sha256:8b28da29bff64d456ef15babbf1cf96613cbffae52c22b6359def8da9e3caa34 (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor, #435, #437) |
 | pipeline_position | none |
+| position_exception | middle of the slice pipeline — runs on the branch /quality started; the close belongs to /grill (#437) |
 | workflow_structure | A (mandatory, non-skippable checkpoint) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |

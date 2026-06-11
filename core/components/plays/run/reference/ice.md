@@ -52,10 +52,7 @@ slice record's `status` stamp and nothing else of the record. Never the function
 the profile, another lens, structure, status of other nodes, personas, journeys, or other
 slices. One slice per run; one human checkpoint before anything persists.
 
-Pipeline position: **none**. /run is a realization, model-building play. It opens no delivery
-issue and cuts no branch, so the D2 rule injects neither a `start-change` head nor a close
-sequence. It writes the persistent product model directly. It runs after /arch (it reads the
-architecture lens) and last in the realize sequence.
+Pipeline position: **none**. /run is a MIDDLE play of the slice pipeline (quality → ux → agentic → arch → run → grill): it expects to run on the branch /quality already started, injects no head and no close, stops after the realized stamp, and leaves the branch as-is for /grill to close. It runs after /arch (it reads the architecture lens) and last in the realize sequence. It writes the persistent product model directly, on the already-started branch. (#437)
 
 ### Constraints
 

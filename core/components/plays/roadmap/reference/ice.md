@@ -16,10 +16,7 @@ lenses, or decisions. One run plans the whole set across every shaped domain, be
 order is comparative. One human checkpoint approves the plan before anything persists.
 Convention: a lower `order` number means sooner.
 
-Pipeline position: **none**. /roadmap is a strategic, planning play in the shaping
-pipeline. It opens no delivery issue and cuts no branch, so the D2 rule injects neither a
-`start-change` head nor a close sequence. It writes the persistent product model
-directly. It runs after /shape, since slices must exist before they can be planned.
+Pipeline position: **end**. /roadmap CLOSES the strategy pipeline: after the ordering is persisted and verified, the D2 rule injects the close sequence `commit-change → propose-change → review-change → merge-change`, so the strategy change is committed, raised, reviewed, and merged. No `start-change` head — /vision opened the pipeline. It runs after /shape, since slices must exist before they can be planned. (#437)
 
 ### Constraints
 

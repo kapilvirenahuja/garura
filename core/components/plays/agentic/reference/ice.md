@@ -31,13 +31,7 @@ for any material autonomy
 choice) — never the slice record, the functionalities' ICE, the profile, another lens, or
 any other model file. One slice per run; one human checkpoint before anything persists.
 
-Pipeline position: **none**. /agentic is a realization, model-building play. It opens no
-delivery issue and cuts no branch, so the D2 rule injects neither a `start-change` head nor
-a close sequence. It writes the persistent product model directly. It runs after /shape (a
-slice must be shaped before its agentic stance is set), and by convention third in the
-realize sequence (quality → ux → agentic → arch → run) — but takes **no** dependency on the
-quality or ux lens. It reads the hub (the slice's functionalities' ICE + the profile box)
-only; never another lens.
+Pipeline position: **none**. /agentic is a MIDDLE play of the slice pipeline (quality → ux → agentic → arch → run → grill): it expects to run on the branch /quality already started, injects no head and no close, stops when its lens is written, and leaves the branch as-is for the next play. The close belongs to /grill. It writes the persistent product model directly, on the already-started branch. By convention third in the realize sequence — but takes **no** dependency on the quality or ux lens: it reads the hub (the slice's functionalities' ICE + the profile box) only; never another lens. (#437)
 
 ### Constraints
 

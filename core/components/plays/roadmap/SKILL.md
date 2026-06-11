@@ -1,6 +1,6 @@
 ---
 name: roadmap
-position: none
+position: end
 description: 'Plan the product''s vertical slices into a build sequence — order the slices /shape produced across all domains, resolve their dependencies, and estimate each one''s effort, writing only the plan onto each slice. The planning play in the ProductOS command model, after /shape. Reads the slices to judge order and effort but writes only the plan (order, effort, dependencies). Opens no delivery issue.'
 user-invocable: true
 ---
@@ -15,11 +15,7 @@ estimate for each. It writes that plan onto each slice — `order`, `effort`, re
 plans the whole set, because order only means something by comparison. Convention: a
 lower `order` number means sooner.
 
-**Pipeline position: none.** /roadmap is a strategic, planning play in the shaping
-pipeline. It opens no delivery issue and cuts no branch, so the D2 pipeline-position
-rule injects neither a `start-change` head nor a close sequence. It writes the
-persistent product model directly. It runs after /shape, since slices must exist before
-they can be planned.
+**Pipeline position: end.** /roadmap CLOSES the strategy pipeline: after the ordering is persisted and verified, the D2 rule injects the close sequence `commit-change → propose-change → review-change → merge-change`, so the strategy change is committed, raised, reviewed, and merged. No `start-change` head — /vision opened the pipeline. It runs after /shape, since slices must exist before they can be planned. (#437)
 
 ## Compiled From
 
@@ -94,7 +90,11 @@ The play owns this DAG; the agent must not edit its top-level tasks.
 [T4] Checkpoint (approval) blockedBy: [T3]
 [T5] Apply plan         blockedBy: [T4]
 [T6] Verify persisted   blockedBy: [T5]
-[T7] Scenario Validation blockedBy: [T6]
+[TE1] commit-change   (injected — end #1)  blockedBy: [T6]
+[TE2] propose-change  (injected — end #2)  blockedBy: [TE1]
+[TE3] review-change   (injected — end #3)  blockedBy: [TE2]
+[TE4] merge-change    (injected — end #4)  blockedBy: [TE3]
+[T7] Scenario Validation blockedBy: [TE4]
 [T8] Close              blockedBy: [T7]
 ```
 
@@ -201,6 +201,33 @@ order an integer, effort non-empty when planned.
 (SE-1…SE-5 are re-asserted here against the persisted model.)
 On any GAP, apply the matching recovery (REC1–REC7) and re-run.
 
+### Phase: End sequence (injected — D2 position: end)
+
+The persisted ordering is a durable model change; the standard end sequence closes the
+strategy pipeline (#437). Each member runs as a sub-play dispatched with `parent_run_id`
+(emits only its own C1 evidence; this play's close absorbs it). Each member resolves its
+own context from the branch and config; this play passes no hand-rolled git/PR/merge
+logic.
+
+**Step E1 — commit-change** · Owner: `commit-change` (sub-play) · Depends on: Step 6 —
+commit the strategy-pipeline changes grouped by concern; no push.
+
+**Step E2 — propose-change** · Owner: `propose-change` (sub-play) · Depends on: Step E1 —
+self-review, push the branch, open the PR.
+
+**Step E3 — review-change** · Owner: `review-change` (sub-play) · Depends on: Step E2 —
+diff-scoped review, approve/reject verdict. A reject stops the sequence before merge.
+
+**Step E4 — merge-change** · Owner: `merge-change` (sub-play) · Depends on: Step E3
+(approve verdict) — merge the PR, switch to main and pull, delete the feature branch.
+
+    {
+      "play":          "<commit-change | propose-change | review-change | merge-change>",
+      "parent_run_id": "<this run id>",
+      "inputs":  {},
+      "outputs": { "result": "{stm_base}_roadmap/end/<member>.json" }
+    }
+
 ### Phase: Scenario Validation
 
 **Step 7 — Scenario evals** · Owner: play · Depends on: Step 6
@@ -300,9 +327,9 @@ and creates the marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:86df8201e845e1e2d8d804d42a93a9423d8c8a735297b04e9ba10559bbd3e7a3 (of `reference/ice.md`) |
-| compiled_by | play-creator |
-| pipeline_position | none |
+| fingerprint | sha256:0369a771f4cbad519331e524e51e377a217339f2aba058a9a4b628b0ff3b9bad (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor, #437) |
+| pipeline_position | end (commit-change → propose-change → review-change → merge-change tail; opened by /vision) |
 | workflow_structure | A (mandatory, non-skippable checkpoint) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |

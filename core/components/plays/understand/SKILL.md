@@ -15,10 +15,7 @@ capability's KB shelf. Then roll those needs into the product profile. On a stil
 already-`set` box, a need that exceeds the committed ceiling halts for a human
 decision that moves the box and records why. One capability per run.
 
-**Pipeline position: none.** /understand is a strategic, model-building play in the
-shaping pipeline. It opens no delivery issue and cuts no branch, so the D2
-pipeline-position rule injects neither a `start-change` head nor a close sequence. It
-writes the persistent product model directly.
+**Pipeline position: none.** /understand is a MIDDLE play of the strategy pipeline (vision → understand → shape → roadmap): it expects to run on the branch /vision already started, injects no `start-change` head and no close sequence, stops when its work is done, and leaves the branch as-is for the next play to pick up. The close belongs to /roadmap. It writes the persistent product model directly, on the already-started branch. (#437)
 
 ## Compiled From
 
@@ -317,9 +314,10 @@ runs everything and creates the marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:ad5b78958f343d7481cf047a83c67915b84f901914a088dc5ef9fb75f0f47a56 (of `reference/ice.md`) |
-| compiled_by | play-creator |
+| fingerprint | sha256:5ef461e5885450dde7f3deb8320715d668d138b9b825c7fc65a4965aadc9971c (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor, #437) |
 | pipeline_position | none |
+| position_exception | middle of the strategy pipeline — runs on the branch /vision started; the close belongs to /roadmap (#437) |
 | workflow_structure | A (mandatory, non-skippable checkpoint carrying box-move approvals) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |

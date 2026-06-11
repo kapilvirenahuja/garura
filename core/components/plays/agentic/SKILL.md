@@ -22,12 +22,7 @@ limits) and handoff (how readily it returns to a human), on the same scale. Ther
 hub; a slice that should offload nothing comes out is_agent=false. It writes only the slice's
 agentic lens, plus a decision for any material autonomy choice.
 
-**Pipeline position: none.** /agentic is a realization, model-building play. It opens no
-delivery issue and cuts no branch, so the D2 pipeline-position rule injects neither a
-`start-change` head nor a close sequence. It writes the persistent product model directly. It
-runs after /shape (a slice must be shaped first), and by convention third in the realize
-sequence — but takes **no** dependency on the quality or ux lens. It reads the hub (the
-slice's functionalities' ICE + the profile box) only; never another lens.
+**Pipeline position: none.** /agentic is a MIDDLE play of the slice pipeline (quality → ux → agentic → arch → run → grill): it expects to run on the branch /quality already started, injects no head and no close, stops when its lens is written, and leaves the branch as-is for the next play. The close belongs to /grill. It writes the persistent product model directly, on the already-started branch. By convention third in the realize sequence — but takes **no** dependency on the quality or ux lens: it reads the hub (the slice's functionalities' ICE + the profile box) only; never another lens. (#437)
 
 ## Compiled From
 
@@ -358,9 +353,10 @@ everything and creates the marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:e56cb8feb3332f60a5f7020a16531ad1dbcf8c0efbc3c7b6d2f71ca6c08bd79f (of `reference/ice.md`) |
-| compiled_by | play-creator |
+| fingerprint | sha256:1797d0cc57455c5364fb135f1deb45ea963bd1913972a07fb2da5cbb8faf374a (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor, #437) |
 | pipeline_position | none |
+| position_exception | middle of the slice pipeline — runs on the branch /quality started; the close belongs to /grill (#437) |
 | workflow_structure | A (mandatory, non-skippable checkpoint) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |

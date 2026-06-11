@@ -14,10 +14,7 @@ build-unit ICE, the personas it serves, and the journeys those personas travel. 
 reads the profile to judge fit but **never writes it** — a selection that needs more
 than the box halts for the human to run /understand. One domain per run.
 
-**Pipeline position: none.** /shape is a strategic, model-building play in the shaping
-pipeline. It opens no delivery issue and cuts no branch, so the D2 pipeline-position
-rule injects neither a `start-change` head nor a close sequence. It writes the
-persistent product model directly.
+**Pipeline position: none.** /shape is a MIDDLE play of the strategy pipeline (vision → understand → shape → roadmap): it expects to run on the branch /vision already started, injects no `start-change` head and no close sequence, stops when its work is done, and leaves the branch as-is for the next play to pick up. The close belongs to /roadmap. It writes the persistent product model directly, on the already-started branch. (#437)
 
 ## Compiled From
 
@@ -318,9 +315,10 @@ everything and creates the marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:dd00b56b2411ee95d01abdc170de147f64d0c11a3ce8f58ba078f95c145be89a (of `reference/ice.md`) |
-| compiled_by | play-creator |
+| fingerprint | sha256:881b0809ef0b1b2d9e039b26351555cf5f410021c923b7acf122f5502cd43b51 (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor, #437) |
 | pipeline_position | none |
+| position_exception | middle of the strategy pipeline — runs on the branch /vision started; the close belongs to /roadmap (#437) |
 | workflow_structure | A (mandatory, non-skippable checkpoint) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |

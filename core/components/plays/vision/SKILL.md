@@ -1,6 +1,6 @@
 ---
 name: vision
-position: none
+position: start
 description: 'Turn a business goal into the seed of the product model — a domain with its candidate capabilities, a goals-only intent per capability, and a directional product profile. The entry play of the strategic (shaping) pipeline in the ProductOS command model. Use when starting a new product area from a business goal, before /understand and /shape. Opens no delivery issue.'
 user-invocable: true
 ---
@@ -13,10 +13,7 @@ product profile. Everything is deliberately shallow and directional — /vision 
 the seed; the deeper work (full intent, context, expectations, concrete NFR targets,
 functionalities, a firm profile) is done by /understand and /shape.
 
-**Pipeline position: none.** /vision is a strategic, model-building play in the
-shaping pipeline. It opens no delivery issue and cuts no branch, so the D2
-pipeline-position rule injects neither a `start-change` head nor a close sequence.
-It writes the persistent product model directly (additively).
+**Pipeline position: start.** /vision OPENS the strategy pipeline (vision → understand → shape → roadmap): the D2 rule prepends `start-change` — resolve or create the strategy issue, cut the branch off fresh main, optional worktree, init STM — so every later strategy play runs on this already-started branch. No close sequence is injected here; the strategy change closes at /roadmap. It writes the persistent product model directly (additively), on the started branch. (#437)
 
 ## Compiled From
 
@@ -78,7 +75,8 @@ Create ALL tasks immediately after resolving config — before any domain work.
 The play owns this DAG; the agent must not edit its top-level tasks.
 
 ```
-[T1] Ground the goal          blockedBy: []
+[T0] start-change (injected — start, head)   blockedBy: []
+[T1] Ground the goal          blockedBy: [T0]
 [T2] Draft the seed           blockedBy: [T1]
 [T3] Validate the draft       blockedBy: [T2]
 [T4] Checkpoint (approval)    blockedBy: [T3]
@@ -92,6 +90,24 @@ Mark each task in-progress before its step and completed right after its eval pa
 No runtime reordering. On resume, skip completed and reset in-progress to pending.
 
 ## Workflow
+
+### Phase: Start (injected — D2 position: start)
+
+**Step 0 — start-change** · Owner: `start-change` (sub-play) · Depends on: pre-flight
+Run the start-of-pipeline member as a sub-play, dispatched with `parent_run_id` so it
+emits only its own C1 evidence and this play's close absorbs it. It resolves or creates
+the strategy-pipeline issue, cuts the branch off fresh main, sets up a worktree iff config calls for
+it, and initializes the STM workspace. Every later strategy play (/understand, /shape, /roadmap) runs on this already-started branch; /roadmap closes it.
+
+    {
+      "play":          "start-change",
+      "parent_run_id": "<this run id>",
+      "inputs":  { "title": "<the business goal, e.g. 'vision: <goal>'>" },
+      "outputs": { "result": "{stm_base}_vision/start/start-change.json" }
+    }
+
+start-change owns its own evals (issue anchored, branch off latest main, worktree per
+config, STM initialized); they are not re-checked here.
 
 ### Phase: Grounding
 
@@ -296,9 +312,9 @@ and creates the marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:4caf5b1db42736941afdf4a91a4f84df1d591c21ce8509541552d1a32294f602 (of `reference/ice.md`) |
-| compiled_by | play-creator |
-| pipeline_position | none |
+| fingerprint | sha256:56acc965abf8de3a7424a75ad61dc28d130754d843ac8cf10f9a8eb14627ed6b (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor, #437) |
+| pipeline_position | start (start-change head; the strategy pipeline closes at /roadmap) |
 | workflow_structure | A (mandatory, non-skippable checkpoint) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |

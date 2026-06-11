@@ -15,10 +15,7 @@ committed ceiling is an out-of-box event: it halts for a human decision that mov
 the box and records why. One capability per run; one human checkpoint approves the
 enriched ICE and any box-moves before anything persists.
 
-Pipeline position: **none**. /understand is a strategic, model-building play in the
-shaping pipeline. It opens no delivery issue and cuts no branch, so the D2 rule
-injects neither a `start-change` head nor a close sequence. It writes the persistent
-product model directly.
+Pipeline position: **none**. /understand is a MIDDLE play of the strategy pipeline (vision → understand → shape → roadmap): it expects to run on the branch /vision already started, injects no `start-change` head and no close sequence, stops when its work is done, and leaves the branch as-is for the next play to pick up. The close belongs to /roadmap. It writes the persistent product model directly, on the already-started branch. (#437)
 
 ### Constraints
 

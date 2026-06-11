@@ -19,10 +19,7 @@ material choice) — never the slice record, the functionalities' ICE, the profi
 lens, structure, status, personas, or journeys. One slice per run; one human checkpoint
 before anything persists.
 
-Pipeline position: **none**. /quality is a realization, model-building play. It opens no
-delivery issue and cuts no branch, so the D2 rule injects neither a `start-change` head nor
-a close sequence. It writes the persistent product model directly. It runs after /shape,
-since a slice must be shaped before it can be realized.
+Pipeline position: **start**. /quality OPENS the slice pipeline (quality → ux → agentic → arch → run → grill) and selects the slice: the D2 rule prepends `start-change` — resolve or create the slice-realization issue, cut the branch off fresh main, optional worktree, init STM — so the later lenses and /grill run on this already-started branch. No close sequence here; the slice change closes at /grill. It runs after /shape, since a slice must be shaped before it is realized. It writes the persistent product model directly, on the started branch. (#437)
 
 ### Constraints
 

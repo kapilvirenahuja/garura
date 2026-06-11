@@ -1,6 +1,6 @@
 ---
 name: quality
-position: none
+position: start
 description: 'Write a SLICE''s quality lens — the list of pass/fail gates it must clear, drawn from the profile targets that apply and the slice''s own functionalities'' ICE rules, never invented. The first of the five realize plays in the ProductOS command model (quality → ux → agentic → arch → run), run on a shaped slice. Sets the quality bar the later lenses size against. Writes only the quality lens; opens no delivery issue.'
 user-invocable: true
 ---
@@ -18,10 +18,7 @@ slice or from one of the slice's functionalities' ICE rules made checkable; none
 another lens, and it sets the quality bar the later lenses (ux, agentic, arch, run) size
 their depth against. It writes only the quality lens, plus a decision for any material choice.
 
-**Pipeline position: none.** /quality is a realization, model-building play. It opens no
-delivery issue and cuts no branch, so the D2 pipeline-position rule injects neither a
-`start-change` head nor a close sequence. It writes the persistent product model directly. It
-runs after /shape, since a slice must be shaped before it is realized.
+**Pipeline position: start.** /quality OPENS the slice pipeline (quality → ux → agentic → arch → run → grill) and selects the slice: the D2 rule prepends `start-change` — resolve or create the slice-realization issue, cut the branch off fresh main, optional worktree, init STM — so the later lenses and /grill run on this already-started branch. No close sequence here; the slice change closes at /grill. It runs after /shape, since a slice must be shaped before it is realized. It writes the persistent product model directly, on the started branch. (#437)
 
 ## Compiled From
 
@@ -92,7 +89,8 @@ Create ALL tasks immediately after resolving config — before any domain work.
 The play owns this DAG; the agent must not edit its top-level tasks.
 
 ```
-[T1] Draft quality lens   blockedBy: []
+[T0] start-change (injected — start, head)   blockedBy: []
+[T1] Draft quality lens   blockedBy: [T0]
 [T2] Validate the draft   blockedBy: [T1]
 [T3] Checkpoint (approval) blockedBy: [T2]
 [T4] Persist              blockedBy: [T3]
@@ -105,6 +103,24 @@ Mark each task in-progress before its step and completed right after its eval pa
 No runtime reordering. On resume, skip completed and reset in-progress to pending.
 
 ## Workflow
+
+### Phase: Start (injected — D2 position: start)
+
+**Step 0 — start-change** · Owner: `start-change` (sub-play) · Depends on: pre-flight
+Run the start-of-pipeline member as a sub-play, dispatched with `parent_run_id` so it
+emits only its own C1 evidence and this play's close absorbs it. It resolves or creates
+the slice-realization issue, cuts the branch off fresh main, sets up a worktree iff config calls for
+it, and initializes the STM workspace. The later lenses (/ux, /agentic, /arch, /run) and /grill run on this already-started branch; /grill closes it.
+
+    {
+      "play":          "start-change",
+      "parent_run_id": "<this run id>",
+      "inputs":  { "title": "realize slice <slice-id>" },
+      "outputs": { "result": "{stm_base}_quality/start/start-change.json" }
+    }
+
+start-change owns its own evals (issue anchored, branch off latest main, worktree per
+config, STM initialized); they are not re-checked here.
 
 ### Phase: Draft
 
@@ -309,9 +325,9 @@ everything and creates the marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:ed43ae6a855838f763581eb285b8204ddac056bbfa02a113e0383d8d4ff4ee8c (of `reference/ice.md`) |
-| compiled_by | play-creator |
-| pipeline_position | none |
+| fingerprint | sha256:8ff553ed3c68817d73cef98098390e3370eed248e3410aca5fa5f96fa5b6c052 (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor, #437) |
+| pipeline_position | start (start-change head, selects the slice; the slice pipeline closes at /grill) |
 | workflow_structure | A (mandatory, non-skippable checkpoint) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |

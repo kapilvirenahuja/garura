@@ -27,12 +27,7 @@ the visual-core decision for any material choice) — never the slice record, th
 functionalities' ICE, the profile, another lens, structure, status, personas, journeys, or
 other slices. One slice per run; one human checkpoint before anything persists.
 
-Pipeline position: **none**. /ux is a realization, model-building play. It opens no delivery
-issue and cuts no branch, so the D2 rule injects neither a `start-change` head nor a close
-sequence. It writes the persistent product model directly. It runs after /shape, and by
-convention second in the realize sequence (quality → ux → agentic → arch → run) — but takes
-**no** dependency on the quality lens. It reads the hub (the slice's functionalities' ICE +
-the profile box) only; never another lens.
+Pipeline position: **none**. /ux is a MIDDLE play of the slice pipeline (quality → ux → agentic → arch → run → grill): it expects to run on the branch /quality already started, injects no head and no close, stops when its lens is written, and leaves the branch as-is for the next play. The close belongs to /grill. It writes the persistent product model directly, on the already-started branch. By convention second in the realize sequence — but takes **no** dependency on the quality lens: it reads the hub (the slice's functionalities' ICE + the profile box) only; never another lens. (#437)
 
 ### Constraints
 

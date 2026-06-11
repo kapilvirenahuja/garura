@@ -22,10 +22,7 @@ them, or resolve cross-slice dependencies. That plan (order, effort, dependencie
 /roadmap's job. So /shape's output is a product breakdown you can pick a slice from
 and build, not a build sequence.
 
-Pipeline position: **none**. /shape is a strategic, model-building play in the
-shaping pipeline. It opens no delivery issue and cuts no branch, so the D2 rule
-injects neither a `start-change` head nor a close sequence. It writes the persistent
-product model directly.
+Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (vision → understand → shape → roadmap): it expects to run on the branch /vision already started, injects no `start-change` head and no close sequence, stops when its work is done, and leaves the branch as-is for the next play to pick up. The close belongs to /roadmap. It writes the persistent product model directly, on the already-started branch. (#437)
 
 ### Constraints
 

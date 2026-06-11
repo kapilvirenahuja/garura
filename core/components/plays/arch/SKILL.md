@@ -24,13 +24,7 @@ slice's functionalities talk to (their ICE `context.systems`) or a surface the p
 (the profile's `shape.surfaces`). The stack picks are sized by the profile box and recorded as
 decisions the product references. It writes only the architecture lens, plus the decisions.
 
-**Pipeline position: none.** /arch is a realization, model-building play. It opens no delivery
-issue and cuts no branch, so the D2 pipeline-position rule injects neither a `start-change`
-head nor a close sequence. It writes the persistent product model directly. It runs after
-/shape, and by convention fourth in the realize sequence — but takes **no** dependency on the
-quality, ux, or agentic lens. It reads the hub (the slice's functionalities' ICE + the profile
-box) only; never another lens. The NFRs it sizes the stack against come from the profile box
-directly, not from the quality lens.
+**Pipeline position: none.** /arch is a MIDDLE play of the slice pipeline (quality → ux → agentic → arch → run → grill): it expects to run on the branch /quality already started, injects no head and no close, stops when its lens is written, and leaves the branch as-is for the next play. The close belongs to /grill. It writes the persistent product model directly, on the already-started branch. By convention fourth in the realize sequence — but takes **no** dependency on the quality, ux, or agentic lens: it reads the hub (the slice's functionalities' ICE + the profile box) only; never another lens. The NFRs it sizes the stack against come from the profile box directly, not the quality lens. (#437)
 
 ## Compiled From
 
@@ -371,9 +365,10 @@ everything and creates the marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:ed80749f01e685cc3f0f02131aeb0a1b824655eaff65b28930c6ed1da2f65557 (of `reference/ice.md`) |
-| compiled_by | play-creator |
+| fingerprint | sha256:087cda55dd3bb0240833604dcdb6022c87eb1867ad9b7cf3ae4375ab7f834be5 (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor, #437) |
 | pipeline_position | none |
+| position_exception | middle of the slice pipeline — runs on the branch /quality started; the close belongs to /grill (#437) |
 | workflow_structure | A (mandatory, non-skippable checkpoint) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |

@@ -14,10 +14,7 @@ deliberately shallow and directional — the deeper work (full intent, context,
 expectations, concrete NFR targets, functionalities, firm profile) belongs to the
 later strategic plays (/understand, /shape).
 
-Pipeline position: **none**. /vision is a strategic, model-building play in the
-shaping pipeline; it opens no delivery issue and cuts no branch, so the D2 rule
-injects neither a `start-change` head nor a close sequence. It writes the
-persistent product model directly.
+Pipeline position: **start**. /vision OPENS the strategy pipeline (vision → understand → shape → roadmap): the D2 rule prepends `start-change` — resolve or create the strategy issue, cut the branch off fresh main, optional worktree, init STM — so every later strategy play runs on this already-started branch. No close sequence is injected here; the strategy change closes at /roadmap. It writes the persistent product model directly (additively), on the started branch. (#437)
 
 ### Constraints
 

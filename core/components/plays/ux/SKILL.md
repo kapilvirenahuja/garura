@@ -20,12 +20,7 @@ is **not** restated — it lives in the profile, and the build connects it. Flow
 specified — the build derives them from the screens and the journeys. It writes only the ux
 lens, plus the visual-core decision.
 
-**Pipeline position: none.** /ux is a realization, model-building play. It opens no delivery
-issue and cuts no branch, so the D2 pipeline-position rule injects neither a `start-change`
-head nor a close sequence. It writes the persistent product model directly. It runs after
-/shape, and by convention second in the realize sequence — but takes **no** dependency on the
-quality lens. It reads the hub (the slice's functionalities' ICE + the profile box) only;
-never another lens.
+**Pipeline position: none.** /ux is a MIDDLE play of the slice pipeline (quality → ux → agentic → arch → run → grill): it expects to run on the branch /quality already started, injects no head and no close, stops when its lens is written, and leaves the branch as-is for the next play. The close belongs to /grill. It writes the persistent product model directly, on the already-started branch. By convention second in the realize sequence — but takes **no** dependency on the quality lens: it reads the hub (the slice's functionalities' ICE + the profile box) only; never another lens. (#437)
 
 ## Compiled From
 
@@ -355,9 +350,10 @@ everything and creates the marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:5f00f1056c628ac305b88ad232b170091b8717cd9fcaf8e4ad13bdf681c67e99 (of `reference/ice.md`) |
-| compiled_by | play-creator |
+| fingerprint | sha256:8c1fd3092b9caf9b4e07a52e816f658ac0c15b2dbbabb61452f209b415896503 (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor, #437) |
 | pipeline_position | none |
+| position_exception | middle of the slice pipeline — runs on the branch /quality started; the close belongs to /grill (#437) |
 | workflow_structure | A (mandatory, non-skippable checkpoint) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |
