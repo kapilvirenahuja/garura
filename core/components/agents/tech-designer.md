@@ -80,7 +80,7 @@ When you receive a JSON contract from the play orchestrator:
 **Example return** (after technical-approach drafting):
 ```json
 {
-  "intent_path": "core/components/plays/prepare/reference/intent.yaml",
+  "intent_path": "core/components/plays/implement/reference/ice.md",
   "stm_base": ".garura/project/issues/",
   "slug": "chronos",
   "stm": {
@@ -277,6 +277,8 @@ When invoked via JSON contract, delegate artifact production to skills:
 | `draft-rca` | fix-it Step 3 — trace symptom to specific root cause (file + logic + why-wrong) and write resolution-trace.yaml when `ltm_context` is provided | `issue_read_path`, `project_root`, `ltm_context` (optional), `output_base` | `rca.yaml` + `resolution-trace.yaml` (when ltm_context present) |
 | `draft-fix-design` | fix-it Step 3 — after RCA, design the fix with at least one alternative considered and rejection reason | `rca_path`, `project_root`, `ltm_context` (optional), `output_base` | `design.yaml` |
 | `author-regression-test` | fix-it Step 3 — write a failing YAML eval-spec regression test and verify red state against current codebase before returning | `rca_path`, `design_path`, `project_root`, `test_style` (optional), `output_base` | `regression-test.yaml` (red-verified) |
+| `author-build-plan` | implement Step 4 — break ONE ready epic into the test-first build plan (stories/tasks/tests/docs as a grounded DAG, STM-only); also revision mode (re-plan directives, steelman refutations) | `epic_file`, `functionality_ices`, `lens_dir`, `box_context`, `harness`, `plan_path`, `directives` (optional) | `plan.yaml` (draft) |
+| `detect-test-harness` | implement Step 3 — capture the project's runnable test/lint/build commands for the harness file | `project_root`, `output_base` | harness detection result |
 
 **Invocation:** Use the Skill tool. The skill reads from STM, writes the artifact, and returns a YAML output contract with the path. Extract the artifact path from the skill output — do NOT forward the skill's YAML as your response.
 

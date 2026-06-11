@@ -2,7 +2,7 @@
 name: test-engineer
 domain: testing
 role: engineer
-description: "Test surface analysis, blast radius computation, baseline test specification, and three-tier verification scenario authoring. Understands the system through its tests — maps what's tested, identifies what's not, and specifies tests for coverage gaps."
+description: "Authors /implement's test pieces from the specs — spec-separated: never sees implementation output, builder reports, or eval content. Also: test surface analysis, blast radius computation, baseline test specification, and three-tier verification scenario authoring. Understands the system through its tests — maps what's tested, identifies what's not, and specifies tests for coverage gaps."
 model: opus
 tools:
   - Bash
@@ -11,8 +11,6 @@ tools:
   - Glob
   - Write
   - Skill
-deprecated: true
-deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # test-engineer
