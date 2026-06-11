@@ -118,8 +118,16 @@ def main():
         issue = g.get("issue") or args.issue
         msg = f"{g.get('commit_type', 'chore')}({scope}): {subject} (#{issue})"
         try:
-            run_git(["add", "--"] + files)
-            run_git(["commit", "-m", msg])
+            # Pathspec-limited commit (C2/F1): the index may already hold OTHER
+            # groups' staged work (git rm / git mv done before the play ran) — a
+            # bare `git commit` would sweep it all into this group's commit. Add
+            # only paths that still exist (a deleted/renamed-away path has no
+            # worktree or index entry and would fail `git add`), then commit
+            # exactly this group's paths, leaving the rest staged for its group.
+            present = [f for f in files if os.path.lexists(f)]
+            if present:
+                run_git(["add", "--"] + present)
+            run_git(["commit", "-m", msg, "--"] + files)
         except RuntimeError as e:
             print(json.dumps({"error": str(e), "group": g.get("id")}))
             return 4
