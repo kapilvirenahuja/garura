@@ -29,7 +29,7 @@ Agents and skills query this category when they need to know: **"What rules must
 | Path | Description | Consumers |
 |------|-------------|-----------|
 | `commits.md` | Commit categorization (feat / fix / refactor / etc.), conventional-format quality rules, subject / body rules, scope validation, large-file thresholds, secret detection | `analyze-changes`, `analyze-pr`, `create-commit`, `commit-code`, `repo-orchestrator` |
-| `git.md` | Branch naming conventions (feature/, fix/, hotfix/, etc.) and how branch patterns map to quality-gate priorities | `repo-orchestrator`, `setup-branch`, `start-feature-planning` |
+| `git.md` | Branch naming conventions (feature/, fix/, hotfix/, etc.) and how branch patterns map to quality-gate priorities | `repo-orchestrator`, `setup-branch`, `start-change` |
 | `pr.md` | PR severity taxonomy — deterministic mapping from quality standard IDs (SEC, ARCH, BE, CODE, FE, TEST, DOC, OPS, PERF, DATA, DEBT) to P1–P4 severity buckets with grep / path match rules. No LLM judgment. | `review-pr`, `quality-check-scoped`, `analyze-pr` |
 | `self-review.md` | Base scope-and-quality self-review checklist a change runs before it is raised. Resolved via `standards_order` (most-specific wins); overrideable per project. Informational (rides in the PR), not the approve/reject gate. | `propose-change`, `analyze-pr` |
 
