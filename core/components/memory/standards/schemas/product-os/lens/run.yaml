@@ -23,3 +23,27 @@ content:
       environment: string  # which env(s) it deploys to (e.g. prod, staging+prod)
       deploy: string       # how it runs — container | service | function | static | managed
       notes: string        # optional one-liner
+  tco:                     # ownership-cost picture (#435) — REQUIRED; the stamp gates on it
+    hyperscaler:
+      selected: string     # the cloud/provider (e.g. Google Cloud Platform)
+      default_region: string
+      rationale: string
+      alternatives:        # >=1 considered-and-rejected
+        - name: string
+          why_not: string
+    services:              # concrete service map — one per ARCHITECTURE component
+      - component: string  # MUST match an architecture-lens component name
+        service: string    # the managed service that runs it (e.g. Cloud Run, Cloud SQL)
+        cost_driver: string
+    simulation:
+      scenarios:           # >=3: at least seed, pilot, expanded
+        - name: string     # seed | pilot | expanded (or richer)
+          # load assumptions: users/team_members, sources, frequencies, retention_days, ...
+    estimate:
+      currency: string
+      monthly_range: string  # per-scenario or overall range; MUST carry numbers, not prose
+      confidence: string     # low | medium | high
+      primary_drivers: [string]
+      excludes: [string]     # what the estimate does NOT cover (HA, heavy logging, ...)
+      sensitivity: [string]  # the variables that would change the estimate
+    guardrails: [string]   # budget alert, retention limits, scale-up/HA triggers, review cadence

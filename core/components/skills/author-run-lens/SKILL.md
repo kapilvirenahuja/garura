@@ -12,7 +12,7 @@ allowed-tools: Read, Write, Bash, Glob
 Turns one shaped, **architected** slice into its **run lens** — how the slice is deployed and
 runs. A slice is a vertical product increment; its **hub** is the union of its functionalities'
 ICE (which may span several capabilities) plus the product profile. /run is the fifth and last
-realize lens, and the run lens is six things and only six:
+realize lens, and the run lens is seven things and only seven:
 
 - **environments** — the path the slice moves through (dev → staging → prod).
 - **rollout** — the feature `flags` it gates behind and the `strategy` (blue/green | canary |
@@ -25,6 +25,15 @@ realize lens, and the run lens is six things and only six:
 - **targets** — for **every** architecture component, where (which environment) and how
   (container | service | function | static | managed) it runs. Each target binds to a real
   component in the slice's **architecture lens** — no dangling target.
+- **tco** — the ownership-cost picture the operating owner approves on (#435): the
+  **hyperscaler** decision (selected provider, default region, alternatives rejected and why);
+  a **concrete service map** — for every architecture component, the managed service that runs
+  it and its cost driver; a **user/load simulation** with at least seed, pilot, and expanded
+  scenarios (users, sources, frequencies, retention); a **cost estimate** — a monthly range
+  per scenario in a named currency with primary drivers, exclusions, a confidence level, and
+  the variables that would change it; and **cost guardrails** (budget alert, retention limits,
+  scale-up and HA triggers, review cadence). When exact pricing is unknown, produce a
+  directional range with stated assumptions and confidence — never generic prose, never skip.
 
 /run **deploys what /arch designed**, so it reads the architecture lens (the components to run)
 — it is the one realize lens that reads another. It never reads the quality, ux, or agentic
@@ -91,17 +100,31 @@ and the six-block shape are non-negotiable.
    operational learning.) The manifest references the proposal path; the play surfaces it at the
    checkpoint. Never ground an operational choice on the model's taste alone.
 
-4. **Draft the run lens.** Write the six blocks: the `environments` path; `rollout` (the
+4. **Draft the run lens.** Write the seven blocks: the `environments` path; `rollout` (the
    `flags` the slice gates behind + the `strategy` from the matched learning); `migrations`
    (the gated/reversible stance, or an explicit none); `config_secrets`; `cicd` (build → quality
-   gates → deploy on green); and `targets` — one entry per architecture component, with the
-   `environment` it deploys to and how it `deploy`s. Every component in the architecture lens
-   gets a target; every target's `component` is a real architecture-lens component.
+   gates → deploy on green); `targets` — one entry per architecture component, with the
+   `environment` it deploys to and how it `deploy`s; and `tco`. Every component in the
+   architecture lens gets a target; every target's `component` is a real architecture-lens
+   component.
 
-5. **Record material decisions.** The rollout strategy, the migration strategy, and the
-   environment topology are material choices — record each as a slice-level decision (ADR). If
-   the product already has a run decision that fits (look under `product_base`), **reuse it** —
-   do not re-invent.
+   **Build the `tco` block from what you already hold:** the hyperscaler from the matched
+   platform learning (e.g. the product's preferred cloud — record the rejected alternative and
+   why); the service map by giving every architecture component its concrete managed service
+   (the run target says *how* it runs; the service map says *on what*, with the cost driver);
+   the simulation scenarios (at least seed, pilot, expanded) from the hub's scope/personas and
+   the profile's scale facets — state users/team size, source counts, frequencies, retention;
+   the estimate as a monthly range per scenario in a named currency, with primary drivers,
+   exclusions, confidence, and sensitivity variables — directional with stated assumptions
+   when exact pricing is unknown, never generic; and the guardrails (budget alert, retention
+   limits, scale-up and HA triggers, review cadence). Ground the platform pick and the cost
+   model in KB learnings; a cost model the KB does not cover is a KB-learning-gap proposal
+   (step 3), never a guess.
+
+5. **Record material decisions.** The rollout strategy, the migration strategy, the
+   environment topology, and the **hyperscaler/service-platform pick (the TCO posture)** are
+   material choices — record each as a slice-level decision (ADR). If the product already has
+   a run decision that fits (look under `product_base`), **reuse it** — do not re-invent.
 
 6. **Write the draft + manifest.** Write the run lens (the v1 lens envelope with `type: run`,
    `slice_ref`, and the six content blocks) under `draft_dir`, mirroring `lens_rel`, plus the
@@ -127,6 +150,23 @@ run:
           source: "architecture/modular-monolith"
           material: true
           decision: "<decision-id>"
+    - aspect: platform                    # REQUIRED (#435): the hyperscaler/service pick
+      value: "GCP — Cloud Run + Cloud SQL"
+      grounds:
+        - source_type: kb
+          source: "technology/gcp-modular-monolith-runtime"
+          material: true
+          decision: "<decision-id>"
+    - aspect: cost_model                  # REQUIRED (#435): what drives the spend
+      value: "always-on DB + per-request compute; flat at team scale"
+      grounds:
+        - source_type: kb                 # or proposal — raise a cost-pattern gap if uncovered
+          source: "technology/gcp-modular-monolith-runtime"
+    - aspect: simulation                  # REQUIRED (#435): the load assumptions
+      value: "seed/pilot/expanded from hub scope + profile scale"
+      grounds:
+        - source_type: profile
+          source: "product-os/profile.yaml"
   targets:                              # one per architecture component (binds to arch)
     - component: "channel-bff"          # MUST be a real architecture-lens component
       grounds:
@@ -160,7 +200,10 @@ run:
 - Leave an architecture component with no run target, or point a target at a component the
   architecture lens does not declare.
 - Smear architecture, ux, quality, or agentic content into the run lens. Keep `content` to the
-  six keys environments/rollout/migrations/config_secrets/cicd/targets.
+  seven keys environments/rollout/migrations/config_secrets/cicd/targets/tco.
+- Ship a `tco` that is generic prose — no hyperscaler selected, a component without a concrete
+  service, fewer than three simulation scenarios, or a monthly range with no numbers. A
+  directional range with stated assumptions and a confidence level is the floor.
 - Over-specify — no literal pipeline YAML, no per-resource sizing, no environment-by-environment
   secret values. Operational shape only.
 
@@ -169,6 +212,8 @@ run:
   recorded proposal) and every target in the manifest.
 - Give every architecture component a target; bind every target to a real architecture
   component.
-- Record material choices (rollout strategy, migration strategy, environment topology) as
-  decisions that resolve.
+- Record material choices (rollout strategy, migration strategy, environment topology, and the
+  hyperscaler/service-platform pick) as decisions that resolve.
+- Ground the `platform`, `cost_model`, and `simulation` choices in the manifest — a cost model
+  the KB does not cover becomes a KB-learning-gap proposal for the cost pattern.
 - Return the draft paths, not the contents.

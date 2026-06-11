@@ -4,10 +4,10 @@ validate_run.py — assert /run's draft lens is schema-true, just-enough, ground
 (shape only; grounding_check.py proves the KB tie), reads no forbidden lens, and binds every
 target to a real architecture component.
 
-Run over the draft before the checkpoint. The run lens is six blocks only — environments,
-rollout, migrations, config_secrets, cicd, and targets (per architecture component). The lens
-realizes a SLICE; it deploys what /arch designed, so targets bind to the architecture lens.
-Enforces /run's artifact-side constraints:
+Run over the draft before the checkpoint. The run lens is seven blocks only — environments,
+rollout, migrations, config_secrets, cicd, targets (per architecture component), and tco (the
+ownership-cost picture, #435). The lens realizes a SLICE; it deploys what /arch designed, so
+targets bind to the architecture lens. Enforces /run's artifact-side constraints:
 
   - C11/F11  schema: the lens carries the v1 envelope (id, slice_ref, type=run, content,
              status); any decision carries its required v1 fields.
@@ -21,6 +21,11 @@ Enforces /run's artifact-side constraints:
              dangling target); nothing in the manifest grounds on the quality/ux/agentic lens.
   - C7/F7    decisions: a manifest grounding flagged `material: true` names a `decision` that
              resolves to a drafted record.
+  - C13/F13  TCO: a material tco block — hyperscaler decided (with region + rejected
+             alternatives), a concrete service per architecture component with its cost
+             driver, >=3 simulation scenarios with load assumptions, a digit-bearing monthly
+             range with currency/drivers/excludes/confidence, guardrails; and the manifest
+             grounds platform/cost_model/simulation choices.
 
 Grounding-to-KB itself (every choice traces to a KB learning or a recorded proposal) is
 proven by grounding_check.py — this script checks the manifest's grounding SHAPE.
@@ -63,17 +68,99 @@ def _blank(v):
 
 # run may reference the ARCHITECTURE lens (it deploys arch's parts); it must NOT read these:
 FORBIDDEN_LENS_SOURCES = ("quality", "ux", "agentic", "lens")
-CONTENT_KEYS = {"environments", "rollout", "migrations", "config_secrets", "cicd", "targets"}
+CONTENT_KEYS = {"environments", "rollout", "migrations", "config_secrets", "cicd", "targets",
+                "tco"}
 ALLOWED_SOURCE_TYPES = {"kb", "proposal", "profile"}
+# C13 (#435): the manifest must ground the platform pick and the cost model as choices.
+REQUIRED_CHOICE_ASPECTS = {"platform", "cost_model", "simulation"}
+CONFIDENCE_LEVELS = {"low", "medium", "high"}
+MIN_SIMULATION_SCENARIOS = 3  # at least seed, pilot, expanded
+
+
+def _has_digit(v):
+    return isinstance(v, str) and any(ch.isdigit() for ch in v)
+
+
+def validate_tco(lp, tco, errors):
+    """C13/F13 — the TCO block is material, never generic. Returns the set of component
+    names the service map covers (checked against arch components by the caller)."""
+    service_components = set()
+    if not isinstance(tco, dict) or _blank(tco):
+        errors.append(f"{lp}: content.tco is missing or empty — TCO is first-class (C13/F13)")
+        return service_components
+
+    hs = tco.get("hyperscaler") or {}
+    if _blank(hs.get("selected")):
+        errors.append(f"{lp}: tco.hyperscaler.selected is empty — no hyperscaler decision (C13/F13)")
+    if _blank(hs.get("default_region")):
+        errors.append(f"{lp}: tco.hyperscaler.default_region is empty (C13/F13)")
+    alts = hs.get("alternatives") or []
+    if not alts:
+        errors.append(f"{lp}: tco.hyperscaler.alternatives is empty — at least one "
+                      f"considered-and-rejected alternative (C13/F13)")
+    for a in alts:
+        if _blank((a or {}).get("name")) or _blank((a or {}).get("why_not")):
+            errors.append(f"{lp}: a tco.hyperscaler alternative lacks name/why_not (C13/F13)")
+
+    services = tco.get("services") or []
+    if not services:
+        errors.append(f"{lp}: tco.services is empty — no concrete service map (C13/F13)")
+    for s in services:
+        s = s or {}
+        comp = s.get("component")
+        if _blank(comp):
+            errors.append(f"{lp}: a tco.services entry names no component (C13/F13)")
+            continue
+        service_components.add(comp.strip() if isinstance(comp, str) else comp)
+        if _blank(s.get("service")):
+            errors.append(f"{lp}: tco service map for {comp!r} names no concrete service (C13/F13)")
+        if _blank(s.get("cost_driver")):
+            errors.append(f"{lp}: tco service map for {comp!r} names no cost driver (C13/F13)")
+
+    scenarios = ((tco.get("simulation") or {}).get("scenarios")) or []
+    if len(scenarios) < MIN_SIMULATION_SCENARIOS:
+        errors.append(f"{lp}: tco.simulation has {len(scenarios)} scenario(s) — needs at "
+                      f"least {MIN_SIMULATION_SCENARIOS} (seed, pilot, expanded) (C13/F13)")
+    for sc in scenarios:
+        sc = sc or {}
+        if _blank(sc.get("name")):
+            errors.append(f"{lp}: a tco.simulation scenario has no name (C13/F13)")
+        load_keys = [k for k, v in sc.items() if k != "name" and not _blank(v)]
+        if len(load_keys) < 2:
+            errors.append(f"{lp}: tco.simulation scenario {sc.get('name', '?')!r} states "
+                          f"almost no load assumptions (C13/F13)")
+
+    est = tco.get("estimate") or {}
+    if not _has_digit(est.get("monthly_range")):
+        errors.append(f"{lp}: tco.estimate.monthly_range carries no numbers — a directional "
+                      f"range with digits is the floor; generic prose is not (C13/F13)")
+    if _blank(est.get("currency")):
+        errors.append(f"{lp}: tco.estimate.currency is empty (C13/F13)")
+    if (est.get("confidence") or "").strip().lower() not in CONFIDENCE_LEVELS:
+        errors.append(f"{lp}: tco.estimate.confidence must be one of "
+                      f"{sorted(CONFIDENCE_LEVELS)} (C13/F13)")
+    if _blank(est.get("primary_drivers")):
+        errors.append(f"{lp}: tco.estimate.primary_drivers is empty — name what drives the "
+                      f"cost (C13/F13)")
+    if "excludes" not in est:
+        errors.append(f"{lp}: tco.estimate.excludes is absent — state what the estimate does "
+                      f"not cover (C13/F13)")
+
+    if _blank(tco.get("guardrails")):
+        errors.append(f"{lp}: tco.guardrails is empty — budget alert / retention / scale-up "
+                      f"triggers (C13/F13)")
+    return service_components
 
 
 def validate_lens(draft_root, errors):
-    """C11/C3/C6 — the lens shape + just-enough. Returns the set of target component names."""
+    """C11/C3/C6/C13 — the lens shape + just-enough + TCO. Returns (target component
+    names, tco service-map component names)."""
     target_components = set()
+    tco_service_components = set()
     lenses = glob.glob(os.path.join(draft_root, "**", "lens", "run.yaml"), recursive=True)
     if not lenses:
         errors.append("no run.yaml in the draft (F3)")
-        return target_components
+        return target_components, tco_service_components
     for lp in lenses:
         doc = (load(lp).get("lens") or {})
         for f in ("id", "slice_ref", "type", "status"):
@@ -84,8 +171,9 @@ def validate_lens(draft_root, errors):
         content = doc.get("content") or {}
         extra = [k for k in content if k not in CONTENT_KEYS]
         if extra:
-            errors.append(f"{lp}: content has keys outside the six blocks {extra} — "
-                          f"environments/rollout/migrations/config_secrets/cicd/targets only (F3)")
+            errors.append(f"{lp}: content has keys outside the seven blocks {extra} — "
+                          f"environments/rollout/migrations/config_secrets/cicd/targets/tco "
+                          f"only (F3)")
         for k in CONTENT_KEYS:
             if _blank(content.get(k)):
                 errors.append(f"{lp}: content.{k} is empty (F3/F6)")
@@ -106,7 +194,9 @@ def validate_lens(draft_root, errors):
             if _blank(where):
                 errors.append(f"{lp}: target for {comp!r} says nothing of where/how it runs "
                               f"(environment/deploy) (F6)")
-    return target_components
+
+        tco_service_components |= validate_tco(lp, content.get("tco"), errors)
+    return target_components, tco_service_components
 
 
 def collect_decisions(draft_root, errors):
@@ -188,7 +278,7 @@ def main(argv=None):
 
     errors, warnings = [], []
 
-    lens_targets = validate_lens(draft_root, errors)
+    lens_targets, tco_services = validate_lens(draft_root, errors)
     decision_ids = collect_decisions(draft_root, errors)
 
     try:
@@ -213,6 +303,19 @@ def main(argv=None):
     # C6/F6 — coverage: every architecture component has a target
     for c in sorted(comps - lens_targets):
         errors.append(f"architecture component {c!r} has no run target (C6/F6)")
+
+    # C13/F13 — the TCO service map covers every architecture component, concretely
+    for c in sorted(comps - tco_services):
+        errors.append(f"architecture component {c!r} has a target but no concrete service "
+                      f"in tco.services (C13/F13)")
+    for c in sorted(tco_services - comps):
+        errors.append(f"tco.services maps {c!r} which is no architecture component (C13/F13)")
+
+    # C13/C4 — the platform pick, cost model, and simulation are grounded manifest choices
+    aspects = {(ch.get("aspect") or "").strip().lower() for ch in (man.get("choices") or [])}
+    for need in sorted(REQUIRED_CHOICE_ASPECTS - aspects):
+        errors.append(f"manifest has no grounded '{need}' choice — the hyperscaler/platform "
+                      f"pick, the cost model, and the simulation must be grounded (C13/F13)")
 
     counts = {"lens_targets": len(lens_targets), "manifest_targets": len(man_targets),
               "arch_components": len(comps), "decisions": len(decision_ids),

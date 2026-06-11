@@ -12,10 +12,14 @@ Two phases, one script (the play keeps the halt policy; this returns the facts):
 
   --phase gate        The full lines-up check before the stamp (C8): all five lens files
                       (quality, ux, agentic, architecture, run) exist for the slice, every
-                      architecture component has a run target, and every run target binds to a
-                      real component (C5 — no dangling target). Emits
+                      architecture component has a run target, every run target binds to a
+                      real component (C5 — no dangling target), AND the run lens carries a
+                      non-empty content.tco block (C13, #435 — a slice is never stamped
+                      realized without the ownership-cost picture; validate_run.py proves the
+                      block is material, this gate proves it exists). Emits
                       {lenses_present{...}, all_five_present, uncovered_components[],
-                      dangling_targets[], lines_up}. Exit 0 if lines_up, 1 otherwise.
+                      dangling_targets[], tco_present, lines_up}. Exit 0 if lines_up, 1
+                      otherwise.
 
                       --run-lens <path> overrides where the RUN lens is read from (presence +
                       targets), leaving the other four read from the live lens dir. /run's
@@ -91,9 +95,10 @@ def arch_components(lens_dir):
 
 
 def run_targets(lens_dir, run_lens=None):
+    """Returns (target component names, tco_present) from the run lens."""
     path = run_lens or os.path.join(lens_dir, "run.yaml")
     if not os.path.isfile(path):
-        return set()
+        return set(), False
     doc = (load(path).get("lens") or {})
     content = doc.get("content") or {}
     comps = set()
@@ -101,7 +106,9 @@ def run_targets(lens_dir, run_lens=None):
         c = (t or {}).get("component")
         if isinstance(c, str) and c.strip():
             comps.add(c.strip())
-    return comps
+    tco = content.get("tco")
+    tco_present = isinstance(tco, dict) and len(tco) > 0
+    return comps, tco_present
 
 
 def main(argv=None):
@@ -129,18 +136,20 @@ def main(argv=None):
 
     # --- gate ---------------------------------------------------------------
     all_five = all(present.values())
-    uncovered, dangling = [], []
+    uncovered, dangling, tco_present = [], [], False
     if present["architecture"] and present["run"]:
         comps = arch_components(lens_dir)
-        targets = run_targets(lens_dir, args.run_lens)
+        targets, tco_present = run_targets(lens_dir, args.run_lens)
         uncovered = sorted(comps - targets)      # arch components with no run target (C5/C8)
         dangling = sorted(targets - comps)        # run targets binding no real component (C5)
 
-    lines_up = all_five and not uncovered and not dangling
+    # C13 (#435): no TCO, no stamp — the ownership-cost picture is part of lining up.
+    lines_up = all_five and not uncovered and not dangling and tco_present
     out = {"ok": lines_up, "phase": "gate", "slice_id": slice_id, "lens_dir": lens_dir,
            "lenses_present": present, "all_five_present": all_five,
            "missing_lenses": sorted([t for t, p in present.items() if not p]),
            "uncovered_components": uncovered, "dangling_targets": dangling,
+           "tco_present": tco_present,
            "lines_up": lines_up}
     print(json.dumps(out, indent=2))
     return 0 if lines_up else 1
