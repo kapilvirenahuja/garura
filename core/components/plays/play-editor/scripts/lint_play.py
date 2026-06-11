@@ -176,6 +176,36 @@ def main(argv):
                 pos_detail = f"invalid position '{val}' (must be start|end|both|none)"
     results.append((pos_ok, "pipeline position (D2)", pos_detail))
 
+    # --- D2b: durable model writes ride the end pipeline (#437) -------------
+    # A play that persists durable product-model artifacts must not declare
+    # position none unless it records an explicit exception. The write signal
+    # is deterministic: an explicit `model_writes` metadata row, or — in the
+    # Workflow — an Apply/Persist phase or step, or an apply_*.py script call.
+    meta_d2b = section_body(text, "Compilation Metadata") or ""
+    mw_row = re.search(r"(?im)^\|\s*model_writes\s*\|\s*(\S+)", meta_d2b)
+    if mw_row:
+        model_writes = mw_row.group(1).strip().lower() in {"yes", "true"}
+    else:
+        model_writes = bool(
+            re.search(r"(?im)^###\s+Phase:\s*(Apply|Persist)\b", workflow)
+            or re.search(r"(?im)^\*\*Step \d+ — Persist", workflow)
+            or re.search(r"\bapply_\w+\.py\b", workflow))
+    pos_val = None
+    if fm:
+        pm2 = re.search(r"(?m)^position:\s*(\S+)\s*$", fm.group(1))
+        if pm2:
+            pos_val = pm2.group(1).strip().strip("\"'")
+    exception = re.search(r"(?im)^\|\s*position_exception\s*\|\s*\S.*\|", meta_d2b)
+    if model_writes and pos_val == "none" and not exception:
+        results.append((False, "model-write position (D2b)",
+                        "play persists durable product-model artifacts but declares "
+                        "position none — declare end/both, or record a "
+                        "| position_exception | <reason> | metadata row (#437)"))
+    elif model_writes:
+        results.append((True, "model-write position (D2b)",
+                        f"model-writing play, position {pos_val}"
+                        + (" (explicit exception recorded)" if exception and pos_val == "none" else "")))
+
     # --- D1: Standard Play Close anchors ------------------------------------
     opener = "# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---"
     closer = "# --- end Standard Play Close ---"

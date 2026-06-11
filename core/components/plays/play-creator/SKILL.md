@@ -224,6 +224,8 @@ blocks: never inject a sequence into one of its own members, and never let a con
 hand-roll issue/branch/PR/merge steps that duplicate a member — those come only via
 injection.
 
+**Durable model writes ride the end pipeline (D2b, #437).** A play that persists durable product-model artifacts (an Apply/Persist phase, an `apply_*.py` call) must declare `position: end` or `both` — or record an explicit `| position_exception | <reason> |` metadata row. `lint_play.py` fails the play otherwise.
+
 ### 5 — Evals
 Generate the checks that prove the play works. Do not hand-wave these — each must be
 objectively checkable:
