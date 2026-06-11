@@ -25,6 +25,16 @@ the grilling; this script does the counting and wiring the model should not hand
               carries a citation (C6/F5), and none is still `live` — each is
               `resolved` or `accepted` with a recorded reason (C7/F6). Run this
               form as the write-gate before the checkpoint.
+  evidence  — with --rounds-dir (#436): a tension leaves `live` only on a typed
+              human response, and the record must prove it — every non-live
+              tension carries `pushback.shown_to_human: true` with the push-back
+              text, a `human_response.text` in the human's words, and a
+              `resolution_directive` (resolved) or `resolution_reason`
+              (accepted). A closed tension without this evidence is a forged
+              grilling and fails the gate (C12/F11). `decision_questions`
+              entries (unresolved delivery-method choices) must each carry a
+              citation, the question, and the human's answer — an unanswered
+              one fails the gate (C13/F12).
 
 Layer rule: reads files on disk only; no git/gh/network.
 
@@ -69,7 +79,8 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     errors = []
-    counts = {"epics": 0, "deferrals": 0, "tensions": 0, "live_tensions": 0}
+    counts = {"epics": 0, "deferrals": 0, "tensions": 0, "live_tensions": 0,
+              "decision_questions": 0}
 
     # --- slice record: the declared functionality set ------------------------
     try:
@@ -250,8 +261,37 @@ def main(argv=None):
                                   f"explicit acceptance before writing (C7/F6)")
                 elif status not in CLOSED:
                     errors.append(f"{tid}: status '{status}' invalid — live|resolved|accepted")
-                elif status == "accepted" and _empty((t or {}).get("resolution_reason")):
-                    errors.append(f"{tid}: accepted with no recorded reason (C7/F6)")
+                else:
+                    # human-response evidence (#436): a tension leaves `live` only
+                    # on a typed human answer — the record must prove the grilling
+                    # happened. Self-resolution by the agent fails here.
+                    pb = (t or {}).get("pushback") or {}
+                    hr = (t or {}).get("human_response") or {}
+                    if pb.get("shown_to_human") is not True or _empty(pb.get("text")):
+                        errors.append(f"{tid}: closed with no push-back evidence — "
+                                      f"pushback.shown_to_human must be true with the "
+                                      f"text actually shown (C12/F11)")
+                    if _empty(hr.get("text")):
+                        errors.append(f"{tid}: closed with no typed human response — a "
+                                      f"tension is dispositioned from the human's answer, "
+                                      f"never by the agent revising the draft (C12/F11)")
+                    if status == "resolved" and _empty((t or {}).get("resolution_directive")):
+                        errors.append(f"{tid}: resolved without a resolution_directive "
+                                      f"derived from the human response (C12/F11)")
+                    if status == "accepted" and _empty((t or {}).get("resolution_reason")):
+                        errors.append(f"{tid}: accepted with no recorded reason (C7/F6)")
+            for q in report.get("decision_questions") or []:
+                counts["decision_questions"] += 1
+                qid = (q or {}).get("question_id", "?")
+                qc = (q or {}).get("cites") or {}
+                if _empty(qc.get("source")) or _empty(qc.get("quote")):
+                    errors.append(f"{qid}: decision question with no citation "
+                                  f"(cites.source/quote) (C13/F12)")
+                if _empty((q or {}).get("question")):
+                    errors.append(f"{qid}: decision question with no question text (C13/F12)")
+                if _empty(((q or {}).get("human_response") or {}).get("text")):
+                    errors.append(f"{qid}: unanswered decision question — the human "
+                                  f"chooses the delivery method, never the agent (C13/F12)")
 
     ok = not errors
     print(json.dumps({"ok": ok, "errors": errors, "counts": counts}, indent=2))

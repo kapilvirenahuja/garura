@@ -1,7 +1,7 @@
 ---
 name: grill
 position: none
-description: 'Cut one REALIZED slice into user-testable delivery epics — the handoff from the product model to the delivery pipeline. /roadmap says which slice to build; the five realize lenses have solved its design and /run has stamped it realized — the marker /grill requires before it cuts. Each epic is a meaningful increment a user can open, exercise, and verify when delivered (the user-testability grain — never internal-only work), self-contained with its own context, acceptance, and one-line user_check, referencing the slice''s intent and lenses, never copying them. The cut is GRILLED before it is written: steelman-hard push-back where every challenge cites a specific declared item (an intent goal/constraint/failure, a lens decision, a profile bar — never taste), tensions resolved in the cut or explicitly accepted, lens defects routed back to their lens play. Ordered (explicit acyclic dependencies, first epic stands alone), every slice functionality covered or explicitly deferred, written atomically only after human approval. Writes only epics; opens no issue and cuts no branch — /start picks epics up one at a time.'
+description: 'Cut one REALIZED slice into user-testable delivery epics — the handoff from the product model to the delivery pipeline. /roadmap says which slice to build; the five realize lenses have solved its design and /run has stamped it realized — the marker /grill requires before it cuts. Each epic is a meaningful increment a user can open, exercise, and verify when delivered (the user-testability grain — never internal-only work), self-contained, referencing the slice''s intent and lenses, never copying them. The cut is GRILLED before it is written — grilling draws the box from realized slice to delivery epics so nothing drifts outside the declared intents: every challenge cites a specific declared item (never taste), questions are asked plainly ONE AT A TIME with no recommendations attached, a tension closes only on the typed human answer (the record carries the push-back shown, the human''s words, and the human-derived directive or reason — the agent never self-resolves), and an unresolved delivery-method choice becomes a cited decision question, never an assumption. Lens defects route back to their lens play. Ordered, every functionality covered or explicitly deferred, written atomically only after human approval. Writes only epics; opens no issue — /start picks epics up one at a time.'
 user-invocable: true
 ---
 
@@ -23,13 +23,24 @@ self-contained — context (persona, systems, scope), acceptance criteria naming
 user behavior, and the one-line `user_check` — and **references** the slice's intent
 records and lenses, never copies them.
 
-The cut is **grilled, not relayed**. This is the place where the five lenses get
-reconciled into delivery work, and getting it wrong poisons everything downstream. The
-play pushes back steelman-hard — thin acceptance, untestable increments, tensions between
-the cut and what the slice declared — and every push-back cites the specific declared item
-it defends. A tension is resolved in the cut or explicitly accepted with a recorded
-reason; a defect in a lens itself is recorded and routed back to that lens's play, never
-patched here. The full cut persists atomically, only after the human approves it.
+The cut is **grilled, not relayed** — and grilling is **drawing the box**: going from A
+(the realized slice — its declared intents, lenses, profile) to B (delivery epics) must
+have no drift, and the declared intents are the box the cut cannot step outside. The play
+pushes back steelman-hard — thin acceptance, untestable increments, tensions between the
+cut and what the slice declared — and every push-back cites the specific declared item it
+defends. A tension is resolved in the cut or explicitly accepted with a recorded reason; a
+defect in a lens itself is recorded and routed back to that lens's play, never patched
+here. The full cut persists atomically, only after the human approves it.
+
+**The grilling is a conversation with the human, and the record proves it (#436).** The
+play builds its question list for the round — push-backs and open delivery-method
+questions — and asks **one question at a time, simply stated**: the citation and the
+question, nothing else. No recommendations, no option menus. A tension leaves `live` only
+on the typed answer; the round record carries the push-back actually shown, the human's
+own words, and the directive or reason derived from them. The agent revising the draft on
+its own never closes a tension. And where the box has no wall — an epic's user check
+depending on a delivery method the lenses never decided — the play asks a cited decision
+question; only the human draws that wall.
 
 **Pipeline position: none.** /grill is a model-building play: it writes epics into the
 product model, opens no delivery issue, and cuts no branch (that is /start's job, one epic
@@ -38,9 +49,10 @@ close sequence.
 
 ## Compiled From
 
-This play was compiled from the grill ICE (`reference/ice.md`) by play-creator.
-Intent defines constraints (C1–C11) and failure conditions (F1–F10); the expectation
-defines success scenarios (S1–S6) and one recovery entry per failure condition.
+This play was compiled from the grill ICE (`reference/ice.md`) by play-creator and
+recompiled via play-editor (#436). Intent defines constraints (C1–C13) and failure
+conditions (F1–F12); the expectation defines success scenarios (S1–S8) and one recovery
+entry per failure condition.
 To modify this play, update `reference/ice.md` and recompile with play-creator.
 Do NOT edit this file manually — it is a compiled artifact.
 
@@ -57,11 +69,16 @@ bundled scripts. You never write epic YAML yourself, and you persist nothing bef
 human approves the single checkpoint (C9).
 
 **Forbidden:** hand-writing epic YAML; cutting from a slice not stamped `realized`;
-issuing a push-back without a citation to a declared item; persisting by any route other
-than `scripts/apply_epics.py`; persisting before Step 5 approval; editing a lens, the
-slice record, an ICE, or the profile (a lens defect is recorded and routed, never
-patched); opening an issue or branch (delivery's job); performing any epic lifecycle step
-beyond creation at `ready`.
+issuing a push-back without a citation to a declared item; **closing a tension without a
+typed human response** — marking `resolved`/`accepted` because the agent revised the draft
+itself, or filling `pushback`/`human_response`/directive/reason with anything but the
+actual conversation (#436); attaching a recommendation, option menu, or advocacy to a
+grilling question, or asking questions in a batch instead of one at a time; cutting an
+epic whose user check depends on a delivery method no declared item decides and no human
+chose; persisting by any route other than `scripts/apply_epics.py`; persisting before
+Step 5 approval; editing a lens, the slice record, an ICE, or the profile (a lens defect
+is recorded and routed, never patched); opening an issue or branch (delivery's job);
+performing any epic lifecycle step beyond creation at `ready`.
 
 **Agent boundaries:**
 
@@ -196,14 +213,15 @@ On any GAP, apply the named recovery and re-run before grilling starts.
 ### Phase: Grill (rounds — the play's reason to exist)
 
 **Step 3 — Grill rounds, until clean** · Owner: play + `product-os-keeper` · Depends on: Step 2
-A bounded loop; round `R<n>` runs four moves and the loop exits **only** when a round's
-tension report has zero `live` entries and the validator is clean against the rounds:
+A bounded loop; round `R<n>` runs five moves and the loop exits **only** when a round's
+report has zero `live` tensions, zero unanswered decision questions, and the validator is
+clean against the rounds:
 
 1. **Tension check.** Dispatch `product-os-keeper` → `check-cut-tensions` over the current
    cut and everything the slice declared:
 
        {
-         "task":    "detect tensions between this epic cut and the declared design — hub ICEs, all five lenses, profile bars — one entry per real contradiction, each citing source file + verbatim quote; suppress tensions already resolved/accepted in prior rounds",
+         "task":    "detect tensions between this epic cut and the declared design — hub ICEs, all five lenses, profile bars — one entry per real contradiction, each citing source file + verbatim quote; emit unresolved delivery-method choices that shape an epic as cited decision_questions entries (plain questions, no recommendations, human_response always absent); suppress tensions and questions already closed in prior rounds",
          "inputs":  { "cut_dir": "<working>/draft/",
                       "slice_file": "<product_base>/<slice_file>",
                       "functionality_ices": [ "<product_base>/<ice_ref>", "..." ],
@@ -214,21 +232,28 @@ tension report has zero `live` entries and the validator is clean against the ro
          "outputs": { "report": "<working>/rounds/R<n>-tensions.yaml" }
        }
 
-2. **Push back, steelman-hard.** For each live tension, author the push-back FROM its
-   citation — steelman the cut's position first (acknowledge what the current cut gets
-   right), then show what the cited declared item still breaks. Quote the citation
-   verbatim. Present the push-backs to the human in plain product language and wait for
-   typed responses. A push-back with no citation is never issued (C6) — withdraw it
-   (REC5). Push back on thin `user_check`s and weak acceptance the same way: the citation
-   is the intent goal or quality gate the thinness fails.
-3. **Disposition every tension.** From the human's answers, update the round report:
-   `resolved` (the cut will change) or `accepted` (with the human's `resolution_reason`
-   recorded). A tension that exposes a defect in a lens itself is dispositioned by
-   recording the defect to `<working>/lens-defects.yaml` (naming the lens, the citation,
-   and the contradiction) and routing the human to that lens's play — the lens is never
-   edited here (C11). Revisions go back through the agent: dispatch `product-os-keeper` →
-   `author-epics` with `directives` = the dispositions, revising the draft in place.
-4. **Re-validate.** After any revision, re-run Step 2's validator, then enter round
+2. **Build the round's question list.** One question per live tension (the push-back —
+   steelman the analysis of *what* to challenge, but state the question plainly) and one
+   per open decision question. Each list entry is the citation plus one simply-stated
+   question. Nothing else: **no recommendation, no option menu, no advocacy** wrapped
+   around it (C12).
+3. **Ask one at a time.** Present the first question — the verbatim citation and the
+   question — and **wait for the typed answer** before asking the next. As each is asked,
+   record on its entry `pushback.shown_to_human: true`, `pushback.text` (what was shown),
+   and `pushback.asked_at`; when the human answers, record `human_response.text` (their
+   words) and `human_response.answered_at`. A question with no citation is never asked
+   (C6) — withdraw it (REC5).
+4. **Disposition from the answers only (C12).** For each answered tension: `resolved` —
+   with a `resolution_directive` derived from the human's words — or `accepted` — with
+   the human's own `resolution_reason`. For each answered decision question: record the
+   chosen delivery strategy on the entry; it becomes a revision directive where it
+   reshapes an epic (C13). The agent revising the draft by itself NEVER closes a tension
+   — no answer, no disposition (F11). A tension that exposes a defect in a lens itself is
+   dispositioned by recording the defect to `<working>/lens-defects.yaml` and routing the
+   human to that lens's play — the lens is never edited here (C11). Revisions go back
+   through the agent: dispatch `product-os-keeper` → `author-epics` with `directives` =
+   the dispositions + chosen strategies, revising the draft in place.
+5. **Re-validate.** After any revision, re-run Step 2's validator, then enter round
    `R<n+1>`.
 
 The write-gate closes the loop — the validator in rounds form must be clean:
@@ -244,6 +269,15 @@ python3 scripts/validate_epics.py --draft <working>/draft \
 the session shows no push-back that lacks one; an uncited push-back is withdrawn (REC5).
 **SE-7 (F6/C7):** at the write-gate, zero tensions are `live` — every one is `resolved`
 in the cut or `accepted` with a recorded reason; live tensions block the gate (REC6).
+**SE-12 (F11/C12):** every non-live tension carries the human loop's evidence —
+`pushback.shown_to_human: true` with the text shown, `human_response.text` in the human's
+words, and a `resolution_directive` (resolved) or human-given `resolution_reason`
+(accepted); the validator fails any closed tension missing them, and the session shows
+each was asked one at a time with no recommendation attached (REC11).
+**SE-13 (F12/C13):** every `decision_questions` entry carries its citation, its question,
+and the human's answer — the validator fails an unanswered one, and no epic's `user_check`
+rests on a delivery method that neither a lens nor a recorded human answer decides
+(REC12).
 
 ### Phase: Checkpoint (mandatory — never skipped, C9)
 
@@ -251,10 +285,12 @@ in the cut or `accepted` with a recorded reason; live tensions block the gate (R
 Present the full cut **inline**, in product language: each epic — its title, outcome, the
 `user_check` (what a user opens, does, and sees), the acceptance criteria, the
 functionalities it threads, its dependencies and order — plus the deferrals and their
-reasons, every accepted tension and its recorded reason, and any lens defects recorded for
-routing. This checkpoint is always presented and never skippable. Output the summary and
-wait for a typed response — approve → persist; anything else → revise (back to Step 3) or
-halt with nothing written.
+reasons, **the grilling record** — every resolved tension (the question asked, the human's
+answer, the change made), every accepted tension and the human's reason, every
+delivery-method decision the human made and which epics it shaped (C12/C13) — and any lens
+defects recorded for routing. This checkpoint is always presented and never skippable.
+Output the summary and wait for a typed response — approve → persist; anything else →
+revise (back to Step 3) or halt with nothing written.
 
 ### Phase: Apply
 
@@ -322,6 +358,15 @@ change is restored from the snapshot and the write re-confined to epics (REC8).
   `<working>/lens-defects.yaml` naming the lens and the tension, the human was routed to
   that lens's play, and the lens files + slice record are byte-identical before and after
   the run.
+- **SCE-7 (S7 — product builder, grilled for real):** every non-live tension in the round
+  reports carries `pushback.shown_to_human: true` with the push-back text, a
+  `human_response` with the human's own words, and a `resolution_directive` (resolved) or
+  human-given `resolution_reason` (accepted); the write-gate fails when any is missing;
+  the session asked its questions one at a time, plainly, with no recommendation attached.
+- **SCE-8 (S8 — product builder, open delivery choice):** every `decision_questions`
+  entry carries a citation, the question, and the human's answer; the write-gate fails an
+  unanswered one; the checkpoint showed the chosen delivery strategy and the epics it
+  shaped.
 
 ### Phase: Evidence & Close
 
@@ -377,6 +422,8 @@ run that lens play first), and a pointer to `$evidence_dest`. Always emitted; ne
 | S4 — explicit deferral | product builder | SCE-4 |
 | S5 — too early | product builder | SCE-5 |
 | S6 — lens defect routed | lens owner | SCE-6 |
+| S7 — grilled for real | product builder | SCE-7 |
+| S8 — open delivery choice | product builder | SCE-8 |
 
 ## Recovery
 
@@ -392,6 +439,8 @@ run that lens play first), and a pointer to `$evidence_dest`. Always emitted; ne
 | F8 | the write-guard finds changes outside the slice's epic home | restore every touched file from its pre-run snapshot; confine the write to epics | autonomous |
 | F9 | a dependency cycle, or a first epic that can't stand alone | re-order or split epics until the order is acyclic and the first is independently deliverable | autonomous |
 | F10 | the self-containment check finds an epic with empty or unresolvable context or acceptance | backfill from the slice's intent records and lenses, re-verify resolution | autonomous |
+| F11 | a non-live tension lacks human-response evidence — no push-back shown, no typed answer, or no human-derived directive/reason | reopen the tension to `live`, ask the question plainly (one at a time, no recommendation), capture the typed answer, and disposition from that answer only | human |
+| F12 | an epic is shaped by a delivery method the human never chose — a missing or unanswered decision question at the write-gate | ask the cited decision question, capture the choice, revise the cut to match it, and record the decision in the round | human |
 
 ## Pause and Resume
 
@@ -409,14 +458,14 @@ marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:7c70a51e9e61c2e67342d77fb4349718d0101dd4199fc5c6f7bd6db38488ec9f (of `reference/ice.md`) |
-| compiled_by | play-creator (#434) |
+| fingerprint | sha256:1acd10bbcd23a93669adea1b6eb9c4a2d47a58fbb31d4f997b1ca414cc7ccf4c (of `reference/ice.md`) |
+| compiled_by | play-creator (#434; edited via play-editor, #436) |
 | pipeline_position | none |
 | workflow_structure | A (mandatory, non-skippable checkpoint; grilling rounds as a bounded loop in preparation) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |
 | skills_used | author-epics, check-cut-tensions |
 | scripts | 6 (preflight.py, check_ready_slice.py, check_realized.py, validate_epics.py, apply_epics.py, check_epics.py) |
-| step_evals | 11 (SE-1…SE-11; one per failure condition F1–F10, plus SE-11 for C10) |
-| scenario_evals | 6 (SCE-1…SCE-6) |
-| recovery_entries | 10 (one per failure condition; 8 autonomous / 2 human) |
+| step_evals | 13 (SE-1…SE-13; one per failure condition F1–F12, plus SE-11 for C10) |
+| scenario_evals | 8 (SCE-1…SCE-8) |
+| recovery_entries | 12 (one per failure condition; 8 autonomous / 4 human) |

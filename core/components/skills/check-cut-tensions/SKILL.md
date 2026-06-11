@@ -1,6 +1,6 @@
 ---
 name: check-cut-tensions
-description: Run the per-round tension check that makes /grill's steelman push-back discipline real. Reads the drafted epic cut and everything the slice declared — its functionalities' ICE (the hub), all five lenses, and the profile bars — and produces a structured tension report, one entry per real contradiction, each citing the specific declared item it defends (source file + verbatim quote). Detects untestable increments, acceptance thinner than a declared bar, cut/lens contradictions, and material omissions. Returns an empty report when the cut is consistent with the declared design. Used only by the /grill play, once per grilling round, between draft (or revision) and push-back.
+description: Run the per-round tension check that makes /grill's steelman push-back discipline real. Reads the drafted epic cut and everything the slice declared — its functionalities' ICE (the hub), all five lenses, and the profile bars — and produces a structured tension report, one entry per real contradiction, each citing the specific declared item it defends (source file + verbatim quote). Detects untestable increments, acceptance thinner than a declared bar, cut/lens contradictions, and material omissions — and, separately, unresolved DELIVERY-METHOD choices: when an epic's user check depends on a method the lenses never decided, it emits a cited decision_questions entry for the play to put to the human. Emits live tensions and open questions only; the push-back/human-response evidence fields are the play's to fill from the actual conversation, never this skill's. Returns an empty report when the cut is consistent with the declared design. Used only by the /grill play, once per grilling round, between draft (or revision) and push-back.
 version: 0.1.0
 user-invocable: false
 model: sonnet
@@ -73,10 +73,26 @@ critique without a cited anchor is not a tension and must not be emitted.
      it to `resolved` (the cut changed) or `accepted` (with a `resolution_reason`).
    - `reopened` — true only when re-emitting a previously closed tension.
 
-4. **Suppress closed tensions.** Any contradiction already `resolved`/`accepted` in
+4. **Detect unresolved delivery-method choices (#436).** For each epic, ask: does its
+   `user_check` or acceptance depend on a delivery method the lenses never decided —
+   an ingestion route (file/log import vs provider API vs manual upload vs hybrid), a
+   surface, a data path? If the architecture/run lens decides it, cite that and move on.
+   If no declared item decides it, emit a **`decision_questions` entry** — NOT a tension:
+
+   - `question_id` — `{round_id}-Q{n}`.
+   - `epic_id` — the epic whose shape depends on the answer.
+   - `cites` — the declared item that makes the question necessary (the user_check or
+     acceptance line, the lens gap), same kind/source/quote shape as tensions.
+   - `question` — one plain question, simply stated. No recommendation, no option
+     menu, no advocacy — the play asks it verbatim, one at a time.
+   - `human_response` — ALWAYS absent from this skill's output; the play records the
+     human's answer there. Never invent or pre-fill an answer.
+
+5. **Suppress closed tensions and answered questions.** Any contradiction already
+   `resolved`/`accepted`, or any decision question already answered, in
    `prior_rounds_dir` is skipped unless the current cut re-introduces it.
 
-5. **Write the report** to `output_path` and return the path + counts.
+6. **Write the report** to `output_path` and return the path + counts.
 
 ## What counts as a tension — and what doesn't
 
@@ -105,12 +121,31 @@ tensions:
       numbers the source data contradicts.
     status: live
     reopened: false
+decision_questions:
+  - question_id: R1-Q1
+    epic_id: e-1-token-spine
+    cites:
+      kind: lens_run
+      source: product-os/.../lens/run.yaml
+      quote: "targets: ingest-worker — container, prod"
+    question: >
+      Should v1 token ingestion be file/log import, provider API, manual upload,
+      or a hybrid?
+    # human_response is the PLAY's field — recorded from the human's typed answer;
+    # this skill never fills it.
 counts:
   total: 1
   by_kind: {contradicts: 0, renders_incoherent: 0, material_omission: 1}
+  decision_questions: 1
 ```
 
-**Return value:** `{status: checked, report_path, tension_count, breakdown}`.
+The play later augments each entry from the actual conversation: `pushback`
+(`shown_to_human`, `text`, `asked_at`), `human_response` (`text`, `answered_at`), the
+disposition (`resolved` + `resolution_directive`, or `accepted` + `resolution_reason`),
+and the answer on each decision question. Those fields are evidence of the human loop —
+this skill emits entries WITHOUT them, always.
+
+**Return value:** `{status: checked, report_path, tension_count, question_count, breakdown}`.
 
 ## Failure modes
 
@@ -127,6 +162,10 @@ counts:
 - Does not issue push-backs, does not edit the cut, does not set `resolved`/`accepted`
   (the play does, after the human answers), does not interview the human, does not call
   other skills.
+- NEVER fills `pushback`, `human_response`, `resolution_directive`, or
+  `resolution_reason`, and never answers its own decision questions — those fields are
+  the play's evidence that a real human answered; pre-filling any of them forges the
+  grilling (#436).
 - Empty report is a valid output — a cut consistent with everything declared returns
   `tension_count: 0`; the play uses that to advance to the checkpoint.
 - One entry per defended item per epic per round; two breaks of the same item by the

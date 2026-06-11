@@ -10,6 +10,14 @@ meaningful increment a user can open, exercise, and verify — grilled steelman-
 the slice's intent and all five lenses before anything is written, as the handoff from the
 product model to delivery.
 
+**What grilling is for: drawing the box.** Going from A (the realized slice — the declared
+intents, lenses, and profile) to B (delivery epics) must have no drift. The declared
+intents ARE the box; however short or long the A-to-B distance, the cut must hold inside
+it — we cannot afford to step out. Every grilling move serves the box: a cited push-back
+marks where the cut touches a wall; a decision question marks where the box has no wall
+yet and only the human may draw one; the human-response record proves the box held because
+the human held it, not because the agent assumed it did.
+
 /grill sits below /roadmap and above the delivery pipeline. /roadmap says "build this slice
 next"; the five realize lenses (quality → ux → agentic → arch → run) have solved the slice's
 design and /run has stamped its record `status: realized` — that stamp is the single marker
@@ -34,6 +42,23 @@ A tension is either resolved in the cut or explicitly accepted with a recorded r
 lens defect exposed by grilling is recorded and routed back to its lens play, never patched
 here. The full cut is written only after explicit human approval, atomically — all epics or
 none.
+
+**The grilling is a conversation with the human, and the record must prove it (#436).** A
+tension leaves `live` only on a typed human response: the round record carries the
+push-back actually shown (its text, marked shown), the human's own words, and — for a
+resolved tension — the revision directive derived from that response, or — for an accepted
+one — the reason the human gave. The agent revising the draft on its own never closes a
+tension; a closed tension without human-response evidence is a forged grilling. The same
+discipline covers open delivery choices: when an epic's user check depends on a delivery
+method the lenses never decided (file import vs provider API vs manual upload, and the
+like), the play does not assume — it asks, as a cited decision question, and the human's
+choice shapes the cut and appears at the checkpoint.
+
+The asking itself is plain: the play builds its question list for the round, then asks
+**one question at a time** — the citation and the question, simply stated — and waits for
+the answer before the next. No recommendations attached, no option menus, no advocacy
+wrapped around the question. The steelman lives in *what* gets challenged, never in
+dressing up the question.
 
 Pipeline position: **none**. /grill is a model-building play: it writes epics into the
 product model and opens no delivery issue and cuts no branch itself (that is /start's job,
@@ -66,6 +91,16 @@ sequence.
 - C11 — The play writes only epics; it never modifies the slice record, the lenses, the
   intent records, or the profile. A lens defect found while grilling is recorded and routed
   back to its lens play, not patched here.
+- C12 — A tension leaves `live` only on a typed human response, and the round record
+  proves it: the push-back actually shown (its text, marked shown), the human's own words,
+  and — resolved — a revision directive derived from that response, or — accepted — the
+  reason the human gave. The agent never closes a tension by revising the draft itself.
+  Questions are asked one at a time, simply stated — the citation and the question, no
+  recommendation, no option menu — and the play waits for each answer.
+- C13 — An epic never encodes a delivery-method assumption: when an epic's user check
+  depends on a delivery method the lenses do not decide, the unresolved choice becomes a
+  cited decision question put to the human before the checkpoint; the human's answer
+  shapes the cut, is recorded in the round, and is shown at the checkpoint.
 
 ### Failure conditions
 
@@ -86,6 +121,12 @@ sequence.
   stand alone.
 - F10 — An epic arrives at delivery without the context to build it, forcing the delivery
   pipeline to re-derive what the product model already knew.
+- F11 — A tension is closed without human-response evidence — the agent resolved its own
+  push-back, or the record lacks the push-back shown, the typed human answer, or the
+  human-derived directive/reason. The grilling looks rigorous but never happened.
+- F12 — An epic is cut on a delivery-method assumption the human never chose — an
+  unresolved method shaping the cut with no decision question asked, or one asked but
+  never answered.
 
 ## Expectation
 
@@ -114,6 +155,18 @@ sequence.
   recorded and routed to that lens's play. Measure: a defect record exists naming the lens
   and the tension; the lens files and slice record are byte-identical before and after the
   run.
+- S7 — (product builder, grilled for real) Given the rounds closed tensions, then every
+  closed tension shows the question they were actually asked and their own answer — asked
+  one at a time, plainly, with no recommendation attached. Measure: every non-live tension
+  in the round reports carries `pushback.shown_to_human: true` with the push-back text,
+  a `human_response` with the human's text, and a `resolution_directive` (resolved) or
+  the human-given `resolution_reason` (accepted); the write-gate fails when any is
+  missing.
+- S8 — (product builder, open delivery choice) Given an epic's user check depends on a
+  delivery method the lenses never decided, then the play asks a cited decision question
+  and the answer shapes the cut. Measure: the round report carries a `decision_questions`
+  entry with a citation, the question, and the human's answer; the write-gate fails an
+  unanswered one; the checkpoint shows the chosen strategy.
 
 ### Recovery (one per failure condition)
 
@@ -145,3 +198,11 @@ sequence.
 - REC10 (F10) — trigger: the self-containment check finds an epic with empty or
   unresolvable context or acceptance. direction: backfill from the slice's intent records
   and lenses, re-verify resolution. handoff: autonomous.
+- REC11 (F11) — trigger: a non-live tension lacks human-response evidence — no push-back
+  shown, no typed answer, or no human-derived directive/reason. direction: reopen the
+  tension to `live`, ask the question plainly (one at a time, no recommendation), capture
+  the typed answer, and disposition from that answer only. handoff: human.
+- REC12 (F12) — trigger: an epic is shaped by a delivery method the human never chose —
+  a missing or unanswered decision question at the write-gate. direction: ask the cited
+  decision question, capture the choice, revise the cut to match it, and record the
+  decision in the round. handoff: human.

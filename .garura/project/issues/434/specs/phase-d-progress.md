@@ -202,6 +202,20 @@ maintenance/navigation barely started. Build state below is by what is actually 
   skills ≤1024 + clean YAML (grill 1018, run 1020); the 6 stale grill-me leftovers from
   the prior install deleted (installer lays down, never retires — diffed disk vs fresh
   manifest).
+- **/grill hardened against forged grilling (#436, P1, 2026-06-11).** The write-gate
+  accepted agent-self-resolved tensions — citations + no-live was checkable, the human
+  loop was not. Fixed intent-first via play-editor (C12/C13, F11/F12, S7/S8, REC11/12;
+  fingerprint recomputed): a tension closes ONLY on a typed human answer, and the round
+  record proves it (pushback.shown_to_human + text, human_response in the human's words,
+  human-derived resolution_directive / resolution_reason); unresolved delivery-method
+  choices that shape an epic become cited `decision_questions` — asked plainly, ONE AT A
+  TIME, no recommendations/option menus (Kapil's directive); checkpoint shows the full
+  grilling record. Framing added to the ICE: grilling draws the BOX from realized slice
+  (A) to epics (B) — declared intents are the box, no drift outside it; where the box has
+  no wall, only the human draws one. Enforced in validate_epics.py (regression fixtures:
+  forged resolution / unshown push-back / unanswered question all fail; honest record
+  passes); check-cut-tensions emits questions separately and NEVER fills the evidence
+  fields. Lint PASS.
 
 ### Realize reworked: the SLICE is the unit (2026-06-09)
 - The realize lenses run **one slice per run**, not one capability — the slice is the
