@@ -43,6 +43,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -196,6 +197,39 @@ def install(source, target, tool, force, quiet, memory_dest):
     return record
 
 
+def retire_stale(target, new_paths, quiet):
+    """Manifest-driven retirement: a component the PREVIOUS install placed that
+    this install did not re-place was renamed or retired in source — remove it,
+    so renames/retirements never leave stale copies in the target (the
+    grill-me / sud-install-garura lesson, #434). Only paths the prior manifest
+    recorded are ever candidates — user-owned files are invisible to this —
+    and only paths inside the target are ever touched. Must run BEFORE the new
+    manifest overwrites the prior one."""
+    path = os.path.join(target, ".garura", "install-manifest.json")
+    if not os.path.isfile(path):
+        return []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            prior = (json.load(fh).get("record") or {}).get("components") or []
+    except (OSError, ValueError):
+        return []
+    base = os.path.abspath(target)
+    removed = []
+    for rel in sorted(set(prior) - set(new_paths)):
+        full = os.path.normpath(os.path.join(base, rel))
+        if not full.startswith(base + os.sep):
+            continue  # never step outside the target
+        if os.path.isdir(full):
+            shutil.rmtree(full)
+            removed.append(rel)
+        elif os.path.isfile(full):
+            os.remove(full)
+            removed.append(rel)
+    for rel in removed:
+        info(quiet, f"  retired: {rel} (placed by a previous install, no longer in source)")
+    return removed
+
+
 def write_manifest(target, record, quiet):
     os.makedirs(os.path.join(target, ".garura"), exist_ok=True)
     path = os.path.join(target, ".garura", "install-manifest.json")
@@ -225,12 +259,14 @@ def main(argv=None):
 
     info(args.quiet, f"installing garura ({source}) into {target} for {args.tool}")
     record = install(source, target, args.tool, args.force_config, args.quiet, args.memory_dest)
+    record["retired"] = retire_stale(target, record["components"], args.quiet)
     write_manifest(target, record, args.quiet)
 
     c = record["counts"]
     n = c.get("skills", 0) + c.get("plays", 0)
+    retired = f", retired {len(record['retired'])} stale" if record["retired"] else ""
     info(args.quiet, f"\ndone — installed {c.get('agents', 0)} agent(s) and "
-                     f"{n} skill/play(s) into {target} for {args.tool}")
+                     f"{n} skill/play(s){retired} into {target} for {args.tool}")
 
 
 if __name__ == "__main__":

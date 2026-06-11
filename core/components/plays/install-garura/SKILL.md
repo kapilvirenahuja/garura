@@ -108,6 +108,12 @@ Options:
 The script is **idempotent**: re-running re-lays the components in place and refreshes shared
 memory, but preserves an existing config unless forced. Re-running never produces duplicates.
 
+Re-running also **retires**: any component the previous install's manifest placed that this
+install did not re-place (renamed or retired in source) is removed from the target and
+reported as `retired:`. Only manifest-recorded paths are candidates — the user's own
+skills/files are never touched. So a rename like `sud-install-garura` → `install-garura`, or
+a play retirement, cleans itself up on the next install instead of leaving a stale copy.
+
 ## Report back
 
 After the script returns, read the printed summary and the written
