@@ -82,6 +82,25 @@ def fallback_parse(text):
             "exclusions": [{"path": p} for p in exclusions]}
 
 
+def normalize_group(g):
+    """Defensive alias mapping (the schema contract is analysis-output.md; this
+    absorbs drift instead of failing the run): `name` -> `id`, `type` ->
+    `commit_type`, and an `old -> new` rename string splits into both paths."""
+    if "id" not in g and g.get("name"):
+        g["id"] = g["name"]
+    if "commit_type" not in g and g.get("type"):
+        g["commit_type"] = g["type"]
+    files = []
+    for f in g.get("files") or []:
+        if isinstance(f, str) and " -> " in f:
+            old, new = f.split(" -> ", 1)
+            files += [old.strip().strip('"'), new.strip().strip('"')]
+        else:
+            files.append(f)
+    g["files"] = files
+    return g
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--analysis", required=True)
@@ -103,6 +122,7 @@ def main():
     groups = analysis.get("change_groups") or []
     if isinstance(groups, str):
         groups = []
+    groups = [normalize_group(g) for g in groups if isinstance(g, dict)]
     excl = analysis.get("exclusions") or []
     excl_paths = [e.get("path", "") for e in excl if isinstance(e, dict)]
     excl_reasons = {e.get("path", ""): e.get("reason", "recorded in analysis.yaml")
