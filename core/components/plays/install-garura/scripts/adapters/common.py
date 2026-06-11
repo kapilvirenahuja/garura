@@ -125,14 +125,21 @@ def frontmatter_value(fm, key):
     """Read a single top-level scalar from frontmatter text. None if absent.
 
     Deliberately small: handles `key: value` on one line, which is the shape
-    garura's name/description/model fields use. Quotes are stripped.
+    garura's name/description/model fields use. Quotes are stripped AND
+    unescaped: a single-quoted YAML scalar escapes ' as '' — strip-only would
+    leave the doubled quotes in, and re-quoting on emit would double them again.
     """
     if not fm:
         return None
     for line in fm.splitlines():
         m = re.match(rf"^{re.escape(key)}:\s*(.*)$", line)
         if m:
-            return m.group(1).strip().strip("'\"")
+            v = m.group(1).strip()
+            if len(v) >= 2 and v[0] == v[-1] == "'":
+                return v[1:-1].replace("''", "'")
+            if len(v) >= 2 and v[0] == v[-1] == '"':
+                return v[1:-1]
+            return v
     return None
 
 

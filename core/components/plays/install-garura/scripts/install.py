@@ -2,7 +2,7 @@
 """
 install.py — install Garura into a target project, for a chosen host tool.
 
-The mechanical hand of the `sud:install-garura` play. The play decides and
+The mechanical hand of the `install-garura` play. The play decides and
 reports; this script does the deterministic file work.
 
 Model
@@ -199,7 +199,7 @@ def install(source, target, tool, force, quiet, memory_dest):
 def write_manifest(target, record, quiet):
     os.makedirs(os.path.join(target, ".garura"), exist_ok=True)
     path = os.path.join(target, ".garura", "install-manifest.json")
-    manifest = {"installer": "sud-install-garura", "version": 2, "record": record}
+    manifest = {"installer": "install-garura", "version": 2, "record": record}
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(manifest, fh, indent=2)
         fh.write("\n")

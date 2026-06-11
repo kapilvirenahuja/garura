@@ -2,8 +2,8 @@
 """
 adapters/codex.py — the OpenAI Codex CLI adapter.
 
-Codex differs from Claude Code in three load-bearing ways (verified against
-developers.openai.com/codex, 2026), and this adapter absorbs all three:
+Codex differs from Claude Code in four load-bearing ways (verified against
+developers.openai.com/codex, 2026), and this adapter absorbs all four:
 
   1. Skills live under `.agents/skills/<id>/SKILL.md` (NOT `.codex/skills/`),
      carrying only `name` + `description` frontmatter. A Codex skill has no
@@ -16,6 +16,13 @@ developers.openai.com/codex, 2026), and this adapter absorbs all three:
      be *pinned*; we record it as a one-line note in the skill body AND write
      three tier profiles + a base config into the Codex home so the user can run
      `codex --profile deep|standard|fast`.
+  4. The frontmatter `description` is HARD-CAPPED at 1024 characters — Codex
+     refuses to load a skill past it (openai/codex#13941), silently from the
+     user's view: the folder sits in .agents/skills but the skill never appears.
+     Claude Code has no such cap, so garura source descriptions may exceed it;
+     this adapter truncates at a word boundary on emit (_cap_description).
+     Found the hard way on token-burn-dash (#434): /run and /grill — the two
+     longest descriptions — were the only skills Codex would not load.
 
 The instruction surface is `AGENTS.md` at the target root (Codex's equivalent of
 CLAUDE.md). Shared memory and garura's own `.garura/` tooling config are written
@@ -43,12 +50,28 @@ TIER_PROFILE = {
 
 # --- per-skill emission -------------------------------------------------------
 
+# Codex enforces description <= 1024 CHARACTERS and refuses to load the skill
+# past it (developers.openai.com/codex/skills; openai/codex#13941). Claude has
+# no such cap, so garura source descriptions may exceed it — the adapter's job
+# is to absorb the difference: truncate at a word boundary, ellipsis appended.
+DESC_MAX = 1024
+
+
+def _cap_description(description):
+    if len(description) <= DESC_MAX:
+        return description
+    cut = description[: DESC_MAX - 2]
+    if " " in cut:
+        cut = cut[: cut.rfind(" ")]
+    return cut.rstrip(" ,;—-") + " …"
+
+
 def _codex_skill_text(name, description, tier, body):
     prof = TIER_PROFILE[tier]
     fm = (
         "---\n"
         f"name: {name}\n"
-        f"description: {common.yaml_scalar(description)}\n"
+        f"description: {common.yaml_scalar(_cap_description(description))}\n"
         "---\n"
     )
     # Codex can't pin a model per skill; leave the intended tier as guidance.
@@ -148,7 +171,7 @@ def write_instruction_surface(md_text, project_name, target, info):
 # --- machine-global Codex config (model / sandbox / approval) -----------------
 
 _BASE_CONFIG = (
-    "# Written by garura sud-install-garura (codex adapter). Safe to edit.\n"
+    "# Written by garura install-garura (codex adapter). Safe to edit.\n"
     "# Base defaults; the deep/standard/fast profiles override per run.\n"
     'model = "gpt-5.4"\n'
     'model_reasoning_effort = "medium"\n'

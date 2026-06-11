@@ -1,10 +1,10 @@
 ---
-name: sud:install-garura
+name: install-garura
 description: 'Install Garura into a target project or repository so its skills, agents, and plays become discoverable by a host coding tool — Claude Code or the OpenAI Codex CLI. Reads this garura checkout''s core/components and runs a per-tool ADAPTER that lays them down in the host''s native shape: for claude, .claude/ skills + agents with model tiers resolved to Claude models; for codex, .agents/skills Agent Skills plus AGENTS.md and ~/.codex model/sandbox/approval profiles. Always writes a .garura/ tooling tree (config + STM scaffold) and copies shared memory to the machine-global ~/.garura, and records an install manifest so uninstall-garura can reverse exactly what was placed. Use when the user wants to install, set up, bootstrap, add, or enable Garura in another folder or repo for claude or codex — "install garura into X", "set up garura in this repo for codex", "bootstrap garura", "make codex see the garura skills". Takes the target path and an optional --tool. For the reverse, see uninstall-garura.'
 user-invocable: true
 ---
 
-# sud:install-garura
+# install-garura
 
 Install **this** garura checkout into a **target** project so a host coding tool can discover
 and run its skills, agents, and plays there. You run this from the garura repo (where the
@@ -91,7 +91,7 @@ From the garura repo root the source is auto-derived; you normally only pass `--
 for Codex, `--tool codex`:
 
 ```
-python3 core/components/plays/sud-install-garura/scripts/install.py --target <path> [--tool claude|codex]
+python3 core/components/plays/install-garura/scripts/install.py --target <path> [--tool claude|codex]
 ```
 
 Options:
