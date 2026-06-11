@@ -1,41 +1,70 @@
-# Epic Schema — v1 (DRAFT, pending HITL review)
+# Epic Schema — v2 (reshaped for /grill, #434)
 #
-# An epic is a VERTICAL SLICE of a functionality — the unit of delivery, and the
-# grain an issue is cut at. It is the handoff from the shaping pipeline (/grill)
-# to the delivery pipeline (/start -> /implement).
+# An epic is a USER-TESTABLE increment of a realized SLICE — the unit of delivery,
+# and the grain an issue is cut at. It is the handoff from the product model
+# (/grill) to the delivery pipeline (/start -> /implement).
+#
+# v2 changes (supersedes v1's "vertical slice of a functionality"):
+#   - HOME: epics live ON the slice — {domain}/slices/{slice-id}/epics/ — beside
+#     the slice's lens/ and decisions/ folders. Not under a capability.
+#   - GRAIN: user-testability, not the functionality. When an epic is delivered,
+#     a user can OPEN the product, DO something, and SEE it work. An epic may
+#     thread several of the slice's functionalities; a functionality may yield
+#     more than one epic. An internal-only epic is not an epic.
+#   - `functionality_ref` (one) -> `functionality_refs` (one or more).
+#   - `user_check` added: the one-line open/do/verify a user performs.
+#   - `order` replaces `priority`: /roadmap orders slices; /grill orders the
+#     epics WITHIN its slice.
 #
 # Lifecycle: TEMPORARY. /grill writes the epic into product-os so the delivery
 # pipeline can pick it up across the pipeline boundary. When the epic's issue
-# MERGES (the slice is delivered), the epic is DELETED. We keep the intent and
-# the structure, not the slicing.
+# MERGES (the increment is delivered), the epic is DELETED. We keep the intent
+# and the structure, not the slicing.
 
 schema:
   name: epic
-  version: 1
-  persistence: temporary    # held in product-os only until delivered, then deleted
+  version: 2
+  persistence: temporary    # held on the slice only until delivered, then deleted
 
 epic:
-  id: string
-  functionality_ref: string # the functionality node this slice belongs to
+  id: string                # unique within the slice, e.g. e-1-login-lockout
+  slice_ref: string         # {domain}/{slice-id} — the realized slice this was cut from
   title: string             # e.g. "Lock account after repeated failed logins"
-  slice: string             # one line: the end-to-end behavior this delivers
+  outcome: string           # one line: the end-to-end behavior this delivers
+  user_check: string        # THE grain: what a user opens, does, and sees working
+                            # when this epic is delivered. Never internal-only.
+  functionality_refs: []    # the slice functionalities this epic threads (>= 1).
+                            # References into the slice's functionality set — the
+                            # ICE stays the single source of truth, never copied.
   context:                  # carried so the delivery pipeline is self-contained
-    persona: []             # actor types in scope for this slice
-    systems: []             # systems this slice touches
-    scope: []               # the rules that bound this slice
-  acceptance: []            # acceptance criteria — done when these pass
-  depends_on: [string]      # other epic ids that must ship first
+    persona: []             # actor types in scope for this increment
+    systems: []             # systems this increment touches
+    scope: []               # the rules that bound this increment
+  acceptance: []            # done when these pass — each names observable user
+                            # behavior (open, do, verify), never internal completion
+  depends_on: [string]      # other epic ids IN THIS SLICE that must ship first
+  order: integer            # delivery order within the slice (1 = first; the
+                            # first epic must have no depends_on)
   status: string            # one of: ready | in_delivery | delivered
-  priority: integer         # delivery order (from /roadmap)
-  issue_ref: string         # GitHub issue /start opened for this epic; null until started
+  issue_ref: string         # issue /start opened for this epic; null until started
   metadata:
     created_by: string      # /grill
     version: integer
 
+# ---- Companion file ---------------------------------------------------------
+# {domain}/slices/{slice-id}/epics/deferrals.yaml — functionalities of the slice
+# deliberately NOT cut into any epic this run, each with a recorded reason.
+# Coverage rule: every slice functionality appears in >= 1 epic's
+# functionality_refs OR in deferrals — never silently dropped.
+deferrals:
+  - functionality_ref: string
+    reason: string
+
 # ---- Fill rules -------------------------------------------------------------
 fill_rules:
   - play: "/grill"
-    writes: "creates the epic (vertical slice) with its context and acceptance"
+    writes: "creates the epics (user-testable increments) with context, acceptance,
+             user_check, order, and dependencies; creates deferrals.yaml"
   - play: "/start"
     writes: "issue_ref, and status -> in_delivery when the epic is picked up"
   - play: "/merge"

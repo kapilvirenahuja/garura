@@ -158,7 +158,7 @@ maintenance/navigation barely started. Build state below is by what is actually 
 `/realize` command (old E6) is superseded by the five-lens split locked in
 `realize-split-design.md`: build order `quality → ux → agentic → arch → run`.
 
-### Built (13 command plays)
+### Built (14 command plays)
 - **Git / delivery pipeline (E16–E20) — DONE, this was Phase D.** start-change (/start),
   commit-change (commit-code), propose-change (/raise), review-change (/review),
   merge-change (/merge). All five compiled, lint PASS, deployed.
@@ -171,6 +171,37 @@ maintenance/navigation barely started. Build state below is by what is actually 
   the tracked follow-up below.)
 - **Maintenance E11 /fix — DONE** as fix-bug (Phase E11 section above). First consumer play
   of the D2 pipeline.
+- **Realization E7 /grill — DONE (2026-06-11).** Cuts ONE realized slice (the /run stamp is
+  the gate) into user-testable epics — the grain is user-testability (`user_check`: open, do,
+  verify), NOT the functionality; epic schema reshaped to v2 (slice-level home
+  `{domain}/slices/{slice-id}/epics/`, `functionality_refs` plural, `user_check`, `order`,
+  deferrals.yaml). Steelman grilling rounds with cited push-back (check-cut-tensions skill —
+  every tension cites source + verbatim quote; zero live tensions gate the write); lens
+  defects routed back to their lens play, never patched. position none; 1 domain agent
+  (product-os-keeper) + 2 new skills (author-epics, check-cut-tensions); 6 scripts
+  (preflight, check_ready_slice [byte-identical reuse], check_realized, validate_epics,
+  apply_epics [all-or-none, refuses to clobber in_delivery epics], check_epics). Lint PASS
+  (10 gates); full smoke round-trip green (happy path + every guard fires). **grill-me
+  RETIRED** (deleted): play + check-grill-tensions + resolve-grill-anchor +
+  apply-shape-changes skills + grill-anchor-resolver + shape-applier agents — all were
+  grill-me-exclusive (verified by sweep). product-os-keeper registered the two new skills.
+  Same session: kb-search + author-run-lens (the /run + retrofit gap) also registered in
+  product-os-keeper's tables — the agent file is current again.
+- **Codex adapter hardened + installer rename (2026-06-11, found deploying to
+  token-burn-dash).** Codex HARD-CAPS skill `description` at 1024 chars and silently
+  refuses to load past it — /run (grew past the cap with #435's TCO change) and /grill
+  (the two longest) were the only skills Codex would not load. Fix lives in the ADAPTER
+  (its job: absorb tool differences): `_cap_description` truncates at a word boundary on
+  emit; documented as Codex difference #4 in codex.py's header. Second adapter bug fixed:
+  `frontmatter_value` stripped quotes without unescaping `''`, so re-quoting doubled every
+  apostrophe (corrupt text + inflated length). Both smoke-tested. Also converged the
+  naming drift: source play `sud-install-garura` → **install-garura** (folder, frontmatter
+  name, manifest `installer` string, prose; uninstall never matches on the string — safe);
+  garura's own `.claude/skills/install-garura` redeployed from the renamed source (was a
+  stale pre-adapter copy with no `--tool`). token-burn-dash re-installed for codex: all 67
+  skills ≤1024 + clean YAML (grill 1018, run 1020); the 6 stale grill-me leftovers from
+  the prior install deleted (installer lays down, never retires — diffed disk vs fresh
+  manifest).
 
 ### Realize reworked: the SLICE is the unit (2026-06-09)
 - The realize lenses run **one slice per run**, not one capability — the slice is the
@@ -263,9 +294,8 @@ new ids. This makes /run, /agentic, /ux genuinely groundable instead of proposal
 Provenance on each file records seeded/documented + Kapil/#434. `/learn` (E5, not built) is the
 play that will keep these growing from real outcomes.
 
-### Not built (9 command plays remaining)
+### Not built (8 command plays remaining)
 - **E5 /learn** — also absorbs the orphaned post-merge distill trigger (see ship note above).
-- **E7 /grill** — functionality level; cuts vertical-slice epics into product-os.
 - **E9 /implement, E10 /validate** — engineering.
 - **E12 /refactor, E13 /enhance, E13b /find-drift** — maintenance.
   - /enhance: extends/changes behavior of an existing slice (slice grain, vs /shape's
@@ -283,7 +313,7 @@ new play lands, delete the old play(s) it supersedes"):
 - `implement` (`garura:implement`) → superseded by E9 /implement
 - `validate` (`garura:validate`) → superseded by E10 /validate
 - `refactor` (`garura:refactor`) → superseded by E12 /refactor
-- `grill-me` → superseded by E7 /grill
+- ~~`grill-me`~~ → RETIRED 2026-06-11 (superseded by E7 /grill; play + 3 exclusive skills + 2 exclusive agents deleted)
 - `define`, `design`, `enhance` (`garura:*`) → old SDLC shaping, superseded by vision/understand/shape
 - Also still present from the old pipeline: start-feature-planning, plus the learning plays
   (capture, codify, decode, distill, reap, enrich, craft-ice, algorithm, prepare) — review
