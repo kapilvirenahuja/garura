@@ -1,7 +1,7 @@
 ---
 name: quality
 position: start
-description: 'Write a SLICE''s quality lens — the list of pass/fail gates it must clear, drawn from the profile targets that apply and the slice''s own functionalities'' ICE rules, never invented. The first of the five realize plays in the ProductOS command model (quality → ux → agentic → arch → run), run on a shaped slice. Sets the quality bar the later lenses size against. Writes only the quality lens; opens no delivery issue.'
+description: 'Write a SLICE''s quality lens — the list of pass/fail gates it must clear, drawn from the profile targets that apply and the slice''s own functionalities'' ICE rules, never invented. The first of the six realize plays in the ProductOS command model (quality → ux → agentic → arch → measure → run), run on a shaped slice. Sets the quality bar the later lenses size against. Writes only the quality lens; opens no delivery issue.'
 user-invocable: true
 ---
 
@@ -10,15 +10,15 @@ user-invocable: true
 Take one shaped **slice** — a vertical product increment from /shape, the thing you actually
 deliver — and write its quality lens: the flat list of gates it must pass — "p99 < 150ms",
 "no user enumeration", "WCAG 2.1 AA". The slice is the unit of realization: you pick a slice
-and run quality → ux → agentic → arch → run on it, then ship it. A slice has no ICE of its
+and run quality → ux → agentic → arch → measure → run on it, then ship it. A slice has no ICE of its
 own — its **hub** is the union of its functionalities' ICE (which may span several
 capabilities) plus the profile. Every gate comes from a profile target that applies to this
 slice or from one of the slice's functionalities' ICE rules made checkable; none is invented.
-/quality is the **first** of the five realize plays, so it reads only the slice's hub, never
-another lens, and it sets the quality bar the later lenses (ux, agentic, arch, run) size
-their depth against. It writes only the quality lens, plus a decision for any material choice.
+/quality is the **first** of the six realize plays, so it reads only the slice's hub, never
+another lens, and it sets the quality bar the later lenses (ux, agentic, arch, measure, run)
+size their depth against. It writes only the quality lens, plus a decision for any material choice.
 
-**Pipeline position: start.** /quality OPENS the slice pipeline (quality → ux → agentic → arch → run → grill) and selects the slice: the D2 rule prepends `start-change` — resolve or create the slice-realization issue, cut the branch off fresh main, optional worktree, init STM — so the later lenses and /grill run on this already-started branch. No close sequence here; the slice change closes at /grill. It runs after /shape, since a slice must be shaped before it is realized. It writes the persistent product model directly, on the started branch. (#437)
+**Pipeline position: start.** /quality OPENS the lens pipeline (quality → ux → agentic) and selects the slice: the D2 rule prepends `start-change` — resolve or create the slice-realization issue, cut the branch off fresh main, optional worktree, init STM — so /ux and /agentic run on this already-started branch. No close sequence here; the lens pipeline's branch closes at /agentic. The full realize sequence on a slice is quality → ux → agentic → arch → measure → run — the lens pipeline hands off through main to the foundation pipeline (arch → measure → run), and /grill (standalone) cuts the epics after. It runs after /shape, since a slice must be shaped before it is realized. It writes the persistent product model directly, on the started branch. (#437, decision 24)
 
 ## Compiled From
 
@@ -110,7 +110,7 @@ No runtime reordering. On resume, skip completed and reset in-progress to pendin
 Run the start-of-pipeline member as a sub-play, dispatched with `parent_run_id` so it
 emits only its own C1 evidence and this play's close absorbs it. It resolves or creates
 the slice-realization issue, cuts the branch off fresh main, sets up a worktree iff config calls for
-it, and initializes the STM workspace. The later lenses (/ux, /agentic, /arch, /run) and /grill run on this already-started branch; /grill closes it.
+it, and initializes the STM workspace. The later lens plays (/ux, /agentic) run on this already-started branch; /agentic closes it. The foundation pipeline (arch → measure → run) and /grill follow through main.
 
     {
       "play":          "start-change",
@@ -325,9 +325,9 @@ everything and creates the marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:8ff553ed3c68817d73cef98098390e3370eed248e3410aca5fa5f96fa5b6c052 (of `reference/ice.md`) |
-| compiled_by | play-creator (edited via play-editor, #437) |
-| pipeline_position | start (start-change head, selects the slice; the slice pipeline closes at /grill) |
+| fingerprint | sha256:71a073bf8f8879e7a2488bfb69193c4956a1fbbde265afbc8c4d20e0aa39edda (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor, #437), edited via play-editor (#434, decision 24) |
+| pipeline_position | start (start-change head, selects the slice; the lens pipeline closes at /agentic) |
 | workflow_structure | A (mandatory, non-skippable checkpoint) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |

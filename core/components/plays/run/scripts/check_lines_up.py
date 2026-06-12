@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 check_lines_up.py — /run's cross-lens gate (C1 arch-present at pre-flight; C5/C8 lines-up at
-the gate). The last-lens duty: a slice is "done" only when all five lens files exist and every
+the gate). The last-lens duty: a slice is "done" only when all six lens files exist and every
 cross-reference resolves.
 
 Two phases, one script (the play keeps the halt policy; this returns the facts):
@@ -10,8 +10,8 @@ Two phases, one script (the play keeps the halt policy; this returns the facts):
                       parts, so it cannot run without them (C1). Emits {arch_present}.
                       Exit 0 if present, 1 if missing.
 
-  --phase gate        The full lines-up check before the stamp (C8): all five lens files
-                      (quality, ux, agentic, architecture, run) exist for the slice, every
+  --phase gate        The full lines-up check before the stamp (C8): all six lens files
+                      (quality, ux, agentic, architecture, measure, run) exist for the slice, every
                       architecture component has a run target, every run target binds to a
                       real component (C5 — no dangling target), AND the run lens carries a
                       non-empty content.tco block (C13, #435 — a slice is never stamped
@@ -22,7 +22,7 @@ Two phases, one script (the play keeps the halt policy; this returns the facts):
                       otherwise.
 
                       --run-lens <path> overrides where the RUN lens is read from (presence +
-                      targets), leaving the other four read from the live lens dir. /run's
+                      targets), leaving the other five read from the live lens dir. /run's
                       Step 4 passes the DRAFT run.yaml here (the run lens is not yet persisted);
                       Step 7 omits it to re-check against the persisted tree. The arch
                       components are always read from the LIVE architecture lens.
@@ -47,7 +47,7 @@ except ImportError:
     sys.stderr.write("check_lines_up.py: PyYAML is required (pip install pyyaml).\n")
     sys.exit(2)
 
-LENS_TYPES = ("quality", "ux", "agentic", "architecture", "run")
+LENS_TYPES = ("quality", "ux", "agentic", "architecture", "measure", "run")
 
 
 def load(path):

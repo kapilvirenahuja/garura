@@ -1,14 +1,14 @@
 ---
 name: grill
-position: end
-description: 'Cut one REALIZED slice into user-testable delivery epics — the handoff from the product model to the delivery pipeline. /roadmap says which slice to build; the five realize lenses have solved its design and /run has stamped it realized — the marker /grill requires before it cuts. Each epic is a meaningful increment a user can open, exercise, and verify when delivered (the user-testability grain — never internal-only work), self-contained, referencing the slice''s intent and lenses, never copying them. The cut is GRILLED before it is written — grilling draws the box from realized slice to delivery epics so nothing drifts outside the declared intents: every challenge cites a specific declared item (never taste), questions are asked plainly ONE AT A TIME with no recommendations attached, a tension closes only on the typed human answer (the record carries the push-back shown, the human''s words, and the human-derived directive or reason — the agent never self-resolves), and an unresolved delivery-method choice becomes a cited decision question, never an assumption. Lens defects route back to their lens play. Ordered, every functionality covered or explicitly deferred, written atomically only after human approval. Writes only epics; opens no implementation issue — /start picks epics up one at a time. Position END (#437): the persisted cut is a durable model change, so the standard end sequence (commit-change → propose-change → review-change → merge-change) closes it — no manual /commit-change.'
+position: both
+description: 'Cut one REALIZED slice into user-testable delivery epics — the handoff from the product model to the delivery pipeline. /roadmap says which slice to build; the six realize lenses have solved its design and /run has stamped it realized — the marker /grill requires before it cuts. Each epic is a meaningful increment a user can open, exercise, and verify when delivered (the user-testability grain — never internal-only work), self-contained, referencing the slice''s intent and lenses, never copying them. The cut is GRILLED before it is written — grilling draws the box from realized slice to delivery epics so nothing drifts outside the declared intents: every challenge cites a specific declared item (never taste), questions are asked plainly ONE AT A TIME with no recommendations attached, a tension closes only on the typed human answer (the record carries the push-back shown, the human''s words, and the human-derived directive or reason — the agent never self-resolves), and an unresolved delivery-method choice becomes a cited decision question, never an assumption. Lens defects route back to their lens play. Ordered, every functionality covered or explicitly deferred, written atomically only after human approval. Writes only epics; opens no implementation issue — /start picks epics up one at a time. Position BOTH (#437, decision 24): /grill is self-contained — start-change opens its own branch at the head, and the standard end sequence (commit-change → propose-change → review-change → merge-change) closes it after the verified persist — no manual /commit-change.'
 user-invocable: true
 ---
 
 # grill
 
-Take one **realized** slice — a vertical product increment whose design the five realize
-lenses (quality → ux → agentic → arch → run) have already solved, stamped
+Take one **realized** slice — a vertical product increment whose design the six realize
+lenses (quality → ux → agentic → arch → measure → run) have already solved, stamped
 `status: realized` by /run — and cut it into **epics**: the ordered, user-testable delivery
 increments the delivery pipeline picks up. /grill sits below /roadmap (which says which
 slice to build next) and above /start (which opens one issue per epic). Epics are
@@ -42,14 +42,19 @@ its own never closes a tension. And where the box has no wall — an epic's user
 depending on a delivery method the lenses never decided — the play asks a cited decision
 question; only the human draws that wall.
 
-**Pipeline position: end (#437).** /grill persists the approved delivery cut into the
-product model — a durable product change — and durable model changes ride the end
-pipeline: after the epics are persisted and verified, the D2 pipeline-position rule
-injects the close sequence `commit-change → propose-change → review-change →
-merge-change`, so the locked cut is committed, raised, reviewed, and merged without the
-human having to remember `/commit-change`. The end sequence closes the MODEL change only;
-/grill still opens no delivery issue and cuts no branch for implementation work — picking
-up an epic remains /start's job, one epic at a time. No `start-change` head is injected.
+**Pipeline position: both (#437, decision 24; confirmed by Kapil).** /grill is
+SELF-CONTAINED: it opens and closes its own branch, like fix-bug. The realize work lands
+through its own two pipelines — the LENS pipeline (quality start → ux → agentic end) and
+the FOUNDATION pipeline (arch start → measure → run end), each merging to main — so /grill
+no longer rides a branch another play opened. The D2 pipeline-position rule injects
+`start-change` at the head (resolve or create the grill issue, cut the branch off fresh
+main, optional worktree, init STM) and keeps the close sequence `commit-change →
+propose-change → review-change → merge-change` at the tail: after the epics are persisted
+and verified, the locked cut is committed, raised, reviewed, and merged without the human
+having to remember `/commit-change`. The bracketed change is the MODEL change only; /grill
+still opens no implementation issue and cuts no branch for an epic's delivery work —
+picking up an epic remains /start's job, one epic at a time. /grill works on one slice and
+remains the slice's end conceptually: nothing about a slice is finished until grill is.
 
 ## Compiled From
 
@@ -82,20 +87,22 @@ epic whose user check depends on a delivery method no declared item decides and 
 chose; persisting by any route other than `scripts/apply_epics.py`; persisting before
 Step 5 approval; editing a lens, the slice record, an ICE, or the profile (a lens defect
 is recorded and routed, never patched); hand-rolling git/issue/PR/merge work — the model
-change closes ONLY via the injected end-sequence members, and no implementation issue or
-branch is ever opened (delivery's job); performing any epic lifecycle step beyond
+change opens ONLY via the injected `start-change` head and closes ONLY via the injected
+end-sequence members, and no implementation issue or branch for an epic's delivery work
+is ever opened (delivery's job); performing any epic lifecycle step beyond
 creation at `ready`.
 
 **Agent boundaries:**
 
 | Agent | Domain | Skills it invokes | Phases |
 |-------|--------|-------------------|--------|
-| `product-os-keeper` | Read the slice's hub (functionality ICEs + profile) and all five lenses; draft the epic cut by the user-testability grain (self-contained, referenced, ordered, deferrals recorded); revise it per grilling-round directives; detect tensions between the cut and the declared design, each with a verbatim citation | `author-epics`, `check-cut-tensions` | Draft, Grill |
+| `product-os-keeper` | Read the slice's hub (functionality ICEs + profile) and all six lenses; draft the epic cut by the user-testability grain (self-contained, referenced, ordered, deferrals recorded); revise it per grilling-round directives; detect tensions between the cut and the declared design, each with a verbatim citation | `author-epics`, `check-cut-tensions` | Draft, Grill |
 
 `product-os-keeper` is the single **domain agent** this play uses (1 of the ≤5 budget).
 No utility agents are needed in the play's own core — git/issue machinery arrives only via
-the injected end-sequence members (`commit-change`, `propose-change`, `review-change`,
-`merge-change`), which carry their own agents; those are not counted here.
+the injected members (`start-change` at the head; `commit-change`, `propose-change`,
+`review-change`, `merge-change` at the tail), which carry their own agents; those are not
+counted here.
 
 ## Pre-flight
 
@@ -104,10 +111,11 @@ the injected end-sequence members (`commit-change`, `propose-change`, `review-ch
 | Resolve config + `product_base` (`.garura/core/config.yaml`) | — | Hard halt |
 | Slice argument supplied (`/grill <slice-id>` or `/grill <domain>/<slice-id>`) | C1 | Hard halt — name the slice to cut |
 | Profile firmed (`set`) AND the slice exists with every functionality ICE resolved + rich | C1 | Hard halt (REC2) |
-| Slice stamped `realized` AND all five lens files present | C1 | Hard halt (REC2) |
+| Slice stamped `realized` AND all six lens files present | C1 | Hard halt (REC2) |
 
 Resolve config mechanically, then resolve the slice + hub, then assert the realized stamp.
-/grill has no branch or issue (position none):
+/grill's issue and branch arrive via the injected `start-change` head (Step 0); pre-flight
+itself runs no git — it resolves config and gates only:
 
 ```
 python3 scripts/preflight.py --play grill --config .garura/core/config.yaml
@@ -121,11 +129,11 @@ python3 scripts/check_realized.py --product-base <product_base> \
 `set` and the slice exists with every `functionalities[].ice_ref` resolving to a rich ICE —
 an unresolved ice_ref fails loud. On success it emits `slice_file`, `domain`, `lens_dir`,
 and the resolved `functionality_ices`. `check_realized.py` is the gate this play exists
-behind (C1): it halts unless the slice record's `status` is `realized` and all five lens
-files (quality, ux, agentic, architecture, run) exist — /grill cuts solved designs only.
-On any halt, route to the missing step (REC2): /shape to shape the slice, /understand to
-enrich + firm, or the realize lenses (/quality, /ux, /agentic, /arch, /run) to solve and
-stamp it. No epic is written on a halt.
+behind (C1): it halts unless the slice record's `status` is `realized` and all six lens
+files (quality, ux, agentic, architecture, measure, run) exist — /grill cuts solved
+designs only. On any halt, route to the missing step (REC2): /shape to shape the slice,
+/understand to enrich + firm, or the realize lenses (/quality, /ux, /agentic, /arch,
+/measure, /run) to solve and stamp it. No epic is written on a halt.
 
 The working base is `<working>` = `{stm_base}_grill/<slice-id>/` (the draft, the rounds,
 the snapshots); `<slice_dir>` = `<product_base>/product-os/<domain>/slices/<slice-id>`
@@ -142,7 +150,8 @@ Create ALL tasks immediately after resolving config — before any domain work.
 The play owns this DAG; the agent must not edit its top-level tasks.
 
 ```
-[T1]  Draft the cut                          blockedBy: []
+[T0]  start-change   (injected — start, head) blockedBy: []
+[T1]  Draft the cut                          blockedBy: [T0]
 [T2]  Validate the draft                     blockedBy: [T1]
 [T3]  Grill rounds (until clean)             blockedBy: [T2]
 [T4]  Checkpoint (approval)                  blockedBy: [T3]
@@ -161,11 +170,32 @@ No runtime reordering. On resume, skip completed and reset in-progress to pendin
 
 ## Workflow
 
+### Phase: Start (injected — D2 position: both, head)
+
+**Step 0 — start-change** · Owner: `start-change` (sub-play) · Depends on: pre-flight
+Run the start-of-pipeline member as a sub-play, dispatched with `parent_run_id` so it
+emits only its own C1 evidence and this play's close absorbs it. It resolves or creates
+the grill issue, cuts the branch off fresh main, sets up a worktree iff config calls for
+it, and initializes the STM workspace. /grill is self-contained: everything after this —
+the draft, the grilling, the persist — runs on this branch, and the injected end sequence
+(Steps 7–10) closes it. No implementation issue or branch for an epic's delivery work is
+opened here — that remains /start's job.
+
+    {
+      "play":          "start-change",
+      "parent_run_id": "<this run id>",
+      "inputs":  { "title": "grill slice <slice-id>" },
+      "outputs": { "result": "<working>/start/start-change.json" }
+    }
+
+start-change owns its own evals (issue anchored, branch off latest main, worktree per
+config, STM initialized); they are not re-checked here.
+
 ### Phase: Draft
 
-**Step 1 — Draft the cut** · Owner: `product-os-keeper` · Depends on: pre-flight
+**Step 1 — Draft the cut** · Owner: `product-os-keeper` · Depends on: Step 0
 The agent reads the slice's hub (its functionalities' ICE — resolved by the readiness
-gate — plus the profile) and **all five lenses** (the solved design — /grill is the
+gate — plus the profile) and **all six lenses** (the solved design — /grill is the
 reconciliation point, so unlike a realize lens it reads everything), then invokes
 `author-epics` to draft the cut to STM: epics by the user-testability grain, each
 self-contained with a concrete `user_check`, referencing the slice's functionalities,
@@ -185,11 +215,11 @@ functionality deliberately not cut this run:
     }
 
 `slice_file`, `lens_dir`, and `functionality_ices` come from `check_ready_slice.py`. The
-skill reads the hub + the five lenses **read-only** and writes the draft only — never the
+skill reads the hub + the six lenses **read-only** and writes the draft only — never the
 live model. It returns the contract with the output paths on disk — never inline content.
 **SE-1 (F2/C1):** the readiness + realized gates passed at pre-flight — the profile is
 `set`, the slice exists with every functionality ICE resolved + rich, the slice record is
-stamped `realized`, and all five lens files exist; otherwise the run halted (REC2) and no
+stamped `realized`, and all six lens files exist; otherwise the run halted (REC2) and no
 epic was written.
 
 ### Phase: Validate
@@ -233,7 +263,7 @@ clean against the rounds:
    cut and everything the slice declared:
 
        {
-         "task":    "detect tensions between this epic cut and the declared design — hub ICEs, all five lenses, profile bars — one entry per real contradiction, each citing source file + verbatim quote; emit unresolved delivery-method choices that shape an epic as cited decision_questions entries (plain questions, no recommendations, human_response always absent); suppress tensions and questions already closed in prior rounds",
+         "task":    "detect tensions between this epic cut and the declared design — hub ICEs, all six lenses, profile bars — one entry per real contradiction, each citing source file + verbatim quote; emit unresolved delivery-method choices that shape an epic as cited decision_questions entries (plain questions, no recommendations, human_response always absent); suppress tensions and questions already closed in prior rounds",
          "inputs":  { "cut_dir": "<working>/draft/",
                       "slice_file": "<product_base>/<slice_file>",
                       "functionality_ices": [ "<product_base>/<ice_ref>", "..." ],
@@ -350,9 +380,10 @@ within the slice folder every file outside `epics/` is byte-identical, nothing a
 removed; every persisted epic equals its approved draft byte-for-byte; any out-of-scope
 change is restored from the snapshot and the write re-confined to epics (REC8).
 
-### Phase: End sequence (injected — D2 position: end)
+### Phase: End sequence (injected — D2 position: both, tail)
 
-The persisted cut is a durable model change; the standard end sequence closes it (#437).
+The persisted cut is a durable model change; the standard end sequence closes it — the
+same branch the injected `start-change` head opened (#437, decision 24).
 Each member runs as a sub-play dispatched with `parent_run_id` (emits only its own C1
 evidence; this play's close absorbs it). Each member is independent and resolves its own
 context from the branch and config; this play passes no hand-rolled git/PR/merge logic.
@@ -443,7 +474,7 @@ per-play `evidence.plays.grill`; first match wins, absent ⇒ record). When fals
 write and record `evidence skipped (record=false)` in the report's pointer line. Otherwise
 fill the `evidence-file.md` slots (play `grill`, run_id `grill-${ts}`, product_slug = the
 slice, started_at/completed_at, status; artifacts produced: the epics, the deferrals, the
-round reports with dispositions, any lens-defect records, the apply manifest, the end-member results; step and
+round reports with dispositions, any lens-defect records, the apply manifest, the member results (start-change + the end sequence); step and
 scenario eval results SE-1…SE-14 / SCE-1…SCE-8; checkpoint decision from Step 4) and write
 to `$evidence_dest`. Do NOT hand-author the body.
 
@@ -475,7 +506,7 @@ order to begin delivery; if a lens defect was recorded, run that lens play first
 | For | Trigger | Direction | Handoff |
 |-----|---------|-----------|---------|
 | F1 | an epic's acceptance reads as internal completion — no user-observable behavior | regenerate its acceptance from what a user can open and do, merging it with adjacent work until it's testable | autonomous |
-| F2 | the realized stamp or lens files are missing | halt; run the missing realize lens plays (quality → ux → agentic → arch → run) first | human |
+| F2 | the realized stamp or lens files are missing | halt; run the missing realize lens plays (quality → ux → agentic → arch → measure → run) first | human |
 | F3 | the coverage check finds a slice functionality mapped nowhere | cut an epic for it or record an explicit deferral with reason, then re-present the cut | autonomous |
 | F4 | an epic embeds intent or lens content instead of referencing it | replace the copy with a reference to the source record | autonomous |
 | F5 | a push-back in the session record carries no citation | withdraw it; re-issue only if a declared item supports it, otherwise drop it | autonomous |
@@ -504,15 +535,15 @@ marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:0ba3cb4eed29d2719555066cd09b10b2eeb4e66c6717c81ad0cee22710df941f (of `reference/ice.md`) |
-| compiled_by | play-creator (#434; edited via play-editor, #436, #437) |
-| pipeline_position | end (commit-change → propose-change → review-change → merge-change tail; no start head) |
+| fingerprint | sha256:87742c0f8d06ac53314e735a8a9dc215e711ff322aad95912c00d121cabb18f1 (of `reference/ice.md`) |
+| compiled_by | play-creator (#434; edited via play-editor, #436, #437), edited via play-editor (#434, decision 24) |
+| pipeline_position | both (start-change head; commit-change → propose-change → review-change → merge-change tail — self-contained) |
 | workflow_structure | A (mandatory, non-skippable checkpoint; grilling rounds as a bounded loop in preparation) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |
 | skills_used | author-epics, check-cut-tensions |
 | scripts | 6 (preflight.py, check_ready_slice.py, check_realized.py, validate_epics.py, apply_epics.py, check_epics.py) |
-| member_subplays | commit-change, propose-change, review-change, merge-change (injected end sequence) |
+| member_subplays | start-change (injected head); commit-change, propose-change, review-change, merge-change (injected end sequence) |
 | step_evals | 14 (SE-1…SE-14; one per failure condition F1–F13, plus SE-11 for C10) |
 | scenario_evals | 8 (SCE-1…SCE-8) |
 | recovery_entries | 13 (one per failure condition; 9 autonomous / 4 human) |

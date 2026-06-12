@@ -18,7 +18,8 @@ constraints:
   - C4/F4    grounded: every component grounds on a real source (a functionality's ICE or a
              profile surface); every contract grounds on a functionality; every stack pick
              grounds on a decision / profile pin / KB.
-  - C7/F7    hub-only: nothing grounds on another lens (quality/ux/agentic/run).
+  - C7/F7    no forward reads: nothing grounds on the measure or run lens; the lens
+             trinity (quality/ux/agentic) is readable (decision 23).
   - C8/F8    decisions: a grounding flagged `material: true` names a `decision` that resolves.
   - C6/F6    vertical build: every functionality of the slice (read straight from the slice
              record) is threaded by at least one component/contract; the component graph
@@ -61,7 +62,7 @@ def _blank(v):
     return False
 
 
-OTHER_LENSES = ("quality", "ux", "agentic", "run", "lens")
+OTHER_LENSES = ("run", "measure", "lens")  # decision 24: the lens trinity (quality/ux/agentic) is READABLE by foundation lenses
 CONTENT_KEYS = {"components", "contracts", "stack"}
 LAYERS = {"experience", "process", "domain", "cross-cutting"}
 KINDS = {"internal", "external"}
@@ -156,8 +157,8 @@ def _walk_grounds(label, entries, decision_ids, errors, grounded_funcs, allowed_
             errors.append(f"{label} has a grounding entry with no source (C4/F4)")
             continue
         if st in OTHER_LENSES:
-            errors.append(f"{label} grounds on another lens '{st}' — "
-                          f"/arch reads the slice's hub, never a lens (C7/F7)")
+            errors.append(f"{label} grounds on the {st} lens — /arch may read the trinity, "
+                          f"never the measure or run lens (C7/F7)")
         elif st not in allowed_types:
             errors.append(f"{label} source_type '{st}' is not one of {sorted(allowed_types)} (C4/F4)")
         if st == "ice":
@@ -183,7 +184,7 @@ def check_grounding(man, decision_ids, errors):
         comp_names.add(nm)
         graph[nm] = [d.strip() if isinstance(d, str) else d for d in (c.get("depends_on") or [])]
         _walk_grounds(f"component '{nm}'", c.get("grounds"), decision_ids, errors,
-                      grounded_funcs, allowed_types={"ice", "surface"})
+                      grounded_funcs, allowed_types={"ice", "surface", "quality", "ux", "agentic"})  # decision 23: trinity readable
 
     for ct in (man.get("contracts") or []):
         bt = ct.get("between", "<contract>")
@@ -196,7 +197,7 @@ def check_grounding(man, decision_ids, errors):
     for sk in (man.get("stack") or []):
         comp = sk.get("component", "<stack>")
         _walk_grounds(f"stack '{comp}'", sk.get("grounds"), decision_ids, errors,
-                      grounded_funcs, allowed_types={"decision", "profile", "kb"})
+                      grounded_funcs, allowed_types={"decision", "profile", "kb", "quality", "ux", "agentic"})  # decision 23
 
     return grounded_funcs, comp_names, graph
 

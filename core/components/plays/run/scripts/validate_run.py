@@ -11,14 +11,15 @@ targets bind to the architecture lens. Enforces /run's artifact-side constraints
 
   - C11/F11  schema: the lens carries the v1 envelope (id, slice_ref, type=run, content,
              status); any decision carries its required v1 fields.
-  - C3/F3    shape: content has exactly the six keys
-             environments/rollout/migrations/config_secrets/cicd/targets, each present and
+  - C3/F3    shape: content has exactly the seven keys
+             environments/rollout/migrations/config_secrets/cicd/targets/tco, each present and
              non-empty; no other-lens content smeared in.
   - C6/F6    just enough: rollout has a strategy; environments, migrations, config_secrets,
              and cicd are present; every target names a component and where/how it runs; and
              every architecture component has a target (coverage).
   - C5/F5    binds + reads: every target.component is a real architecture-lens component (no
-             dangling target); nothing in the manifest grounds on the quality/ux/agentic lens.
+             dangling target); nothing in the manifest grounds on the measure lens (or a bare
+             `lens` source) — the quality/ux/agentic trinity is readable (decision 23).
   - C7/F7    decisions: a manifest grounding flagged `material: true` names a `decision` that
              resolves to a drafted record.
   - C13/F13  TCO: a material tco block — hyperscaler decided (with region + rejected
@@ -67,10 +68,10 @@ def _blank(v):
 
 
 # run may reference the ARCHITECTURE lens (it deploys arch's parts); it must NOT read these:
-FORBIDDEN_LENS_SOURCES = ("quality", "ux", "agentic", "lens")
+FORBIDDEN_LENS_SOURCES = ("measure", "lens")  # decision 24: the lens trinity is READABLE; measure stays unread (presence-only via lines-up)
 CONTENT_KEYS = {"environments", "rollout", "migrations", "config_secrets", "cicd", "targets",
                 "tco"}
-ALLOWED_SOURCE_TYPES = {"kb", "proposal", "profile"}
+ALLOWED_SOURCE_TYPES = {"kb", "proposal", "profile", "quality", "ux", "agentic", "arch", "architecture"}  # decision 23: trinity + arch readable
 # C13 (#435): the manifest must ground the platform pick and the cost model as choices.
 REQUIRED_CHOICE_ASPECTS = {"platform", "cost_model", "simulation"}
 CONFIDENCE_LEVELS = {"low", "medium", "high"}
@@ -223,8 +224,8 @@ def _walk_grounds(label, entries, decision_ids, errors):
             errors.append(f"{label} has a grounding entry with no source (C4/F4)")
             continue
         if st in FORBIDDEN_LENS_SOURCES:
-            errors.append(f"{label} grounds on the {st} lens — /run reads the hub + the "
-                          f"architecture lens + the KB, never quality/ux/agentic (C5/F5)")
+            errors.append(f"{label} grounds on the {st} lens — /run may read the trinity + the "
+                          f"architecture lens, never the measure lens's content (C5/F5)")
         elif st not in ALLOWED_SOURCE_TYPES:
             errors.append(f"{label} source_type '{st}' is not one of {sorted(ALLOWED_SOURCE_TYPES)} (C4/F4)")
         if e.get("material") is True:

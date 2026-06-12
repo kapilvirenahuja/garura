@@ -1,7 +1,7 @@
 ---
 name: run
-position: none
-description: 'Write a SLICE''s run lens — how it is deployed, runs, and what it costs to own: the environments it moves through, the rollout (flags + strategy), the migrations stance, the config/secrets stance, the CI/CD pipeline, a run target for every architecture component, and the TCO — the hyperscaler decision, the concrete service map, the user/load simulation, the monthly cost estimate, and the cost guardrails. Reads the slice''s hub + its ARCHITECTURE lens (run deploys arch''s parts) + the KB, grounding every operational, platform, and cost choice in a best-fit architecture/technology learning — never the model''s taste; uncovered choices become recorded KB-learning-gap proposals. The fifth and LAST realize play in the ProductOS command model (quality → ux → agentic → arch → run). As the last lens it also runs the lines-up check (all five lenses present + cross-references resolve + TCO present) and, only then, stamps the slice record status: realized — the marker /grill checks. Writes the run lens, decisions, and (on lines-up) the slice stamp; opens no delivery issue.'
+position: end
+description: 'Write a SLICE''s run lens — how it is deployed, runs, and what it costs to own: the environments it moves through, the rollout (flags + strategy), the migrations stance, the config/secrets stance, the CI/CD pipeline, a run target for every architecture component, and the TCO — the hyperscaler decision, the concrete service map, the user/load simulation, the monthly cost estimate, and the cost guardrails. Reads the slice''s hub + its ARCHITECTURE lens (run deploys arch''s parts) + optionally the three lens-trinity files (quality, ux, agentic — decision 23) + the KB — never the measure lens''s content (presence only, via lines-up) — grounding every operational, platform, and cost choice in a best-fit architecture/technology learning — never the model''s taste; uncovered choices become recorded KB-learning-gap proposals. The sixth and LAST realize play in the ProductOS command model (quality → ux → agentic → arch → measure → run). As the last lens it also runs the lines-up check (all six lenses present + cross-references resolve + TCO present) and, only then, stamps the slice record status: realized — the marker /grill checks. Writes the run lens, decisions, and (on lines-up) the slice stamp; opens no delivery issue. Position END (#437, decision 24): /run closes the foundation pipeline (arch → measure → run), so after the verified persist + stamp the standard end sequence (commit-change → propose-change → review-change → merge-change) lands the foundation work on main for /grill.'
 user-invocable: true
 ---
 
@@ -10,8 +10,8 @@ user-invocable: true
 Take one shaped, **architected** slice — a vertical product increment from /shape whose
 architecture lens /arch has already written — and write its **run lens**: how the slice is
 deployed and runs. The slice is the unit of realization: you pick a slice and run quality → ux
-→ agentic → arch → run on it, then ship it. A slice has no ICE of its own — its **hub** is the
-union of its functionalities' ICE (which may span several capabilities) plus the profile.
+→ agentic → arch → measure → run on it, then ship it. A slice has no ICE of its own — its **hub**
+is the union of its functionalities' ICE (which may span several capabilities) plus the profile.
 
 The run lens is seven things and only seven: the **environments** the slice moves through (dev →
 staging → prod); the **rollout** — the feature flags it gates behind and the strategy
@@ -25,9 +25,11 @@ map (the managed service that runs each component, with its cost driver), the us
 simulation (at least seed, pilot, and expanded scenarios), the cost estimate (a monthly range
 per scenario with drivers, exclusions, confidence, and sensitivity), and the cost guardrails
 (budget alert, retention limits, scale-up/HA triggers, review cadence). /run **deploys what
-/arch designed**: every run target binds to a real component in the slice's architecture lens.
-It is the one realize lens that reads another (the architecture lens), because you cannot say
-how something runs without the parts that run — and you cannot own it without knowing its cost.
+/arch designed**: every run target binds to a real component in the slice's architecture lens,
+so it reads the **architecture lens** — you cannot say how something runs without the parts
+that run, and you cannot own it without knowing its cost. As a foundation lens it MAY also
+ground on the three lens-trinity files (quality, ux, agentic — decision 23). The one lens whose
+content it never reads is the **measure** lens — presence only, via lines-up.
 
 **Every operational choice is grounded in the KB, never invented.** Before drafting, /run
 searches the KB's architecture and technology shelves for the learnings whose conditions match
@@ -36,14 +38,23 @@ migration stance, the environment topology, and the CI/CD shape on **what has wo
 Any choice the KB does not cover is a recorded KB-learning-gap proposal, never a silent guess.
 
 As the **last** lens, /run also runs the **lines-up check**: once the run lens is drafted, it
-verifies all five lens files exist (quality, ux, agentic, architecture, run) and every
+verifies all six lens files exist (quality, ux, agentic, architecture, measure, run) and every
 cross-reference resolves — every architecture component has a run target, every run target binds
 a real component. **Only when the slice lines up** does /run **stamp the slice done**, flipping
 the slice record's `status` to `realized` — the single marker `/grill` checks before it cuts
 delivery work. If a lens is missing or a reference dangles, /run writes the run lens, reports
 what is missing, and does not stamp.
 
-**Pipeline position: none.** /run is a MIDDLE play of the slice pipeline (quality → ux → agentic → arch → run → grill): it expects to run on the branch /quality already started, injects no head and no close, stops after the realized stamp, and leaves the branch as-is for /grill to close. It runs after /arch (it reads the architecture lens) and last in the realize sequence. It writes the persistent product model directly, on the already-started branch. (#437)
+**Pipeline position: end (#437, decision 24).** /run CLOSES the foundation pipeline (arch →
+measure → run): it expects to run on the branch /arch started and injects no start head. The
+run lens and the realized stamp are durable product-model changes, and durable model changes
+ride the end pipeline: after the verified persist (and stamp, on lines-up), the D2
+pipeline-position rule injects the close sequence `commit-change → propose-change →
+review-change → merge-change`, so the foundation work is committed, raised, reviewed, and
+merged onto main without the human having to remember `/commit-change` — ready for /grill
+(standalone, position both) to cut delivery work. The end sequence closes the MODEL change
+only; /run still opens no delivery issue. It runs after /measure and last in the realize
+sequence (quality → ux → agentic → arch → measure → run).
 
 ## Compiled From
 
@@ -66,14 +77,17 @@ never write the model YAML yourself, you never write another lens, and you persi
 stamp nothing — before the human approves the single checkpoint (C12). You stamp the slice
 `realized` only when the lines-up gate passes (C8).
 
-**Forbidden:** hand-writing lens/decision YAML; reading the quality, ux, or agentic lens to
-derive the run lens; grounding an operational choice on the model's taste instead of a KB
+**Forbidden:** hand-writing lens/decision YAML; reading the **measure lens's content** to
+derive the run lens (its presence is checked via lines-up only; the quality/ux/agentic
+lens-trinity reads are allowed — decision 23); grounding an operational choice on the model's
+taste instead of a KB
 learning or a recorded proposal; pointing a target at a component the architecture lens does not
 declare; persisting by any route other than `scripts/apply_run.py`; stamping by any route other
 than `scripts/stamp_slice.py`; stamping before the lines-up gate passes; persisting or stamping
 before Step 5 approval; accepting a run lens whose `tco` is missing, empty, or generic — no
 hyperscaler decision, no concrete service map, no simulation, or no digit-bearing monthly
-range (C13).
+range (C13); hand-rolling git/issue/PR/merge work — the foundation change closes ONLY via the
+injected end-sequence members.
 
 **Agent boundaries:**
 
@@ -82,7 +96,9 @@ range (C13).
 | `product-os-keeper` | Search the KB's architecture/technology shelves for the patterns that fit this product, draft the run lens (environments, rollout, migrations, config/secrets, CI/CD, a target per architecture component, and the TCO — hyperscaler, service map, load simulation, cost estimate, guardrails) grounded in those learnings, raise a KB-learning-gap proposal for any uncovered choice (notably an uncovered cost model), and record material choices as decisions | `kb-search`, `author-run-lens` | Draft |
 
 `product-os-keeper` is the single **domain agent** this play uses (1 of the ≤5 budget).
-No utility agents are needed — git/issue machinery is absent (position none).
+No utility agents are needed in the play's own core — git/issue machinery arrives only via the
+injected end-sequence members (`commit-change`, `propose-change`, `review-change`,
+`merge-change`), which carry their own agents; those are not counted here.
 
 ## Pre-flight
 
@@ -93,7 +109,8 @@ No utility agents are needed — git/issue machinery is absent (position none).
 | The slice's **architecture lens is present** (run deploys arch's parts) | C1 | Hard halt (REC1) |
 
 Resolve config mechanically, then resolve the slice + hub, then assert the architecture lens is
-present. /run has no branch or issue (position none):
+present. /run expects the branch /arch started (position end — no start head is injected; the
+injected end sequence closes the branch after the stamp):
 
 ```
 python3 scripts/preflight.py --play run --config .garura/core/config.yaml
@@ -127,15 +144,19 @@ Create ALL tasks immediately after resolving config — before any domain work.
 The play owns this DAG; the agent must not edit its top-level tasks.
 
 ```
-[T1] Draft run lens (KB-grounded)   blockedBy: []
-[T2] Validate the draft             blockedBy: [T1]
-[T3] Grounding check (KB)           blockedBy: [T1]
-[T4] Lines-up gate (decide stamp)   blockedBy: [T2, T3]
-[T5] Checkpoint (approval)          blockedBy: [T4]
-[T6] Persist (+ conditional stamp)  blockedBy: [T5]
-[T7] Verify persisted               blockedBy: [T6]
-[T8] Scenario Validation            blockedBy: [T7]
-[T9] Close                          blockedBy: [T8]
+[T1]  Draft run lens (KB-grounded)            blockedBy: []
+[T2]  Validate the draft                      blockedBy: [T1]
+[T3]  Grounding check (KB)                    blockedBy: [T1]
+[T4]  Lines-up gate (decide stamp)            blockedBy: [T2, T3]
+[T5]  Checkpoint (approval)                   blockedBy: [T4]
+[T6]  Persist (+ conditional stamp)           blockedBy: [T5]
+[T7]  Verify persisted                        blockedBy: [T6]
+[T8]  commit-change   (injected — end #1)     blockedBy: [T7]
+[T9]  propose-change  (injected — end #2)     blockedBy: [T8]
+[T10] review-change   (injected — end #3)     blockedBy: [T9]
+[T11] merge-change    (injected — end #4)     blockedBy: [T10]
+[T12] Scenario Validation                     blockedBy: [T11]
+[T13] Close                                   blockedBy: [T12]
 ```
 
 Mark each task in-progress before its step and completed right after its eval passes.
@@ -163,6 +184,9 @@ than guessing, and grounds every choice and every target in the manifest:
                    "slice_file": "<product_base>/<slice_file>",
                    "functionality_ices": [ "<product_base>/<ice_ref>", "..." ],
                    "arch_lens": "<product_base>/<lens_dir>/architecture.yaml",
+                   "quality_lens": "<product_base>/<lens_dir>/quality.yaml",
+                   "ux_lens": "<product_base>/<lens_dir>/ux.yaml",
+                   "agentic_lens": "<product_base>/<lens_dir>/agentic.yaml",
                    "profile_path": "<product_base>/product-os/profile.yaml",
                    "kb_search": "<skills>/kb-search/scripts/kb_search.py",
                    "kb_root": "<knowledge_dir>",
@@ -175,9 +199,11 @@ than guessing, and grounds every choice and every target in the manifest:
     }
 
 `slice_file`, `lens_dir`, and `functionality_ices` come from `check_ready_slice.py`; `arch_lens`
-is `<lens_dir>/architecture.yaml`. The skill reads the hub + the architecture lens + the KB
-**read-only** and never another lens. It returns the contract with the output paths on disk —
-never inline content.
+is `<lens_dir>/architecture.yaml`. `quality_lens`/`ux_lens`/`agentic_lens` are **optional**
+trinity grounding inputs (decision 23) — pass each when its file exists; the skill MAY read
+them. The skill reads the hub + the architecture lens + the optional lens trinity + the KB
+**read-only** and never the measure lens's content. It returns the contract with the output
+paths on disk — never inline content.
 **SE-1 (F1/C1):** the readiness + hub + arch-present gates passed at pre-flight — the profile is
 `set`, the slice exists with every functionality ICE resolved + rich, and the architecture lens
 exists; otherwise the run halted (REC1).
@@ -197,7 +223,8 @@ python3 scripts/validate_run.py --draft <working>/draft \
 **SE-3 (F3/C3):** the lens is the seven blocks only — `content` has exactly
 environments/rollout/migrations/config_secrets/cicd/targets/tco, each non-empty; no other-lens
 content.
-**SE-5a (F5/C5):** nothing in the manifest grounds on the quality/ux/agentic lens; every target
+**SE-5a (F5/C5):** nothing in the manifest grounds on the measure lens (or a bare `lens`
+source); every target
 binds to a real architecture component (no dangling target).
 **SE-6 (F6/C6):** just enough — rollout has a strategy; environments/migrations/config_secrets/
 cicd are present; every target names a component and where/how it runs; and every architecture
@@ -233,7 +260,8 @@ On any GAP, apply REC4 (re-tie to a learning or raise a proposal) and re-run.
 **Step 4 — Lines-up gate** · Owner: play · Depends on: Steps 2, 3
 Run the full lines-up check to decide whether the slice will be stamped. The run lens is not yet
 persisted (that is Step 6), so pass the **draft** run.yaml via `--run-lens`: the gate reads the
-four live lenses for presence and the drafted run lens for run-presence + its targets, and the
+five live lenses for presence (the measure lens presence-only — its content is never read) and
+the drafted run lens for run-presence + its targets, and the
 arch components from the live architecture lens:
 
 ```
@@ -241,12 +269,12 @@ python3 scripts/check_lines_up.py --product-base <product_base> --slice <slice> 
         --run-lens <working>/draft/<lens_dir>/run.yaml
 ```
 
-Capture the result. `lines_up: true` (all five lenses present + every architecture component has
+Capture the result. `lines_up: true` (all six lenses present + every architecture component has
 a run target + no dangling target + the run lens carries a `tco` block) ⇒ the run **will** stamp
 the slice `realized` at Step 6. `lines_up: false` ⇒ it will **not** stamp; the missing lens /
 dangling reference / absent TCO is reported and carried to the checkpoint.
 **SE-8 (F8/C8):** the stamp decision equals this gate's `lines_up` — the slice is stamped only
-when all five lenses line up; a missing lens or dangling reference yields no stamp (REC8).
+when all six lenses line up; a missing lens or dangling reference yields no stamp (REC8).
 
 > Note: at Step 4 the run lens lives in the draft, read via `--run-lens`; the authoritative
 > re-check runs at Step 7 against the persisted tree with no override. Both must agree on
@@ -329,9 +357,44 @@ in place; nothing was removed.
 through; the persisted run lens still binds every target to a real architecture component).
 On any GAP, apply REC2/REC8/REC9/REC10 and re-run.
 
+### Phase: End sequence (injected — D2 position: end)
+
+The persisted run lens (and, on lines-up, the realized stamp) is a durable model change that
+closes the foundation pipeline (arch → measure → run); the standard end sequence lands it on
+main for /grill (#437, decision 24). Each member runs as a sub-play dispatched with
+`parent_run_id` (emits only its own C1 evidence; this play's close absorbs it). Each member is
+independent and resolves its own context from the branch and config; this play passes no
+hand-rolled git/PR/merge logic.
+
+**Step 8 — commit-change** · Owner: `commit-change` (sub-play) · Depends on: Step 7 — commit
+the persisted run lens, the decisions, any gap proposals, and (when stamped) the slice record,
+grouped by concern with conventional messages; no push.
+
+**Step 9 — propose-change** · Owner: `propose-change` (sub-play) · Depends on: Step 8 — run
+the scope-and-quality self-review, push the branch, open the PR carrying the review.
+
+**Step 10 — review-change** · Owner: `review-change` (sub-play) · Depends on: Step 9 — run the
+diff-scoped quality check, post an approve/reject verdict. A reject stops the sequence before
+merge.
+
+**Step 11 — merge-change** · Owner: `merge-change` (sub-play) · Depends on: Step 10 (approve
+verdict) — merge the PR, switch to main and pull, delete the feature branch.
+
+    {
+      "play":          "<commit-change | propose-change | review-change | merge-change>",
+      "parent_run_id": "<this run id>",
+      "inputs":  {},
+      "outputs": { "result": "<working>/end/<member>.json" }
+    }
+
+After the persist is verified, the end sequence runs — `<working>/end/` holds each member's
+result in order, starting with `commit-change.json` (the durable model change does not sit
+uncommitted waiting on a manual `/commit-change`); a member's own halt (e.g. a review reject)
+stops the chain by that member's rules and is visible in its result, never silent.
+
 ### Phase: Scenario Validation
 
-**Step 8 — Scenario evals** · Owner: play · Depends on: Step 7
+**Step 12 — Scenario evals** · Owner: play · Depends on: Step 11
 - **SCE-1 (S1 — platform engineer, first run):** the slice's `run.yaml` exists with a `slice_ref`
   and non-empty environments/rollout/migrations/config_secrets/cicd/targets; every other
   product-model file is byte-identical (except the slice `status` if stamped); the lens validates
@@ -361,7 +424,7 @@ On any GAP, apply REC2/REC8/REC9/REC10 and re-run.
 
 ### Phase: Evidence & Close
 
-**Step 9 — Close** · Owner: play · Depends on: Step 8
+**Step 13 — Close** · Owner: play · Depends on: Step 12
 Run the Standard Play Close. /run is a **product-scoped** play (no issue) — use the
 product-scoped evidence base and slug. Evidence recording is play-only and config-gated per the
 D1 evidence rule (`standards/rules/evidence-recording.md`).
@@ -389,16 +452,17 @@ and record `evidence skipped (record=false)` in the report's pointer line. Other
 `evidence-file.md` slots (play `run`, run_id `run-${ts}`, product_slug = the slice,
 started_at/completed_at, status; artifacts produced: the run lens, the rollout/migration/
 environment decisions, any gap proposals, the run + apply manifests, the lines-up result and
-whether the slice was stamped; step and scenario eval results SE-1…SE-13 / SCE-1…SCE-8;
+whether the slice was stamped, the end-member results; step and scenario eval results
+SE-1…SE-13 / SCE-1…SCE-8;
 checkpoint decision from Step 5) and write to `$evidence_dest`. Do NOT hand-author the body.
 
 **Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output the
 report: `## run Delivered — ${product_slug}`, the Run Summary table, the Pipeline Steps table
 from the task DAG, the Artifacts Produced table (the seven run blocks incl. the TCO, the
-targets, the decisions, any proposals), Next Steps (if the slice was stamped `realized`, run
-/grill to cut delivery work;
-if not, run the missing lens — /quality, /ux, /agentic, or /arch — then re-run /run to line up
-and stamp), and a pointer to `$evidence_dest`. Always emitted; never gated.
+targets, the decisions, any proposals), Next Steps (if the slice was stamped `realized`, the
+foundation work is landed on main by the end sequence — run /grill to cut delivery work;
+if not, run the missing lens — /quality, /ux, /agentic, /arch, or /measure — then re-run /run
+to line up and stamp), and a pointer to `$evidence_dest`. Always emitted; never gated.
 
 ```bash
 # --- end Standard Play Close ---
@@ -425,7 +489,7 @@ and stamp), and a pointer to `$evidence_dest`. Always emitted; never gated.
 | F2 | a write touched something beyond this slice's run lens, a decision, or the slice `status` stamp | revert the out-of-scope write; /run writes only the run lens, decisions, and (on lines-up) the slice `status` | autonomous |
 | F3 | the run lens carries content outside the six blocks or the wrong shape | strip it back to the environments/rollout/migrations/config_secrets/cicd/targets shape; move any architecture/ux/quality content out | autonomous |
 | F4 | an invented operational choice — no matched KB learning and no recorded proposal | re-tie the choice to a best-fit learning on the architecture/technology shelf, or raise a KB-learning-gap proposal (a candidate architecture/technology learning); never keep an ungrounded choice | autonomous |
-| F5 | /run read another lens (quality/ux/agentic), or a target binds no declared architecture component | remove the cross-lens dependency (run derives from the hub + the architecture lens + the KB only); re-tie the dangling target to a real component or drop it | autonomous |
+| F5 | /run read the measure lens's content, or a target binds no declared architecture component | remove the measure-lens dependency (run derives from the hub + the architecture lens + the optional lens trinity + the KB; measure is presence-only via lines-up); re-tie the dangling target to a real component or drop it | autonomous |
 | F6 | the run lens over- or under-specifies — a missing block, a component with no target, or build-level detail smeared in | complete the missing block/target or trim the over-specification back to the operational shape | autonomous |
 | F7 | a material run choice (rollout/migration/environment) with no decision recorded | record the slice-level decision before persisting | autonomous |
 | F8 | the slice was stamped `realized` though a lens was missing or a cross-reference dangled | revert the stamp; the slice is stamped only when check_lines_up reports lines_up; report the missing lens / dangling reference and route to the lens that closes it | autonomous |
@@ -449,15 +513,15 @@ checkpoint approved. A fresh start with no marker runs everything and creates th
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:8b28da29bff64d456ef15babbf1cf96613cbffae52c22b6359def8da9e3caa34 (of `reference/ice.md`) |
-| compiled_by | play-creator (edited via play-editor, #435, #437) |
-| pipeline_position | none |
-| position_exception | middle of the slice pipeline — runs on the branch /quality started; the close belongs to /grill (#437) |
+| fingerprint | sha256:31326c2d869797484b26df746adb955af1cd4eeeb4ba1c1850752a63d6045c82 (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor, #435, #437), edited via play-editor (#434, decisions 23+24) |
+| pipeline_position | end (commit-change → propose-change → review-change → merge-change tail; no start head) |
 | workflow_structure | A (mandatory, non-skippable checkpoint) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |
 | skills_used | kb-search, author-run-lens |
 | scripts | 8 (preflight.py, check_ready_slice.py, check_lines_up.py, validate_run.py, grounding_check.py, apply_run.py, stamp_slice.py, check_run.py) |
+| member_subplays | commit-change, propose-change, review-change, merge-change (injected end sequence) |
 | step_evals | 13 (SE-1…SE-13; SE-5 split a/b, SE-11 split a; one per failure condition) |
 | scenario_evals | 8 (SCE-1…SCE-8) |
 | recovery_entries | 13 (one per failure condition; 9 autonomous / 4 human) |

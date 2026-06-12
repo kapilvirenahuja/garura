@@ -8,7 +8,7 @@ play-creator; never hand-edit the compiled SKILL.md.
 Given one shaped **slice** — a vertical product increment from /shape, the thing you
 actually deliver — write its **agentic lens**: how much load the slice should lift off the
 user, and the frame around it. The slice is the unit of realization: you pick a slice and
-run quality → ux → agentic → arch → run on it, then ship it. A slice has no ICE of its own
+run quality → ux → agentic → arch → measure → run on it, then ship it. A slice has no ICE of its own
 — its hub is the union of its functionalities' ICE (which may span several capabilities)
 plus the product profile.
 
@@ -31,7 +31,7 @@ for any material autonomy
 choice) — never the slice record, the functionalities' ICE, the profile, another lens, or
 any other model file. One slice per run; one human checkpoint before anything persists.
 
-Pipeline position: **none**. /agentic is a MIDDLE play of the slice pipeline (quality → ux → agentic → arch → run → grill): it expects to run on the branch /quality already started, injects no head and no close, stops when its lens is written, and leaves the branch as-is for the next play. The close belongs to /grill. It writes the persistent product model directly, on the already-started branch. By convention third in the realize sequence — but takes **no** dependency on the quality or ux lens: it reads the hub (the slice's functionalities' ICE + the profile box) only; never another lens. (#437)
+Pipeline position: **end**. /agentic CLOSES the lens pipeline (quality → ux → agentic): it expects to run on the branch /quality started, and after the verified persist the end sequence (commit-change → propose-change → review-change → merge-change) lands the lens trinity's work on main, where the foundation pipeline (arch → measure → run) picks the slice up. The full realize sequence is six lenses — quality → ux → agentic → arch → measure → run — then /grill. It writes the persistent product model directly, on the branch /quality started, and injects no start head. Third in the realize sequence and last in the lens pipeline — but takes **no** dependency on the quality or ux lens: it reads the hub (the slice's functionalities' ICE + the profile box) only; never another lens. (#437, decision 24)
 
 ### Constraints
 

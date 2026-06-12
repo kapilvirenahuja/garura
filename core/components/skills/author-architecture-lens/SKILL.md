@@ -1,6 +1,6 @@
 ---
 name: author-architecture-lens
-description: Draft /arch's architecture lens for one SLICE — turn the slice's functionalities' ICE (their context.systems) and the profile surfaces into the horizontal components the slice threads, the contracts (seams) crossed between them with the data that flows, and the stack (tech + versions) per component, plus a decision for any material choice. Every component, contract, and tech pick is grounded — never invented; the build is one vertical end-to-end slice through the components. Writes a draft only (the architecture lens + a grounding manifest in STM), never the live model. The generative work for the /arch play; reads the slice's hub + the profile box, never another lens.
+description: Draft /arch's architecture lens for one SLICE — turn the slice's functionalities' ICE (their context.systems) and the profile surfaces into the horizontal components the slice threads, the contracts (seams) crossed between them with the data that flows, and the stack (tech + versions) per component, plus a decision for any material choice. Every component, contract, and tech pick is grounded — never invented; the build is one vertical end-to-end slice through the components. Writes a draft only (the architecture lens + a grounding manifest in STM), never the live model. The generative work for the /arch play; reads the slice's hub + the profile box, MAY read the three lens-trinity files (quality, ux, agentic — optional inputs), never the measure or run lens.
 version: 0.1.0
 user-invocable: false
 model: opus
@@ -31,9 +31,11 @@ components — and the build is that vertical, end-to-end through them: end-to-e
 failed. So every functionality the slice bundles must thread through the components, the
 seam-graph must be acyclic, and no component is left an orphan.
 
-It draws everything from the slice's hub + the profile box; it never reads another realize
-lens. The NFRs it sizes the stack against come from the **profile box** directly, not from the
-quality lens.
+It draws everything from the slice's hub + the profile box, and MAY read the three
+lens-trinity files (quality, ux, agentic — optional inputs, read-only, to inform component
+selection; the trinity read rule, decision 23); it never reads the measure or run lens. The
+NFRs it sizes the stack against come from the **profile box** directly, not from the quality
+lens.
 
 It writes a draft only — /arch's checkpoint and apply step persist it.
 
@@ -45,6 +47,9 @@ It writes a draft only — /arch's checkpoint and apply step persist it.
 | `slice_file` | yes | The slice record path (read-only) — its `functionalities` list (the to-thread set). |
 | `functionality_ices` | yes | The resolved ICE file paths for the slice's functionalities (the hub), from the readiness gate. Their `context.systems` are the candidate components. |
 | `profile_path` | yes | The product profile (read-only) — its `shape.surfaces` (entry components) and `nfr` box (sizes the stack). |
+| `quality_lens` | no | The slice's quality lens (read-only, trinity read rule) — may inform component selection. |
+| `ux_lens` | no | The slice's ux lens (read-only, trinity read rule) — may inform component selection. |
+| `agentic_lens` | no | The slice's agentic lens (read-only, trinity read rule) — may inform component selection. |
 | `kb_search` | yes | Path to the `kb-search` skill's `scripts/kb_search.py` — the condition-search engine over the architecture/technology shelves. |
 | `kb_root` | yes | The `knowledge/` dir, so the manifest can name resolvable learning ids. |
 | `product_base` | yes | The product model root — read-only, to reuse an existing architecture decision if one exists. |
@@ -61,7 +66,9 @@ non-negotiable.
 1. **Read the slice's hub + the profile box.** Load the slice record (its functionalities —
    the to-thread set) and every functionality ICE in `functionality_ices` (their
    `context.systems` and `context.scope`), plus the profile (`shape.surfaces` and the `nfr`
-   box). Do NOT read another lens — /arch reads the hub only.
+   box). When the optional trinity inputs (`quality_lens`, `ux_lens`, `agentic_lens`) are
+   provided, you MAY read them — read-only, to inform component selection. Do NOT read the
+   measure or run lens.
 
 2. **Select the components.** For each system named in the functionalities' ICE
    `context.systems`, place a component in its layer (experience / process / domain /
@@ -169,8 +176,9 @@ pick) must appear in `choices` with a KB learning or a proposal — that is the 
 ## Boundaries
 
 ### NEVER
-- Read or reference another realize lens (quality/ux/agentic/run) — /arch reads the slice's
-  hub + the profile box only.
+- Read or reference the measure or run lens — /arch reads the slice's hub + the profile box,
+  plus at most the lens-trinity files (quality/ux/agentic) handed in as optional read-only
+  inputs.
 - Write the slice record, a functionality's ICE, the profile, another lens, or other slices —
   draft only this slice's architecture lens (+ the decisions).
 - Invent an element — a component that is neither a system in the slice's functionalities' ICE

@@ -1,6 +1,6 @@
 ---
 name: author-run-lens
-description: Draft /run's run lens for one SLICE — how it is deployed and runs. Reads the slice's hub (its functionalities' ICE + the profile box) AND its architecture lens (the parts to deploy), then grounds every operational choice in the KB's architecture/technology shelves via kb-search — rollout strategy, migration stance, environment topology, CI/CD shape, and a run target for every architecture component — basing each on what has worked for us, never on the model's taste. Anything the KB does not cover is raised as a KB-learning-gap proposal (a candidate architecture/technology learning for review), never invented. Writes a draft only (the run lens + a grounding manifest in STM), never the live model. The generative work for the /run play; it reads the architecture lens (run deploys arch's parts) but never the quality/ux/agentic lens.
+description: Draft /run's run lens for one SLICE — how it is deployed and runs. Reads the slice's hub (its functionalities' ICE + the profile box) AND its architecture lens (the parts to deploy), optionally the three lens-trinity files (quality, ux, agentic — decision 23), then grounds every operational choice in the KB's architecture/technology shelves via kb-search — rollout strategy, migration stance, environment topology, CI/CD shape, and a run target for every architecture component — basing each on what has worked for us, never on the model's taste. Anything the KB does not cover is raised as a KB-learning-gap proposal (a candidate architecture/technology learning for review), never invented. Writes a draft only (the run lens + a grounding manifest in STM), never the live model. The generative work for the /run play; it reads the architecture lens (run deploys arch's parts) and may read the lens trinity, but never the measure lens's content (presence only, via /run's lines-up gate).
 version: 0.1.0
 user-invocable: false
 model: opus
@@ -11,7 +11,7 @@ allowed-tools: Read, Write, Bash, Glob
 
 Turns one shaped, **architected** slice into its **run lens** — how the slice is deployed and
 runs. A slice is a vertical product increment; its **hub** is the union of its functionalities'
-ICE (which may span several capabilities) plus the product profile. /run is the fifth and last
+ICE (which may span several capabilities) plus the product profile. /run is the sixth and last
 realize lens, and the run lens is seven things and only seven:
 
 - **environments** — the path the slice moves through (dev → staging → prod).
@@ -35,9 +35,10 @@ realize lens, and the run lens is seven things and only seven:
   scale-up and HA triggers, review cadence). When exact pricing is unknown, produce a
   directional range with stated assumptions and confidence — never generic prose, never skip.
 
-/run **deploys what /arch designed**, so it reads the architecture lens (the components to run)
-— it is the one realize lens that reads another. It never reads the quality, ux, or agentic
-lens.
+/run **deploys what /arch designed**, so it reads the architecture lens (the components to run).
+It MAY also ground on the three lens-trinity files — quality, ux, agentic — when the play passes
+them (decision 23). The one lens whose content it never reads is the **measure** lens; its
+presence is /run's lines-up gate's business, not this skill's.
 
 **Every operational choice is grounded in the KB, never invented.** Before drafting, search the
 KB's `architecture/` and `technology/` shelves for the learnings whose conditions match this
@@ -56,6 +57,9 @@ slice done.
 | `slice_file` | yes | The slice record path (read-only) — its `functionalities` (the hub set). |
 | `functionality_ices` | yes | The resolved ICE file paths for the slice's functionalities (the hub), from the readiness gate. Their `context.scope`/`context.systems` shape the operational picture. |
 | `arch_lens` | yes | The slice's **architecture lens** path (read-only) — its `content.components` are the parts to give run targets. |
+| `quality_lens` | no | The slice's quality lens path (read-only) — optional trinity grounding (decision 23). |
+| `ux_lens` | no | The slice's ux lens path (read-only) — optional trinity grounding (decision 23). |
+| `agentic_lens` | no | The slice's agentic lens path (read-only) — optional trinity grounding (decision 23). |
 | `profile_path` | yes | The product profile (read-only) — its condition facets (stage, scale, persistence, monetization) feed the KB query, and the `nfr` box sizes the rollout/migration risk. |
 | `kb_search` | yes | Path to the `kb-search` skill's `scripts/kb_search.py` (the condition-search engine over the architecture/technology shelves). |
 | `kb_root` | yes | The `knowledge/` dir, so the manifest can name resolvable learning ids. |
@@ -68,13 +72,15 @@ slice done.
 
 The environment path, the rollout/migration taste, and the per-component deploy shape are
 **chosen from KB learnings**, not invented; the grounding, the targets-bind-to-arch coverage,
-and the six-block shape are non-negotiable.
+and the seven-block shape are non-negotiable.
 
-1. **Read the hub + the architecture lens.** Load the slice record (its functionalities) and
+1. **Read the hub + the architecture lens (+ the optional trinity).** Load the slice record
+   (its functionalities) and
    every functionality ICE in `functionality_ices` (their `context.scope`/`context.systems`),
    the profile (its condition facets + `nfr` box), and the **architecture lens** (its
-   `content.components` — the parts that must run). Do NOT read the quality, ux, or agentic
-   lens — /run reads the hub + the architecture lens + the KB only.
+   `content.components` — the parts that must run). When `quality_lens`/`ux_lens`/`agentic_lens`
+   are provided, you MAY read them for grounding (decision 23). Do NOT read the **measure**
+   lens's content — its presence is checked by /run's lines-up gate, never here.
 
 2. **Read the product's conditions + search the KB.** Build the condition profile from the
    product profile (`stage`, `users`, `persistence`, `monetization`). Then query the KB's
@@ -127,7 +133,7 @@ and the six-block shape are non-negotiable.
    a run decision that fits (look under `product_base`), **reuse it** — do not re-invent.
 
 6. **Write the draft + manifest.** Write the run lens (the v1 lens envelope with `type: run`,
-   `slice_ref`, and the six content blocks) under `draft_dir`, mirroring `lens_rel`, plus the
+   `slice_ref`, and the seven content blocks) under `draft_dir`, mirroring `lens_rel`, plus the
    decisions, plus a `run-manifest.yaml` that grounds **every** operational choice and **every**
    target in a KB learning id or a proposal path, so the play's validate + grounding steps are
    mechanical:
@@ -189,9 +195,10 @@ run:
 ## Boundaries
 
 ### NEVER
-- Read or reference the quality, ux, or agentic lens — /run reads the hub + the architecture
-  lens + the KB only. (Reading the architecture lens is required, not forbidden — run deploys
-  its parts.)
+- Read or reference the **measure** lens's content — /run reads the hub + the architecture
+  lens + the optional lens trinity (quality, ux, agentic — decision 23) + the KB. (Reading the
+  architecture lens is required, not forbidden — run deploys
+  its parts; the measure lens is presence-only, via /run's lines-up gate.)
 - Write the slice record, a functionality's ICE, the profile, another lens, or other slices —
   draft only this slice's run lens (+ the decisions). The slice `status` stamp is /run's job,
   after lines-up — never the skill's.
@@ -199,8 +206,8 @@ run:
   to a matched KB learning or a recorded proposal.
 - Leave an architecture component with no run target, or point a target at a component the
   architecture lens does not declare.
-- Smear architecture, ux, quality, or agentic content into the run lens. Keep `content` to the
-  seven keys environments/rollout/migrations/config_secrets/cicd/targets/tco.
+- Smear architecture, ux, quality, agentic, or measure content into the run lens. Keep `content`
+  to the seven keys environments/rollout/migrations/config_secrets/cicd/targets/tco.
 - Ship a `tco` that is generic prose — no hyperscaler selected, a component without a concrete
   service, fewer than three simulation scenarios, or a monthly range with no numbers. A
   directional range with stated assumptions and a confidence level is the floor.

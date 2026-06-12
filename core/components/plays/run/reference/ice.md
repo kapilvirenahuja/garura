@@ -8,9 +8,9 @@ play-creator; never hand-edit the compiled SKILL.md.
 Given one shaped **slice** — a vertical product increment from /shape, the thing you actually
 deliver — whose **architecture lens is already written**, write its **run lens**: how the
 slice is deployed and runs. The slice is the unit of realization: you pick a slice and run
-quality → ux → agentic → arch → run on it, then ship it. A slice has no ICE of its own — its
-hub is the union of its functionalities' ICE (which may span several capabilities) plus the
-product profile. /run is the **fifth and last** realize lens.
+quality → ux → agentic → arch → measure → run on it, then ship it. A slice has no ICE of its
+own — its hub is the union of its functionalities' ICE (which may span several capabilities)
+plus the product profile. /run is the **sixth and last** realize lens.
 
 The run lens is the operational and ownership picture and only that: the **environments** the
 slice moves through (the path dev → staging → prod), the **rollout** (the feature flags it
@@ -25,8 +25,10 @@ seed, pilot, and expanded scenarios), the cost estimate (a monthly range per sce
 drivers, exclusions, confidence, and sensitivity), and the cost guardrails (budget alert,
 retention limits, scale-up and HA triggers, review cadence). /run
 **deploys what /arch designed**: every run target binds to a real component in the slice's
-architecture lens. It is the one realize lens that **reads another lens** (the architecture
-lens), because you cannot say how something runs without knowing the parts that run.
+architecture lens, so it reads the **architecture lens** — you cannot say how something runs
+without knowing the parts that run. As a foundation lens it MAY also ground on the three
+lens-trinity files (quality, ux, agentic — decision 23). The one lens whose content it never
+reads is the **measure** lens — presence only, via lines-up.
 
 Every operational choice is **grounded in the knowledge base, never invented**. Before it
 drafts, /run searches the KB's architecture and technology shelves for the learnings whose
@@ -39,8 +41,8 @@ choices (the rollout strategy, the migration strategy, the environment topology)
 as slice-level decisions the product references.
 
 Because it is the **last** lens, /run also carries the **lines-up duty**: once the run lens is
-drafted, it verifies that all five lens files for the slice exist (quality, ux, agentic,
-architecture, run) and that every cross-reference resolves — every architecture component has a
+drafted, it verifies that all six lens files for the slice exist (quality, ux, agentic,
+architecture, measure, run) and that every cross-reference resolves — every architecture component has a
 run target, and every run target binds to a real component. **Only when the slice lines up**
 does /run **stamp the slice done**, flipping the slice record's `status` to `realized` — the
 single marker `/grill` checks before it cuts delivery work. If a lens is missing or a
@@ -52,7 +54,7 @@ slice record's `status` stamp and nothing else of the record. Never the function
 the profile, another lens, structure, status of other nodes, personas, journeys, or other
 slices. One slice per run; one human checkpoint before anything persists.
 
-Pipeline position: **none**. /run is a MIDDLE play of the slice pipeline (quality → ux → agentic → arch → run → grill): it expects to run on the branch /quality already started, injects no head and no close, stops after the realized stamp, and leaves the branch as-is for /grill to close. It runs after /arch (it reads the architecture lens) and last in the realize sequence. It writes the persistent product model directly, on the already-started branch. (#437)
+Pipeline position: **end**. /run CLOSES the foundation pipeline (arch → measure → run): it expects to run on the branch /arch started and injects no start head. After the verified persist and the realized stamp, the injected end sequence (commit-change → propose-change → review-change → merge-change) lands the foundation work on main for /grill to pick up. It runs after /measure and last in the realize sequence (quality → ux → agentic → arch → measure → run). It writes the persistent product model on the /arch-started branch, and the end sequence closes that branch. (#437, decision 24)
 
 ### Constraints
 
@@ -64,7 +66,7 @@ Pipeline position: **none**. /run is a MIDDLE play of the slice pipeline (qualit
 - C2 — Writes only this slice's run lens (and any decision), plus — and only when the lines-up
   gate passes — the slice record's `status` stamp (→ `realized`) and its updated_by/version
   metadata. Never the functionalities' ICE, the profile, another lens (quality/ux/agentic/
-  architecture), node structure, personas, journeys, other slices, or any slice-record field
+  architecture/measure), node structure, personas, journeys, other slices, or any slice-record field
   besides `status` and that metadata.
 - C3 — run content only, and only the run-lens schema blocks: `content` carries
   `environments`, `rollout` (flags + strategy), `migrations`, `config_secrets`, `cicd`,
@@ -78,9 +80,11 @@ Pipeline position: **none**. /run is a MIDDLE play of the slice pipeline (qualit
   (notably a cost model with no matching cost pattern), to a recorded KB-learning-gap proposal
   (a candidate architecture/technology learning raised for review). No operational choice
   rests on the model's taste alone.
-- C5 — Reads the hub + the architecture lens + the KB, and binds to arch: /run derives from the
-  slice's functionalities' ICE, the profile box, the slice's **architecture lens**, and the KB.
-  It never reads or derives content from the quality, ux, or agentic lens. Every entry in
+- C5 — Reads the hub + the architecture lens + (optionally) the lens trinity + the KB, and
+  binds to arch: /run derives from the slice's functionalities' ICE, the profile box, the
+  slice's **architecture lens**, and the KB, and MAY ground on the three lens-trinity files
+  (quality, ux, agentic — decision 23). It never reads or derives content from the **measure**
+  lens — presence only, via lines-up. Every entry in
   `targets` binds to a real component named in the architecture lens — no target points at a
   component that does not exist (no dangling target).
 - C6 — Just enough, and coherent: there is an environment path, a rollout strategy, a migration
@@ -92,8 +96,8 @@ Pipeline position: **none**. /run is a MIDDLE play of the slice pipeline (qualit
   environment topology, and **the hyperscaler/service-platform pick (the TCO posture)** are
   deliberate choices recorded as slice-level decisions (ADRs) the product references — not
   re-invented per slice.
-- C8 — Lines-up gate (the last-lens duty): before the slice is stamped, all five lens files
-  (quality, ux, agentic, architecture, run) exist for the slice, every cross-reference
+- C8 — Lines-up gate (the last-lens duty): before the slice is stamped, all six lens files
+  (quality, ux, agentic, architecture, measure, run) exist for the slice, every cross-reference
   resolves — every architecture component has a run target and every run target binds to a real
   component — AND the run lens carries a validated `tco` block (C13). If any lens is missing, a
   reference dangles, or the TCO is absent, the run lens is still written, the gaps are
@@ -140,7 +144,8 @@ Pipeline position: **none**. /run is a MIDDLE play of the slice pipeline (qualit
 - F4 — An operational choice is invented — a rollout strategy, migration stance, environment
   topology, CI/CD shape, or runtime pick with neither a matched KB learning nor a recorded
   KB-learning-gap proposal behind it.
-- F5 — /run read or derived content from the quality, ux, or agentic lens; OR a `targets` entry
+- F5 — /run read or derived content from the measure lens (whose content stays unread —
+  presence only, via lines-up); OR a `targets` entry
   binds to a component that the architecture lens does not declare (a dangling target).
 - F6 — The run lens over- or under-specifies — a missing environment path, rollout strategy,
   migration stance, config/secrets stance, or CI/CD pipeline; an architecture component with no
@@ -186,7 +191,7 @@ Pipeline position: **none**. /run is a MIDDLE play of the slice pipeline (qualit
   every architecture component has a run target and every run target binds to a real component.
   Measure: every component in `architecture.yaml` appears as a `targets[].component`; every
   `targets[].component` resolves to a declared architecture component; no dangling target.
-- S4 — (release manager, lines-up + stamp) Given all five lens files exist and every
+- S4 — (release manager, lines-up + stamp) Given all six lens files exist and every
   cross-reference resolves, when /run completes, then the slice is stamped `realized` and the
   stamp is the only change to the slice record. Measure: `check_lines_up.py` reports
   `lines_up: true`; the slice record's `status` is `realized`; every other slice-record field
@@ -235,9 +240,10 @@ Pipeline position: **none**. /run is a MIDDLE play of the slice pipeline (qualit
   proposal. direction: re-tie the choice to a best-fit KB learning on the architecture or
   technology shelf, or raise a KB-learning-gap proposal (a candidate architecture/technology
   learning) for the gap; never keep an ungrounded choice. handoff: autonomous.
-- REC5 (F5) — trigger: /run read another lens (quality/ux/agentic), or a target binds to no
-  declared architecture component. direction: remove the cross-lens dependency (run derives
-  from the hub + the architecture lens + the KB only); re-tie the dangling target to a real
+- REC5 (F5) — trigger: /run read the measure lens's content, or a target binds to no
+  declared architecture component. direction: remove the measure-lens dependency (run derives
+  from the hub + the architecture lens + the optional lens trinity + the KB; the measure lens
+  is presence-only, via lines-up); re-tie the dangling target to a real
   architecture component or drop it. handoff: autonomous.
 - REC6 (F6) — trigger: an over- or under-specified run lens — a missing block, a component with
   no target, or build-level detail smeared in. direction: complete the missing block or target,

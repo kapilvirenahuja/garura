@@ -55,7 +55,7 @@ def _blank(v):
     return False
 
 
-OTHER_LENSES = ("quality", "ux", "architecture", "run", "lens")
+OTHER_LENSES = ("quality", "ux", "architecture", "run", "measure", "lens")
 CONTENT_KEYS = {"is_agent", "note", "weights", "controls"}
 WEIGHT_AXES = ("cognitive", "creative", "logistical")
 CONTROL_AXES = ("guardrails", "handoff")

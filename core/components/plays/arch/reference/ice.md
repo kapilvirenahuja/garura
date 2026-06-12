@@ -8,7 +8,7 @@ play-creator; never hand-edit the compiled SKILL.md.
 Given one shaped **slice** — a vertical product increment from /shape, the thing you actually
 deliver — write its **architecture lens**: the shape of the software that delivers the slice.
 The slice is the unit of realization: you pick a slice and run quality → ux → agentic → arch
-→ run on it, then ship it. A slice has no ICE of its own — its hub is the union of its
+→ measure → run on it, then ship it. A slice has no ICE of its own — its hub is the union of its
 functionalities' ICE (which may span several capabilities) plus the product profile.
 
 The lens is three things and only three: the **components** the slice threads — the
@@ -31,7 +31,7 @@ architecture lens (and a decision for any material choice) — never the slice r
 functionalities' ICE, the profile, another lens, structure, status, personas, journeys, or
 other slices. One slice per run; one human checkpoint before anything persists.
 
-Pipeline position: **none**. /arch is a MIDDLE play of the slice pipeline (quality → ux → agentic → arch → run → grill): it expects to run on the branch /quality already started, injects no head and no close, stops when its lens is written, and leaves the branch as-is for the next play. The close belongs to /grill. It writes the persistent product model directly, on the already-started branch. By convention fourth in the realize sequence — but takes **no** dependency on the quality, ux, or agentic lens: it reads the hub (the slice's functionalities' ICE + the profile box) only; never another lens. The NFRs it sizes the stack against come from the profile box directly, not the quality lens. (#437)
+Pipeline position: **start**. /arch OPENS the foundation pipeline (arch → measure → run): the D2 rule prepends `start-change` — resolve or create the foundation issue, cut the branch off fresh main, optional worktree, init STM — so /measure and /run run on this already-started branch. The lens trinity (quality → ux → agentic) merges to main before the foundation starts; the full realize sequence is quality → ux → agentic → arch → measure → run, then /grill. /arch injects no close: it stops after its verified persist and leaves the branch for /measure and /run — /run closes the pipeline. It writes the persistent product model directly, on the started branch. Fourth in the realize sequence and first of the foundation plays — it MAY ground on the three lens-trinity files (quality/ux/agentic, already merged — the trinity read rule, decision 23) but takes no dependency on, and never reads, the measure or run lens. The NFRs it sizes the stack against come from the profile box directly, not the quality lens. (#437, decision 24)
 
 ### Constraints
 
@@ -40,7 +40,8 @@ Pipeline position: **none**. /arch is a MIDDLE play of the slice pipeline (quali
   If not, halt — /arch realizes a shaped slice; it does not shape one.
 - C2 — Writes only this slice's architecture lens (and any decision), in the slice's lens
   folder. Never the slice record, the functionalities' ICE, the profile, another lens
-  (quality/ux/agentic/run), node structure or status, personas, journeys, or other slices.
+  (quality/ux/agentic/measure/run), node structure or status, personas, journeys, or other
+  slices.
 - C3 — architecture content only, and only the three blocks, per the architecture lens
   schema: `content` carries `components` (name, layer, kind, part), `contracts` (between,
   interface, data) and `stack` (component, tech, version) — and no other key. Concrete
@@ -63,9 +64,11 @@ Pipeline position: **none**. /arch is a MIDDLE play of the slice pipeline (quali
   component is an orphan (in the lens but on no functionality's path). The directed graph of
   components and their contracts is acyclic; a cycle is broken (by removing a seam, splitting
   a component, or introducing an async boundary) before the lens is coherent.
-- C7 — Reads the hub only: /arch derives from the slice's functionalities' ICE and the
-  profile box — never from another realize lens (quality/ux/agentic/run). The quality bar it
-  sizes the stack against is the profile box, read directly.
+- C7 — Reads the hub, the profile box, and at most the trinity: /arch derives from the
+  slice's functionalities' ICE and the profile box, and MAY ground on the three lens-trinity
+  files (quality/ux/agentic — the trinity read rule, decision 23), read-only, to inform
+  component selection. It must never read or ground on the measure or run lens. The quality
+  bar it sizes the stack against is the profile box, read directly.
 - C8 — Material architecture choices are decisions: the component set the slice threads, the
   system-level shape (monolith / modular-monolith / microservices / serverless), and each
   significant technology pick are deliberate choices recorded as slice-level decisions (ADRs)
@@ -106,7 +109,8 @@ Pipeline position: **none**. /arch is a MIDDLE play of the slice pipeline (quali
 - F6 — A functionality of the slice is not threaded end-to-end through the components, a
   component is an orphan (on no functionality's path), OR the component/contract graph
   contains a cycle that no async boundary breaks.
-- F7 — /arch read or depended on another lens (quality/ux/agentic/run).
+- F7 — /arch read or depended on the measure or run lens (the trinity — quality/ux/agentic —
+  is permitted read-only under the trinity read rule, decision 23).
 - F8 — A material architecture choice (the component set, the system-level shape, or a
   significant technology pick) was made with no decision recorded.
 - F9 — A product-model file other than the architecture lens or a new decision changed, or an
@@ -138,10 +142,12 @@ Pipeline position: **none**. /arch is a MIDDLE play of the slice pipeline (quali
   the graph has no cycle. Measure: each functionality has a path from a surface/entry component
   to the component that serves it; every component lies on at least one such path; the
   component/contract graph is acyclic.
-- S4 — (architect, hub-only) Given /arch runs, when the model is checked, then it read no other
-  lens and wrote none. Measure: no quality/ux/agentic/run lens of the slice is touched; only
-  this slice's `architecture.yaml` (and any decision) is in the written set; no element's
-  grounding source is another lens.
+- S4 — (architect, no forward reads) Given /arch runs, when the model is checked, then it
+  wrote no other lens and read nothing ahead of itself — at most the trinity
+  (quality/ux/agentic), read-only (decision 23), never the measure or run lens. Measure: no
+  quality/ux/agentic/measure/run lens of the slice is touched; only this slice's
+  `architecture.yaml` (and any decision) is in the written set; no element's grounding source
+  is the measure or run lens.
 - S5 — (product owner, re-run) Given /arch already ran on the slice, when it runs again, then
   it re-derives the architecture lens and changes nothing else; existing decisions are
   superseded, not edited. Measure: only the slice's `architecture.yaml` (and possibly a new
@@ -186,8 +192,9 @@ Pipeline position: **none**. /arch is a MIDDLE play of the slice pipeline (quali
   in the component/contract graph. direction: add the missing component/contract to thread the
   functionality, drop the orphan, or break the cycle (remove a seam, split a component, or
   introduce an async boundary). handoff: autonomous.
-- REC7 (F7) — trigger: /arch read or depended on another lens. direction: remove the
-  dependency; /arch derives only from the slice's hub and the profile box. handoff: autonomous.
+- REC7 (F7) — trigger: /arch read or depended on the measure or run lens. direction: remove
+  the dependency; /arch derives from the slice's hub and the profile box, with the lens
+  trinity (quality/ux/agentic) permitted read-only. handoff: autonomous.
 - REC8 (F8) — trigger: a material architecture choice with no decision recorded. direction:
   record the slice-level decision for the choice (component set, system-level shape, or
   technology pick) before persisting. handoff: autonomous.

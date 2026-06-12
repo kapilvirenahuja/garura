@@ -1,7 +1,7 @@
 ---
 name: agentic
-position: none
-description: 'Write a SLICE''s agentic lens — how much load it should lift off the user, and the frame around it: the three weights (cognitive, creative, logistical) each rated low/medium/high/xhigh/ultra as the degree of offload, plus controls (guardrails, handoff) on the same scale, behind an is-it-an-agent gate. Grounds in the slice''s hub (its functionalities'' ICE). The third of the five realize plays in the ProductOS command model (quality → ux → agentic → arch → run), run on a shaped slice. Reads the hub, never another lens. Writes only the slice''s agentic lens; opens no delivery issue.'
+position: end
+description: 'Write a SLICE''s agentic lens — how much load it should lift off the user, and the frame around it: the three weights (cognitive, creative, logistical) each rated low/medium/high/xhigh/ultra as the degree of offload, plus controls (guardrails, handoff) on the same scale, behind an is-it-an-agent gate. Grounds in the slice''s hub (its functionalities'' ICE). The third of the six realize lenses in the ProductOS command model (quality → ux → agentic → arch → measure → run) and the END of the lens pipeline (quality → ux → agentic), run on a shaped slice. Reads the hub, never another lens. Writes only the slice''s agentic lens; opens no delivery issue. Position END (#437, decision 24): after the verified persist the standard end sequence (commit-change → propose-change → review-change → merge-change) lands the lens trinity''s work on main for the foundation pipeline (arch → measure → run).'
 user-invocable: true
 ---
 
@@ -10,7 +10,7 @@ user-invocable: true
 Take one shaped **slice** — a vertical product increment from /shape, the thing you actually
 deliver — and write its **agentic lens**: how much load it should lift off the user, and the
 frame around it. The slice is the unit of realization: you pick a slice and run quality → ux
-→ agentic → arch → run on it, then ship it. A slice has no ICE of its own — its **hub** is
+→ agentic → arch → measure → run on it, then ship it. A slice has no ICE of its own — its **hub** is
 the union of its functionalities' ICE (which may span several capabilities) plus the profile.
 
 The lens is two-fold. The three **weights** — cognitive (analysis + decisions), creative
@@ -22,7 +22,7 @@ limits) and handoff (how readily it returns to a human), on the same scale. Ther
 hub; a slice that should offload nothing comes out is_agent=false. It writes only the slice's
 agentic lens, plus a decision for any material autonomy choice.
 
-**Pipeline position: none.** /agentic is a MIDDLE play of the slice pipeline (quality → ux → agentic → arch → run → grill): it expects to run on the branch /quality already started, injects no head and no close, stops when its lens is written, and leaves the branch as-is for the next play. The close belongs to /grill. It writes the persistent product model directly, on the already-started branch. By convention third in the realize sequence — but takes **no** dependency on the quality or ux lens: it reads the hub (the slice's functionalities' ICE + the profile box) only; never another lens. (#437)
+**Pipeline position: end.** /agentic CLOSES the lens pipeline (quality → ux → agentic): it expects to run on the branch /quality started, and after the verified persist the D2 pipeline-position rule injects the end sequence (commit-change → propose-change → review-change → merge-change), landing the lens trinity's work on main, where the foundation pipeline (arch → measure → run) picks the slice up. The full realize sequence is six lenses — quality → ux → agentic → arch → measure → run — then /grill. It writes the persistent product model directly, on the branch /quality started, and injects no start head. Third in the realize sequence and last in the lens pipeline — but takes **no** dependency on the quality or ux lens: it reads the hub (the slice's functionalities' ICE + the profile box) only; never another lens. (#437, decision 24)
 
 ## Compiled From
 
@@ -45,7 +45,8 @@ never persist before the human approves the single checkpoint (C10).
 **Forbidden:** hand-writing lens/decision YAML; writing the slice record, the
 functionalities' ICE, the profile, or another lens by any route; reading another realize lens
 to derive the axes (agentic reads the hub); persisting by any route other than
-`scripts/apply_agentic.py`; persisting before Step 3 approval.
+`scripts/apply_agentic.py`; persisting before Step 3 approval; hand-rolling git/issue/PR/merge
+work — the model change closes ONLY via the injected end-sequence members.
 
 **Agent boundaries:**
 
@@ -54,7 +55,9 @@ to derive the axes (agentic reads the hub); persisting by any route other than
 | `product-os-keeper` | Decide is_agent and rate the five axes (cognitive/creative/logistical weights + guardrails/handoff controls) from the slice's hub; on an agentic slice **search the KB's architecture/technology shelves via kb-search** to ground the control approach (guardrail tightness + handoff cadence) in a best-fit pattern (gap → a recorded proposal); record a decision for any material autonomy choice | `kb-search`, `author-agentic-lens` | Draft |
 
 `product-os-keeper` is the single **domain agent** this play uses (1 of the ≤5 budget).
-No utility agents are needed — git/issue machinery is absent (position none).
+No utility agents are needed in the play's own core — git/PR/merge machinery arrives only via
+the injected end-sequence members (`commit-change`, `propose-change`, `review-change`,
+`merge-change`), which carry their own agents; those are not counted here.
 
 ## Pre-flight
 
@@ -63,8 +66,9 @@ No utility agents are needed — git/issue machinery is absent (position none).
 | Resolve config + `product_base` (`.garura/core/config.yaml`) | — | Hard halt |
 | Profile firmed (`set`) AND the slice exists with every functionality ICE resolved + rich | C1 | Hard halt (REC1) |
 
-Resolve config mechanically, then resolve the slice + hub. /agentic has no branch or issue
-(position none):
+Resolve config mechanically, then resolve the slice + hub. /agentic opens no branch or issue
+itself — it runs on the branch /quality started (position end; the start head belongs to
+/quality):
 
 ```
 python3 scripts/preflight.py --play agentic --config .garura/core/config.yaml
@@ -98,7 +102,11 @@ The play owns this DAG; the agent must not edit its top-level tasks.
 [T4] Persist              blockedBy: [T3]
 [T5] Verify persisted     blockedBy: [T4]
 [T6] Scenario Validation  blockedBy: [T5]
-[T7] Close                blockedBy: [T6]
+[T7] commit-change   (injected — end #1)  blockedBy: [T6]
+[T8] propose-change  (injected — end #2)  blockedBy: [T7]
+[T9] review-change   (injected — end #3)  blockedBy: [T8]
+[T10] merge-change   (injected — end #4)  blockedBy: [T9]
+[T11] Close               blockedBy: [T10]
 ```
 
 Mark each task in-progress before its step and completed right after its eval passes.
@@ -266,9 +274,43 @@ On any GAP, apply REC2/REC8 and re-run.
   learning that resolves on a shelf, or a proposal file that exists; `check_kb_grounding.py` is
   clean. (An is_agent=false slice has no controls, so the check is not run.)
 
+### Phase: End sequence (injected — D2 position: end)
+
+The persisted lens closes the lens pipeline; the standard end sequence lands the lens
+trinity's work (quality → ux → agentic) on main for the foundation pipeline (arch → measure
+→ run) (#437, decision 24). Each member runs as a sub-play dispatched with `parent_run_id`
+(emits only its own C1 evidence; this play's close absorbs it). Each member is independent
+and resolves its own context from the branch and config; this play passes no hand-rolled
+git/PR/merge logic. The sequence is never collapsed into one opaque "close the change" step.
+
+**Step 7 — commit-change** · Owner: `commit-change` (sub-play) · Depends on: Step 6 —
+commit the persisted lens (and any decisions) grouped by concern with conventional messages;
+no push.
+
+**Step 8 — propose-change** · Owner: `propose-change` (sub-play) · Depends on: Step 7 —
+run the scope-and-quality self-review, push the branch, open the PR carrying the review.
+
+**Step 9 — review-change** · Owner: `review-change` (sub-play) · Depends on: Step 8 — run
+the diff-scoped quality check, post an approve/reject verdict. A reject stops the sequence
+before merge.
+
+**Step 10 — merge-change** · Owner: `merge-change` (sub-play) · Depends on: Step 9
+(approve verdict) — merge the PR, switch to main and pull, delete the feature branch.
+
+    {
+      "play":          "<commit-change | propose-change | review-change | merge-change>",
+      "parent_run_id": "<this run id>",
+      "inputs":  {},
+      "outputs": { "result": "<working>/end/<member>.json" }
+    }
+
+After the verified persist, `<working>/end/` holds each member's result in order, starting
+with `commit-change.json`; a member's own halt (e.g. a review reject) stops the chain by
+that member's rules and is visible in its result, never silent.
+
 ### Phase: Evidence & Close
 
-**Step 7 — Close** · Owner: play · Depends on: Step 6
+**Step 11 — Close** · Owner: play · Depends on: Step 10
 Run the Standard Play Close. /agentic is a **product-scoped** play (no issue) — use the
 product-scoped evidence base and slug. Evidence recording is play-only and config-gated per
 the D1 evidence rule (`standards/rules/evidence-recording.md`).
@@ -295,7 +337,8 @@ per-play `evidence.plays.agentic`; first match wins, absent ⇒ record). When fa
 write and record `evidence skipped (record=false)` in the report's pointer line. Otherwise
 fill the `evidence-file.md` slots (play `agentic`, run_id `agentic-${ts}`, product_slug =
 the slice, started_at/completed_at, status; artifacts produced: the agentic lens, any
-decisions, the agentic + apply manifests; the KB control-approach groundings + any gap proposals;
+decisions, the agentic + apply manifests, the end-member results; the KB control-approach
+groundings + any gap proposals;
 step and scenario eval results SE-1…SE-11 /
 SCE-1…SCE-8; checkpoint decision from Step 3 including the is_agent call + the five axes) and
 write to `$evidence_dest`. Do NOT hand-author the body.
@@ -303,9 +346,10 @@ write to `$evidence_dest`. Do NOT hand-author the body.
 **Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output the
 report: `## agentic Delivered — ${product_slug}`, the Run Summary table, the Pipeline Steps
 table from the task DAG, the Artifacts Produced table (the is_agent call + five axes, any
-decisions), Next Steps (run /arch next — the fourth realize lens — to design the parts that
-deliver this slice against the quality bar, ux, and agentic stance), and a pointer to
-`$evidence_dest`. Always emitted; never gated.
+decisions), Next Steps (the lens trinity's work is merged to main by the end sequence — run
+/arch next, the fourth realize lens and the start of the foundation pipeline, to design the
+parts that deliver this slice against the quality bar, ux, and agentic stance), and a
+pointer to `$evidence_dest`. Always emitted; never gated.
 
 ```bash
 # --- end Standard Play Close ---
@@ -353,14 +397,14 @@ everything and creates the marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:1797d0cc57455c5364fb135f1deb45ea963bd1913972a07fb2da5cbb8faf374a (of `reference/ice.md`) |
-| compiled_by | play-creator (edited via play-editor, #437) |
-| pipeline_position | none |
-| position_exception | middle of the slice pipeline — runs on the branch /quality started; the close belongs to /grill (#437) |
+| fingerprint | sha256:703a85aa8bc110a2b585eee90b76e7e84347a72fbb76567b10441971a9cca909 (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor, #437), edited via play-editor (#434, decision 24) |
+| pipeline_position | end (commit-change → propose-change → review-change → merge-change tail; no start head) |
 | workflow_structure | A (mandatory, non-skippable checkpoint) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |
 | skills_used | kb-search, author-agentic-lens |
+| member_subplays | commit-change, propose-change, review-change, merge-change (injected end sequence) |
 | scripts | 6 (preflight.py, check_ready_slice.py, validate_agentic.py, check_kb_grounding.py, apply_agentic.py, check_agentic.py) |
 | step_evals | 11 (SE-1…SE-11) |
 | scenario_evals | 8 (SCE-1…SCE-8) |

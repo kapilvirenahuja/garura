@@ -7,7 +7,7 @@ play-creator; never hand-edit the compiled SKILL.md.
 
 Turn one **realized slice** into an ordered set of **user-testable epics** — each a
 meaningful increment a user can open, exercise, and verify — grilled steelman-hard against
-the slice's intent and all five lenses before anything is written, as the handoff from the
+the slice's intent and all six lenses before anything is written, as the handoff from the
 product model to delivery.
 
 **What grilling is for: drawing the box.** Going from A (the realized slice — the declared
@@ -19,7 +19,9 @@ yet and only the human may draw one; the human-response record proves the box he
 the human held it, not because the agent assumed it did.
 
 /grill sits below /roadmap and above the delivery pipeline. /roadmap says "build this slice
-next"; the five realize lenses (quality → ux → agentic → arch → run) have solved the slice's
+next"; the six realize lenses (quality → ux → agentic → arch → measure → run) — run as the
+LENS pipeline (quality → ux → agentic) and the FOUNDATION pipeline (arch → measure → run),
+each merged to main — have solved the slice's
 design and /run has stamped its record `status: realized` — that stamp is the single marker
 /grill checks before it cuts delivery work. /grill then cuts the slice into **epics**: the
 temporary, slice-level delivery units `/start` picks up (opening an issue per epic) and
@@ -33,7 +35,7 @@ observe, is not an epic. Every epic carries its own context (persona, systems, s
 acceptance criteria so the delivery pipeline is self-contained — and it **references** the
 slice's intent records and lenses, never copies them.
 
-The cut is **grilled, not relayed**. This is where the five lenses get reconciled into
+The cut is **grilled, not relayed**. This is where the six lenses get reconciled into
 delivery work, and getting it wrong poisons everything downstream — so the play pushes back
 steelman-hard on thin acceptance, untestable increments, and tensions between the cut and
 what the slice declared. Every push-back cites a specific declared item (an intent goal,
@@ -60,19 +62,24 @@ the answer before the next. No recommendations attached, no option menus, no adv
 wrapped around the question. The steelman lives in *what* gets challenged, never in
 dressing up the question.
 
-Pipeline position: **end** (#437). /grill persists the approved delivery cut into the
-product model — a durable product change — and durable model changes ride the end
-pipeline: after the approved epics are persisted and verified, the D2 rule injects the
-close sequence `commit-change → propose-change → review-change → merge-change`, so the
-locked cut is committed, raised, reviewed, and merged without the human having to remember
-`/commit-change`. The end sequence closes the MODEL change only; /grill still opens no
-delivery issue and cuts no branch for implementation work — picking up an epic remains
-/start's job, one epic at a time. No `start-change` head is injected.
+Pipeline position: **both** (#437, decision 24; confirmed by Kapil). /grill is
+SELF-CONTAINED: it opens and closes its own branch, like fix-bug. The realize work now
+lands through its own two pipelines — the LENS pipeline (quality start → ux → agentic end)
+and the FOUNDATION pipeline (arch start → measure → run end), each merging to main — so
+/grill no longer rides a branch another play opened. The D2 rule injects `start-change` at
+the head (resolve or create the grill issue, cut the branch off fresh main, optional
+worktree, init STM) and keeps the end sequence `commit-change → propose-change →
+review-change → merge-change` at the tail: after the approved epics are persisted and
+verified, the locked cut is committed, raised, reviewed, and merged without the human
+having to remember `/commit-change`. The bracketed change is the MODEL change only; /grill
+still opens no implementation issue and cuts no branch for an epic's delivery work —
+picking up an epic remains /start's job, one epic at a time. /grill works on one slice and
+remains the slice's end conceptually: nothing about a slice is finished until grill is.
 
 ### Constraints
 
 - C1 — The play operates on exactly one slice per run, and only a slice stamped realized
-  (all five lenses written and lined up).
+  (all six lenses written and lined up).
 - C2 — Every epic is a user-testable increment: its acceptance criteria describe what a
   user can open, do, and observe working — never internal-only completion.
 - C3 — Every epic is self-contained for delivery: it carries its own context and
@@ -83,7 +90,7 @@ delivery issue and cuts no branch for implementation work — picking up an epic
   deferred with a recorded reason; a functionality may yield more than one epic.
 - C6 — Every push-back during grilling cites a specific declared item — an intent goal,
   constraint, or failure; a lens decision; or a profile bar. Never uncited taste.
-- C7 — The cut is reconciled against all five lenses; any tension between an epic and a
+- C7 — The cut is reconciled against all six lenses; any tension between an epic and a
   lens is surfaced and either resolved in the cut or explicitly accepted with a recorded
   reason before writing.
 - C8 — Epics are ordered: dependencies among them are explicit and acyclic, and the first

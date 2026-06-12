@@ -7,19 +7,19 @@ play-creator; never hand-edit the compiled SKILL.md.
 
 Given one shaped **slice** — a vertical product increment from /shape, the thing you
 actually deliver — write its quality lens: the list of gates the slice must pass. The slice
-is the unit of realization: you pick a slice and run quality → ux → agentic → arch → run on
-it, then ship it. A slice has no ICE of its own — its hub is the union of its
+is the unit of realization: you pick a slice and run quality → ux → agentic → arch →
+measure → run on it, then ship it. A slice has no ICE of its own — its hub is the union of its
 functionalities' ICE (which may span several capabilities) plus the product profile. Every
 gate is drawn from a profile target that applies to this slice, or from one of the slice's
 functionalities' own ICE constraints/failures made checkable — never invented. /quality is
-the **first** lens in the realize sequence (quality → ux → agentic → arch → run); it reads
+the **first** lens in the realize sequence (quality → ux → agentic → arch → measure → run); it reads
 only the slice's hub, never the other lenses, and sets the quality bar the later lenses size
 their depth against. It writes only the quality lens (and a slice-level decision for any
 material choice) — never the slice record, the functionalities' ICE, the profile, another
 lens, structure, status, personas, or journeys. One slice per run; one human checkpoint
 before anything persists.
 
-Pipeline position: **start**. /quality OPENS the slice pipeline (quality → ux → agentic → arch → run → grill) and selects the slice: the D2 rule prepends `start-change` — resolve or create the slice-realization issue, cut the branch off fresh main, optional worktree, init STM — so the later lenses and /grill run on this already-started branch. No close sequence here; the slice change closes at /grill. It runs after /shape, since a slice must be shaped before it is realized. It writes the persistent product model directly, on the started branch. (#437)
+Pipeline position: **start**. /quality OPENS the lens pipeline (quality → ux → agentic) and selects the slice: the D2 rule prepends `start-change` — resolve or create the slice-realization issue, cut the branch off fresh main, optional worktree, init STM — so /ux and /agentic run on this already-started branch. No close sequence here; the lens pipeline's branch closes at /agentic. The full realize sequence on a slice is quality → ux → agentic → arch → measure → run — the lens pipeline hands off through main to the foundation pipeline (arch → measure → run), and /grill (standalone) cuts the epics after. It runs after /shape, since a slice must be shaped before it is realized. It writes the persistent product model directly, on the started branch. (#437, decision 24)
 
 ### Constraints
 

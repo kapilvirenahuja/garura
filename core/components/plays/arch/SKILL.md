@@ -1,7 +1,7 @@
 ---
 name: arch
-position: none
-description: 'Write a SLICE''s architecture lens — the shape of the software that delivers it: the horizontal components the slice threads (each in a layer, with the part it occupies), the contracts (seams) crossed between them with the data that flows, and the stack (tech + versions) per component, behind material-choice decisions. Components are SELECTED from the slice''s functionalities'' systems and the profile surfaces, never invented; the build is one vertical end-to-end slice through them. The fourth of the five realize plays in the ProductOS command model (quality → ux → agentic → arch → run), run on a shaped slice. Reads the hub + the profile box, never another lens. Writes only the slice''s architecture lens; opens no delivery issue.'
+position: start
+description: 'Write a SLICE''s architecture lens — the shape of the software that delivers it: the horizontal components the slice threads (each in a layer, with the part it occupies), the contracts (seams) crossed between them with the data that flows, and the stack (tech + versions) per component, behind material-choice decisions. Components are SELECTED from the slice''s functionalities'' systems and the profile surfaces, never invented; the build is one vertical end-to-end slice through them. The fourth of the six realize plays in the ProductOS command model (quality → ux → agentic → arch → measure → run) and the opener of the foundation pipeline (arch → measure → run), run on a shaped slice after the lens trinity merges. Reads the hub + the profile box, may read the lens trinity (quality/ux/agentic), never the measure or run lens. Writes only the slice''s architecture lens; the injected start-change head opens the foundation change.'
 user-invocable: true
 ---
 
@@ -10,7 +10,7 @@ user-invocable: true
 Take one shaped **slice** — a vertical product increment from /shape, the thing you actually
 deliver — and write its **architecture lens**: the shape of the software that delivers the
 slice. The slice is the unit of realization: you pick a slice and run quality → ux → agentic →
-arch → run on it, then ship it. A slice has no ICE of its own — its **hub** is the union of its
+arch → measure → run on it, then ship it. A slice has no ICE of its own — its **hub** is the union of its
 functionalities' ICE (which may span several capabilities) plus the profile.
 
 The lens is three things and only three: the **components** the slice threads — the horizontal
@@ -24,7 +24,7 @@ slice's functionalities talk to (their ICE `context.systems`) or a surface the p
 (the profile's `shape.surfaces`). The stack picks are sized by the profile box and recorded as
 decisions the product references. It writes only the architecture lens, plus the decisions.
 
-**Pipeline position: none.** /arch is a MIDDLE play of the slice pipeline (quality → ux → agentic → arch → run → grill): it expects to run on the branch /quality already started, injects no head and no close, stops when its lens is written, and leaves the branch as-is for the next play. The close belongs to /grill. It writes the persistent product model directly, on the already-started branch. By convention fourth in the realize sequence — but takes **no** dependency on the quality, ux, or agentic lens: it reads the hub (the slice's functionalities' ICE + the profile box) only; never another lens. The NFRs it sizes the stack against come from the profile box directly, not the quality lens. (#437)
+**Pipeline position: start.** /arch OPENS the foundation pipeline (arch → measure → run): the D2 rule prepends `start-change` — resolve or create the foundation issue, cut the branch off fresh main, optional worktree, init STM — so /measure and /run run on this already-started branch. The lens trinity (quality → ux → agentic) merges to main before the foundation starts; the full realize sequence is quality → ux → agentic → arch → measure → run, then /grill. /arch injects no close: it stops after its verified persist and leaves the branch for /measure and /run — /run closes the pipeline. It writes the persistent product model directly, on the started branch. Fourth in the realize sequence and first of the foundation plays — it MAY ground on the three lens-trinity files (quality/ux/agentic, already merged — the trinity read rule, decision 23) but takes no dependency on, and never reads, the measure or run lens. The NFRs it sizes the stack against come from the profile box directly, not the quality lens. (#437, decision 24)
 
 ## Compiled From
 
@@ -47,8 +47,9 @@ slice record, the profile, or another lens, and you never persist before the hum
 the single checkpoint (C11).
 
 **Forbidden:** hand-writing lens/decision YAML; writing the slice record, the functionalities'
-ICE, the profile, or another lens by any route; reading another realize lens to derive the
-components (arch reads the hub + the profile box); smearing concrete tech/versions into
+ICE, the profile, or another lens by any route; reading the measure or run lens to derive the
+components (arch reads the hub + the profile box, and may ground on the quality/ux/agentic
+trinity read-only — decision 23); smearing concrete tech/versions into
 `components` instead of `stack`; persisting by any route other than `scripts/apply_arch.py`;
 persisting before Step 3 approval.
 
@@ -59,7 +60,8 @@ persisting before Step 3 approval.
 | `product-os-keeper` | Select the horizontal components the slice threads (from its functionalities' ICE systems + the profile surfaces), draw the contracts between them; **search the KB's architecture/technology shelves via kb-search** to ground the system-level shape and the stack (tech + versions) sized by the profile box in best-fit learnings (gaps → a recorded proposal), record material choices as decisions; thread every functionality end-to-end with an acyclic, orphan-free graph | `kb-search`, `author-architecture-lens` | Draft |
 
 `product-os-keeper` is the single **domain agent** this play uses (1 of the ≤5 budget).
-No utility agents are needed — git/issue machinery is absent (position none).
+No utility agents are needed — git/issue machinery comes from the injected `start-change`
+sub-play (position start), never a utility agent.
 
 ## Pre-flight
 
@@ -68,8 +70,8 @@ No utility agents are needed — git/issue machinery is absent (position none).
 | Resolve config + `product_base` (`.garura/core/config.yaml`) | — | Hard halt |
 | Profile firmed (`set`) AND the slice exists with every functionality ICE resolved + rich | C1 | Hard halt (REC1) |
 
-Resolve config mechanically, then resolve the slice + hub. /arch has no branch or issue
-(position none):
+Resolve config mechanically, then resolve the slice + hub. The injected `start-change` head
+(Step 0) opens the foundation issue and branch after this pre-flight passes:
 
 ```
 python3 scripts/preflight.py --play arch --config .garura/core/config.yaml
@@ -94,7 +96,8 @@ Create ALL tasks immediately after resolving config — before any domain work.
 The play owns this DAG; the agent must not edit its top-level tasks.
 
 ```
-[T1] Draft architecture lens  blockedBy: []
+[T0] start-change (injected — start, head)   blockedBy: []
+[T1] Draft architecture lens  blockedBy: [T0]
 [T2] Validate the draft       blockedBy: [T1]
 [T2b] Grounding check (KB)    blockedBy: [T1]
 [T3] Checkpoint (approval)    blockedBy: [T2, T2b]
@@ -109,9 +112,28 @@ No runtime reordering. On resume, skip completed and reset in-progress to pendin
 
 ## Workflow
 
+### Phase: Start (injected — D2 position: start)
+
+**Step 0 — start-change** · Owner: `start-change` (sub-play) · Depends on: pre-flight
+Run the start-of-pipeline member as a sub-play, dispatched with `parent_run_id` so it
+emits only its own C1 evidence and this play's close absorbs it. It resolves or creates
+the foundation issue, cuts the branch off fresh main, sets up a worktree iff config calls for
+it, and initializes the STM workspace. The later foundation plays (/measure, /run) run on this
+already-started branch; /run closes the pipeline.
+
+    {
+      "play":          "start-change",
+      "parent_run_id": "<this run id>",
+      "inputs":  { "title": "foundation slice <slice-id>" },
+      "outputs": { "result": "{stm_base}_arch/start/start-change.json" }
+    }
+
+start-change owns its own evals (issue anchored, branch off latest main, worktree per
+config, STM initialized); they are not re-checked here.
+
 ### Phase: Draft
 
-**Step 1 — Draft architecture lens** · Owner: `product-os-keeper` · Depends on: pre-flight
+**Step 1 — Draft architecture lens** · Owner: `product-os-keeper` · Depends on: Step 0
 The agent reads the slice's hub (its functionalities' ICE — resolved by the readiness gate — and
 their `context.systems`) and the profile box (`shape.surfaces` + the `nfr` box), then **searches
 the KB's architecture/technology shelves through `kb-search`** for the learnings whose conditions
@@ -130,6 +152,9 @@ contract, and stack pick in the manifest with the seam-graph for the end-to-end 
                    "slice_file": "<product_base>/<slice_file>",
                    "functionality_ices": [ "<product_base>/<ice_ref>", "..." ],
                    "profile_path": "<product_base>/product-os/profile.yaml",
+                   "quality_lens": "<product_base>/<lens_dir>/quality.yaml",
+                   "ux_lens": "<product_base>/<lens_dir>/ux.yaml",
+                   "agentic_lens": "<product_base>/<lens_dir>/agentic.yaml",
                    "kb_search": "<skills>/kb-search/scripts/kb_search.py",
                    "kb_root": "<knowledge_dir>",
                    "product_base": "<product_base>",
@@ -142,8 +167,11 @@ contract, and stack pick in the manifest with the seam-graph for the end-to-end 
 
 `slice_file`, `lens_dir`, and `functionality_ices` come from `check_ready_slice.py`; `<skills>`
 is the active skills base and `<knowledge_dir>` is the KB root (the `knowledge/` dir from
-config's `ltm` section). The skill reads the hub + the profile box + the KB **read-only** and
-never another lens. It returns the contract with the output paths on disk — never inline content.
+config's `ltm` section). `quality_lens`, `ux_lens`, and `agentic_lens` are **optional** —
+the lens-trinity files, read-only, that MAY inform component selection (the trinity read rule,
+decision 23); pass each only if it exists. The skill reads the hub + the profile box + the
+trinity + the KB **read-only** and never the measure or run lens. It returns the contract with
+the output paths on disk — never inline content.
 **SE-1 (F1/C1):** the readiness + hub gate passed at pre-flight — the profile is `set` and the
 slice exists with every functionality ICE resolved + rich; otherwise the run halted (REC1).
 
@@ -170,8 +198,8 @@ pin / KB; no element ungrounded, and lens ↔ manifest component names agree.
 **SE-6 (F6/C6):** vertical build — every functionality the slice bundles (read from the slice
 record) is threaded by at least one component/contract; the seam-graph (manifest `depends_on`)
 is acyclic; no component is an orphan (unreachable from an entry-layer component).
-**SE-7 (F7/C7):** no grounding source is another lens — arch read the hub + the profile box
-only.
+**SE-7 (F7/C7):** no grounding source is the measure or run lens — arch reads the hub + the
+profile box, plus at most the quality/ux/agentic trinity read-only (decision 23).
 **SE-8 (F8/C8):** every grounding flagged `material` carries a decision that resolves to a
 drafted record (the component set, the system-level shape, the tech picks).
 **SE-10 (F10/C10):** the lens and any decision carry their required v1 fields and valid enums
@@ -263,8 +291,9 @@ On any GAP, apply REC2/REC9 and re-run.
   ungrounded.
 - **SCE-3 (S3 — architect, vertical build):** every functionality of the slice threads
   end-to-end across the components, no component is an orphan, and the graph has no cycle.
-- **SCE-4 (S4 — architect, hub-only):** no quality/ux/agentic/run lens of the slice was touched
-  and no element grounds on another lens.
+- **SCE-4 (S4 — architect, no forward reads):** no quality/ux/agentic/measure/run lens of the
+  slice was touched and no element grounds on the measure or run lens (trinity grounding is
+  read-only and permitted, decision 23).
 - **SCE-5 (S5 — product owner, re-run):** a second run changes only the slice's
   `architecture.yaml` (and possibly a new decision); the slice record, other lenses, ICE, and
   profile are byte-identical; no accepted decision edited in place.
@@ -315,8 +344,8 @@ to `$evidence_dest`. Do NOT hand-author the body.
 **Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output the
 report: `## arch Delivered — ${product_slug}`, the Run Summary table, the Pipeline Steps table
 from the task DAG, the Artifacts Produced table (the components + contracts + stack, the
-decisions), Next Steps (run /run next — the fifth realize lens — to set how the slice is
-deployed and runs), and a pointer to `$evidence_dest`. Always emitted; never gated.
+decisions), Next Steps (run /measure next — the second foundation play, on this same branch;
+/run then closes the pipeline), and a pointer to `$evidence_dest`. Always emitted; never gated.
 
 ```bash
 # --- end Standard Play Close ---
@@ -329,7 +358,7 @@ deployed and runs), and a pointer to `$evidence_dest`. Always emitted; never gat
 | S1 — first run | architect | SCE-1 |
 | S2 — grounded | platform engineer | SCE-2 |
 | S3 — vertical build | architect | SCE-3 |
-| S4 — hub-only | architect | SCE-4 |
+| S4 — no forward reads | architect | SCE-4 |
 | S5 — re-run | product owner | SCE-5 |
 | S6 — the checkpoint | reviewer | SCE-6 |
 | S7 — clean split | platform engineer | SCE-7 |
@@ -345,7 +374,7 @@ deployed and runs), and a pointer to `$evidence_dest`. Always emitted; never gat
 | F4 | an invented/ungrounded element | drop it, or re-tie the component to an ICE system / profile surface, the contract to the functionality whose seam it is, and the stack pick to a recorded decision; never keep an invented element | autonomous |
 | F5 | the lens over- or under-specifies (a component missing layer/kind/part, a contract missing interface/data, a stack entry missing tech/version) | complete the missing fields or trim the over-specification back to the intent-level shape | autonomous |
 | F6 | a functionality not threaded end-to-end, an orphan component, or a cycle in the seam-graph | add the missing component/contract to thread it, drop the orphan, or break the cycle (remove a seam, split a component, or make a boundary async) | autonomous |
-| F7 | /arch read or depended on another lens | remove the dependency; /arch derives only from the slice's hub + the profile box | autonomous |
+| F7 | /arch read or depended on the measure or run lens | remove the dependency; /arch derives from the slice's hub + the profile box, with the lens trinity (quality/ux/agentic) permitted read-only | autonomous |
 | F8 | a material architecture choice was made with no decision recorded | record the slice-level decision (component set, system-level shape, or tech pick) before persisting | autonomous |
 | F9 | a non-lens/non-decision file changed, or an accepted decision was edited in place | restore it and re-apply only the architecture lens (and the new decision), after a human confirms the restore | human |
 | F10 | the lens or a decision fails v1 schema validation | re-emit the failing artifact to conform before the play completes | autonomous |
@@ -365,10 +394,9 @@ everything and creates the marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:087cda55dd3bb0240833604dcdb6022c87eb1867ad9b7cf3ae4375ab7f834be5 (of `reference/ice.md`) |
-| compiled_by | play-creator (edited via play-editor, #437) |
-| pipeline_position | none |
-| position_exception | middle of the slice pipeline — runs on the branch /quality started; the close belongs to /grill (#437) |
+| fingerprint | sha256:01f52264803f148ab96f71ec574993f7e7b5c9ee3125eec0e0c098332dd23823 (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor, #437), edited via play-editor (#434, decisions 23+24) |
+| pipeline_position | start (start-change head, opens the foundation pipeline arch → measure → run; /run closes it) |
 | workflow_structure | A (mandatory, non-skippable checkpoint) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |
