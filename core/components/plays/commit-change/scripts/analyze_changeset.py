@@ -45,6 +45,22 @@ SENSITIVE_CONTENT_PATTERNS = [a + b for a, b in [
     ("tok", r"en\s*="), ("private", "_key"),
     ("BEGIN RSA ", "PRIVATE KEY"), ("BEGIN OPENSSH ", "PRIVATE KEY"),
 ]]
+# Artifact-type lesson (#438): prose and standards artifacts CARRY hunt
+# patterns — a severity taxonomy or a skill's instructions legitimately
+# contain text like the patterns above. A content match in these paths is a
+# NON-BLOCKING warning (surfaced, human-visible, never silently dropped);
+# a content match anywhere else, and every FILENAME match (.env, .pem,
+# id_rsa, ...), stays a hard block. C6's guarantee is unchanged: actual
+# secrets block; pattern-carrying prose no longer false-positives the run.
+PROSE_PATH_PATTERNS = [
+    r"^core/components/", r"^core/grounding/",
+    r"^\.claude/(skills|agents)/", r"^\.agents/skills/",
+    r"^\.garura/", r"^docs/", r"\.md$", r"\.rst$",
+]
+
+
+def is_prose_path(path):
+    return any(re.search(pat, path) for pat in PROSE_PATH_PATTERNS)
 # Run-state the play itself mutates while running — never committed by the
 # run that is writing it (precedent: prior commits.yaml exclusions).
 AUTO_EXCLUDE_PATTERNS = [
@@ -99,7 +115,9 @@ def scan_sensitive(files, root):
     for _, p in files:
         for pat in SENSITIVE_NAME_PATTERNS:
             if re.search(pat, p, re.IGNORECASE):
-                flagged.append({"path": p, "match": pat, "kind": "filename"})
+                # a sensitive FILENAME blocks regardless of artifact type
+                flagged.append({"path": p, "match": pat, "kind": "filename",
+                                "blocking": True})
                 break
         else:
             full = os.path.join(root, p)
@@ -110,7 +128,8 @@ def scan_sensitive(files, root):
                     continue
                 for pat in SENSITIVE_CONTENT_PATTERNS:
                     if re.search(pat, text):
-                        flagged.append({"path": p, "match": pat, "kind": "content"})
+                        flagged.append({"path": p, "match": pat, "kind": "content",
+                                        "blocking": not is_prose_path(p)})
                         break
     return flagged
 
@@ -177,11 +196,14 @@ def emit_yaml(out_path, issue, group, exclusions, flagged, needs_judgment, files
     lines.append("")
     lines.append("risks:")
     lines.append("  sensitive_files:")
+    blocking = [f for f in flagged if f.get("blocking", True)]
     if flagged:
         for f in flagged:
+            note = f"{f['kind']}" + ("" if f.get("blocking", True)
+                                     else " in prose/standards artifact — warning, not a block (#438)")
             lines += [f"    - path: \"{f['path']}\"",
-                      f"      match: \"{f['match']}\" # {f['kind']}",
-                      "      blocking: true"]
+                      f"      match: '{f['match']}' # {note}",
+                      f"      blocking: {str(f.get('blocking', True)).lower()}"]
     else:
         lines.append("    []")
     lines.append("")
@@ -190,8 +212,10 @@ def emit_yaml(out_path, issue, group, exclusions, flagged, needs_judgment, files
                  ("PASS, evidence: \"one script-classified group, one directory, one concern\"}"
                   if group else "DEFERRED, evidence: \"grouping delegated to analyze agent\"}"))
     lines.append("  SE-5: {status: " +
-                 ("FAIL, evidence: \"sensitive file flagged blocking\"}" if flagged
-                  else "PASS, evidence: \"no sensitive patterns matched\"}"))
+                 ("FAIL, evidence: \"sensitive file flagged blocking\"}" if blocking
+                  else ("PASS, evidence: \"content matches in prose artifacts only — "
+                        "non-blocking warnings surfaced\"}" if flagged
+                        else "PASS, evidence: \"no sensitive patterns matched\"}")))
     with open(out_path, "w", encoding="utf-8") as fh:
         fh.write("\n".join(lines) + "\n")
 
@@ -221,11 +245,12 @@ def main():
             candidates.append((status, p))
 
     flagged = scan_sensitive(candidates, args.repo_root)
-    type_scope = None if flagged else classify(candidates, args.max_trivial_files)
-    needs_judgment = not flagged and type_scope is None and bool(candidates)
+    blocking = [f for f in flagged if f.get("blocking", True)]
+    type_scope = None if blocking else classify(candidates, args.max_trivial_files)
+    needs_judgment = not blocking and type_scope is None and bool(candidates)
 
     group = None
-    if type_scope and not flagged:
+    if type_scope and not blocking:
         t, scope = type_scope
         group = {"type": t, "scope": scope or "core",
                  "concern": f"single-directory {t} change",
@@ -235,7 +260,8 @@ def main():
               needs_judgment, candidates)
     print(json.dumps({
         "needs_judgment": needs_judgment,
-        "sensitive": [f["path"] for f in flagged],
+        "sensitive": [f["path"] for f in blocking],
+        "warnings": [f["path"] for f in flagged if not f.get("blocking", True)],
         "groups": 1 if group else 0,
         "excluded": len(exclusions),
         "files": len(candidates),

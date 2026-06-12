@@ -117,7 +117,10 @@ python3 scripts/analyze_changeset.py \
 It scans for sensitive files, auto-excludes play run-state paths, and classifies the
 changeset. Read its JSON summary and apply policy:
 
-- `sensitive` non-empty → **hard block** (C6/F5), human recovery (REC5).
+- `sensitive` (blocking) non-empty → **hard block** (C6/F5), human recovery (REC5).
+- `warnings` non-empty (content-pattern matches in prose/standards artifacts — pattern
+  carriers like a severity taxonomy or a skill's instructions, #438) → never a block;
+  the checkpoint presents them so a human sees what matched and where.
 - `needs_judgment: false` → the script-emitted `analysis.yaml` is the analysis. A
   `subject_source: script-draft` subject may be reworded in place by the orchestrator
   (one line, no agent). **No agent is dispatched (C8).**
@@ -134,8 +137,9 @@ changeset. Read its JSON summary and apply policy:
 
 **SE-1 (F1/C2):** each change group in `analysis.yaml` holds files of a single concern —
 no group mixes unrelated file sets.
-**SE-5 (F5/C6):** no file flagged sensitive by the scan is included for commit; a flagged
-file blocks the run.
+**SE-5 (F5/C6):** no file flagged BLOCKING by the scan is included for commit; a blocking
+flag halts the run. A prose/standards content match is a surfaced warning, not a block —
+C6's guarantee (actual secrets never commit) is unchanged (#438).
 **SE-7 (F7/C8):** the dispatch matches the classification — `needs_judgment: false` and
 zero analyze-agent spawns, or `needs_judgment: true` and exactly one. A trivial-classified
 analysis whose group spans unrelated file sets triggers REC7.
@@ -146,7 +150,7 @@ play records the branch issue for every group. Otherwise the agent invokes `mana
 (fetch open issues) + `resolve-issues` (map groups to issues with confidence) and writes
 `issue-mappings.yaml`.
 
-### Phase: Checkpoint (skip when: issue auto-resolved from branch AND no sensitive files AND mappings high-confidence)
+### Phase: Checkpoint (skip when: issue auto-resolved from branch AND no sensitive flags or scanner warnings AND mappings high-confidence)
 
 **Step 3 — Confirm** · Owner: play · Depends on: Step 2
 When the skip condition does not hold (low-confidence mapping, a conflict, or a flagged
@@ -276,3 +280,13 @@ start with no marker runs everything and creates the marker at Step 1.
 | step_evals | 7 (SE-1…SE-7) |
 | scenario_evals | 5 (SCE-1…SCE-5) |
 | recovery_entries | 7 (one per failure condition; 5 autonomous / 2 human) |
+
+## Direct-edit deviation note (#438)
+
+Non-intent change: `analyze_changeset.py`'s secret scanner learned the artifact-type
+lesson from #438 — content-pattern matches in prose/standards artifacts (which carry
+hunt patterns by design) are non-blocking warnings surfaced at the checkpoint; filename
+matches and content matches in runtime/config paths still hard-block. C6's guarantee is
+unchanged: actual secrets never commit. The SKILL policy lines above were updated to
+read the scanner's per-entry `blocking` flag; `reference/ice.md` and the fingerprint are
+untouched.
