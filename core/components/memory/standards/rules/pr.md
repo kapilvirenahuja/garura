@@ -20,6 +20,42 @@
 
 ---
 
+## Artifact-Type Scoping (#438)
+
+Runtime taxonomy applies to runtime artifacts. Keyword matches in prose are not security
+defects: `encrypt` in a skill's instructions, `authorized` in a product requirement, or
+`http://localhost` in a wireframe describe things — they don't implement them. So every
+changed path is classified BEFORE rules are applied, and **grep-based rules are eligible
+only on runtime artifact types**. Pure `path:` rules are unaffected — a path rule already
+names its target deliberately (`docs/security/**`, `README.md`, `**/migrations/**`).
+
+**Classification table — first match wins, top to bottom (pure globs, no judgment):**
+
+| Artifact type | Path globs |
+|---|---|
+| `garura-prose` | `.claude/skills/**`, `.claude/agents/**`, `.agents/skills/**`, `core/components/**`, `core/grounding/**`, `AGENTS.md`, `CLAUDE.md` |
+| `productos-model` | `.garura/product/**`, `**/product-os/**` |
+| `stm-evidence` | `.garura/project/**`, `.garura/core/**` |
+| `wireframe` | `**/wireframes*.html`, `**/*.wireframe.*`, `**/mockups/**` |
+| `tests` | `**/{test,tests,__tests__,spec,e2e,integration,cypress,playwright}/**` |
+| `deployable-config` | `.github/**`, `.gitlab-ci.yml`, `Jenkinsfile`, `.circleci/**`, `Dockerfile*`, `Containerfile*`, `**/{deploy,terraform,helm}/**`, `.env*`, `package.json`, `*-lock.*`, `*.lock`, `go.mod`, `go.sum`, `Gemfile*`, `requirements.txt`, `pom.xml`, `pyproject.toml`, `*.config.{js,ts,mjs,cjs}`, `*.toml`, `*.ini`, `*.properties` |
+| `docs-planning` | `docs/**`, `**/*.md`, `**/*.rst`, `**/*.txt` |
+| `runtime-code` | everything else (the default) |
+
+**Eligibility rule (mechanical):**
+
+- `grep:` and `grep+path:` rules fire only when the matched file's artifact type is
+  `runtime-code`, `deployable-config`, or `tests`. On `garura-prose`,
+  `productos-model`, `stm-evidence`, `wireframe`, and `docs-planning` they are
+  ineligible — no finding, regardless of the keyword match.
+- `path:` rules are unaffected by artifact type — they fire exactly as written.
+- Every finding carries `artifact_type` (the matched file's classification) so a
+  reviewer can see why the rule applied.
+- `scan_coverage` counts grep-ineligible files as covered (they were classified and
+  consciously exempted, not missed).
+
+---
+
 ## Severity Table
 
 | Standard ID | Severity | Match Rule | Evidence Required |

@@ -17,6 +17,7 @@ findings:
     file: src/config/secrets.ts
     line: 14
     evidence: 'const apiKey = "sk_live_abc123..."'
+    artifact_type: runtime-code
     taxonomy_rule_id: SEC-19
 
 counts:
@@ -35,6 +36,7 @@ counts:
 | `file` | yes | MUST be a member of `changed_paths` |
 | `line` | yes | Integer. Line within the diff hunk. |
 | `evidence` | yes | Matched substring (`grep:`) or matched path (`path:`). Never empty. |
+| `artifact_type` | yes | From the taxonomy's Artifact-Type Scoping table (#438). A grep-rule finding is valid only on `runtime-code`, `deployable-config`, or `tests`. |
 | `taxonomy_rule_id` | yes | Equal to `standard_id` |
 
 ## Sort order
@@ -49,3 +51,4 @@ This ordering is required for determinism (V2). Two runs on the same input produ
 - Missing `evidence` → drop finding, log warning.
 - `severity` not in `{P1,P2,P3,P4}` → drop finding, log error.
 - `file` not in `changed_paths` → drop finding, log error (diff scope invariant breach).
+- grep-rule finding with `artifact_type` outside `{runtime-code, deployable-config, tests}` → drop finding, log error (#438 artifact-type scoping).
