@@ -36,6 +36,10 @@ One learning per file, grouped into shelves:
 - `architecture/` — product-condition → best-fit architecture ladders
   (e.g. throwaway → internal → monetized).
 - `technology/` — specific technology/stack choices and the conditions they fit.
+- `work-intelligence/` — how the framework reads the PEOPLE running it: the
+  mechanical map (`work-map.yaml` — path/keyword rules `classify_work.py`
+  matches lexically, plus the thin-history thresholds) and the judgment rules
+  (`operator-fit.md` — how computed work profiles boost /next's ranking).
 
 Every file follows `_TEMPLATE.md`: Topic, Conditions, Recommendation, Rationale,
 Evolve when, Provenance. The frontmatter Conditions facet keys vary by shelf

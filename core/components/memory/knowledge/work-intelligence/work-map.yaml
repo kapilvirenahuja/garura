@@ -1,0 +1,58 @@
+# work-intelligence map — the MECHANICAL half of the work-intelligence shelf.
+#
+# Consumed by /next's classify_work.py (lexical classification: glob path
+# matching + BM25 subject scoring — never model inference). The judgment half
+# (how fit influences ranking) lives beside this file in operator-fit.md and
+# is read by the rank-recommendations skill.
+#
+# Grow this file as the intelligence improves: new path patterns, new stacks,
+# sharper keywords. Changing it changes every future /next run.
+
+thin_history:
+  min_commits: 20   # below either threshold -> thin_history=true ->
+  min_files: 30     # fit weighting is SKIPPED and the output says so (C7/F4)
+
+work_types:
+  product:
+    paths: ["*product-os/*", "*.garura/product/*", "*plays/vision*",
+            "*plays/shape*", "*plays/roadmap*", "*plays/understand*"]
+    keywords: [vision, roadmap, slice, shape, ice, profile, capability,
+               functionality, epic, product]
+  design:
+    paths: ["*lens/*", "*design*", "*ux*", "*architecture*", "*docs/adr/*"]
+    keywords: [lens, design, architecture, contract, screen, layout,
+               agentic, adr, decision]
+  implementation:
+    paths: ["src/*", "lib/*", "app/*", "server/*", "api/*", "*scripts/*",
+            "*components/*"]
+    keywords: [feat, fix, implement, refactor, add, build, wire, endpoint]
+  quality:
+    paths: ["test/*", "tests/*", "*test*", "*spec*", "*evals/*"]
+    keywords: [test, eval, coverage, regression, assert, validate, verdict]
+  operations:
+    paths: [".github/*", "*ci*", "*deploy*", "infra/*", "*docker*",
+            "*terraform*", "*helm*"]
+    keywords: [deploy, release, pipeline, ci, env, rollout, monitor, infra]
+  knowledge:
+    paths: ["docs/*", "*memory/*", "*knowledge/*", "*.md"]
+    keywords: [docs, document, readme, glossary, knowledge, learn, memo]
+
+stacks:
+  node:
+    extensions: [.js, .mjs, .cjs, .ts]
+    markers: [package.json, tsconfig.json]
+  web-frontend:
+    extensions: [.html, .css, .scss, .jsx, .tsx, .astro, .vue, .svelte]
+  python:
+    extensions: [.py]
+    markers: [pyproject.toml, requirements.txt]
+  java:
+    extensions: [.java, .kt]
+    markers: [pom.xml, build.gradle]
+  go:
+    extensions: [.go]
+    markers: [go.mod]
+  shell:
+    extensions: [.sh, .zsh, .bash]
+  data-config:
+    extensions: [.yaml, .yml, .json, .toml, .sql]
