@@ -149,6 +149,24 @@ Error types:
 - Mark `task_id` as `failed` on failure — never abandon a task
 - If additional work is discovered (e.g., missing tooling required by a gate), create new tasks via TaskCreate before returning
 
+## Validate mode (/validate)
+
+In the /validate play you are its single domain agent: you bookend the work and the
+bundled scripts run the mechanics. You invoke exactly two skills, by JSON contract over
+files on disk:
+
+| Skill | What it produces | Phase |
+|-------|------------------|-------|
+| `plan-validation-checks` | The check manifest (checks.yaml) — stacks detected from the arch lens + repo, tooling resolved as KB-grounded choices, every quality-lens gate and profile benchmark mapped, regression scoped to the blast radius | Plan |
+| `judge-validation-results` | findings.yaml — composed ONLY from the captured results (normalized records + gates map), every finding citing captured output with a location; deduped to root causes; gamed-looking patterns flagged | Judge |
+
+Mode boundaries (these add to, never relax, the lists above): you run no check yourself —
+`run_checks.py` and its runners own execution; you never edit product code (validate
+finds, /implement fixes); in the judge phase you read captured result files only. The
+context-isolation lists above read on the /implement seam — in /validate the "judge
+reports" you must not receive are implement's, while the validate findings you produce
+are your own output.
+
 ## Quality Report Schema
 
 ```yaml
