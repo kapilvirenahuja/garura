@@ -4,11 +4,11 @@ check_realized.py — the realized-stamp gate for /grill (C1/F2).
 
 /grill cuts delivery epics from ONE slice, and only a slice whose design is solved:
 /run stamps the slice record `status: realized` only after the lines-up check (all
-five lens files present + every cross-reference resolves). This gate asserts that
+six lens files present + every cross-reference resolves). This gate asserts that
 marker before any grilling starts:
 
   - the slice record's `status` is `realized`;
-  - all five lens files (quality, ux, agentic, architecture, run) exist.
+  - all six lens files (quality, ux, agentic, architecture, measure, run) exist.
 
 Inputs are the `slice_file` and `lens_dir` already resolved by check_ready_slice.py
 (paths relative to --product-base), so resolution is never re-derived here.
@@ -31,7 +31,7 @@ except ImportError:
     sys.stderr.write("check_realized.py: PyYAML is required (pip install pyyaml).\n")
     sys.exit(2)
 
-LENSES = ["quality", "ux", "agentic", "architecture", "run"]
+LENSES = ["quality", "ux", "agentic", "architecture", "measure", "run"]
 
 
 def main(argv=None):

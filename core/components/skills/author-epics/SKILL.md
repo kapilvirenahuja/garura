@@ -1,6 +1,6 @@
 ---
 name: author-epics
-description: Draft /grill's epic cut for one REALIZED slice — the user-testable delivery increments the delivery pipeline picks up. Reads the slice's hub (its functionalities' ICE + the profile) AND all five lenses (quality, ux, agentic, architecture, run — the solved design), then cuts epics by the user-testability grain — when an epic is delivered, a user can open the product, do something, and see it work — each self-contained (context + acceptance + the one-line user_check), referencing the slice's functionalities, never copying ICE or lens content. Orders the cut (explicit acyclic dependencies; the first epic stands alone) and records explicit deferrals for any slice functionality not cut this run. Also applies revision directives from /grill's grilling rounds to an existing draft. Writes a draft only (epics + deferrals in STM), never the live model. The generative work for the /grill play.
+description: Draft /grill's epic cut for one REALIZED slice — the user-testable delivery increments the delivery pipeline picks up. Reads the slice's hub (its functionalities' ICE + the profile) AND all six lenses (quality, ux, agentic, architecture, measure, run — the solved design), then cuts epics by the user-testability grain — when an epic is delivered, a user can open the product, do something, and see it work — each self-contained (context + acceptance + the one-line user_check), referencing the slice's functionalities, never copying ICE or lens content. Orders the cut (explicit acyclic dependencies; the first epic stands alone) and records explicit deferrals for any slice functionality not cut this run. Also applies revision directives from /grill's grilling rounds to an existing draft. Writes a draft only (epics + deferrals in STM), never the live model. The generative work for the /grill play.
 version: 0.1.0
 user-invocable: false
 model: opus
@@ -11,7 +11,7 @@ allowed-tools: Read, Write, Bash, Glob
 
 Turns one **realized** slice into its **epic cut** — the ordered set of user-testable
 delivery increments that `/start` will pick up one at a time. A slice is a vertical product
-increment whose design the five realize lenses have already solved; its **hub** is the union
+increment whose design the six realize lenses have already solved; its **hub** is the union
 of its functionalities' ICE plus the product profile. The epic is the delivery grain below
 the slice, and its rule is single: **when this epic is delivered, a user can open the
 product, do something, and see it work.**
@@ -31,7 +31,7 @@ rounds), the human approves, and /grill's apply step writes the model.
 | `slice_ref` | yes | The slice, `{domain}/{slice-id}`. |
 | `slice_file` | yes | The slice record path (read-only) — its `functionalities` are the set to cover. |
 | `functionality_ices` | yes | The resolved ICE file paths for the slice's functionalities (the hub), from the readiness gate. Their goals/constraints/context shape each epic's context and acceptance. |
-| `lens_dir` | yes | The slice's lens folder (read-only) — all five lens files (quality, ux, agentic, architecture, run). The solved design the cut must honor. |
+| `lens_dir` | yes | The slice's lens folder (read-only) — all six lens files (quality, ux, agentic, architecture, measure, run). The solved design the cut must honor. |
 | `profile_path` | yes | The product profile (read-only) — the bars the acceptance must respect. |
 | `product_base` | yes | The product model root — read-only. |
 | `draft_dir` | yes | Output folder under STM for the cut (`epics/` is created inside it). |
@@ -39,9 +39,9 @@ rounds), the human approves, and /grill's apply step writes the model.
 
 ## Procedure
 
-1. **Read the hub + the five lenses.** Load the slice record (its functionalities and
+1. **Read the hub + the six lenses.** Load the slice record (its functionalities and
    outcome), every functionality ICE (goals, constraints, failures, context, outcomes), the
-   profile (its bars), and all five lens files. /grill is the reconciliation point — unlike a
+   profile (its bars), and all six lens files. /grill is the reconciliation point — unlike a
    realize lens, this skill reads everything the slice declared.
 
 2. **Cut by user-testability.** Walk the slice outcome and the functionality goals and ask:

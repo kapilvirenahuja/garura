@@ -8,7 +8,7 @@ play-creator; never hand-edit the compiled SKILL.md.
 Given one shaped **slice** — a vertical product increment from /shape, the thing you actually
 deliver — write its **ux lens**: just enough to anchor the intended experience and let the
 build figure the rest. The slice is the unit of realization: you pick a slice and run quality
-→ ux → agentic → arch → run on it, then ship it. A slice has no ICE of its own — its hub is
+→ ux → agentic → arch → measure → run on it, then ship it. A slice has no ICE of its own — its hub is
 the union of its functionalities' ICE (which may span several capabilities) plus the profile.
 The lens is three things and only three: the **screens** the slice needs, each with a
 low-fidelity layout; the **states** each screen can hold; and the product's **visual core** —
@@ -27,7 +27,7 @@ the visual-core decision for any material choice) — never the slice record, th
 functionalities' ICE, the profile, another lens, structure, status, personas, journeys, or
 other slices. One slice per run; one human checkpoint before anything persists.
 
-Pipeline position: **none**. /ux is a MIDDLE play of the slice pipeline (quality → ux → agentic → arch → run → grill): it expects to run on the branch /quality already started, injects no head and no close, stops when its lens is written, and leaves the branch as-is for the next play. The close belongs to /grill. It writes the persistent product model directly, on the already-started branch. By convention second in the realize sequence — but takes **no** dependency on the quality lens: it reads the hub (the slice's functionalities' ICE + the profile box) only; never another lens. (#437)
+Pipeline position: **none**. /ux is the MIDDLE of the lens pipeline (quality → ux → agentic): it expects to run on the branch /quality already started, injects no head and no close, stops when its lens is written, and leaves the branch as-is for /agentic to close. The close belongs to /agentic. It writes the persistent product model directly, on the already-started branch. By convention second in the realize sequence (quality → ux → agentic → arch → measure → run) — but takes **no** dependency on the quality lens: it reads the hub (the slice's functionalities' ICE + the profile box) only; never another lens. (#437, decision 24)
 
 ### Constraints
 

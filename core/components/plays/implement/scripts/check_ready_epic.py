@@ -14,8 +14,8 @@ paths without re-deriving them:
   - every `functionality_refs` entry resolves into the slice's functionality
     set and that functionality's `ice_ref` resolves to a file (broken hub =
     LOUD error, never a silent pass);
-  - all five lens files exist on the slice (quality, ux, agentic,
-    architecture, run).
+  - all six lens files exist on the slice (quality, ux, agentic,
+    architecture, measure, run).
 
 With --slice and no --epic it auto-picks the lowest-`order` ready epic whose
 dependencies are all delivered (graceful "none eligible" otherwise).
@@ -45,7 +45,7 @@ except ImportError:
     sys.stderr.write("check_ready_epic.py: PyYAML is required (pip install pyyaml).\n")
     sys.exit(2)
 
-LENS_TYPES = ["quality", "ux", "agentic", "architecture", "run"]
+LENS_TYPES = ["quality", "ux", "agentic", "architecture", "measure", "run"]
 
 
 def load(path):

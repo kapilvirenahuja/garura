@@ -1,7 +1,7 @@
 ---
 name: ux
 position: none
-description: 'Write a SLICE''s ux lens — just enough to anchor the experience and let the build figure the rest: the screens (each with a low-fidelity layout) that make the slice''s functionalities visible, the states each screen holds, and the product''s visual core (color + typography). The screens are the surface a human looks at to validate the shape and the ICE under it. Accessibility is not restated (it lives in the profile); flows are the build''s to derive. The second of the five realize plays in the ProductOS command model (quality → ux → agentic → arch → run), run on a shaped slice. Reads the hub, never another lens. Writes only the slice''s ux lens; opens no delivery issue.'
+description: 'Write a SLICE''s ux lens — just enough to anchor the experience and let the build figure the rest: the screens (each with a low-fidelity layout) that make the slice''s functionalities visible, the states each screen holds, and the product''s visual core (color + typography). The screens are the surface a human looks at to validate the shape and the ICE under it. Accessibility is not restated (it lives in the profile); flows are the build''s to derive. The second of the six realize plays in the ProductOS command model (quality → ux → agentic → arch → measure → run), run on a shaped slice. Reads the hub, never another lens. Writes only the slice''s ux lens; opens no delivery issue.'
 user-invocable: true
 ---
 
@@ -10,7 +10,7 @@ user-invocable: true
 Take one shaped **slice** — a vertical product increment from /shape, the thing you actually
 deliver — and write its **ux lens**: just enough to anchor the intended experience and let
 the build figure the rest. The slice is the unit of realization: you pick a slice and run
-quality → ux → agentic → arch → run on it, then ship it. A slice has no ICE of its own — its
+quality → ux → agentic → arch → measure → run on it, then ship it. A slice has no ICE of its own — its
 **hub** is the union of its functionalities' ICE (which may span several capabilities) plus
 the profile. The lens is three things and only three: the **screens** the slice needs, each
 with a low-fidelity layout; the **states** each screen can hold; and the product's **visual
@@ -20,7 +20,7 @@ is **not** restated — it lives in the profile, and the build connects it. Flow
 specified — the build derives them from the screens and the journeys. It writes only the ux
 lens, plus the visual-core decision.
 
-**Pipeline position: none.** /ux is a MIDDLE play of the slice pipeline (quality → ux → agentic → arch → run → grill): it expects to run on the branch /quality already started, injects no head and no close, stops when its lens is written, and leaves the branch as-is for the next play. The close belongs to /grill. It writes the persistent product model directly, on the already-started branch. By convention second in the realize sequence — but takes **no** dependency on the quality lens: it reads the hub (the slice's functionalities' ICE + the profile box) only; never another lens. (#437)
+**Pipeline position: none.** /ux is the MIDDLE of the lens pipeline (quality → ux → agentic): it expects to run on the branch /quality already started, injects no head and no close, stops when its lens is written, and leaves the branch as-is for /agentic to close. The close belongs to /agentic. It writes the persistent product model directly, on the already-started branch. By convention second in the realize sequence (quality → ux → agentic → arch → measure → run) — but takes **no** dependency on the quality lens: it reads the hub (the slice's functionalities' ICE + the profile box) only; never another lens. (#437, decision 24)
 
 ## Compiled From
 
@@ -350,10 +350,10 @@ everything and creates the marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:8c1fd3092b9caf9b4e07a52e816f658ac0c15b2dbbabb61452f209b415896503 (of `reference/ice.md`) |
-| compiled_by | play-creator (edited via play-editor, #437) |
+| fingerprint | sha256:4cc915050006d59730f2e69679bd756c59f5d529d8fc727d69466a37400ccc33 (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor, #437), edited via play-editor (#434, decision 24) |
 | pipeline_position | none |
-| position_exception | middle of the slice pipeline — runs on the branch /quality started; the close belongs to /grill (#437) |
+| position_exception | middle of the lens pipeline (quality → ux → agentic) — runs on the branch /quality started; the close belongs to /agentic (#437, decision 24) |
 | workflow_structure | A (mandatory, non-skippable checkpoint) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |

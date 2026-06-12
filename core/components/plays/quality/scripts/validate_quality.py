@@ -45,7 +45,7 @@ def _empty(v):
     return v is None or (isinstance(v, (list, dict, str)) and len(v) == 0)
 
 
-LENS_NAMES = ("ux", "architecture", "run", "agentic")
+LENS_NAMES = ("ux", "architecture", "run", "agentic", "measure")
 
 
 def main(argv=None):

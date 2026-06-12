@@ -1,6 +1,6 @@
 ---
 name: check-cut-tensions
-description: Run the per-round tension check that makes /grill's steelman push-back discipline real. Reads the drafted epic cut and everything the slice declared — its functionalities' ICE (the hub), all five lenses, and the profile bars — and produces a structured tension report, one entry per real contradiction, each citing the specific declared item it defends (source file + verbatim quote). Detects untestable increments, acceptance thinner than a declared bar, cut/lens contradictions, and material omissions — and, separately, unresolved DELIVERY-METHOD choices: when an epic's user check depends on a method the lenses never decided, it emits a cited decision_questions entry for the play to put to the human. Emits live tensions and open questions only; the push-back/human-response evidence fields are the play's to fill from the actual conversation, never this skill's. Returns an empty report when the cut is consistent with the declared design. Used only by the /grill play, once per grilling round, between draft (or revision) and push-back.
+description: Run the per-round tension check that makes /grill's steelman push-back discipline real. Reads the drafted epic cut and everything the slice declared — its functionalities' ICE (the hub), all six lenses, and the profile bars — and produces a structured tension report, one entry per real contradiction, each citing the specific declared item it defends (source file + verbatim quote). Detects untestable increments, acceptance thinner than a declared bar, cut/lens contradictions, and material omissions — and, separately, unresolved DELIVERY-METHOD choices: when an epic's user check depends on a method the lenses never decided, it emits a cited decision_questions entry for the play to put to the human. Emits live tensions and open questions only; the push-back/human-response evidence fields are the play's to fill from the actual conversation, never this skill's. Returns an empty report when the cut is consistent with the declared design. Used only by the /grill play, once per grilling round, between draft (or revision) and push-back.
 version: 0.1.0
 user-invocable: false
 model: sonnet
@@ -10,7 +10,7 @@ allowed-tools: Read, Glob
 # check-cut-tensions
 
 Detects tensions between a drafted epic cut and what the slice **declared**: the
-functionality ICEs (goals, constraints, failures), the five lens files (the solved
+functionality ICEs (goals, constraints, failures), the six lens files (the solved
 design), and the profile bars. The output is a structured report /grill uses to author
 its cited push-backs — the play quotes the citations; this skill produces them.
 
@@ -18,7 +18,7 @@ This skill is the enforcement point for /grill's two hardest constraints:
 
 - **C6** — every push-back cites a specific declared item. This skill produces the
   citations; an uncited entry must not be emitted.
-- **C7** — the cut is reconciled against all five lenses before writing. This skill IS
+- **C7** — the cut is reconciled against all six lenses before writing. This skill IS
   that reconciliation check; a grilling round that does not invoke it is malformed.
 
 Structured analysis, not free reasoning. Each tension entry names a specific declared
@@ -32,7 +32,7 @@ critique without a cited anchor is not a tension and must not be emitted.
 | `cut_dir` | yes | The draft folder holding `epics/*.yaml` + `epics/deferrals.yaml`. |
 | `slice_file` | yes | The slice record (read-only). |
 | `functionality_ices` | yes | The resolved hub ICE paths, from the readiness gate. |
-| `lens_dir` | yes | The slice's lens folder — all five lens files (read-only). |
+| `lens_dir` | yes | The slice's lens folder — all six lens files (read-only). |
 | `profile_path` | yes | The product profile (read-only). |
 | `round_id` | yes | Round identifier (e.g. `R3`) — written into the report. |
 | `prior_rounds_dir` | no | Folder of previous round reports; entries already `resolved`/`accepted` are suppressed unless the current cut re-introduces the contradiction (then re-emitted with `reopened: true`). |
@@ -41,7 +41,7 @@ critique without a cited anchor is not a tension and must not be emitted.
 ## Process
 
 1. **Build the defended set.** From the hub ICEs: every goal, constraint, and failure.
-   From each of the five lenses: its declared content items and decisions. From the
+   From each of the six lenses: its declared content items and decisions. From the
    profile: each bar (level + gate). Each defended item carries its source file and the
    verbatim text.
 

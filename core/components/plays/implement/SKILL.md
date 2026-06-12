@@ -103,7 +103,7 @@ python3 scripts/check_ready_epic.py --product-base <product_base from preflight>
 | config readable (preflight.py exit 0) | — | Hard halt — config is required |
 | `stm_base`, `product_base` resolved | — | Hard halt |
 | epic/slice argument present | C1 | Hard halt — "Name an epic or a slice." |
-| `check_ready_epic.py` exit 0 (slice realized; epic ready or resuming in_delivery; deps delivered; hub resolves; five lenses present) | C1 | Hard halt (F1) — surface every error it printed |
+| `check_ready_epic.py` exit 0 (slice realized; epic ready or resuming in_delivery; deps delivered; hub resolves; six lenses present) | C1 | Hard halt (F1) — surface every error it printed |
 | `--slice` auto-pick found no eligible epic | C1 | Graceful exit — "No eligible ready epic; deliver dependencies or cut epics with /grill." |
 | `plan_tracking` (from check_ready_epic, `implement.plan-tracking`, default true) | C12 | — recorded; gates the publish/sync steps |
 | `evidence_record` (per-play → global → true) | — | — recorded; gates the evidence write |
@@ -117,7 +117,7 @@ first incomplete step. A fresh start creates the marker at Step 1.
 - **SE-1 (F1/C1):** `check_ready_epic.py` exited 0 before any build step: the slice is
   `realized`, the epic is `ready` (or `in_delivery` with a matching issue on resume),
   every `depends_on` epic is `delivered`, every functionality `ice_ref` resolves, and all
-  five lens files exist. No build step ran when it exited non-zero.
+  six lens files exist. No build step ran when it exited non-zero.
 
 ## Task DAG
 
@@ -187,7 +187,7 @@ that — idempotent resume). A refusal (delivered epic, foreign issue_ref) is a 
 
 **Step 3 — Box Context + Harness** · Owner: `tech-designer` · Depends on: Step 2
 Dispatch a JSON contract. The agent reads the box only — the epic, its functionality ICE,
-the five lenses, the repository — captures the repo context the plan needs, and invokes
+the six lenses, the repository — captures the repo context the plan needs, and invokes
 `detect-test-harness` for the project's runnable commands. It invents nothing: every
 entry in `box-context.yaml` cites its source (epic | ice | lens | repo path).
 
@@ -533,3 +533,10 @@ issue or branch on a re-run.
 | recovery_entries | 10 (one per failure condition; 8 autonomous / 2 human) |
 | structural_constraints | C8 (no fixed inner loop — enforced by the play's shape; the DAG orders pieces, the agent orders within a piece) |
 | supersedes | garura:implement (+ absorbs garura:prepare's breakdown) |
+
+## Direct-edit deviation note (#434, six-lens ripple)
+
+Non-intent edit: lens-count prose (three mentions) updated five → six when the measure
+lens landed (decision 19/23/24); mirrors the already-patched `check_ready_epic.py`
+LENS_TYPES constant. No constraint/failure/scenario/eval text changed; `reference/ice.md`
+and the fingerprint are unchanged.
