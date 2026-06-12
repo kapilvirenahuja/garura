@@ -237,6 +237,12 @@ be position none without an explicit exception.
   CLOSED (Kapil, 2026-06-11): product-outcome measurement does NOT live at slice
   level — it belongs to the STRATEGY pipeline (the ICE expectations / metrics at the
   model grain strategy owns). The measure lens is delivery-pipe measurement ONLY.
+  INTENT SHARPENED (Kapil, 2026-06-11 later session): measure calls out the benefits
+  the TEAM gets while delivering this slice — which delivery metrics we are improving
+  or want to improve. Schema shape: per metric a BASELINE, a TARGET, and the proof
+  source — /capture later proves the improvement. READ RULE (decision 23, trinity
+  model): measure is an ENGINE lens — reads the slice hub + all three attribute
+  lenses (quality/ux/agentic); the earlier hub-only lean is overturned.
 - **data — folds INSIDE the agentic lens (corrected 2026-06-11, Kapil's count: 7
   slice plays = 6 lenses + grill).** The agentic lens schema gains a data-substrate
   block when next touched: the entities the slice owns, source of truth, what
@@ -248,7 +254,13 @@ be position none without an explicit exception.
   check_ready_epic.py (LENS_TYPES) — plus author-epics (reads every lens), the B5 lens
   schemas (add measure.yaml; extend agentic.yaml with the data-substrate block), and
   product-os-keeper's registrations. New play to build: /measure (position none +
-  middle exception, like the other lens middles).
+  middle exception, like the other lens middles). WIDENED by decision 23 (trinity
+  read rules): the ripple also covers the per-lens isolation constants in all five
+  existing lens plays (validate_{quality,ux,agentic,arch,run}.py OTHER_LENSES /
+  FORBIDDEN_LENS_SOURCES lists) AND an ICE-first widening of arch + run (engine
+  lenses read the slice hub + the three attribute lenses, not hub-only /
+  arch-only); the schema index `lens/_index.md` ("the five realize lenses") and
+  the pipeline strings in the five lens SKILLs + three ICEs also update.
 - **capture (feedback opener) — suggested.** Gathers the raw outcomes (usage, incidents,
   feedback, what the repo actually became) before learn distills and reconcile rewrites
   the model. Folds the retired capture/distill learning plays' jobs into the pipeline.
@@ -340,3 +352,41 @@ extract was proposed and dropped the same day. Built so far: the git 5, strategy
    (lean build-to-learn) — never ground truth; vision interviews against the goal
    with the prototype as exhibit. /extract proposed and DROPPED the same day (would
    duplicate existing gates and park ungoverned knowledge in STM).
+23. Slice Trinity Model — the spine (2026-06-11, Kapil; full doc:
+   `specs/slice-trinity-model.md`). The Hub = strategy (vision→roadmap — what we
+   build, why, which business KPIs; "the everything"); slices are frames cut from
+   it that individually move the same KPIs. The 7 slice plays are 3-3-1 primes:
+   ATTRIBUTE trinity (quality/ux/agentic — modify how we look at the Hub, what we
+   want to achieve) + ENGINE trinity (arch/measure/run — takes the slice hub,
+   understands the three attribute lenses, applies execution; the load-bearing
+   one) + grill (the closer, outside both). Stability principle: attribute churn
+   is normal, engine churn is an event that ripples to the lenses. READ RULES:
+   attributes read the slice hub only (isolated as today); ENGINE lenses read the
+   slice hub + ALL THREE attribute lenses (overturns hub-only for measure; arch
+   and run isolation rules widen ICE-first at the measure build); grill reads
+   everything. Pipeline ORDER unchanged. Future: an analytics/business-measurement
+   piece at the Hub signals slice drift → attribute-lens revisit (END of this
+   phase — standing reminder); measure stays delivery-pipe only.
+24. Command taxonomy + pipeline split (2026-06-11, Kapil; same doc
+   `specs/slice-trinity-model.md`). Six groups + orchestration: STRATEGY
+   (vision→understand→shape→roadmap, works on the Hub, outputs slices); LENS
+   (quality→ux→agentic, on a slice; was "attribute trinity"); FOUNDATION
+   (arch→measure→run, on a slice; was "engine trinity"); GRILL (standalone between
+   foundation and execute — relentlessly interviews until it has ALL the
+   information about the slice); EXECUTE (implement→validate→launch, on a slice,
+   EPICS as the working unit; was "epic pipeline"); ALIGNMENT
+   (capture→learn→reconcile, updates slice + Hub to align with what's implemented;
+   was "feedback pipeline"); ORCHESTRATION = the *-change plays, applied
+   AUTOMATICALLY to every group. Each of the five groups has a start and an end
+   (D2). SUPERSEDES decision 18's pipeline map in part: the single slice pipeline
+   SPLITS — lens = quality (start) → ux → agentic (END, gains the close chain);
+   foundation = arch (START, gains the head) → measure → run (END, gains the close
+   chain); grill = position BOTH (CONFIRMED by Kapil 2026-06-11: self-contained
+   like fix-bug, still works on the slice, still the slice's END conceptually;
+   supersedes #437's end-of-slice-pipe framing — there is no single slice pipe
+   anymore). Position ripple to recompile when applied: agentic none→end, arch
+   none→start, run none→end, grill end→both; quality stays start, ux + measure
+   stay middle exceptions. Handoff still through main. NAMING
+   WATCH (Razor 5): group "lens" vs the six lens/*.yaml schema files (foundation's
+   arch/measure/run are also "lenses" in the schema sense) — schema language keeps
+   "the six realize lenses"; the GROUP lens means only quality/ux/agentic.

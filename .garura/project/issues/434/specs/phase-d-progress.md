@@ -393,6 +393,76 @@ play that will keep these growing from real outcomes.
   /implement check_ready_epic (LENS_TYPES) go to six, plus author-epics, B5 schemas
   (measure.yaml; agentic data block), product-os-keeper.
 
+- **Slice Trinity Model locked — the spine (Kapil, 2026-06-11; decision 23; doc:
+  `specs/slice-trinity-model.md`).** The 7 slice plays are 3-3-1 primes: attribute
+  trinity (quality/ux/agentic — what we want the slice to be) + engine trinity
+  (arch/measure/run — makes the attributes real; the load-bearing one) + grill (the
+  closer). Hub = STRATEGY (the lens plays' "hub" is the slice hub — the slice's
+  window onto it). Stability: attribute churn normal, engine churn an event.
+  Read rules decided: engine lenses read slice hub + all three attribute lenses —
+  measure's hub-only lean OVERTURNED; arch + run isolation widens ICE-first at the
+  measure build. Measure's intent sharpened: per metric a baseline + target + proof
+  source (the team benefit we claim); /capture settles the claim. Ripple audit done
+  (Explore sweep): EIGHT scripts hard-code the lens set (3 gates + 5 per-lens
+  isolation constants), plus lens/_index.md, slice.yaml comments, 5 SKILL pipeline
+  strings, 3 ICEs, author-epics, product-os-keeper; KB has ZERO delivery-measurement
+  learnings (seed needed — measurement interview pending). Future reminder:
+  Hub-level analytics (business measurement; slice-drift signals) goes at the END of
+  this phase.
+
+- **Command taxonomy locked + slice pipeline SPLIT (Kapil, 2026-06-11 later session;
+  decision 24; doc `specs/slice-trinity-model.md`).** Groups renamed and bounded:
+  strategy (Hub) / lens (quality→ux→agentic) / foundation (arch→measure→run) / grill
+  (standalone — relentless interview until the slice is fully known) / execute
+  (implement→validate→launch, epics the working unit) / alignment
+  (capture→learn→reconcile, slice + Hub realigned to the implementation) /
+  orchestration (the *-change plays, auto-applied). Each group gets start + end. The
+  single slice pipeline splits in two: POSITION RIPPLE pending — agentic none→end,
+  arch none→start, run none→end, grill end→both (CONFIRMED by Kapil: self-contained,
+  still works on the slice, still the slice's end); quality stays start, ux + measure
+  stay middles. Parts of the 2026-06-11 nine-play
+  reposition will be recompiled again when this is applied. Foundation still reads
+  hub + the three lens files — the split hands off through main, it does not
+  re-isolate. Naming watch: GROUP "lens" ≠ the six lens/*.yaml schema files.
+
+- **/measure BUILT + the six-lens ripple and pipeline split APPLIED (2026-06-12).**
+  The sixth lens is live end to end:
+  - **Schema:** `lens/measure.yaml` (per-metric claims: framework/why/direction +
+    baseline/target/proof — the /capture seam; triangle-primary enum) + `agentic.yaml`
+    gained the data-substrate block; `lens/_index.md` + `slice.yaml` now say six.
+  - **KB seeded (3):** `technology/delivery-{triangle,industry-frames-derived,
+    one-shot-cleanliness}` — Kapil's measurement POV (interview 2026-06-11/12): the
+    triangle (speed ≥5x heuristic / tokens / cognition = pipe dwell + adjustment rounds),
+    industry frames derived never parallel (the moat), one-shot cleanliness (first-try
+    deploy, zero errors, SonarQube/Snyk/PageSpeed/a11y green). KB 38 → 41.
+  - **Skill:** author-measure-lens (registered in product-os-keeper; kb-search consumer).
+  - **Play:** `core/components/plays/measure/` — ICE (C1–C10/F1–F9/S1–S5/REC1–9,
+    approved 2026-06-11) + SKILL (structure A, position none + foundation-middle
+    exception) + 7 scripts (preflight, check_ready_slice + check_kb_grounding
+    byte-identical reuse, check_foundation_ready, validate_measure, apply_measure,
+    check_measure). Lint PASS (11 gates); 12/12 smoke green (happy + every guard:
+    industry-first-class, sourceless baseline, forbidden arch ground, silent axis,
+    stray-file apply, tampered persist, touched slice record).
+  - **Six-lens ripple swept:** all 8 lens-set constants patched (3 gates: implement
+    check_ready_epic, grill check_realized, run check_lines_up; 5 isolation sets:
+    validate_{quality,ux,agentic,arch,run}); arch/run validators WIDENED per decision 23
+    (trinity readable; forbidden = measure/run resp. measure); author-epics,
+    check-cut-tensions, author-build-plan, product-os-keeper, implement SKILL prose all
+    say six (implement carries a direct-edit deviation note — ICE untouched).
+  - **Pipeline split applied ICE-first (decision 24) to all 7 slice plays:** quality
+    start of the LENS pipe (prose); ux lens-middle (prose); **agentic none→END** (close
+    chain injected); **arch none→START** (start-change head injected + trinity
+    read-widening, + author-architecture-lens); **run none→END** (close chain + trinity
+    read-widening + sixth-and-last + six-lens lines-up, + author-run-lens); **grill
+    end→BOTH** (start-change head added; self-contained — Kapil-confirmed). All
+    fingerprints recomputed and verified MATCH; all 9 plays (7 slice + implement +
+    fix-bug) lint PASS; six-lens gates smoke-verified (lines-up and realized both name a
+    missing measure and accept all six).
+  - **Slice pipeline now:** LENS quality → ux → agentic ‖ main ‖ FOUNDATION arch →
+    measure → run ‖ main ‖ grill (both). RIPPLE NOTE: /implement's LENS_TYPES now
+    requires the measure lens on any slice it builds from — existing realized slices
+    (e.g. token-burn-dash) need /measure run before their next /grill / /implement.
+
 - **Epic pipeline locked at 3 plays (Kapil, 2026-06-11): implement → validate →
   /launch.** launch (end, NEW — E10b) is the HITL gate: UAT/preview deploy per the run
   lens, manual test list generated from the epic's user_check + acceptance, EVIDENCED
