@@ -40,7 +40,7 @@ slice:
   dependency_notes: string  # human note on what this slice leans on (free text from /shape)
   acceptance_intent: string # what "this increment works" means (slice-level, not per-ICE)
   status: string            # proposed (from /shape) | planned (after /roadmap) |
-                            # realized (after /run — all five lenses line up) | deferred
+                            # realized (after /run — all six lenses line up) | deferred
 
   # ---- filled by /roadmap (the plan) ----
   order: integer            # global build position across all slices; null until planned
@@ -69,7 +69,7 @@ deferred:
 #
 # The slice is the UNIT OF REALIZATION (#434). The realize lenses hang OFF the
 # slice, in a per-slice folder beside the record:
-#   product-os/{domain}/slices/{slice-id}/lens/{type}.yaml   # the five realize lenses
+#   product-os/{domain}/slices/{slice-id}/lens/{type}.yaml   # the six realize lenses
 #   product-os/{domain}/slices/{slice-id}/decisions/*.yaml   # decisions a lens records
 # You pick a slice and run quality -> ux -> agentic -> arch -> run on it, then ship
 # it — the slice (not the capability) is what you deliver. See lens/_index.md.
@@ -86,7 +86,7 @@ fill_rules:
              resolved depends_on; flips status proposed -> planned (or deferred).
              Never creates a slice or edits its composition (that is /shape's)."
   - play: "/run"
-    writes: "the done stamp ONLY — flips status -> realized when all five realize
+    writes: "the done stamp ONLY — flips status -> realized when all six realize
              lenses exist for the slice and line up (every architecture component has a
              run target; every run target binds a real component). Surgical: changes
              status + metadata and nothing else of the record; never composition, order,

@@ -1,9 +1,9 @@
 # Lens: run  (LOCKED #434; renamed from "delivery") — envelope in lens/_index.md
 #
-# How the SLICE is deployed and runs. The fifth and last realize lens. /run reads the
+# How the SLICE is deployed and runs. The sixth and LAST realize lens (foundation trinity). /run reads the
 # slice's hub + the ARCHITECTURE lens (it deploys arch's parts) + the KB, and grounds every
 # operational choice in a best-fit architecture/technology learning. As the last lens it also
-# runs the lines-up check (all five lenses present + cross-refs resolve) and, on lines-up,
+# runs the lines-up check (all six lenses present + cross-refs resolve) and, on lines-up,
 # stamps the slice record `status: realized`.
 
 schema:

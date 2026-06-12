@@ -47,3 +47,11 @@ content:
     handoff:    { level: string, note: string }   # how READILY it returns to a human:
                             #   low — rarely, only on hard limits … ultra — constantly,
                             #   a human in the loop each step
+  data:                     # the DATA SUBSTRATE (#434 decision: data is NOT a lens —
+                            # "data fits into ai" — it folds in here)
+    entities:
+      - name: string
+        ownership: string   # owns | reads | references — is this slice the source of truth?
+    grounding: [string]     # what agents/models MAY ground on
+    privacy: string         # privacy obligations on this data
+    retention: string       # retention obligations

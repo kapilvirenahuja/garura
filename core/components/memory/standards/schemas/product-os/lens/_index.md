@@ -1,13 +1,16 @@
-# Lens schemas — the five realize lenses
+# Lens schemas — the six realize lenses
 
-The five faces of a **slice's** realization — one per realize lens:
-**quality · ux · agentic · architecture · run**. These are realization, NOT
-intent — the intent is the ICE of the functionalities the slice bundles.
+The six faces of a **slice's** realization — one per realize lens:
+**quality · ux · agentic · architecture · measure · run**. These are realization,
+NOT intent — the intent is the ICE of the functionalities the slice bundles.
+Two trinities (decision 23): the **lens trinity** (quality, ux, agentic — what the
+slice should be) and the **foundation trinity** (architecture, measure, run — what
+makes it real); foundation lenses read the trinity, the trinity reads only the hub.
 
 **The slice is the unit of realization (#434).** A slice (from `/shape`) is a
 vertical product increment — the thing you actually deliver. You pick a slice and
-run quality → ux → agentic → arch → run on it, then ship it. The lenses are
-therefore stored ON the slice, not on a capability:
+run quality → ux → agentic → arch → measure → run on it, then ship it. The lenses
+are therefore stored ON the slice, not on a capability:
 
     {domain}/slices/{slice-id}.yaml          # the slice record (shape/roadmap own it)
     {domain}/slices/{slice-id}/lens/{type}.yaml   # the slice's lenses (realize owns these)
@@ -23,7 +26,7 @@ product profile. PERMANENT.
 lens:
   id: string
   slice_ref: string        # the slice this lens belongs to ({domain}/{slice-id})
-  type: string             # quality | ux | agentic | architecture | run
+  type: string             # quality | ux | agentic | architecture | measure | run
   summary: string          # one line of what this lens establishes
   content: {}              # per-type — see the type's file in this folder
   status: string           # proposed | active | superseded
@@ -32,8 +35,8 @@ lens:
 
 ## Fill rules
 
-- the realize lenses (`/quality`, `/ux`, `/agentic`, `/arch`, `/run`) — each
-  creates/updates its one lens for a slice
+- the realize lenses (`/quality`, `/ux`, `/agentic`, `/arch`, `/measure`, `/run`) —
+  each creates/updates its one lens for a slice
 - `/learn` — may update a lens from real-world outcomes
 
 ## The lenses
@@ -44,6 +47,7 @@ lens:
 | `architecture.yaml` | components, contracts, stack (versions), vertical-build |
 | `run.yaml` | environments, rollout, migrations, config/secrets, CI/CD |
 | `quality.yaml` | the gates the ICE must pass |
+| `measure.yaml` | the delivery-measurement claims: focus + per-metric baseline/target/proof (triangle-primary: speed/tokens/cognition; industry frames derived) + out_of_scope. The seam /capture harvests |
 | `agentic.yaml` | is-it-an-agent gate + five axes on one low→ultra scale: the three weights (cognitive/creative/logistical = how much load to offload) + controls (guardrails, handoff). How garura thinks about agentic lives here |
 
 Enhance: PARKED — see `product-os.yaml`.
