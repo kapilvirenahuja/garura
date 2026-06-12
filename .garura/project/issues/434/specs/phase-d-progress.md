@@ -472,9 +472,66 @@ play that will keep these growing from real outcomes.
   the standalone audit play idea is retired. Also CLOSED same day: the measure lens is
   delivery-pipe ONLY (DORA/Flow/SPACE/DX); product outcomes are strategy's to measure.
 
-### Not built (7 command plays remaining)
+- **Execute E10 /validate — DONE (2026-06-12).** The deep agent-side gate of the execute
+  pipeline (implement → validate → launch); position none + execute-middle exception
+  (the position:end recommendation in implement-design.md was superseded by decision
+  20 — /launch carries the close chain). Design doc: `specs/validate-design.md`
+  (finder/fixer split; green is the entry, the PROFILE BENCHMARKS are the bar; blast
+  radius from recorded claims, narrowing per fix round — Kapil's interview 2026-06-12).
+  Built via play-creator: ICE (C1–C12/F1–F12/S1–S5/REC1–12) + SKILL + 11 scripts + a
+  per-tool RUNNER FAMILY (runners/_runner_common + java/dotnet/node/frontend/sql/lint/
+  sonar — the platform-adapter pattern; run_checks.py orchestrates; new stack = one new
+  runner). Lint PASS (11 gates); smoke green (both verdict paths end-to-end + 10 guards:
+  ineligible epic, bad implement verdict, loop-cap escalate, empty scope, missing prior
+  report, missing runner→error, uncited finding, re-stamp, tampered epic, forged
+  verdict). New skills: plan-validation-checks (KB-grounded toolchain manifest) +
+  judge-validation-results (cited findings from captured results only; no Bash) —
+  registered in quality-auditor (validate mode section; the single domain agent — old
+  judge/feature-steward STAY deprecated). KB seeded (2, interview): technology/
+  validation-floor-profile-benchmarks + architecture/regression-by-blast-radius (KB 41
+  → 43). Epic schema → v2 IN THE SCHEMA FILE (was drifted: grill enforced v2, epic.yaml
+  said v1) + the validate statuses: ready → in_delivery → validated | fix_required →
+  delivered; fix_required blocks /launch and re-admits /implement; validated is
+  /launch's precondition. RIPPLE APPLIED — /implement fix round (ICE-first via
+  play-editor): C14/F11/REC11/S6/SE-15/SCE-6, check_ready_epic.py gains --fix-report +
+  mode (build|resume|fix), update_epic_status.py flips fix_required → in_delivery (same
+  issue only); fingerprint recomputed; implement lint PASS; fix-mode smoke green. Old
+  garura:validate replaced in place (SKILL.md + reference/{intent,expectation}.yaml
+  deleted; no exclusive skills/agents existed); glossary Trinity entry rewritten to the
+  Slice Trinity Model (old enhance-cycle meaning retired); playbook-catalog +
+  docs/components/plays.md left for the realignment's wholesale doc pass (consistent
+  with the ship/review-pr retirements). NOT deployed to local .claude/ (consumer play,
+  fix-bug precedent). reap's milestone-verdict.yaml seam dies with the old model (reap
+  is on the retire-or-fold-into-/learn list).
+
+- **Execute E10b /launch — DONE (2026-06-12). The execute pipeline is COMPLETE
+  (implement → validate → launch).** The HITL gate closing the pipeline; position END
+  (close chain injected — the first end-position consumer play). Built via play-creator
+  same session as /validate: ICE (C1–C9/F1–F8/S1–S5/REC1–8, approved with Kapil's
+  adjustments — dev/QA tier only "nothing too far ahead"; the play BUILDS HITL testing
+  scenarios: what to run + what to test, expecting a typed answer each) + SKILL + 9
+  scripts (preflight, check_ready_launch [validated stamp + run-lens dev/QA tier],
+  check_scenario_coverage [both directions], validate_signoff [#436: verbatim
+  human_response + shown_to_human, agent-tell scan], check_close_gate [release /
+  fix_required / blocked — the script decides, never the model],
+  render_defect_report [same machine shape as validate's report — implement's fix
+  mode consumes both identically], stamp_fix_required [validated → fix_required],
+  deliver_epic [the /merge fill: delivered + DELETE, refuses without merged evidence,
+  idempotent], check_launch [gate⟺close-evidence, tier match, end-state per path]).
+  Lint PASS (11 gates); smoke green (~20 checks: both paths end-to-end + guards incl.
+  forged/empty/agent-authored sign-off entries, unanswered scenario, close-chain-on-
+  defect-path, delete-before-merge, beyond-dev/QA target). New skills:
+  author-hitl-scenarios (registered in product-os-keeper) + stand-up-launch-env. NEW
+  AGENT: **env-operator** (Kapil-approved at the piece map) — owns live environments
+  (dev/QA only: up, prove reachable, record, tear down); validate's run-to-test can
+  reuse it later. Defect routing locked (Kapil): a rejected scenario → defect report
+  POSTED TO THE EPIC'S TRACKED ISSUE via project-orchestrator (the epic-defect
+  connection) + fix_required stamp → implement's lightweight fix loop — ONE defect
+  loop, agent-found and human-found. Prod is never launch's act (follows from main
+  via the run lens's CD). NOT deployed to local .claude/ (consumer play).
+
+### Not built (5 command plays remaining)
 - **E5 /learn** — also absorbs the orphaned post-merge distill trigger (see ship note above).
-- **E10 /validate** — engineering (E9 /implement DONE 2026-06-11, see above). Decide at its build: /validate takes `position: end` and carries the close chain (recommendation recorded in implement-design.md).
 - **E12 /refactor, E13 /enhance, E13b /reconcile** — maintenance.
   - /enhance: extends/changes behavior of an existing slice (slice grain, vs /shape's
     capability grain; vs /refactor which holds behavior).
@@ -491,7 +548,8 @@ These carry the old SDLC pipeline, no `ice.md`, old `garura:` namespace — NOT 
 ProductOS plays. Retire each as the new play supersedes it (per realignment-plan: "as each
 new play lands, delete the old play(s) it supersedes"):
 - `arch` (`garura:arch`) → superseded by realize lens /arch
-- `validate` (`garura:validate`) → superseded by E10 /validate
+- ~~`validate`~~ → RETIRED 2026-06-12 (replaced in place by E10 /validate; old SKILL +
+  intent/expectation deleted; nothing exclusive to it survived)
 - `refactor` (`garura:refactor`) → superseded by E12 /refactor
 - ~~`grill-me`~~ → RETIRED 2026-06-11 (superseded by E7 /grill; play + 3 exclusive skills + 2 exclusive agents deleted)
 - `define`, `design`, `enhance` (`garura:*`) → old SDLC shaping, superseded by vision/understand/shape
