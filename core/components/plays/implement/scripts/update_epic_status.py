@@ -4,16 +4,18 @@ update_epic_status.py — surgical epic-record writer for /implement.
 
 Executes the epic schema's /start fill rule (the epic file's ONLY sanctioned
 mutation by this play): write `issue_ref` and flip `status` ready → in_delivery
-once the injected start-change has opened the issue. Wiring note: the schema
-assigns this fill to /start; start-change predates epics, so /implement
-executes it immediately after the injected start step (#434 decision — can move
-into start-change later).
+once the injected start-change has opened the issue — or fix_required →
+in_delivery on the C14 fix-round re-entry (same issue only; /validate stamped
+it, /implement re-admits it). Wiring note: the schema assigns this fill to
+/start; start-change predates epics, so /implement executes it immediately
+after the injected start step (#434 decision — can move into start-change
+later).
 
 Surgical: touches exactly `epic.status`, `epic.issue_ref`, and
 `epic.metadata.version` (+1). Refuses anything else:
 
-  - target not `ready` and not already `in_delivery` with the SAME issue
-    (idempotent resume) → refuse;
+  - target not `ready`, not `fix_required` under the SAME issue, and not
+    already `in_delivery` with the SAME issue (idempotent resume) → refuse;
   - target `delivered` → refuse, always.
 
 Layer rule: reads/writes files on disk only; no git/gh/network.
@@ -65,7 +67,11 @@ def main(argv=None):
         else:
             errors.append(f"epic is in_delivery under issue "
                           f"'{epic.get('issue_ref')}', not '{issue}' — refuse (C1)")
-    elif status == "ready":
+    elif status == "fix_required" and \
+            str(epic.get("issue_ref") or "").lstrip("#") != issue:
+        errors.append(f"epic is fix_required under issue "
+                      f"'{epic.get('issue_ref')}', not '{issue}' — refuse (C1/C14)")
+    elif status in ("ready", "fix_required"):
         epic["status"] = "in_delivery"
         epic["issue_ref"] = issue
         meta = epic.setdefault("metadata", {})
@@ -77,7 +83,8 @@ def main(argv=None):
         out.update({"ok": True, "changed": True,
                     "status": "in_delivery", "issue_ref": issue})
     else:
-        errors.append(f"epic status is '{status}', expected 'ready' (C1)")
+        errors.append(f"epic status is '{status}', expected 'ready' or "
+                      f"'fix_required' (C1)")
 
     print(json.dumps(out, indent=2))
     return 0 if out["ok"] else 1

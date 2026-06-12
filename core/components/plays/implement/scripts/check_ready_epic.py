@@ -83,17 +83,32 @@ def resolve_slice(root, slice_arg, errors):
     return slice_id, slice_file, domain
 
 
-def epic_eligible(epic, all_epics, errors, label, allow_in_delivery):
+def epic_eligible(epic, all_epics, errors, label, allow_in_delivery,
+                  fix_report=None):
+    """Returns the entry mode: 'build' (ready), 'resume' (in_delivery), or
+    'fix' (fix_required + the /validate fix report — the C14 fix round)."""
     status = (epic.get("status") or "").strip().lower()
+    mode = "build"
     if status == "ready":
         pass
     elif status == "in_delivery" and allow_in_delivery:
+        mode = "resume"
         if _empty(epic.get("issue_ref")):
             errors.append(f"{label}: in_delivery but carries no issue_ref — "
                           f"inconsistent state, fix the epic record (C1/F1)")
+    elif status == "fix_required":
+        mode = "fix"
+        if _empty(epic.get("issue_ref")):
+            errors.append(f"{label}: fix_required but carries no issue_ref — "
+                          f"inconsistent state, fix the epic record (C1/F1)")
+        if not fix_report or not os.path.isfile(fix_report):
+            errors.append(f"{label}: fix_required but no /validate fix report at "
+                          f"'{fix_report}' — the report is the fix round's exact "
+                          f"work list (C1/C14/F1)")
     else:
         errors.append(f"{label}: status is '{status}', must be 'ready' "
-                      f"(or 'in_delivery' with issue_ref on resume) (C1/F1)")
+                      f"(or 'in_delivery' with issue_ref on resume, or "
+                      f"'fix_required' with its fix report — the fix round) (C1/F1)")
     for dep in (epic.get("depends_on") or []):
         dep_epic = all_epics.get(dep)
         if dep_epic is None:
@@ -101,6 +116,7 @@ def epic_eligible(epic, all_epics, errors, label, allow_in_delivery):
         elif (dep_epic.get("status") or "").strip().lower() != "delivered":
             errors.append(f"{label}: dependency '{dep}' is "
                           f"'{dep_epic.get('status')}', must be 'delivered' (C1/F1)")
+    return mode
 
 
 def main(argv=None):
@@ -109,6 +125,9 @@ def main(argv=None):
     ap.add_argument("--config", default=".garura/core/config.yaml")
     ap.add_argument("--epic", help="[domain/][slice-id/]epic-id")
     ap.add_argument("--slice", help="[domain/]slice-id — auto-pick earliest eligible ready epic")
+    ap.add_argument("--fix-report",
+                    help="/validate fix report (report.yaml) — required when the "
+                         "epic is fix_required (the C14 fix round)")
     args = ap.parse_args(argv)
 
     if not args.epic and not args.slice:
@@ -178,14 +197,16 @@ def main(argv=None):
 
     # --- pick / validate the epic ---------------------------------------------
     epic = None
+    mode = "build"
     if args.epic:
         epic_id = args.epic.split("/")[-1]
         epic = all_epics.get(epic_id)
         if epic is None:
             errors.append(f"epic '{epic_id}' not found in slice '{slice_id}' (C1/F1)")
         else:
-            epic_eligible(epic, all_epics, errors, f"epic '{epic_id}'",
-                          allow_in_delivery=True)
+            mode = epic_eligible(epic, all_epics, errors, f"epic '{epic_id}'",
+                                 allow_in_delivery=True,
+                                 fix_report=args.fix_report)
     else:
         candidates = sorted((e for e in all_epics.values()
                              if (e.get("status") or "").lower() == "ready"),
@@ -233,6 +254,8 @@ def main(argv=None):
             "epic_id": epic.get("id"),
             "epic_file": epic.get("_file"),
             "epic": {k: v for k, v in epic.items() if k != "_file"},
+            "mode": mode,
+            "fix_report": args.fix_report if mode == "fix" else None,
             "slice_id": slice_id, "slice_file": slice_file, "domain": domain,
             "lens_dir": lens_dir, "lens_files": lens_files,
             "functionality_ices": functionality_ices,

@@ -13,16 +13,26 @@ the implementer, and accept "done" only from adversarial steelman verification
 that tried to refute it. The play opens the work; it never closes it — closing
 belongs after /validate accepts.
 
+The play has a second entry: the **fix round**. When /validate rejects the
+build it stamps the epic `fix_required` and posts a fix report naming each
+failure by check and location. Implement re-enters LIGHTWEIGHT: the report is
+the exact work list — its findings become plan revision pieces on the existing
+plan, no fresh breakdown, no fresh workspace — the epic flips back to
+`in_delivery`, and the same done bar applies. Implement ↔ validate is expected
+to loop a few rounds; agents fix, validate finds.
+
 Pipeline position: **start**. The D2 pipeline-position rule prepends
 `start-change` (resolve/create the epic's issue, cut the branch off fresh main,
 optional worktree, init STM). No end sequence is injected — an epic may only
 merge, and be deleted, after /validate accepts; the close chain belongs to the
-validation side of the pipeline, never to this play.
+validation side of the pipeline, never to this play. On a fix round the head is
+a resume: the issue and branch already exist; nothing is duplicated.
 
 ### Constraints
 
-- C1 — Anchored to exactly one epic, in ready state, on a realized slice, with
-  all its dependency epics already delivered. Anything else: halt.
+- C1 — Anchored to exactly one epic on a realized slice with all its dependency
+  epics already delivered, in ready state (the build) — or in fix_required state
+  carrying its /validate fix report (the fix round). Anything else: halt.
 - C2 — The epic is the tightest box. Everything the play knows and touches is
   what the epic carries or references — outcome, user check, functionality
   references, context, acceptance. The implementation never crosses those
@@ -63,6 +73,11 @@ validation side of the pipeline, never to this play.
   dependency order, and any deviation is recorded as a plan update through the
   tracking role, never made silently. (Beside C8: the DAG orders the pieces;
   within a piece, when to test and judge stays the agent's call.)
+- C14 — The fix round is lightweight and report-bounded: the /validate fix
+  report is the exact work list — every revision piece traces to a report
+  finding; no fresh breakdown, no fresh workspace; the epic flips fix_required
+  → in_delivery at re-entry; and work beyond what the report names is out of
+  box.
 
 ### Failure conditions
 
@@ -86,6 +101,9 @@ validation side of the pipeline, never to this play.
 - F10 — Execution diverges from the tracked plan silently: work happens that
   isn't a plan piece, or dependency order is violated, without the plan being
   updated first.
+- F11 — A fix round overreaches: work happens that no fix-report finding names,
+  a fresh breakdown or workspace is cut instead of revising the existing plan,
+  or the epic is left stamped fix_required while its fix is being built.
 
 ## Expectation
 
@@ -127,6 +145,14 @@ validation side of the pipeline, never to this play.
   breakdown is created; the first action after resume targets the earliest
   plan piece not marked done; in-flight pieces are reset and re-run, not
   double-counted.
+- S6 — (developer, the fix round) Given an epic /validate stamped fix_required
+  with its fix report posted, when /implement re-enters, then the epic flips
+  back to in_delivery, the existing plan gains revision pieces derived from the
+  report's findings — nothing else — and the build resumes along the revised
+  DAG to the same done bar. Measure: every revision piece cites a fix-report
+  finding id; no second breakdown and no second workspace exist; the epic
+  status is in_delivery while the fix is built; the done bar (gates + steelman
+  verdict) re-runs unchanged.
 
 ### Recovery (one per failure condition)
 
@@ -165,4 +191,10 @@ validation side of the pipeline, never to this play.
 - REC10 (F10) — trigger: work is detected that isn't a plan piece, or
   dependency order is violated. direction: pause the work, update the plan
   first through the tracking role, then continue along the updated DAG.
+  handoff: autonomous.
+- REC11 (F11) — trigger: fix-round work maps to no fix-report finding, a fresh
+  breakdown or workspace appears, or the epic still reads fix_required after
+  re-entry. direction: drop the unreported work (or route it as a question per
+  REC2), derive revision pieces only from the report, re-anchor to the existing
+  plan and workspace, and flip the epic to in_delivery before building.
   handoff: autonomous.
