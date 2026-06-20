@@ -13,6 +13,20 @@ the implementer, and accept "done" only from adversarial steelman verification
 that tried to refute it. The play opens the work; it never closes it — closing
 belongs after /validate accepts.
 
+Before any code is written the play distills the work into a **spec**: a crisp,
+human-readable, ICE-shaped boundary document that states the rules, patterns,
+design decisions, and configuration the build must hold to — captured once from
+understanding both the requirement and the existing code, never the code itself.
+On the initial build a **human approves that spec**, and that approval is the last
+checkpoint before the build runs **autonomously** — the human hands off and the
+agent carries the epic to done alone. Because no one is watching the build, the
+spec must be right at approval and the build's context must stay tight: each
+piece is built from its own piece, its dependencies, and the spec — never the
+whole plan or a free roam of the repository — with progress on disk so a long run
+pauses, resumes, and hands off without drift. The play may stand up temporary,
+single-use implementation skills at runtime to author the per-language build
+prompt, removing them when it finishes.
+
 The play has a second entry: the **fix round**. When /validate rejects the
 build it stamps the epic `fix_required` and posts a fix report naming each
 failure by check and location. Implement re-enters LIGHTWEIGHT: the report is
@@ -78,6 +92,31 @@ a resume: the issue and branch already exist; nothing is duplicated.
   finding; no fresh breakdown, no fresh workspace; the epic flips fix_required
   → in_delivery at re-entry; and work beyond what the report names is out of
   box.
+- C15 — The build never begins until a human has explicitly approved the spec.
+  On the initial build this approval is mandatory and never skipped — it is the
+  last human checkpoint before the build runs autonomously, the point where
+  human and agent align on what will be built. A fix round does not re-gate: it
+  is report-bounded (C14), its revision pieces trace to /validate's findings and
+  cannot widen the approved box, so it re-enters and proceeds without a fresh
+  approval.
+- C16 — The approved artifact is a spec: a crisp, human-readable, ICE-shaped
+  boundary document — Intent (what the build delivers), Context (the rules,
+  patterns, design decisions, and configuration — ports and the like — the build
+  must hold to, plus the map of the existing code it touches), Expectation (the
+  acceptance and the done bar). It states boundaries, never code; it references
+  the epic, its ICE, and the lenses rather than copying them; and it stays within
+  a tight readable bound (about one to two pages). It is the build's north star
+  and the thing the human approves — tight for two reasons: it must guarantee the
+  requirement is met, and it must keep the build's context controlled.
+- C17 — Each builder and test-author works from its own plan piece, that piece's
+  dependencies, and the spec — never the whole plan, sibling pieces, or free
+  repository roam. The piece is the working box; scoping context to it is what
+  keeps a long autonomous build faithful and its token and context cost bounded.
+- C18 — The play may generate temporary, single-use implementation skills at
+  runtime to author per-language build prompts, and removes them when the run
+  ends. These are a context-optimization device — the model authors the
+  implementation prompt better than a fixed one — never durable components, and
+  they never widen the box beyond the spec.
 
 ### Failure conditions
 
@@ -104,6 +143,16 @@ a resume: the issue and branch already exist; nothing is duplicated.
 - F11 — A fix round overreaches: work happens that no fix-report finding names,
   a fresh breakdown or workspace is cut instead of revising the existing plan,
   or the epic is left stamped fix_required while its fix is being built.
+- F12 — The autonomous build starts without an explicit, recorded human approval
+  of the spec on the initial build — the run began unaligned, the one human
+  checkpoint skipped.
+- F13 — A builder or test-author is handed context beyond its piece — the whole
+  plan, sibling pieces, or free repository roam — bloating the build's context
+  and inviting drift from the piece it was meant to deliver.
+- F14 — The approved spec fails its job as a boundary document: it copies code,
+  balloons past the readable bound, or omits a boundary the build needs — a rule,
+  pattern, design decision, or configuration like a port — so the alignment it
+  was meant to carry is false.
 
 ## Expectation
 
@@ -153,6 +202,21 @@ a resume: the issue and branch already exist; nothing is duplicated.
   finding id; no second breakdown and no second workspace exist; the epic
   status is in_delivery while the fix is built; the done bar (gates + steelman
   verdict) re-runs unchanged.
+- S7 — (developer, the approval gate) Given a built and validated spec, when the
+  initial build is about to run, then the human is always presented the spec and
+  the build does not start until they approve it. Measure: on the initial build
+  no build piece is dispatched before a recorded human approval; the spec is
+  ICE-shaped (Intent/Context/Expectation) and within the readable bound; every
+  initial-build run carries an approval record; a fix round carries none and is
+  not gated.
+- S8 — (developer, tight autonomous build) Given the approved spec, when the
+  build runs unattended, then each piece is built from its own piece, its
+  dependencies, and the spec — never the whole plan — and progress is on disk so
+  the run is pausable and resumable. Measure: no builder or test-author contract
+  carries the full plan, a sibling piece, or a free-repo directive; every
+  builder contract carries the piece, its dependencies, and the spec; the run
+  completes from approval to done with no further human input; any temporary
+  implementation skill created is removed by run end.
 
 ### Recovery (one per failure condition)
 
@@ -198,3 +262,16 @@ a resume: the issue and branch already exist; nothing is duplicated.
   REC2), derive revision pieces only from the report, re-anchor to the existing
   plan and workspace, and flip the epic to in_delivery before building.
   handoff: autonomous.
+- REC12 (F12) — trigger: a build piece is about to dispatch on the initial build
+  with no recorded human approval of the spec. direction: hold all build work,
+  present the spec, and dispatch nothing until the human approves; the approval
+  is recorded as the gate the run passed through. handoff: human.
+- REC13 (F13) — trigger: a builder or test-author contract carries context
+  beyond its piece — the whole plan, a sibling piece, or a free-repo directive.
+  direction: rebuild the contract to carry only the piece, its dependencies, and
+  the spec, and re-dispatch. handoff: autonomous.
+- REC14 (F14) — trigger: the spec copies code, exceeds the readable bound, or
+  omits a boundary the build needs. direction: re-author it as a crisp ICE
+  boundary document — trim code to references, cut to the bound, and add the
+  missing rule, pattern, design, or config — then return it to the human for
+  approval before building. handoff: human.
