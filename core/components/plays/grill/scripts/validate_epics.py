@@ -34,7 +34,13 @@ the grilling; this script does the counting and wiring the model should not hand
               grilling and fails the gate (C12/F11). `decision_questions`
               entries (unresolved delivery-method choices) must each carry a
               citation, the question, and the human's answer — an unanswered
-              one fails the gate (C13/F12).
+              one fails the gate (C13/F12); a `resolved` one must also carry a
+              `resolution_directive`. Round reports are a CLOSED SCHEMA
+              (C13/F14): evidence lives only under `tensions:`/
+              `decision_questions:`, the legacy `questions:` key is aliased to
+              `decision_questions:` and validated identically, and any other
+              top-level key fails the gate rather than passing unchecked — an
+              off-schema key would carry evidence the gate never reads.
 
 Layer rule: reads files on disk only; no git/gh/network.
 
@@ -59,6 +65,13 @@ except ImportError:
 FORBIDDEN_KEYS = {"ice", "intent", "goals", "expectations", "lens", "content"}
 LIVE = "live"
 CLOSED = {"resolved", "accepted"}
+
+# closed schema (C13/F14): the only top-level keys a round report may carry. Evidence
+# lives under `tensions:` and `decision_questions:`; `questions:` is a legacy alias for
+# `decision_questions:`, validated under the identical rules. Any other top-level key
+# would carry evidence the gate never reads — a forged-clean pass — so it fails the gate.
+KNOWN_ROUND_KEYS = {"round_id", "cut_dir", "prior_rounds_dir",
+                    "tensions", "decision_questions", "questions", "counts"}
 
 
 def load(path):
@@ -247,6 +260,15 @@ def main(argv=None):
             except (OSError, yaml.YAMLError) as exc:
                 errors.append(f"{os.path.basename(path)}: unreadable round report ({exc})")
                 continue
+            # closed schema (C13/F14): an off-schema top-level key would carry evidence
+            # the gate never validates — a forged-clean pass — so it fails the gate.
+            unknown = set(report.keys()) - KNOWN_ROUND_KEYS
+            if unknown:
+                errors.append(f"{os.path.basename(path)}: off-schema round-report key(s) "
+                              f"{sorted(unknown)} — the write-gate validates evidence only "
+                              f"under tensions:/decision_questions: (questions: is the one "
+                              f"legacy alias); an unrecognized key passes unchecked, a "
+                              f"forged-clean gate (C13/F14)")
             for t in report.get("tensions") or []:
                 counts["tensions"] += 1
                 tid = (t or {}).get("tension_id", "?")
@@ -280,7 +302,9 @@ def main(argv=None):
                                       f"derived from the human response (C12/F11)")
                     if status == "accepted" and _empty((t or {}).get("resolution_reason")):
                         errors.append(f"{tid}: accepted with no recorded reason (C7/F6)")
-            for q in report.get("decision_questions") or []:
+            # `questions:` is the one legacy alias for `decision_questions:` — validated
+            # under the identical rules so legacy round files are checked, not ignored.
+            for q in (report.get("decision_questions") or []) + (report.get("questions") or []):
                 counts["decision_questions"] += 1
                 qid = (q or {}).get("question_id", "?")
                 qc = (q or {}).get("cites") or {}
@@ -292,6 +316,16 @@ def main(argv=None):
                 if _empty(((q or {}).get("human_response") or {}).get("text")):
                     errors.append(f"{qid}: unanswered decision question — the human "
                                   f"chooses the delivery method, never the agent (C13/F12)")
+                # a question that records a disposition (a legacy `questions:` entry
+                # carries a status) and is `resolved` must carry the human-derived
+                # directive that reshaped the cut — the same evidence bar as a resolved
+                # tension (C12/F12). A resolved answer with no directive is a closed
+                # question whose effect on the cut nobody recorded.
+                if ((q or {}).get("status") or "").strip().lower() == "resolved" \
+                        and _empty((q or {}).get("resolution_directive")):
+                    errors.append(f"{qid}: resolved decision question without a "
+                                  f"resolution_directive derived from the human's answer "
+                                  f"(C13/F12)")
 
     ok = not errors
     print(json.dumps({"ok": ok, "errors": errors, "counts": counts}, indent=2))

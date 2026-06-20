@@ -111,7 +111,12 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
 - C13 — An epic never encodes a delivery-method assumption: when an epic's user check
   depends on a delivery method the lenses do not decide, the unresolved choice becomes a
   cited decision question put to the human before the checkpoint; the human's answer
-  shapes the cut, is recorded in the round, and is shown at the checkpoint.
+  shapes the cut, is recorded in the round, and is shown at the checkpoint. The round
+  report records its grilling evidence under the canonical keys only — `tensions:` for
+  contradictions, `decision_questions:` for delivery choices; the legacy `questions:` key
+  is read as an alias for `decision_questions:` and held to the identical evidence rules,
+  and the write-gate recognizes no other top-level evidence key — an off-schema key fails
+  the gate rather than passing unchecked (closed schema).
 
 ### Failure conditions
 
@@ -141,6 +146,10 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
 - F13 — The approved cut is persisted and verified but never enters the end pipeline —
   the durable model change sits uncommitted on the branch, drifting from the model,
   unless the human remembers to close it by hand.
+- F14 — A round report records grilling evidence under a key the write-gate does not
+  recognize — a legacy `questions:` list, or any other off-schema key — so the gate
+  validates none of it and reports a clean pass: epics are stamped ready while the
+  questions that shaped them were never checked. A forged-clean gate.
 
 ## Expectation
 
@@ -180,7 +189,11 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
   delivery method the lenses never decided, then the play asks a cited decision question
   and the answer shapes the cut. Measure: the round report carries a `decision_questions`
   entry with a citation, the question, and the human's answer; the write-gate fails an
-  unanswered one; the checkpoint shows the chosen strategy.
+  unanswered one; the checkpoint shows the chosen strategy. The question evidence lives
+  only under the canonical keys (`tensions:`/`decision_questions:`, with a legacy
+  `questions:` list aliased to `decision_questions:` and held to the same rules and
+  counted); the write-gate fails any off-schema evidence key, so the decision-question
+  count reflects every round question and never reports a clean pass over unchecked ones.
 
 ### Recovery (one per failure condition)
 
@@ -225,3 +238,8 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
   injected end sequence (commit → propose → review → merge) before the close; a member's
   own halt (e.g. a review reject) stops the chain by its own rules, never silently.
   handoff: autonomous.
+- REC14 (F14) — trigger: a round report carries question evidence under an unrecognized
+  top-level key. direction: read a legacy `questions:` key as `decision_questions:` and
+  validate it identically; for any other off-schema key, block the write-gate until the
+  round is rewritten under the canonical `tensions:`/`decision_questions:` schema, then
+  re-run the gate. handoff: autonomous.
