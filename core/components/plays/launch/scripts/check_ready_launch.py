@@ -23,7 +23,7 @@ except ImportError:
     sys.stderr.write("check_ready_launch.py: PyYAML is required (pip install pyyaml).\n")
     sys.exit(2)
 
-DEV_QA_TIERS = ("dev", "qa", "test", "preview", "uat-dev")  # early tiers only
+DEV_QA_TIERS = ("local", "local-dev", "dev", "qa", "test", "preview", "uat-dev")  # early tiers only
 
 
 def load(path):
