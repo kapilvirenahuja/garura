@@ -10,9 +10,10 @@ Proves the run's own discipline over the captured artifacts before close:
   environment    — the deploy record's tier matches the eligibility gate's
                    resolved dev/QA tier, and no further-ahead target appears
                    (F5/S5).
-  epic end-state — release path: the epic file is gone and the delivery record
-                   reads delivered (F7); defect path: the epic file remains,
-                   stamped fix_required.
+  epic end-state — release path: the epic file is KEPT, stamped delivered, and
+                   the delivery record reads delivered (F7; ADR 019 — epics are
+                   never deleted); defect path: the epic file remains, stamped
+                   fix_required.
 
     python3 check_launch.py --gate <gate.json> --facts <ready-facts.json>
         --deploy-record <deploy.json> --epic-file <epic.yaml>
@@ -85,9 +86,15 @@ def main():
 
     # --- epic end-state (F7) ---------------------------------------------------------
     if decision == "release":
-        if os.path.isfile(args.epic_file):
-            errors.append("release path but the epic record still exists — the "
-                          "delivered+delete fill never ran (F7)")
+        if not os.path.isfile(args.epic_file):
+            errors.append("release path but the epic record is gone — epics are kept "
+                          "as the as-delivered record and must never be deleted (F7)")
+        else:
+            with open(args.epic_file, "r", encoding="utf-8") as fh:
+                epic = (yaml.safe_load(fh) or {}).get("epic") or {}
+            if (epic.get("status") or "") != "delivered":
+                errors.append(f"release path but epic status is "
+                              f"'{epic.get('status')}', not delivered (F7)")
         if not os.path.isfile(args.delivery_record):
             errors.append("release path but no delivery record (F7)")
         elif (jload(args.delivery_record).get("status") != "delivered"):
