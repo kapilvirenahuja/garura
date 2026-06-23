@@ -58,6 +58,13 @@ explanation of why it is recommended and what it unblocks.
   evidence record). All transient working files written during the run are deleted
   once the recommendation has been verified and presented. The evidence record is
   never deleted.
+- C11 — A slice carrying a `delivered` epic whose required user-facing surface was not
+  actually delivered is in **surface debt** (`surface-contract.md` — "Surface debt:
+  what /next must block"): the next execute epic in that slice is withheld and the
+  surface-repair action takes priority, so later epics stop inheriting and compounding
+  the downgrade. Surface debt is a blocking model inconsistency — it rides the same
+  repair-takes-the-NBA-slot machinery as C5, detected mechanically from the model
+  (never inferred).
 
 ### Failure conditions
 
@@ -74,6 +81,10 @@ explanation of why it is recommended and what it unblocks.
   readiness gates over the model actually permit.
 - F7 — Working files survive the run, lingering on disk as a stale recommendation after
   the model moves on.
+- F8 — A slice carries surface debt — a delivered epic whose required user-facing surface
+  was not delivered — yet /next recommends the next execute epic in that slice, so later
+  epics keep building on a downgraded surface and compound the debt instead of repairing
+  it.
 
 ## Expectation
 
@@ -129,3 +140,8 @@ explanation of why it is recommended and what it unblocks.
 - REC7 (F7) — trigger: working files remain after the run completes. direction: delete
   the working folder; the already-presented recommendation is the only product. handoff:
   autonomous.
+- REC8 (F8) — trigger: a slice has surface debt (a delivered epic with unmet required
+  user-facing surface) and /next would recommend its next execute epic. direction: surface
+  the debt as a blocking inconsistency, recommend the surface-repair action for that slice
+  in the next-best-action slot, and withhold every further execute epic of that slice until
+  the debt clears. handoff: autonomous.

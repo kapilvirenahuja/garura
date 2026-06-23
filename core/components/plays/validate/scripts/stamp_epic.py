@@ -4,9 +4,10 @@ stamp_epic.py — surgical epic-record stamper for /validate (C8, F6/F11).
 
 The ONE durable model write of this play: flip the epic's status per the
 computed verdict — in_delivery → validated (pass) or in_delivery →
-fix_required (fail). Modeled on /implement's update_epic_status.py and /run's
-stamp_slice.py: touches exactly `epic.status` and `epic.metadata.version`,
-nothing else; refuses every other transition.
+fix_required (fail). Touches exactly `epic.status`, `epic.metadata.version`,
+and — on a pass — `epic.surface_verified: true` (the required surface-parity
+check ran and matched, surface-contract.md / ADR 022); nothing else; refuses
+every other transition.
 
 Refusals:
   - verdict file ok=false or verdict null → refuse (compute first, REC3)
@@ -81,11 +82,19 @@ def main():
     new_status = verdict["verdict"]
     if not args.dry_run:
         epic["status"] = new_status
+        # On a pass, also stamp surface_verified: the verdict gate (check_gates.py,
+        # C13) only reaches `validated` once the required surface-parity check has
+        # run and matched (surface-contract.md, ADR 022), so `validated` carries
+        # surface_verified: true. This is the signal /next reads to tell a surface
+        # that actually shipped from surface debt.
+        if new_status == "validated":
+            epic["surface_verified"] = True
         meta = epic.setdefault("metadata", {})
         meta["version"] = int(meta.get("version") or 1) + 1
         with open(args.epic_file, "w", encoding="utf-8") as fh:
             yaml.safe_dump(doc, fh, sort_keys=False, allow_unicode=True)
-    out.update({"ok": True, "changed": not args.dry_run, "status": new_status})
+    out.update({"ok": True, "changed": not args.dry_run, "status": new_status,
+                "surface_verified": new_status == "validated"})
     print(json.dumps(out, indent=2))
     sys.exit(0)
 

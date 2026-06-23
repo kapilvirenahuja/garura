@@ -40,6 +40,7 @@ Agents and skills query this category when they need to know: **"What rules must
 | `play-close.md` | The canonical Standard Play Close block — the C1 evidence file + C2 delivery report every play emits as its final step, with lint anchors. | `play-creator`, `lint-components`, every play |
 | `evidence-recording.md` | D1 evidence rule (#434) — evidence recording is play-only (never agents, never skills); fires on `evidence.record`, tunable per play via `evidence.plays.<name>`. | `play-creator`, `lint-components`, every play |
 | `pipeline-position.md` | D2 pipeline rule (#434) — a play declares `position: start\|end\|both\|none`; play-creator injects start-change (start) and the commit → propose → review → merge end sequence (end). Members: start-change + the four end plays. | `play-creator`, `lint-components`, every play |
+| `surface-contract.md` | Surface contract (ADR 022, #442) — an epic's user-facing surface (`web_dashboard\|server_api\|cli\|library\|service_read_model`) is DECLARED at the `/grill` cut and checked downstream, never re-derived; per-type required runnable evidence, valid deploy targets, downgrade ordering, and surface-debt blocking. | `/grill`, `/implement`, `/validate`, `/launch`, `/next`, `lint-components` |
 
 ## Deferred follow-ups
 

@@ -100,6 +100,7 @@ def scan_slice(slice_file, errors):
         if os.path.basename(f) == "deferrals.yaml":
             continue
         e = (load(f, errors).get("epic") or {})
+        surface = e.get("surface") or {}
         epics.append({
             "id": e.get("id") or os.path.splitext(os.path.basename(f))[0],
             "file": f,
@@ -108,6 +109,12 @@ def scan_slice(slice_file, errors):
             "depends_on": sorted(e.get("depends_on") or []),
             "issue_ref": e.get("issue_ref"),
             "title": e.get("title"),
+            # surface contract (ADR 022): declared at the cut, read here so the
+            # candidate derivation can detect surface debt deterministically.
+            "surface_type": (surface.get("type") or "").strip().lower(),
+            # /validate stamps surface_verified: true when the surface-parity check
+            # passed; absent/false means the required surface was never measured.
+            "surface_verified": bool(e.get("surface_verified")),
         })
 
     funcs = []

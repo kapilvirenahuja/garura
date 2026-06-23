@@ -118,6 +118,16 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
   is read as an alias for `decision_questions:` and held to the identical evidence rules,
   and the write-gate recognizes no other top-level evidence key — an off-schema key fails
   the gate rather than passing unchecked (closed schema).
+- C14 — Every epic declares its user-facing surface per `surface-contract.md`: a `surface`
+  block with `type` (web_dashboard | server_api | cli | library | service_read_model),
+  `human_run_target`, and `must_open`, derived from the slice intent and the epic's user
+  check and confirmed by the human at the checkpoint. The surface is declared here, at the
+  cut, so no downstream play has to infer it; the non-user-facing types (library,
+  service_read_model) are declared explicitly, never a silent default.
+- C15 — The first epic of a slice whose surface is user-facing (web_dashboard or
+  server_api) scaffolds the app/server shell — a minimal openable app — or the cut is
+  reworked until it does. Later epics extend a surface that already opens; none invents one
+  from nothing.
 
 ### Failure conditions
 
@@ -151,6 +161,11 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
   recognize — a legacy `questions:` list, or any other off-schema key — so the gate
   validates none of it and reports a clean pass: epics are stamped ready while the
   questions that shaped them were never checked. A forged-clean gate.
+- F15 — An epic is written with no declared surface, or with a surface silently defaulted
+  to a non-user-facing type, so a downstream play is left to infer what the epic promised.
+- F16 — A slice with a user-facing surface has a first epic that opens nothing — no
+  app/server shell — so every later epic has no surface to extend and the vertical decays
+  to internal work.
 
 ## Expectation
 
@@ -244,3 +259,11 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
   validate it identically; for any other off-schema key, block the write-gate until the
   round is rewritten under the canonical `tensions:`/`decision_questions:` schema, then
   re-run the gate. handoff: autonomous.
+- REC15 (F15) — trigger: an epic at the write-gate has no `surface` block, or a surface
+  defaulted to a non-user-facing type with no human confirmation. direction: declare the
+  surface from the slice intent and the epic's user check per `surface-contract.md`, put it
+  to the human at the checkpoint, and write it; block the cut until every epic carries a
+  confirmed surface. handoff: human.
+- REC16 (F16) — trigger: a user-facing slice's first epic scaffolds no app/server shell.
+  direction: rework the order so the first epic seeds a minimal openable shell, or recut so
+  one does, then re-present. handoff: autonomous.

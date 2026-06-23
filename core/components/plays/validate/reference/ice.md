@@ -63,6 +63,16 @@ write is the surgical epic stamp. (#434, decisions 20 + 24)
   validate verifies them; a declared benchmark with no captured measurement is a finding.
 - C12 — Scan and check choices ground in KB learnings; anything uncovered is recorded as a
   KB gap, never silently chosen.
+- C13 — Validate runs the runnable check the surface contract maps to the epic's declared
+  `surface.type` (`surface-contract.md`): a real browser check that opens each `must_open`
+  artifact and observes it render for `web_dashboard`; an HTTP/API check that calls the
+  declared endpoint and asserts the response for `server_api`; a command run of
+  `human_run_target` for `cli`; the library's/service's own tests for `library` /
+  `service_read_model`. The check plan is incomplete unless it includes the surface-mapped
+  check for a required surface, and the captured surface result must match the declared
+  type. A required surface the run did not measure is `fix_required`, never `validated` —
+  "no browser/API probes available" does not waive the check the surface requires, it fails
+  it.
 
 ### Failure conditions
 
@@ -80,6 +90,10 @@ write is the surgical epic stamp. (#434, decisions 20 + 24)
 - F10 — The loop cap passed without human escalation.
 - F11 — The epic record was touched beyond the surgical stamp.
 - F12 — A scan or check choice was made with no KB grounding and no recorded gap.
+- F13 — Validate stamped `validated` without measuring the epic's required surface — a
+  browser/API/CLI promise passed on code-level checks alone (the surface-mapped check was
+  never planned, never ran, or the captured surface result did not match the declared
+  `surface.type`).
 
 ## Expectation
 
@@ -138,3 +152,8 @@ write is the surgical epic stamp. (#434, decisions 20 + 24)
 - REC12 (F12) — trigger: an ungrounded scan choice with no gap recorded. direction: run
   the KB search; if still uncovered, record the gap proposal, then proceed. handoff:
   autonomous.
+- REC13 (F13) — trigger: the required surface check for the epic's `surface.type` was not
+  run, or the captured surface result does not match the declared type. direction: stamp
+  `fix_required` naming the unmeasured or mismatched surface (the `surface.type` and the
+  `must_open`/`human_run_target` it owed), and re-admit /implement to restore the surface so
+  the next round can measure it. handoff: autonomous.

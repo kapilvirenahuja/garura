@@ -57,6 +57,18 @@ decisions 20 + 24; ADR 019, #439)
 - C9 — Evidence persists: the deploy record, the scenario set, every typed response,
   the sign-off, and the defect report when there is one (config-gated like every play's
   evidence).
+- C10 — The deploy record's reachable target must match the epic's declared
+  `surface.type` per `surface-contract.md`, checked before the human is asked to accept
+  anything. A `web_dashboard` or `server_api` surface needs a real reachable target — a
+  local URL, a preview URL, or the declared server endpoint; a local command
+  (`python3 ...`) or a JSON-artifact path satisfies only `cli`. A deploy target whose
+  shape can't satisfy the declared surface is REJECTED before HITL, never stood up for the
+  human to sign off on.
+- C11 — Every HITL scenario preserves the user verb of the `must_open` artifact it covers
+  per `surface-contract.md`: "open the Formula reference" is covered by a scenario that
+  opens it, never by one that runs `python3 -m unittest`. A scenario whose verb does not
+  match the surface is a semantic mismatch and is rejected before the walk — the scenario
+  set is rebuilt to preserve the surface's verbs.
 
 ### Failure conditions
 
@@ -74,6 +86,12 @@ decisions 20 + 24; ADR 019, #439)
 - F7 — The epic was stamped `delivered` before the merge landed, was not stamped
   `delivered` after it, or was deleted at all.
 - F8 — Launch executed a production rollout itself.
+- F9 — Launch accepted a deploy target that doesn't match the epic's surface — a local
+  command or a JSON-artifact path stood in for an openable dashboard or callable API — and
+  asked the human to accept it instead of rejecting it before HITL.
+- F10 — A HITL scenario covered a `must_open` artifact with the wrong user verb — a
+  unit-test run stood in for an "open" check — and the walk presented it anyway instead of
+  rejecting the verb mismatch before the human ever saw it.
 
 ## Expectation
 
@@ -121,3 +139,12 @@ decisions 20 + 24; ADR 019, #439)
   execute the delivered stamp — merge always first. handoff: autonomous.
 - REC8 (F8) — trigger: a production rollout attempted. direction: stop it; record the
   handoff — prod belongs to CD from main. handoff: autonomous.
+- REC9 (F9) — trigger: the deploy record's reachable target shape doesn't satisfy the
+  epic's `surface.type` — a local command or JSON-artifact path standing in for a
+  web_dashboard/server_api surface. direction: reject before HITL; require a real reachable
+  target for the declared surface (a local/preview URL or the declared endpoint), redeploy
+  per the run lens, and re-check the shape before any scenario is shown. handoff: human.
+- REC10 (F10) — trigger: a HITL scenario's verb doesn't preserve the `must_open`
+  artifact's user verb — a unit-test run covering an "open" check. direction: reject before
+  the walk; rebuild the scenario set so each scenario preserves the surface's verb for the
+  artifact it covers, then re-run the coverage and verb gate. handoff: autonomous.

@@ -10,7 +10,7 @@ Proves the run's own discipline over the captured artifacts before close:
   stamp     — the epic file's status equals the verdict (F6: a failed run
               carries fix_required; a clean run carries validated).
   surgical  — against the pre-stamp snapshot, the epic differs ONLY in
-              `status` and `metadata.version` (F11).
+              `status`, `metadata.version`, and (on a pass) `surface_verified` (F11).
   report    — on fix_required, report.yaml + report.md exist and every finding
               carries citation + location (F7 downstream guard).
 
@@ -81,12 +81,24 @@ def main():
     # --- surgical write (F11) ------------------------------------------------------
     before_doc = load_yaml(args.epic_before)
     before = before_doc.get("epic") or before_doc
+    verdict_pass = verdict.get("verdict") == "validated"
     for key in set(list(before.keys()) + list(after.keys())):
         if key in ("status", "metadata"):
             continue
+        if key == "surface_verified":
+            # the stamp may flip surface_verified to true on a PASS only (the
+            # surface-parity gate passed, surface-contract.md / ADR 022); on a
+            # fail it must be untouched.
+            if verdict_pass and after.get(key) is True:
+                continue
+            if not verdict_pass and before.get(key) == after.get(key):
+                continue
+            errors.append("surface_verified may only be stamped true on a "
+                          "validated verdict (F11)")
+            continue
         if before.get(key) != after.get(key):
             errors.append(f"epic field '{key}' changed — the stamp is status + "
-                          "metadata only (F11)")
+                          "metadata (+ surface_verified on a pass) only (F11)")
     meta_b = dict(before.get("metadata") or {})
     meta_a = dict(after.get("metadata") or {})
     meta_b.pop("version", None)

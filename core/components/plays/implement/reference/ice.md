@@ -117,6 +117,15 @@ a resume: the issue and branch already exist; nothing is duplicated.
   ends. These are a context-optimization device — the model authors the
   implementation prompt better than a fixed one — never durable components, and
   they never widen the box beyond the spec.
+- C19 — The build spec never downgrades the epic's declared surface. Per
+  `surface-contract.md`, user-facing surfaces (web_dashboard, server_api, cli)
+  rank above non-user-facing ones (service_read_model, library); a spec whose
+  surface is BELOW the epic's declared `surface.type` is a downgrade — the
+  play halts at the spec-approval gate and builds the lower surface only on
+  explicit human approval of a recut, never silently. A missing surface (a
+  legacy epic cut before ADR 022) is unknown, not a default: it is DECLARED
+  before building, never assumed to be `service_read_model` or any other value.
+  Building the same or a higher surface than declared is fine.
 
 ### Failure conditions
 
@@ -153,6 +162,9 @@ a resume: the issue and branch already exist; nothing is duplicated.
   balloons past the readable bound, or omits a boundary the build needs — a rule,
   pattern, design decision, or configuration like a port — so the alignment it
   was meant to carry is false.
+- F15 — implement builds a spec whose surface is below the epic's declared
+  `surface.type` without human approval — the promised user surface is silently
+  downgraded to a local service/read-model.
 
 ## Expectation
 
@@ -275,3 +287,10 @@ a resume: the issue and branch already exist; nothing is duplicated.
   boundary document — trim code to references, cut to the bound, and add the
   missing rule, pattern, design, or config — then return it to the human for
   approval before building. handoff: human.
+- REC15 (F15) — trigger: the generated spec's surface is below the epic's
+  declared `surface.type` (a downgrade), or the epic has no declared surface.
+  direction: halt at the spec-approval gate and present the downgrade — the
+  spec's surface beside the epic's promised surface per `surface-contract.md`;
+  build the lower surface only on explicit human approval of a recut, else
+  regenerate the spec preserving the declared surface; for a missing surface,
+  have it declared before building, never defaulted. handoff: human.

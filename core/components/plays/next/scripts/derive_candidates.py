@@ -18,6 +18,9 @@ The tree (framed with the user, #434 follow-on):
       -> architecture -> measure -> run ................ that lens play
   REPAIR: slice realized but a lens missing ............ the missing lens play
       (blocks grill/implement on that slice — carries the blocker flag)
+  REPAIR: slice carries surface debt ................... re-validate the surface
+      (a delivered user-facing epic; withholds further execute epics of the
+       slice until the required surface is re-checked — surface-contract.md)
   realized slice, never grilled ........................ /grill {slice}
   epics: fix_required .................................. /implement (fix round)
          ready + deps delivered ........................ /implement {epic}
@@ -47,6 +50,12 @@ LENS_PLAY = {"quality": "quality", "ux": "ux", "agentic": "agentic",
 LANE_RANK = {"repair": 0, "execute": 1, "grill": 2, "foundation": 3,
              "lens": 4, "strategy": 5, "learning": 6, "refresh": 7}
 EPIC_STATUSES = {"ready", "in_delivery", "validated", "fix_required", "delivered"}
+# surface-contract.md taxonomy: the user-facing types carry a run surface a human
+# can open/call/run; the others do not. A `delivered` epic with a user-facing
+# surface is the deterministic signal of surface debt (the model records no
+# "delivered surface" field, so a delivered user-facing epic is the weaker-but-real
+# signal that surface repair must precede further execute work in that slice).
+USER_FACING_SURFACES = {"web_dashboard", "server_api", "cli"}
 
 
 def cand(cid, play, command, target, lane, status="runnable", blocker=None,
@@ -233,6 +242,47 @@ def derive(state):
                     fully_delivered.append(ref)
                     learning_targets.append((domain, sl, order))
                 epic_by_id = {e["id"]: e for e in epics}
+
+                # -- surface debt (C11/F8): a delivered epic with a required
+                # user-facing surface whose surface-parity check never passed leaves
+                # the slice in surface debt. The deterministic signal is the epic's
+                # surface_verified stamp: /validate sets it true only when the
+                # required surface was measured and matched (surface-contract.md), so
+                # a delivered user-facing epic with surface_verified != true is a
+                # surface that was downgraded or never measured (e.g. a legacy epic
+                # delivered before ADR 022). A delivered user-facing epic that IS
+                # surface_verified shipped its surface and carries no debt. While debt
+                # is open, the next execute epic in the slice is WITHHELD and a
+                # surface-repair action takes priority — later epics stop compounding
+                # the downgrade. Same repair-takes-the-NBA machinery as
+                # C5/realized-but-lens-missing.
+                debt_epics = sorted(
+                    (e for e in epics
+                     if e["status"] == "delivered"
+                     and e.get("surface_type") in USER_FACING_SURFACES
+                     and not e.get("surface_verified")),
+                    key=lambda e: (e.get("order") or 0, e["id"]))
+                surface_debt = bool(debt_epics)
+                if surface_debt:
+                    debt_ids = [e["id"] for e in debt_epics]
+                    inconsistencies.append({
+                        "kind": "surface-debt", "target": ref,
+                        "detail": "slice carries surface debt: delivered epic(s) "
+                                  f"{', '.join(debt_ids)} declare a user-facing "
+                                  "surface that may not have been delivered at its "
+                                  "declared type (surface-contract.md) — the surface "
+                                  "repair takes priority and further execute epics "
+                                  "are withheld until it clears"})
+                    candidates.append(cand(
+                        f"repair/{ref}/surface", "validate",
+                        f"/validate --epic {ref}/{debt_ids[0]}", ref, "repair",
+                        gates=["slice carries surface debt: delivered user-facing "
+                               f"epic(s) {', '.join(debt_ids)} — required surface "
+                               "must be re-checked before more epics build on it"],
+                        order_hint=order, repair=True,
+                        unblocks=[f"every further execute epic of {ref} "
+                                  "(withheld while surface debt is open)"]))
+
                 for e in sorted(epics, key=lambda e: (e.get("order") or 0, e["id"])):
                     eref = f"{ref}/{e['id']}"
                     st = e["status"]
@@ -255,6 +305,24 @@ def derive(state):
                         inconsistencies.append({
                             "kind": "epic-missing-issue-ref", "target": eref,
                             "detail": f"epic is '{st}' but carries no issue_ref"})
+                    # surface debt withholds every further execute epic of the
+                    # slice (C11/F8): a live epic stays VISIBLE as a blocked
+                    # candidate naming the debt, never runnable, until the surface
+                    # repair clears it — same shape as the lens-missing block.
+                    if surface_debt and st != "delivered":
+                        candidates.append(cand(
+                            f"execute/{eref}", "implement",
+                            f"/implement --epic {eref}", eref, "execute",
+                            status="blocked",
+                            blocker=f"slice {ref} carries surface debt "
+                                    f"(delivered user-facing epic(s) "
+                                    f"{', '.join(debt_ids)}) — repair the surface "
+                                    "first; further execute epics are withheld",
+                            gates=[f"epic status '{st}', order {e.get('order')}",
+                                   "surface debt blocks further execute work "
+                                   "(surface-contract.md)"],
+                            order_hint=order, parallel=parallel))
+                        continue
                     if st == "ready":
                         if undelivered:
                             candidates.append(cand(

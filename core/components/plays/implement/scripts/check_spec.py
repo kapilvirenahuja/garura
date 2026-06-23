@@ -21,9 +21,23 @@ the RIGHT ones) stays with the human at the approval gate; this does the countin
               bound it is no longer a crisp boundary doc — it is drifting toward
               code/spec-bloat (F14). Defaults: ~1-2 pages.
 
+When --epic-file is given, the script also runs the SURFACE-DOWNGRADE gate
+(C19/F15, surface-contract.md). It reads the epic's declared `surface.type` and
+the spec's own declared surface (a `Surface: <type>` line), and compares them by
+the contract's ordering:
+
+  web_dashboard | server_api | cli   (rank 2, user-facing)
+  service_read_model | library       (rank 1, non-user-facing)
+
+A spec surface BELOW the epic's declared surface is a DOWNGRADE — the build is
+halted for explicit human approval of a recut, never built silently. A missing
+epic surface (legacy epic) or a missing/unknown spec surface is a hard error:
+the surface must be DECLARED before building, never defaulted.
+
 Layer rule: reads files on disk only; no git/gh/network.
 
-    python3 check_spec.py --spec <spec.md> [--max-lines 160] [--max-words 1100]
+    python3 check_spec.py --spec <spec.md> [--epic-file <epic.yaml>]
+                          [--max-lines 160] [--max-words 1100]
 
 Prints {ok, errors[], warnings[], counts{}} JSON. Exit 0 clean, 1 gaps, 2 usage.
 """
@@ -38,6 +52,13 @@ ICE_SECTIONS = ("intent", "context", "expectation")
 FENCE = re.compile(r"(?m)^\s*(```|~~~)")
 HEADER = re.compile(r"(?m)^(#{1,6})\s+(.*)$")
 
+# surface-contract.md ordering: user-facing ranks above non-user-facing.
+SURFACE_RANK = {
+    "web_dashboard": 2, "server_api": 2, "cli": 2,
+    "service_read_model": 1, "library": 1,
+}
+SURFACE_LINE = re.compile(r"(?im)^\s*[-*]?\s*surface\s*[:=]\s*([a-z_]+)")
+
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Crisp ICE-spec boundary gate for /implement.")
@@ -46,6 +67,8 @@ def main(argv=None):
                     help="hard line cap — over this the spec is no longer crisp (default 160)")
     ap.add_argument("--max-words", type=int, default=1100,
                     help="hard word cap (~1-2 pages; default 1100)")
+    ap.add_argument("--epic-file",
+                    help="epic yaml — enables the surface-downgrade gate (C19/F15)")
     args = ap.parse_args(argv)
 
     errors, warnings = [], []
@@ -99,6 +122,36 @@ def main(argv=None):
         warnings.append(f"spec is {counts['lines']} lines — close to the {args.max_lines} "
                         f"cap; keep it crisp")
 
+    # Surface-downgrade gate (C19/F15, surface-contract.md). The spec must not
+    # promise a lower user surface than the epic declared, and a legacy epic with
+    # no surface must declare one before the build runs.
+    if args.epic_file:
+        epic_surface = _epic_surface(args.epic_file)
+        spec_surface = _spec_surface(text)
+        counts["epic_surface"] = epic_surface
+        counts["spec_surface"] = spec_surface
+        if epic_surface is None:
+            errors.append("epic declares no surface (legacy epic, ADR 022) — the surface "
+                          "is unknown, not a default: declare it before building, never "
+                          "assume service_read_model or any other value (C19/F15)")
+        elif epic_surface not in SURFACE_RANK:
+            errors.append(f"epic surface.type '{epic_surface}' is not in the "
+                          f"surface-contract taxonomy (C19/F15)")
+        if spec_surface is None:
+            errors.append("spec declares no surface — add a 'Surface: <type>' line so the "
+                          "build's surface can be compared to the epic's declared surface "
+                          "(C19/F15)")
+        elif spec_surface not in SURFACE_RANK:
+            errors.append(f"spec surface '{spec_surface}' is not in the surface-contract "
+                          f"taxonomy (C19/F15)")
+        if (epic_surface in SURFACE_RANK and spec_surface in SURFACE_RANK
+                and SURFACE_RANK[spec_surface] < SURFACE_RANK[epic_surface]):
+            errors.append(f"surface DOWNGRADE: spec surface '{spec_surface}' is below the "
+                          f"epic's declared '{epic_surface}' — the promised user surface "
+                          f"would be silently downgraded. Halt for explicit human approval "
+                          f"of a recut, or regenerate the spec preserving '{epic_surface}' "
+                          f"(C19/F15, surface-contract.md)")
+
     ok = not errors
     print(json.dumps({"ok": ok, "errors": errors, "warnings": warnings,
                       "counts": counts}, indent=2))
@@ -120,6 +173,28 @@ def _section_body(text, title):
         if len(nxt.group(1)) <= level:
             return text[start:start + nxt.start()]
     return text[start:]
+
+
+def _epic_surface(epic_file):
+    """The epic's declared surface.type, or None when absent/unreadable (legacy)."""
+    try:
+        import yaml
+        with open(epic_file, encoding="utf-8") as fh:
+            data = yaml.safe_load(fh) or {}
+    except Exception:
+        return None
+    epic = data.get("epic", data) if isinstance(data, dict) else {}
+    surface = epic.get("surface") if isinstance(epic, dict) else None
+    if not isinstance(surface, dict):
+        return None
+    t = surface.get("type")
+    return t.strip() if isinstance(t, str) and t.strip() else None
+
+
+def _spec_surface(text):
+    """The spec's declared surface from a 'Surface: <type>' line, or None."""
+    m = SURFACE_LINE.search(text)
+    return m.group(1).strip().lower() if m else None
 
 
 if __name__ == "__main__":

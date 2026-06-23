@@ -35,10 +35,17 @@ epic:
     persona: []             # actor types in scope for this epic
     systems: []             # systems this epic touches
     scope: []               # the rules that bound this epic
+  surface:                  # the user-facing surface this epic delivers — DECLARED at cut, never re-derived downstream (ADR 022)
+    type: string            # one of: web_dashboard | server_api | cli | library | service_read_model
+                            #   web_dashboard / server_api / cli = user-facing (a human can open/call/run it)
+                            #   library / service_read_model     = non-user-facing (no run surface; declared explicitly, never a silent default)
+    human_run_target: string  # how a human reaches it: a URL/endpoint shape (dashboard/api), the command (cli), or "n/a" (library/service_read_model)
+    must_open: []           # the concrete user-reachable artifacts promised (e.g. "Team data coverage dashboard", "Formula reference page") — what /validate and /launch check coverage against; empty only for library/service_read_model
   acceptance: []            # acceptance criteria — done when these pass
   depends_on: [string]      # other epic ids that must ship first (acyclic)
   order: integer            # delivery order within the slice (unique, positive)
   status: string            # one of: ready | in_delivery | validated | fix_required | delivered
+  surface_verified: bool    # /validate stamps true when the required surface-parity check passed (surface-contract.md); absent/false = the required surface was never measured (legacy epic, or a downgrade). /next reads this: a delivered user-facing epic with surface_verified != true is surface debt (ADR 022)
   issue_ref: string         # GitHub issue /start opened for this epic; null until started
   metadata:
     created_by: string      # /grill
@@ -57,11 +64,11 @@ epic:
 # ---- Fill rules -------------------------------------------------------------
 fill_rules:
   - play: "/grill"
-    writes: "creates the epic (user-testable cut) with its context, acceptance, order; status ready"
+    writes: "creates the epic (user-testable cut) with its context, surface (type + human_run_target + must_open, declared from the slice intent and user_check), acceptance, order; status ready"
   - play: "/implement"
-    writes: "issue_ref, and status -> in_delivery when the epic is picked up (surgical; also the fix-round re-entry fix_required -> in_delivery)"
+    writes: "issue_ref, and status -> in_delivery when the epic is picked up (surgical; also the fix-round re-entry fix_required -> in_delivery). If surface is absent (legacy epic cut before ADR 022), /implement must have the surface DECLARED before building — never default it silently (a silent default re-creates the downgrade bug)."
   - play: "/validate"
-    writes: "status -> validated (verdict pass) or fix_required (verdict fail) — surgical stamp, status + metadata only"
+    writes: "status -> validated (verdict pass) or fix_required (verdict fail) — surgical stamp, status + metadata only; on a pass, also stamps surface_verified: true (the required surface-parity check ran and matched, per surface-contract.md). A user-facing epic can only reach validated with its surface measured, so validated implies surface_verified."
   - play: "/launch"
     writes: "requires status == validated; its close chain (/merge) writes status -> delivered and KEEPS the epic in place (terminal kept state; never deleted)"
 

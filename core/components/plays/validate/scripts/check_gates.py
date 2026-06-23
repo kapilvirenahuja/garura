@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-check_gates.py — quality-gate + profile-benchmark gate for /validate (C11/F3).
+check_gates.py — quality-gate + profile-benchmark + surface gate for /validate
+(C11/F3, C13/F13).
 
 Green is the entry, the profile floor is the bar
 (KB: technology/validation-floor-profile-benchmarks):
@@ -14,13 +15,24 @@ Green is the entry, the profile floor is the bar
                against the captured `measures`; below the floor = finding,
                regardless of the tool being green. Direction per benchmark:
                floor (>=) or ceiling (<=).
+  surface    — the epic's declared `surface.type` (surface-contract.md) maps to
+               exactly one required runnable check. A captured result must carry
+               `surface_check: <type>` matching the epic's `surface.type` and
+               status pass — a real browser check that opened each `must_open`
+               artifact (web_dashboard), an HTTP/API call to the declared
+               endpoint (server_api), a run of `human_run_target` (cli), or the
+               library/service's own tests. A required surface that was not
+               measured, or whose captured surface result does not match the
+               declared type, is a finding — "no browser/API probes available"
+               does NOT waive the check, it fails it (F13). Verdict ⇒
+               fix_required.
 
 Layer rule: asserts over captured files only; runs nothing.
 
     python3 check_gates.py --quality-lens <quality.yaml> --profile <profile.yaml>
-        --results-dir <dir> --out <gates-map.json>
+        --results-dir <dir> --out <gates-map.json> [--epic-file <epic.yaml>]
 
-Prints {ok, gates[], benchmarks[], findings[], errors[]}.
+Prints {ok, gates[], benchmarks[], surface{}, findings[], errors[]}.
 Exit 0 all satisfied, 1 findings, 2 usage.
 """
 
@@ -48,7 +60,13 @@ def main():
     ap.add_argument("--profile", required=True)
     ap.add_argument("--results-dir", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--epic-file", default=None,
+                    help="the epic.yaml whose surface.type the run must measure (C13/F13)")
     args = ap.parse_args()
+
+    # surface types and whether each requires a user-reachable run surface.
+    SURFACE_REQUIRES_RUN = {"web_dashboard", "server_api", "cli"}
+    SURFACE_ALL = SURFACE_REQUIRES_RUN | {"library", "service_read_model"}
 
     errors = []
     findings = []
@@ -135,8 +153,62 @@ def main():
                                          f"(check '{got['check_id']}')",
                              "location": got.get("raw_log_path") or got["check_id"]})
 
+    # --- surface contract (C13/F13) ---------------------------------------------
+    surface_out = {}
+    if args.epic_file:
+        try:
+            epic_doc = load(args.epic_file)
+            epic = epic_doc.get("epic") or epic_doc
+            surface = epic.get("surface") or {}
+            stype = (surface.get("type") or "").strip()
+        except Exception as exc:
+            stype = ""
+            errors.append(f"epic unreadable for surface check: {exc}")
+        if stype and stype not in SURFACE_ALL:
+            findings.append({"kind": "surface-unknown-type", "id": stype,
+                             "citation": f"epic surface.type '{stype}' is not a "
+                                         "surface-contract type — declare one of "
+                                         f"{sorted(SURFACE_ALL)} (C13)",
+                             "location": args.epic_file})
+        elif stype:
+            # the captured result claiming to measure this surface
+            matched = [r for r in results.values()
+                       if (r or {}).get("surface_check")]
+            for r in matched:
+                if r.get("surface_check") != stype:
+                    findings.append(
+                        {"kind": "surface-mismatch", "id": r.get("check_id"),
+                         "citation": f"captured surface result measures "
+                                     f"'{r.get('surface_check')}' but the epic declares "
+                                     f"surface.type '{stype}' — a {stype} promise is not "
+                                     "measured by a different surface (F13)",
+                         "location": r.get("raw_log_path") or r.get("check_id")})
+            on_type = [r for r in matched if r.get("surface_check") == stype]
+            passing = [r for r in on_type if r.get("status") == "pass"]
+            surface_out = {"type": stype,
+                           "required_run": stype in SURFACE_REQUIRES_RUN,
+                           "measured": bool(passing),
+                           "check_ids": [r.get("check_id") for r in on_type]}
+            if not on_type:
+                findings.append(
+                    {"kind": "surface-unmeasured", "id": stype,
+                     "citation": f"epic declares surface.type '{stype}' but no captured "
+                                 f"result carries surface_check: {stype} — the required "
+                                 "runnable check (surface-contract.md) was never run; "
+                                 "the absence of a probe FAILS the surface, it does not "
+                                 "waive it (F13)",
+                     "location": args.epic_file})
+            elif not passing:
+                worst = on_type[0]
+                findings.append(
+                    {"kind": "surface-failed", "id": stype,
+                     "citation": f"the surface check for '{stype}' did not pass "
+                                 f"(status={worst.get('status')}: {worst.get('summary', '')})",
+                     "location": worst.get("raw_log_path") or worst.get("check_id")})
+
     out = {"ok": not findings and not errors, "gates": gates_out,
-           "benchmarks": bench_out, "findings": findings, "errors": errors}
+           "benchmarks": bench_out, "surface": surface_out,
+           "findings": findings, "errors": errors}
     with open(args.out, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=2)
     print(json.dumps(out, indent=2))
