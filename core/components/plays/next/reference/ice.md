@@ -53,6 +53,11 @@ explanation of why it is recommended and what it unblocks.
 - C9 — Coverage spans the full loop: strategy (vision, understand, shape, roadmap),
   realization (the six lenses), grilling, execution (implement, validate, launch),
   learning (enrich), and strategy refresh once everything is delivered.
+- C10 — The play leaves no working artifacts behind. Its only durable product is the
+  recommendation presented to the user (plus, when evidence recording is on, the
+  evidence record). All transient working files written during the run are deleted
+  once the recommendation has been verified and presented. The evidence record is
+  never deleted.
 
 ### Failure conditions
 
@@ -67,6 +72,8 @@ explanation of why it is recommended and what it unblocks.
   explanation.
 - F6 — A genuinely runnable lane is missed — the candidate set disagrees with what the
   readiness gates over the model actually permit.
+- F7 — Working files survive the run, lingering on disk as a stale recommendation after
+  the model moves on.
 
 ## Expectation
 
@@ -119,3 +126,6 @@ explanation of why it is recommended and what it unblocks.
 - REC6 (F6) — trigger: the readiness gates admit an action the candidate set lacks.
   direction: re-run derivation; if the action is still missing, the derivation rules are
   incomplete — record the gap. handoff: autonomous.
+- REC7 (F7) — trigger: working files remain after the run completes. direction: delete
+  the working folder; the already-presented recommendation is the only product. handoff:
+  autonomous.
