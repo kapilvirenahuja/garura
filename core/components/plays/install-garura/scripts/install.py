@@ -133,6 +133,18 @@ def transform_config(content, project_name, tool):
     return text.strip() + "\n"
 
 
+# Status / resume markers are machine-local and never committed (ADR 021). This
+# ignore file ships inside the .garura tree so the rule travels with every install,
+# covering every status location under it (issue, realize, shaping, product _status).
+STATUS_GITIGNORE = (
+    "# Status / resume markers — machine-local, never committed (ADR 021).\n"
+    "# Plays write these to resume; they sit locally and are never shared via git.\n"
+    "# The durable record is the evidence system (_evidence/), never these.\n"
+    "**/status/\n"
+    "**/_status/\n"
+)
+
+
 # --- the install --------------------------------------------------------------
 
 def install(source, target, tool, force, quiet, memory_dest):
@@ -187,6 +199,12 @@ def install(source, target, tool, force, quiet, memory_dest):
 
     # 5. target STM scaffold
     os.makedirs(os.path.join(target, ".garura", "project", "specs"), exist_ok=True)
+
+    # 5b. status-marker ignore rule — keeps machine-local resume files out of git
+    #     (ADR 021). Idempotent; overwritten on re-run to stay current with source.
+    common.write_text(os.path.join(target, ".garura", ".gitignore"), STATUS_GITIGNORE)
+    record["status_gitignore"] = ".garura/.gitignore"
+    _info("  scaffold: wrote .garura/.gitignore (status markers)")
 
     # 6. instruction surface (CLAUDE.md / AGENTS.md) — owned by the adapter
     src_md = os.path.join(source, "CLAUDE.md")

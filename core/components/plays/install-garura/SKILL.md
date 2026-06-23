@@ -63,8 +63,16 @@ Both tools also get:
   `~/.garura/core/memory/`, the `platform`/`github` lines dropped). Kept on re-run unless
   `--force-config`.
 - `.garura/project/specs/` — an empty STM scaffold.
+- `.garura/.gitignore` — keeps status/resume markers (`**/status/`, `**/_status/`) machine-local
+  and out of git; they sit on disk for resume and are never committed (ADR 021).
 - `.garura/install-manifest.json` — the exact list of what was placed (including the tool and
   any machine-global files), so `uninstall-garura` can reverse precisely this set.
+
+**Direct-edit deviation note (#441/ADR 021):** the `.garura/.gitignore` scaffold artifact and
+its manifest record were added directly to `scripts/install.py` (and its reversal to
+`uninstall-garura/scripts/uninstall.py`) as a mechanical scaffold detail within the play's
+existing "writes the `.garura` tooling tree" intent — no ICE guarantee, eval, or decision
+changed, so this was not routed through a recompile.
 
 **Shared memory** goes to `--memory-dest` (default `~/.garura/core/memory`), machine-global and
 shared across projects; the manifest records the resolved path. Source artifacts whose name

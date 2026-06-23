@@ -125,6 +125,9 @@ def uninstall(target, *, purge, quiet, dry):
     # target-local config the installer wrote (both manifest formats)
     if rec.get("config"):
         rm_file(os.path.join(target, rec["config"]), removed, dry)
+    # status-marker ignore rule the installer wrote (ADR 021)
+    if rec.get("status_gitignore"):
+        rm_file(os.path.join(target, rec["status_gitignore"]), removed, dry)
     # shared memory: only on explicit purge, and only the exact recorded path
     if rec.get("memory"):
         if purge:

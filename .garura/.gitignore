@@ -1,0 +1,6 @@
+# Status / resume markers — machine-local, never committed (ADR 021).
+# Plays write these so an interrupted run can resume; they sit locally on disk,
+# are read only by the same play on its next run, and are never shared via git.
+# The durable record is the evidence system (_evidence/), never these.
+**/status/
+**/_status/
