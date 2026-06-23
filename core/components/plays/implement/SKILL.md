@@ -24,7 +24,7 @@ Implement ↔ validate is expected to loop a few rounds; agents fix, validate fi
 **Pipeline position: start.** The D2 pipeline-position rule
 (`standards/rules/pipeline-position.md`) prepends `start-change` (resolve/create the
 epic's issue, cut the branch off fresh main, optional worktree, init STM). **No end
-sequence is injected**: an epic may only merge — and be deleted — after /validate accepts;
+sequence is injected**: an epic may only merge — and be stamped `delivered` — after /validate accepts;
 the close chain belongs to the validation side of the pipeline, never to this play. This
 source never hand-rolls issue/branch steps — they come only via injection.
 
@@ -638,8 +638,8 @@ issue or branch on a re-run.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:e95029f7ff764eb7e01dd2d360d418e057e0e831fbd67470396c121649b2a7c2 (of `reference/ice.md`) |
-| compiled_by | play-creator (edited via play-editor: crisp-spec approval gate + per-piece context scope) |
+| fingerprint | sha256:0acc1e8bfb295180d5fcf4e4b37d9650d0d3960dbf062c6a4695d2b401deb14e (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor: crisp-spec approval gate + per-piece context scope); epic-lifecycle prose corrected #439 — "deleted" → "stamped delivered" (ADR 019; descriptive, no constraint/eval/scenario changed) |
 | pipeline_position | start (start-change head; NO end sequence — the close belongs after /validate) |
 | workflow_structure | A (MANDATORY spec-approval checkpoint on the initial build — skipped only on a report-bounded fix round; build loop + steelman verify) |
 | domain_agents | 5 (tech-designer, test-engineer, code-builder, evals-engineer, quality-auditor) |

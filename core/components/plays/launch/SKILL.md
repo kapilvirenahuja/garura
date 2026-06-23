@@ -1,7 +1,7 @@
 ---
 name: launch
 position: end
-description: 'Land one VALIDATED epic on a human''s evidenced acceptance — the HITL gate closing the execute pipeline (implement → validate → launch). Brings the increment up live on the run lens''s dev/QA tier (nothing further ahead), builds HITL testing scenarios from the epic''s user_check + acceptance — each telling the human what to RUN and what to TEST — walks them one at a time expecting a typed answer, and only a complete accepted sign-off releases the close chain that merges the epic (then delivered + deleted; prod follows from main via CD). A rejected scenario becomes a defect report on the epic''s tracked issue and stamps the epic fix_required — /implement''s lightweight fix loop, the same seam /validate uses. An agent never signs for the human (#436). The /launch command in the ProductOS command model. Use when a validated epic is ready for human acceptance.'
+description: 'Land one VALIDATED epic on a human''s evidenced acceptance — the HITL gate closing the execute pipeline (implement → validate → launch). Brings the increment up live on the run lens''s dev/QA tier (nothing further ahead), builds HITL testing scenarios from the epic''s user_check + acceptance — each telling the human what to RUN and what to TEST — walks them one at a time expecting a typed answer, and only a complete accepted sign-off releases the close chain that merges the epic (then stamped delivered + kept as the as-delivered record, never deleted; prod follows from main via CD). A rejected scenario becomes a defect report on the epic''s tracked issue and stamps the epic fix_required — /implement''s lightweight fix loop, the same seam /validate uses. An agent never signs for the human (#436). The /launch command in the ProductOS command model. Use when a validated epic is ready for human acceptance.'
 user-invocable: true
 ---
 
@@ -27,9 +27,10 @@ list, the same seam /validate uses.
 **Pipeline position: end.** /launch closes the execute pipeline: it runs on the epic
 branch the pipeline carries, and after the evidenced sign-off the D2 end sequence —
 `commit-change` → `propose-change` → `review-change` → `merge-change` — lands the work.
-After the merge, the epic schema's /merge fill executes: status → `delivered`, then the
-epic record is deleted. Production rollout is never this play's act — it follows from
-main via the run lens's CD. (#434, decisions 20 + 24)
+After the merge, the epic schema's /merge fill executes: status → `delivered`, and the
+epic record is KEPT in place as the as-delivered record — never deleted. Production
+rollout is never this play's act — it follows from main via the run lens's CD. (#434,
+decisions 20 + 24; ADR 019, #439)
 
 ## Compiled From
 
@@ -46,14 +47,15 @@ itself — presenting one scenario at a time and recording the human's typed ans
 YOUR work, never an agent's. You delegate the two operational pieces — standing the
 environment up and authoring the scenarios — via JSON contracts over files on disk, and
 you run every mechanical part (eligibility, coverage, the sign-off validation, the close
-gate, the defect report, the stamps, the delivered+delete fill, the final self-check)
+gate, the defect report, the stamps, the delivered-stamp fill, the final self-check)
 through bundled scripts.
 
 **Forbidden:** answering, paraphrasing, or auto-accepting a scenario for the human
 (forged evidence, #436); running the close chain — or any part of it — before the gate
 script says `release`; deploying or probing beyond the dev/QA tier; touching production;
-deleting the epic before the merge member lands; dropping a rejection instead of
-reporting it on the tracked issue; hand-rolling commit/PR/merge steps (they come only via
+deleting the epic at all, or stamping it delivered before the merge member lands; dropping
+a rejection instead of reporting it on the tracked issue; hand-rolling commit/PR/merge
+steps (they come only via
 the injected end members).
 
 **Agent boundaries:**
@@ -122,7 +124,7 @@ decision; T13–T14 only on `fix_required` — the gate (T7) decides, never the 
 [T9]  propose-change  (injected — end, 2nd)      blockedBy: [T8]   — release only
 [T10] review-change   (injected — end, 3rd)      blockedBy: [T9]   — release only
 [T11] merge-change    (injected — end, 4th)      blockedBy: [T10]  — release only
-[T12] Deliver epic (delivered + delete, script)  blockedBy: [T11]  — release only
+[T12] Deliver epic (stamp delivered, kept, script) blockedBy: [T11]  — release only
 [T13] Defect report + post to issue              blockedBy: [T7]   — fix_required only
 [T14] Stamp fix_required (script)                blockedBy: [T13]  — fix_required only
 [T15] Verify the run (script)                    blockedBy: [T12 or T14, T6]
@@ -245,9 +247,10 @@ python3 scripts/deliver_epic.py --epic-file <epic_file> \
         --delivery-record {working}/delivery.json
 ```
 
-**SE-7 (F7/C7):** exits 0 — it refuses without merged evidence (delete never precedes
-merge), records `delivered`, then deletes the epic record; on the defect path this step
-never runs and the epic survives. Idempotent on resume.
+**SE-7 (F7/C7):** exits 0 — it refuses without merged evidence (the delivered stamp never
+precedes merge), records `delivered` and writes that status back into the kept epic record
+(never deletes it); on the defect path this step never runs and the epic stays as-is.
+Idempotent on resume.
 
 ### Phase: Defect path — fix_required only
 
@@ -293,7 +296,7 @@ happened: the play has no prod step by shape, and `check_launch.py` proves no
 beyond-dev/QA target appears in the deploy record — prod is recorded as following from
 main via CD, nothing more. `check_launch.py` exits 0: end evidence exists iff the gate
 said release (F2); the deploy stayed on the resolved tier (F5); the epic's end-state
-matches the path taken — delivered+deleted on release, present+fix_required on defect
+matches the path taken — delivered+kept on release, present+fix_required on defect
 (F7/F6).
 
 ### Phase: Scenario Validation
@@ -301,8 +304,8 @@ matches the path taken — delivered+deleted on release, present+fix_required on
 **Step 14 — Scenario evals** · Owner: play · Depends on: Step 13
 - **SCE-1 (S1 — product owner, happy launch):** the sign-off record holds every
   scenario with a verbatim typed response, all accepted; end evidence exists for all
-  four members; `deploy.json` cites the lens tier; the epic record is gone and
-  `delivery.json` reads delivered.
+  four members; `deploy.json` cites the lens tier; the epic record is present reading
+  `delivered` and `delivery.json` reads delivered.
 - **SCE-2 (S2 — product owner, rejection):** the issue carries the defect-report
   comment; the epic reads `fix_required`; zero end-sequence evidence exists.
 - **SCE-3 (S3 — auditor, no forged evidence):** `validate_signoff.py` exits 0; any
@@ -374,7 +377,7 @@ Always emitted; never gated.
 | F4 | a scenario maps to nothing, or a criterion has no scenario | rebuild the scenario set from the epic's fields | autonomous |
 | F5 | a deploy target beyond dev/QA or not from the lens | tear down; redeploy per the lens's dev/QA tier | autonomous |
 | F6 | a rejection smoothed over or dropped | build the defect report, post it through the project-tracking role, stamp `fix_required` | autonomous |
-| F7 | the epic deleted before merge, or still present after | restore from the snapshot, or execute the delivered+delete fill — merge always first | autonomous |
+| F7 | the epic deleted at all, stamped delivered before merge, or not stamped delivered after | restore the epic from git if deleted; execute the delivered stamp — merge always first | autonomous |
 | F8 | a production rollout attempted | stop it; record the handoff — prod belongs to CD from main | autonomous |
 
 ## Pause and Resume
@@ -383,15 +386,16 @@ Steps run top to bottom. On entry, resolve config + the epic, check the progress
 at `{stm_base}{issue}/launch/status/progress.json`, skip completed steps, reset any
 in-progress step to pending, and continue. The sign-off record is append-only across
 resumes: an answered scenario is never re-asked, an unanswered one is re-presented. The
-injected end members are themselves resumable. `deliver_epic.py` is idempotent (a
-delivery record with the epic already gone is a clean resume, never an error).
+injected end members are themselves resumable. `deliver_epic.py` is idempotent (an epic
+already stamped `delivered` with its delivery record present is a clean resume, never an
+error).
 
 ## Compilation Metadata
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:81fa88a9f4d006cd649ed1b4d8c4334276cee5ca1007714ae5b45c8dd4e6a49b (of `reference/ice.md`) |
-| compiled_by | play-creator |
+| fingerprint | sha256:da905d3f5fe75cecff48494672e5a007f764320771cba27eaa817c15f732ea37 (of `reference/ice.md`) |
+| compiled_by | play-creator; edited via play-editor (#439, ADR 019 — epic kept on delivery, not deleted) |
 | pipeline_position | end (the execute closer — commit-change → propose-change → review-change → merge-change injected after the sign-off gate; release path only) |
 | workflow_structure | A (the HITL walk is the mandatory human phase — never skippable) |
 | domain_agents | 2 (env-operator — NEW, product-os-keeper) |

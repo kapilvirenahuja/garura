@@ -11,7 +11,7 @@ the two delivery artifacts that ride on top.
 | `decision.yaml` | decision records (ADRs) at any level | permanent |
 | `lens/` (one file per type) | the 5 realize lenses (ux, architecture, run, quality, agentic) | permanent |
 | `slice.yaml` | a vertical product increment — functionalities (across capabilities of one domain) bundled into a usable increment; written by /shape, planned by /roadmap | permanent |
-| `epic.yaml` | a vertical slice of a functionality — the delivery/issue grain | temporary (deleted on merge) |
+| `epic.yaml` | a vertical slice of a functionality — the delivery/issue grain | permanent (stamped `delivered` on merge, kept) |
 | `product-profile.yaml` | the NFR + shape posture of a product; the vocabulary the KB matches conditions against | permanent |
 
 Two "vertical slice" terms, deliberately distinct: a **slice** (`slice.yaml`) is the
@@ -20,8 +20,8 @@ product-increment level — whole functionalities bundled into a usable incremen
 functionality cut end-to-end through its components, from /grill inside a chosen slice.
 
 Storage tiers (see `product-os.yaml` storage layout):
-- **Permanent** (product-os): structure, ICE, decisions, the 5 lenses.
-- **Temporary** (product-os): epics — survive the /grill → /implement boundary, deleted on merge.
+- **Permanent** (product-os): structure, ICE, decisions, the 5 lenses, and epics — epics
+  are stamped `delivered` on merge and kept in place as the as-delivered record (ADR 019).
 - **STM only**: stories, tests, build detail produced by /implement.
 
 Schema evolution is parked for v1: a dedicated schema-evolution play will own it

@@ -12,8 +12,8 @@ lenses (quality → ux → agentic → arch → measure → run) have already so
 `status: realized` by /run — and cut it into **epics**: the ordered, user-testable delivery
 increments the delivery pipeline picks up. /grill sits below /roadmap (which says which
 slice to build next) and above /start (which opens one issue per epic). Epics are
-temporary: kept on the slice only until delivered, deleted on merge — we keep the intent
-and the structure, not the slicing.
+permanent: kept on the slice, stamped `delivered` on merge and kept in place as the
+product model's as-delivered record (ADR 019).
 
 The **grain of an epic is user-testability**, not the functionality: when an epic is
 delivered, a user can open the product, do something, and see it work. An epic may thread
@@ -547,8 +547,10 @@ marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:acba38fd748d1adc5b6a01a958fb11a39c0d3017c2221d210d118c041c370fae (of `reference/ice.md`) |
-| compiled_by | play-creator (#434; edited via play-editor, #436, #437), edited via play-editor (#434, decision 24; closed-schema round-report fix — F14) |
+| fingerprint | sha256:0a9431753f407daf1c9816f24c5f9de71c221012a0289cb2c47cbf705414d1c3 (of `reference/ice.md`) |
+| compiled_by | play-creator (#434; edited via play-editor, #436, #437), edited via play-editor (#434, decision 24; closed-schema round-report fix — F14); epic-lifecycle prose corrected #439 (see deviation note) |
+
+**Direct-edit deviation note (#439, ADR 019):** the epic-lifecycle sentence ("epics are temporary… deleted on merge") was corrected to "epics are permanent… stamped `delivered` on merge and kept" in both `reference/ice.md` and this compiled body, and the fingerprint recomputed to match. This is descriptive context about the epic's downstream life, not grill's own guarantee — no constraint, failure condition, scenario, step, or eval changed; grill still cuts epics and deletes nothing. No re-interview/rebuild required.
 | pipeline_position | both (start-change head; commit-change → propose-change → review-change → merge-change tail — self-contained) |
 | workflow_structure | A (mandatory, non-skippable checkpoint; grilling rounds as a bounded loop in preparation) |
 | domain_agents | 1 (product-os-keeper) |

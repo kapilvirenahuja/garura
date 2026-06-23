@@ -99,9 +99,10 @@ enhance_rules:
   immutable_in_v1: [structure.levels]   # the 3-level shape is fixed for v1
 
 # ---- Storage layout (the product-os folder) --------------------------------
-# Three lifecycle tiers live here:
-#   PERMANENT  — structure, ICE, decisions, the 5 lenses.
-#   TEMPORARY  — epics: written by /grill, deleted when their issue merges.
+# Two lifecycle tiers live here:
+#   PERMANENT  — structure, ICE, decisions, the 5 lenses, and epics: epics are
+#                written by /grill and stamped `delivered` (kept) when their issue
+#                merges — the as-delivered record, never deleted (ADR 019).
 #   (STM, NOT here) — stories, tests, build detail produced by /implement.
 #
 # Per-capability shape:
@@ -114,5 +115,6 @@ enhance_rules:
 #     personas/  journeys/           # persona + journey records
 #     functionalities/{functionality}/
 #       node.yaml  ice.yaml          # functionality node + its build-unit ICE
-#     epics/                         # TEMPORARY — vertical slices awaiting/under
-#                                    # delivery; each deleted on its issue merge
+#     epics/                         # PERMANENT — vertical slices awaiting/under
+#                                    # delivery; stamped `delivered` and kept on
+#                                    # their issue merge (ADR 019)

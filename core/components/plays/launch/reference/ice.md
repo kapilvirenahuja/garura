@@ -10,8 +10,9 @@ acceptance**: bring the increment up live on the slice's run-lens dev/QA tier, b
 HITL testing scenarios from the epic's user_check and acceptance criteria — each telling
 the human what to run and what to test — walk the human through them one at a time
 recording their typed verdict on every scenario, and only a complete, recorded sign-off
-releases the close chain that merges the epic. The epic is then delivered and deleted,
-and production rollout follows from main. An agent never signs for the human.
+releases the close chain that merges the epic. The epic is then stamped `delivered` and
+KEPT in place as the as-delivered record (never deleted), and production rollout follows
+from main. An agent never signs for the human.
 
 /launch is the HITL gate of the execute pipeline (implement → validate → launch) — "this
 HITL is critical". Agents build, agents verify hard, the HUMAN accepts the running
@@ -23,8 +24,9 @@ exact work list, the same seam /validate uses.
 Pipeline position: **end**. /launch is the CLOSER of the execute pipeline: it runs on the
 epic branch the pipeline already carries, and after the evidenced sign-off the D2 rule's
 end sequence (commit-change → propose-change → review-change → merge-change) lands the
-work. After the merge, the epic schema's /merge fill executes: status → delivered, then
-the epic record is deleted. (#434, decisions 20 + 24)
+work. After the merge, the epic schema's /merge fill executes: status → delivered, and
+the epic record is KEPT in place as the as-delivered record — never deleted. (#434,
+decisions 20 + 24; ADR 019, #439)
 
 ### Constraints
 
@@ -48,7 +50,8 @@ the epic record is deleted. (#434, decisions 20 + 24)
   honors — and routes back through the fix loop: the epic stamped `fix_required` with
   the report as the work list, and launch halts unclosed.
 - C7 — After the merge lands, the epic schema's /merge fill executes: status →
-  `delivered`, then the epic record is deleted. Never before the merge.
+  `delivered`; the epic record is KEPT in place as the as-delivered record. The epic is
+  never stamped `delivered` before the merge, and is never deleted.
 - C8 — Launch never performs the production rollout itself — prod follows from main via
   the run lens's CD path. Launch records the handoff, nothing more.
 - C9 — Evidence persists: the deploy record, the scenario set, every typed response,
@@ -68,7 +71,8 @@ the epic record is deleted. (#434, decisions 20 + 24)
   beyond dev/QA was touched.
 - F6 — A rejected scenario was dropped or smoothed over instead of becoming the defect
   report on the tracked issue.
-- F7 — The epic was deleted before the merge, or left undeleted after it.
+- F7 — The epic was stamped `delivered` before the merge landed, was not stamped
+  `delivered` after it, or was deleted at all.
 - F8 — Launch executed a production rollout itself.
 
 ## Expectation
@@ -77,10 +81,11 @@ the epic record is deleted. (#434, decisions 20 + 24)
 
 - S1 — (product owner, happy launch) Given a validated epic, when the increment comes
   up on the run lens's dev/QA tier and the human accepts every scenario, then the close
-  chain merges the epic and it ends delivered and deleted, with production following
+  chain merges the epic and it ends delivered and kept, with production following
   from main. Measure: the sign-off record holds every scenario with a verbatim typed
   response, all accepted; the close-chain evidence exists; the deploy record cites the
-  lens tier; the epic record is gone after merge with delivered recorded in evidence.
+  lens tier; the epic record is present after merge reading `delivered`, with delivered
+  also recorded in evidence.
 - S2 — (product owner, rejection) Given a scenario the human rejects, then a defect
   report lands on the epic's tracked issue via the project-tracking role, the epic is
   stamped `fix_required`, and the close chain never runs. Measure: the issue carries
@@ -111,8 +116,8 @@ the epic record is deleted. (#434, decisions 20 + 24)
 - REC6 (F6) — trigger: a rejection smoothed over or dropped. direction: build the
   defect report, post it through the project-tracking role, stamp `fix_required`.
   handoff: autonomous.
-- REC7 (F7) — trigger: the epic deleted before merge, or still present after.
-  direction: restore from the snapshot, or execute the delivered+delete fill — merge
-  always first. handoff: autonomous.
+- REC7 (F7) — trigger: the epic deleted at all, stamped `delivered` before merge, or not
+  stamped `delivered` after it. direction: restore the epic from git if it was deleted;
+  execute the delivered stamp — merge always first. handoff: autonomous.
 - REC8 (F8) — trigger: a production rollout attempted. direction: stop it; record the
   handoff — prod belongs to CD from main. handoff: autonomous.

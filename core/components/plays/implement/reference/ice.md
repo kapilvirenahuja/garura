@@ -38,8 +38,8 @@ to loop a few rounds; agents fix, validate finds.
 Pipeline position: **start**. The D2 pipeline-position rule prepends
 `start-change` (resolve/create the epic's issue, cut the branch off fresh main,
 optional worktree, init STM). No end sequence is injected — an epic may only
-merge, and be deleted, after /validate accepts; the close chain belongs to the
-validation side of the pipeline, never to this play. On a fix round the head is
+merge, and be stamped `delivered`, after /validate accepts; the close chain
+belongs to the validation side of the pipeline, never to this play. On a fix round the head is
 a resume: the issue and branch already exist; nothing is duplicated.
 
 ### Constraints

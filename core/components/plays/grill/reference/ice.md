@@ -24,8 +24,9 @@ LENS pipeline (quality → ux → agentic) and the FOUNDATION pipeline (arch →
 each merged to main — have solved the slice's
 design and /run has stamped its record `status: realized` — that stamp is the single marker
 /grill checks before it cuts delivery work. /grill then cuts the slice into **epics**: the
-temporary, slice-level delivery units `/start` picks up (opening an issue per epic) and
-`/merge` deletes when delivered. We keep the intent and the structure, not the slicing.
+slice-level delivery units `/start` picks up (opening an issue per epic) and `/merge`
+stamps `delivered` and keeps when landed — the kept epic is the product model's
+as-delivered record (ADR 019).
 
 The **grain of an epic is user-testability**, not the functionality: when an epic is
 delivered, a user must be able to open the product, do something, and see it work. An epic

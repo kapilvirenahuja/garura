@@ -8,10 +8,12 @@
 # Home: {domain}/slices/{slice-id}/epics/{epic-id}.yaml — epics live ON the slice
 # they cut, beside a deferrals.yaml recording what the cut consciously left out.
 #
-# Lifecycle: TEMPORARY. /grill writes the epic into product-os so the execute
+# Lifecycle: PERMANENT. /grill writes the epic into product-os so the execute
 # pipeline can pick it up across the pipeline boundary. When the epic's issue
-# MERGES (at /launch's close chain), the epic is DELETED. We keep the intent and
-# the structure, not the slicing.
+# MERGES (at /launch's close chain), the epic is stamped `delivered` and KEPT in
+# place as the as-delivered record — what shipped, in what order, against what
+# acceptance and user_check. The slicing is part of the product model's delivery
+# history, not throwaway scaffolding. (ADR 019, #439)
 #
 # (v2 locked at the /grill build — slice-level home, functionality_refs plural,
 # user_check, order. This file was reconciled to v2 + validate statuses under
@@ -20,7 +22,7 @@
 schema:
   name: epic
   version: 2
-  persistence: temporary    # held in product-os only until delivered, then deleted
+  persistence: permanent    # kept in product-os; `delivered` is the terminal kept state
 
 epic:
   id: string                # filename == id
@@ -43,14 +45,14 @@ epic:
     version: integer
 
 # ---- Status chain -----------------------------------------------------------
-# ready ──/implement──> in_delivery ──/validate──> validated ──/launch──> delivered (deleted)
+# ready ──/implement──> in_delivery ──/validate──> validated ──/launch──> delivered (kept)
 #                            ^                          │
 #                            └──── fix round ──── fix_required
 #
 # fix_required BLOCKS /launch and re-admits /implement (lightweight fix mode:
 # fix exactly what the validate report names). validated is /launch's hard
-# precondition. delivered is stamped by the close chain's merge, then the epic
-# is deleted.
+# precondition. delivered is stamped by the close chain's merge and is the
+# terminal kept state — the epic stays in place as the as-delivered record.
 
 # ---- Fill rules -------------------------------------------------------------
 fill_rules:
@@ -61,7 +63,7 @@ fill_rules:
   - play: "/validate"
     writes: "status -> validated (verdict pass) or fix_required (verdict fail) — surgical stamp, status + metadata only"
   - play: "/launch"
-    writes: "requires status == validated; its close chain (/merge) writes status -> delivered, then DELETES the epic"
+    writes: "requires status == validated; its close chain (/merge) writes status -> delivered and KEEPS the epic in place (terminal kept state; never deleted)"
 
 # ---- Enhance rules ----------------------------------------------------------
 enhance_rules:
