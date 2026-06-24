@@ -1,6 +1,6 @@
 ---
 name: author-shape-bundle
-description: Draft /shape's selection bundle for one domain — confirm or prune each capability against the firmed profile + KB, select the functionalities to build, author each functionality's build-unit ICE, the persona and journey records, the decisions, AND the domain's vertical slices (usable increments bundling functionalities, referencing their ICE, with a deferred bucket). Writes a draft only, never the live model, with stable ids so re-runs don't duplicate. Slices carry no order/effort/dependencies — that is /roadmap's plan. Generative artifact production for the /shape play.
+description: Draft /shape's selection bundle for one domain — confirm or prune each capability against the firmed profile + KB, select the functionalities to build, author each functionality's build-unit ICE, the persona and USER journey records, the decisions, AND the domain's vertical slices. Every slice is a user-facing vertical — it names at least one surface (screen/view a named persona opens and checks) and journeys run on those surfaces; a backend-only slice is invalid. Surfaces are NAMED, not designed (design is /realize's UX lens). Slices reference functionality ICE, never copy it, and carry no order/effort/dependencies — that is /roadmap's plan. Writes a draft only, never the live model, with stable ids so re-runs don't duplicate. Generative artifact production for the /shape play.
 version: 0.1.0
 user-invocable: false
 model: opus
@@ -57,23 +57,34 @@ ids are non-negotiable.
    `context.systems` inheriting the capability's. Do NOT re-do /understand's
    capability enrichment and do NOT pre-empt /grill's epic acceptance.
 
-5. **Create personas + journeys.** Persona records (who the functionalities serve) and
-   journey records (the ordered steps a persona takes). Both carry **stable ids
-   derived from name/slug** so a re-run resolves to the same record, never a duplicate.
+5. **Create personas + user journeys.** Persona records (who the functionalities serve)
+   and journey records. A journey is a **user journey through a surface** — the ordered
+   steps a persona takes ON a named surface to reach an outcome, never a backend or
+   ingestion pipeline. Each journey lists the `surface_refs` (the slice surface ids it
+   runs on) and its steps happen on those surfaces. Both persona and journey carry
+   **stable ids derived from name/slug** so a re-run resolves to the same record.
 
 6. **Record decisions.** One decision (ADR) per prune and per material selection
    choice, at the right level (capability or functionality).
 
-7. **Compose vertical slices.** Bundle the selected functionalities into the domain's
-   slices (slice v1) — usable increments that may cross capabilities of THIS domain.
-   For each slice: a stable id (from name/slug), a name, an outcome (the usable thing
-   it delivers), an `acceptance_intent`, and a `functionalities` list where each entry
-   carries the `functionality_ref`, the `ice_ref` (the path to that functionality's
-   ICE — a REFERENCE, never a copy), and a `delivery` flag (`full` | `partial`). Add
-   free-text `dependency_notes` if useful. Do NOT set `order`, `effort`, or resolved
-   `depends_on` — that is /roadmap's plan. Every selected functionality must land in at
-   least one slice OR in the `_deferred` bucket (a list of functionality ids parked for
-   later, with a reason). A functionality may appear in more than one slice.
+7. **Compose vertical slices — each with a surface.** Bundle the selected functionalities
+   into the domain's slices (slice v1) — **vertical** increments cut TOWARD a user-facing
+   surface, that may cross capabilities of THIS domain. A slice is vertical only if a user
+   can OPEN a surface and CHECK its outcome; a backend-only slice is invalid. Do NOT cut
+   one slice per capability (an ingestion layer, a rollup layer) — that is horizontal and
+   wrong. For each slice: a stable id (from name/slug), a name, an outcome (the usable
+   thing it delivers), the **`surface`** list — at least one surface, each with a stable
+   `id`, a `name` (e.g. "Team Burn dashboard"), the `persona_ref` who opens it, and the
+   `user_action` (what they do/see on it to check the outcome) — an `acceptance_intent`,
+   and a `functionalities` list where each entry carries the `functionality_ref`, the
+   `ice_ref` (a REFERENCE to the functionality's ICE, never a copy), and a `delivery` flag
+   (`full` | `partial`). **NAME the surface, never DESIGN it** — no wireframes, components,
+   or layout (that is /realize's UX lens). Wire each surface to a journey: every surface
+   id appears in some journey's `surface_refs`. Add free-text `dependency_notes` if useful.
+   Do NOT set `order`, `effort`, or resolved `depends_on` — that is /roadmap's plan. Every
+   selected functionality must land in at least one slice OR in the `_deferred` bucket (a
+   list of functionality ids parked for later, with a reason). A functionality may appear
+   in more than one slice.
 
 8. **Write the draft + manifest.** Write the bundle under `draft_dir` mirroring the
    live model's relative paths, plus a `shape-manifest.yaml` carrying the keep/prune
@@ -101,10 +112,15 @@ A slice file (`slices/{slice-id}.yaml`) references ICE, never copies it:
 
 ```yaml
 slice:
-  id: slice-token-data-spine
+  id: slice-team-burn-dashboard
   domain_ref: ai-usage-intelligence
-  name: "Token data spine"
-  outcome: "Trusted per-tool token burn lands and reconciles"
+  name: "Team burn dashboard"
+  outcome: "A team lead opens a dashboard and sees this week's trusted per-tool burn"
+  surface:                                  # REQUIRED — at least one; named, not designed
+    - id: surface-team-burn-dashboard
+      name: "Team Burn dashboard"
+      persona_ref: persona-team-lead
+      user_action: "open the dashboard and read this week's burn by tool, reconciled to source"
   functionalities:
     - functionality_ref: fn-ai-tool-source-ingest
       ice_ref: product-os/ai-usage-intelligence/tool-burn-accounting/functionalities/ai-tool-source-ingest/ice.yaml
@@ -113,9 +129,25 @@ slice:
       ice_ref: product-os/ai-usage-intelligence/tool-burn-accounting/functionalities/source-token-reconciliation/ice.yaml
       delivery: full
   dependency_notes: "needs the shared trust contract"
-  acceptance_intent: "ingested tokens reconcile to source within tolerance"
+  acceptance_intent: "the team lead can open the dashboard and the shown burn reconciles to source within tolerance"
   status: proposed
   # order / effort / depends_on intentionally absent — /roadmap fills these
+  # NOTE the surface is NAMED, not designed — no wireframe/components (that is /realize)
+```
+
+A journey runs ON a surface — it carries `surface_refs` and its steps happen there:
+
+```yaml
+journey:
+  id: journey-team-lead-reads-weekly-burn
+  name: "Team lead reads the weekly burn"
+  persona_ref: persona-team-lead
+  node_ref: cap-rollup
+  surface_refs: [surface-team-burn-dashboard]   # REQUIRED — the surface(s) it traverses
+  steps:
+    - "open the Team Burn dashboard"
+    - "pick this week and the team"
+    - "read per-tool burn, reconciled to source, with the trend"
 ```
 
 `shape-manifest.yaml`:
@@ -159,6 +191,13 @@ paths, never inline content.
 - **Status + create only.** Draft new functionality/persona/journey/decision records
   and capability status flips; never reparent, rename, or delete a node, and never edit
   a capability beyond its status (C7).
+- **Every slice is a user-facing vertical.** Each slice names at least one surface a
+  persona can open and check; a backend-only or one-per-capability horizontal slice is
+  invalid (C14). NAME the surface (name + persona + user_action); never DESIGN it —
+  wireframes/components/layout are /realize's UX lens, not /shape (C16).
+- **Journeys are user journeys.** Each journey traverses a named surface via `surface_refs`
+  and its steps run on that surface; no backend/ingestion pipelines. Every surface a slice
+  names is reached by at least one journey (C15).
 - **Slices reference ICE.** A slice points at each functionality's ICE by path; it never
   copies ICE content (C11). The functionality ICE stays the single source of truth.
 - **Cover every functionality.** Every selected functionality lands in a slice or the

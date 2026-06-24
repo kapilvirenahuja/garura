@@ -12,6 +12,12 @@ Run over the draft before the checkpoint. Enforces /shape's artifact-side constr
            every journey references a persona that exists and a node_ref.
   - C3/F3  grounding: every kept capability and selected functionality in the manifest
            carries a KB shelf or a proposal — none invented.
+  - C14/F13 surface: every slice is a user-facing vertical — it names >=1 surface
+           (id + name + persona_ref + user_action) a persona can open and check.
+  - C15/F14 user journeys: every journey traverses >=1 surface, and every surface a
+           slice names is reached by at least one journey — no backend-only pipelines.
+  - C16/F15 names not designs: a slice surface carries no design content
+           (wireframe/components/layout/visual/mockup) — that is /realize's UX lens.
 
 Layer rule: reads files on disk only; no git/gh/network.
 
@@ -112,6 +118,7 @@ def main(argv=None):
                 errors.append(f"{p}: persona missing '{f}' (F2)")
 
     # --- journeys ------------------------------------------------------------
+    journey_surface_refs = set()    # surfaces some journey traverses (C15)
     for j in glob.glob(os.path.join(draft_root, "**", "journeys", "*.yaml"), recursive=True):
         counts["journey"] += 1
         jr = (load(j).get("journey") or {})
@@ -123,6 +130,13 @@ def main(argv=None):
             errors.append(f"{j}: journey persona_ref '{pref}' resolves to no persona (F4)")
         if _empty(jr.get("node_ref")):
             errors.append(f"{j}: journey missing node_ref (F4)")
+        # C15/F14 — a journey is a USER journey through a surface, not a backend pipeline
+        surface_refs = jr.get("surface_refs") or []
+        if _empty(surface_refs):
+            errors.append(f"{j}: journey traverses no surface (surface_refs empty) — "
+                          f"a user journey runs on a surface, not a backend pipeline (F14)")
+        for s in surface_refs:
+            journey_surface_refs.add(s)
 
     # --- decisions -----------------------------------------------------------
     for d in glob.glob(os.path.join(draft_root, "**", "decisions", "*.yaml"), recursive=True):
@@ -146,11 +160,13 @@ def main(argv=None):
             if _empty(fn.get("grounding")):
                 errors.append(f"functionality '{fn.get('id','<fn>')}' has no grounding (C3/F3)")
 
-    # --- slices (C11/C12/C13 -> F10/F11/F12) ---------------------------------
+    # --- slices (C11/C12/C13/C14/C16 -> F10/F11/F12/F13/F15) -----------------
     counts["slice"] = 0
     placed_fns = set()              # functionality ids that landed in some slice
+    slice_surface_ids = set()       # surface ids slices declare (C14)
     PLAN_KEYS = ("order", "effort", "depends_on")
     ICE_BODY_KEYS = ("ice", "intent", "context", "expectations")  # signs of copied ICE
+    DESIGN_KEYS = ("wireframe", "components", "layout", "visual", "mockup")  # /realize's UX lens, not /shape (C16)
     for sp in glob.glob(os.path.join(draft_root, "**", "slices", "*.yaml"), recursive=True):
         if os.path.basename(sp) == "_deferred.yaml":
             continue
@@ -163,6 +179,30 @@ def main(argv=None):
         for k in PLAN_KEYS:
             if not _empty(sl.get(k)):
                 errors.append(f"{sp}: slice carries '{k}' — that is /roadmap's plan, not /shape (F12)")
+        # C14/F13 — every slice is a user-facing vertical: it names >=1 surface
+        surfaces = sl.get("surface") or []
+        if _empty(surfaces):
+            errors.append(f"{sp}: slice exposes no user-facing surface — it is not vertical "
+                          f"and cannot be checked by a user (F13)")
+        for surf in surfaces:
+            if not isinstance(surf, dict):
+                errors.append(f"{sp}: surface entry is not a mapping (F2)")
+                continue
+            for f in ("id", "name", "persona_ref", "user_action"):
+                if _empty(surf.get(f)):
+                    errors.append(f"{sp}: surface missing '{f}' (name/persona/what the user does) (F13)")
+            counts["surface"] = counts.get("surface", 0) + 1
+            sid = surf.get("id")
+            if sid:
+                slice_surface_ids.add(sid)
+            spref = surf.get("persona_ref")
+            if not _empty(spref) and spref not in persona_ids:
+                errors.append(f"{sp}: surface persona_ref '{spref}' resolves to no persona (F4)")
+            # C16/F15 — shape NAMES surfaces, it does not DESIGN them
+            for bad in DESIGN_KEYS:
+                if bad in surf:
+                    errors.append(f"{sp}: surface carries design content ('{bad}') — "
+                                  f"/shape names the surface; /realize's UX lens designs it (F15)")
         for entry in sl.get("functionalities") or []:
             if not isinstance(entry, dict):
                 errors.append(f"{sp}: functionality entry is not a mapping (F11)")
@@ -198,6 +238,12 @@ def main(argv=None):
     if unplaced:
         errors.append(f"selected functionalities placed in no slice and not deferred: "
                       f"{sorted(unplaced)} (C12/F10)")
+
+    # C15/F14 — every surface a slice names is reached by at least one user journey
+    unreached = slice_surface_ids - journey_surface_refs
+    if unreached:
+        errors.append(f"slice surfaces no journey reaches: {sorted(unreached)} — "
+                      f"each named surface needs a user journey through it (C15/F14)")
 
     result = {"ok": not errors, "errors": errors, "counts": counts}
     print(json.dumps(result, indent=2))

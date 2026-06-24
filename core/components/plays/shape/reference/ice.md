@@ -9,9 +9,14 @@ Given one domain whose capabilities /understand has enriched and whose product
 profile is firmed (`set`), select what to build: confirm the capabilities that stay
 (and prune the ones that don't), choose the functionalities to build under each kept
 capability, and author each functionality's build-unit ICE, the personas it serves,
-and the journeys those personas travel. Then bundle those functionalities into the
-domain's **vertical slices** — usable product increments that may cross capabilities,
-each referencing its functionalities' ICE (never copying it). /shape selects
+and the **user journeys** those personas travel through the product's surfaces. Then
+bundle those functionalities into the domain's **vertical slices** — usable product
+increments that may cross capabilities, **each exposing at least one user-facing surface
+a named persona can open and check**, and each referencing its functionalities' ICE
+(never copying it). A slice is vertical only when it is testable through a surface; a
+slice with no surface is not a slice. /shape **names** the surface each slice exposes —
+what the persona opens and does on it — but never designs it (wireframes, components, and
+visual layout are /realize's UX lens, not /shape). /shape selects
 **against** the firmed box — it reads the profile to judge fit but never writes it. A
 selection that would need more than the box halts for the human to run /understand.
 One domain per run; one human checkpoint approves the whole selection bundle before
@@ -57,8 +62,9 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
   is superseded by a new record, never overwritten in place.
 - C9 — There is exactly one human checkpoint, presenting the domain's selection bundle
   — kept and pruned capabilities, selected functionalities, personas, journeys, AND the
-  vertical slices (with their bundled functionalities and the deferred bucket). Nothing
-  is persisted before the checkpoint is approved.
+  vertical slices (each with the user-facing surface it exposes, its bundled
+  functionalities, and the deferred bucket). Nothing is persisted before the checkpoint
+  is approved.
 - C10 — Decisions: every prune and every material selection choice is recorded as a
   decision (ADR) at the right level (capability or functionality).
 - C11 — /shape produces the domain's vertical slices: each slice (slice v1) bundles
@@ -72,6 +78,20 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
 - C13 — /shape stops at slice composition. It never writes a slice's `order`, `effort`,
   or resolved `depends_on` — that plan is /roadmap's. Free-text `dependency_notes` on a
   slice are allowed; resolved cross-slice ordering is not.
+- C14 — Every slice is a user-facing vertical: it names at least one **surface** — a
+  screen, view, or interaction a NAMED persona opens and checks — through which the
+  slice's outcome is observable. A slice that exposes no such surface is not a slice and
+  must not be drafted. Slices are cut toward surfaces and MAY cross capabilities; they are
+  never one-slice-per-capability horizontal layers (an ingestion layer, a rollup layer).
+- C15 — Journeys are **user journeys through surfaces**: each journey's ordered steps are
+  what a persona does ON a named surface to reach an outcome — not a backend or ingestion
+  pipeline. Every journey traverses at least one surface, and every surface a slice names
+  is reachable by at least one persona's journey.
+- C16 — /shape **names** surfaces; it never **designs** them. A slice records the surface
+  (its name, the persona who opens it, what they do and see on it). It writes no wireframe,
+  component breakdown, layout, or visual-design content — that is /realize's UX lens. The
+  surface a slice names is a build target for the UX lens to design, not a design /shape
+  produces.
 
 ### Failure conditions
 
@@ -99,6 +119,14 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
   functionality with no resolvable ICE.
 - F12 — /shape wrote a slice's `order`, `effort`, or resolved `depends_on` — it reached
   into /roadmap's plan.
+- F13 — A slice exposes no user-testable surface — it names no screen/view/interaction a
+  persona can open and check (a backend-only or horizontal-layer slice). It is not
+  vertical.
+- F14 — A journey is not a user journey through a surface — its steps are a backend or
+  ingestion pipeline, or it traverses no surface at all; or a slice names a surface that
+  no persona's journey reaches.
+- F15 — /shape designed a surface instead of naming it — it wrote wireframe, component,
+  layout, or visual-design content that belongs to /realize's UX lens.
 
 ## Expectation
 
@@ -145,6 +173,20 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
   selected functionalities are checked, then every one is placed. Measure: the union of
   all slices' `functionality_ref`s and the `_deferred` bucket's functionalities equals
   the set of selected functionalities for the domain; none is missing from both.
+- S9 — (product owner, every slice is user-facing) Given the slices are drafted, when
+  they are inspected, then each names at least one surface a persona can open and check.
+  Measure: every `slices/{id}.yaml` carries a non-empty surface (a name, the persona who
+  opens it, and what they do/see on it); `validate_shape.py` reports zero surface-less
+  slices; no slice maps one-to-one onto a single capability as a horizontal layer.
+- S10 — (user, journeys are real journeys) Given the journeys are drafted, when they are
+  inspected, then each is a user journey whose steps occur on a named surface, and every
+  surface a slice names is reached by some journey. Measure: every journey record
+  references at least one surface its steps traverse; no journey is a pure backend or
+  ingestion pipeline; each slice's named surface appears in at least one journey.
+- S11 — (UX lead, names not designs) Given /shape persisted, when a slice's surface is
+  inspected, then it is named but not designed. Measure: a slice's surface carries a name,
+  a persona, and the user's intent on it, and carries NO wireframe, component, layout, or
+  visual-design content — that is left for /realize's UX lens.
 
 ### Recovery (one per failure condition)
 
@@ -187,3 +229,15 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
 - REC12 (F12) — trigger: a slice carries `order`, `effort`, or resolved `depends_on`.
   direction: strip those fields — /shape composes slices; /roadmap plans them. handoff:
   autonomous.
+- REC13 (F13) — trigger: a slice exposes no user-testable surface. direction: re-cut the
+  slice vertically toward a surface a persona can open and check — name that surface; if
+  the bundled functionalities genuinely serve no surface, fold them into a slice that has
+  one or move them to `_deferred` with a reason. Never persist a surface-less slice.
+  handoff: autonomous.
+- REC14 (F14) — trigger: a journey is not a user journey through a surface, or a named
+  surface no journey reaches. direction: rewrite the journey as the persona's steps on a
+  named surface; if no surface backs it, the slice is mis-cut — apply REC13. Ensure every
+  slice's surface is reached by at least one journey. handoff: autonomous.
+- REC15 (F15) — trigger: /shape wrote surface design (wireframe, component, layout,
+  visual). direction: strip the design down to the surface's name, persona, and user
+  intent; the design is /realize's UX lens, not /shape's. handoff: autonomous.

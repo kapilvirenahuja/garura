@@ -27,8 +27,20 @@ schema:
 slice:
   id: string                # stable, derived from name/slug
   domain_ref: string        # the domain this slice belongs to (slices are domain-scoped)
-  name: string              # e.g. "Token data spine"
+  name: string              # e.g. "Team burn dashboard"
   outcome: string           # one line: the usable thing this increment delivers
+
+  # the user-facing SURFACE(S) this slice exposes — REQUIRED, at least one.
+  # A slice is a VERTICAL increment: a user must be able to OPEN a surface and CHECK the
+  # outcome through it. A slice with no surface is not a slice — it is a backend layer,
+  # which is exactly what /shape must NOT produce. /shape NAMES the surface; /realize's
+  # UX lens DESIGNS it — so NO wireframe/component/layout/visual content lives here, only
+  # the name, who opens it, and what they do/see. Journeys reference these by surface id.
+  surface:
+    - id: string            # stable surface id (journeys point at it via surface_refs)
+      name: string          # e.g. "Team Burn dashboard", "Coverage check view"
+      persona_ref: string   # the persona who opens this surface
+      user_action: string   # what the persona does/sees on it to check the outcome
 
   # the functionalities this slice bundles — REFERENCES, never copies of ICE
   functionalities:
@@ -77,10 +89,13 @@ deferred:
 # ---- Fill rules -------------------------------------------------------------
 fill_rules:
   - play: "/shape"
-    writes: "creates the slices for its one domain — name, outcome, the bundled
-             functionalities (referencing their ICE), dependency_notes,
-             acceptance_intent, delivery full/partial; and the _deferred bucket.
-             Does NOT set order, effort, or resolved depends_on."
+    writes: "creates the slices for its one domain — name, outcome, the user-facing
+             surface(s) each slice exposes (id + name + persona + user_action; named,
+             NOT designed), the bundled functionalities (referencing their ICE),
+             dependency_notes, acceptance_intent, delivery full/partial; and the
+             _deferred bucket. Every slice MUST name at least one surface. Does NOT set
+             order, effort, or resolved depends_on; does NOT design the surface (that is
+             /realize's UX lens)."
   - play: "/roadmap"
     writes: "the plan onto existing slices across all domains — order, effort, and
              resolved depends_on; flips status proposed -> planned (or deferred).

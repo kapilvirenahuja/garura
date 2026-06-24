@@ -53,12 +53,17 @@ persona:
     version: integer
 
 # ---- Journey record (persistent, attached to a node) -----------------------
+# A journey is a USER journey: the ordered steps a persona takes ON a surface to reach
+# an outcome. It is NOT a backend or ingestion pipeline. Every journey traverses at
+# least one surface (surface_refs), and every surface a slice names must be reached by
+# at least one journey. /shape enforces both (C15).
 journey:
   id: string
   name: string            # e.g. "First-time guest checkout"
   persona_ref: string     # whose journey
   node_ref: string        # node (usually capability) this journey belongs to
-  steps: [string]         # ordered steps the persona takes
+  surface_refs: [string]  # the slice surface id(s) this journey runs on — REQUIRED, >=1
+  steps: [string]         # ordered steps the persona takes ON those surfaces
   metadata:
     created_by: string
     version: integer
