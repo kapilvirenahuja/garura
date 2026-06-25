@@ -61,6 +61,18 @@ capabilities:
                           # capability.md shape the linter requires
     one_line: string
     doc: string           # pointer to its capability.md
+    nfr_needs:            # THIS capability's own NFR targets (set by /understand) —
+                          # per-capability, because one capability's need (e.g. uptime)
+                          # can differ from another's. Each dimension carries a `level`
+                          # (none<low<medium<high<xhigh — the roll-up input) plus a
+                          # concrete `target` and `gate`. These roll up MONOTONIC-UP
+                          # (max per dimension across all capabilities) into profile.nfr;
+                          # only the dimensions this capability actually constrains appear.
+      performance:    { level: string, target: string, gate: string }   # e.g. high, "p99 < 150ms", "load test"
+      security:       { level: string, target: string, gate: string }
+      reliability:    { level: string, target: string, gate: string }   # e.g. uptime
+      # ... any of the profile dimensions; omit those this capability does not constrain
+    compliance_needs: [string]   # regimes THIS capability triggers; union'd into profile.compliance
     depends_on: [string]  # ids of OTHER capabilities this one needs
     decisions: [string]
     personas: [string]    # persona record ids attached to this capability
@@ -91,7 +103,11 @@ functionalities:
 # ---- The profile: THE BOX (structured; lives in the spine) ------------------
 # Decision: the profile is structured machine data — levels + gates — so it stays in
 # the spine, not in a grounding doc. (A short rationale per level may live in the
-# domain grounding doc, but the box itself is here.)
+# domain grounding doc, but the box itself is here.) `profile.nfr` is the MONOTONIC-UP
+# roll-up of every capability's `nfr_needs` (each dimension = max level across
+# capabilities); `profile.compliance` is the union of their `compliance_needs`. /understand
+# writes the per-capability needs and rolls them up; an out-of-box move on an already-set
+# box halts for a human decision (recorded as an ADR).
 profile:
   state: string                 # directional (/vision) | set (/understand) | locked (/shape)
   shape:
@@ -151,9 +167,12 @@ fill_rules:
              domain.md and each directional capability.md it authors); writes the
              directional profile."
   - play: "/understand"
-    writes: "promotes each capability to detail: detailed (deepening its capability.md)
-             and adds the `functionalities` entries (with one_line + functionality.md
-             pointers); rolls the profile to state: set. The last detailing step."
+    writes: "promotes each capability to detail: detailed (deepening its capability.md),
+             writes that capability's `nfr_needs` + `compliance_needs`, and adds its
+             `functionalities` entries (with one_line + functionality.md pointers); then
+             rolls the per-capability needs up into the profile, firming it to state: set
+             (out-of-box moves on an already-set box halt for a human decision). The last
+             detailing step."
   - play: "/shape"
     writes: "prioritizes into end-to-end testable verticals — slices index entries (+
              slice records) and the epics — orders delivery; may flip capabilities

@@ -17,10 +17,10 @@ threshold math the orchestrator must never re-reason:
         a product-level decision, and flag out_of_box (the play halts for approval).
   - Never writes `locked` (that is /shape's gate).
 
-Layer rule: reads the current profile + the enrich manifest from disk; writes a
-proposed profile + a roll-up report. No git/gh/network.
+Layer rule: reads the current profile (from the live spine `_spine.yaml`) + the enrich
+manifest from disk; writes a proposed profile + a roll-up report. No git/gh/network.
 
-    python3 rollup_box.py --profile <profile.yaml> --enrich-manifest <enrich-manifest.yaml> \
+    python3 rollup_box.py --spine <_spine.yaml> --enrich-manifest <enrich-manifest.yaml> \
                           --out-profile <proposed-profile.yaml> --out-report <rollup.json>
 
 Exit 0 on success, 2 on usage/parse error. A non-zero exit never means "out of box"
@@ -55,20 +55,20 @@ def load(path):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Roll NFR needs into the profile box.")
-    ap.add_argument("--profile", required=True, help="current profile.yaml")
+    ap.add_argument("--spine", required=True, help="live _spine.yaml (its profile block is the box)")
     ap.add_argument("--enrich-manifest", required=True, help="enrich-manifest.yaml")
     ap.add_argument("--out-profile", required=True, help="where to write the proposed profile")
     ap.add_argument("--out-report", required=True, help="where to write the roll-up report JSON")
     args = ap.parse_args(argv)
 
     try:
-        prof_doc = load(args.profile)
+        spine_doc = load(args.spine)
         man_doc = load(args.enrich_manifest)
     except (OSError, yaml.YAMLError) as exc:
         sys.stderr.write(f"rollup_box.py: cannot read input: {exc}\n")
         sys.exit(2)
 
-    profile = prof_doc.get("profile", prof_doc) if isinstance(prof_doc, dict) else {}
+    profile = (spine_doc.get("profile") or {}) if isinstance(spine_doc, dict) else {}
     enrich = man_doc.get("enrich", man_doc) if isinstance(man_doc, dict) else {}
 
     state_before = (profile.get("state") or "directional").strip().lower()
