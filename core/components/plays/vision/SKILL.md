@@ -49,15 +49,15 @@ approval; writing a functionality, a detailed capability, acceptance criteria, o
 
 `product-os-keeper` is the single **domain agent** this play uses (1 of the ≤5
 budget). No utility agents are needed — git/issue machinery is absent (position none).
-The content-quality judge runs per `grounding-eval.judge.mode`: an isolated sub-agent, a
-different model, or the codex grader — never the orchestrator's own context.
+The content-quality judge always runs as an isolated, clean-context sub-agent
+(optionally on a configured different model) — never the orchestrator's own context.
 
 ## Pre-flight
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
 | Resolve config + `product_base` (`.garura/core/config.yaml`) | — | Hard halt |
-| Resolve `grounding-eval.judge` (mode + external kind/model/dir) | C2 | Default `subagent` if absent |
+| Resolve `grounding-eval.judge` (optional model override) | C2 | Default: sub-agent on the session model |
 | Business goal present (play argument, else interview the user for it) | — | Gather (interview), not a halt |
 
 Resolve the pre-flight facts mechanically with the bundled resolver — do not derive
@@ -70,8 +70,8 @@ python3 scripts/preflight.py --play vision --config .garura/core/config.yaml
 
 It returns one JSON object of facts. /vision reads `product_base` (where the model is
 written — the spine `_spine.yaml` and the grounding docs), `stm_base` (where drafts +
-evidence live), the resolved `grounding-eval.judge` config (which judge runs the
-content eval), and `evidence_record` (the D1 gate). If `product_base` is null, hard halt
+evidence live), the resolved `grounding-eval.judge` config (the optional judge model
+override), and `evidence_record` (the D1 gate). If `product_base` is null, hard halt
 — there is nowhere to seed the model. The business goal is a runtime input: take it from
 the play argument; if absent, interview the user for one before Step 1.
 
@@ -177,13 +177,11 @@ python3 scripts/grounding_check.py --manifest <working>/draft/seed-manifest.yaml
         --proposals-dir <working>/proposals
 ```
 
-Then run the **content-quality eval** over EACH grounding doc, using the judge resolved
-at pre-flight (`grounding-eval.judge.mode`): in `subagent` mode, spawn an isolated
-sub-agent with a clean context handed the judge prompt (`standards/rules/grounding-eval.md`),
-the doc, and the kind's per-section guidance; in `external/model` mode, the same on the
-configured different model; in `external/codex` mode, call `scripts/run_codex_judge.py`
-(doc, kind, `--dir <codex.dir>`, `--guidance <kind template>`, `--out <verdict.json>`).
-Gate every returned verdict:
+Then run the **content-quality eval** over EACH grounding doc: spawn an isolated,
+clean-context sub-agent handed the judge prompt (`standards/rules/grounding-eval.md`),
+the doc, and the kind's per-section guidance (it sees neither the brief nor the
+author's reasoning), on the model from `grounding-eval.judge.model` (default the session
+model). It returns the verdict JSON. Gate every returned verdict:
 
 ```
 python3 scripts/grounding_gate.py --verdict <verdict.json>
@@ -355,7 +353,14 @@ and creates the marker at Step 1.
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |
 | skills_used | search-kb, propose-kb-node, author-vision-seed |
-| scripts | 5 (preflight.py, lint_grounding.py, grounding_check.py, grounding_gate.py, apply_seed.py) + run_codex_judge.py (codex judge mode) |
+| scripts | 5 (preflight.py, lint_grounding.py, grounding_check.py, grounding_gate.py, apply_seed.py) |
 | step_evals | 7 (SE-1…SE-7) |
 | scenario_evals | 4 (SCE-1…SCE-4) |
 | recovery_entries | 6 (one per failure condition; 4 autonomous / 2 human) |
+
+**Direct-edit deviation note (drop-codex-judge):** the content-quality judge dispatch
+was simplified from three modes (subagent / different-model / codex grader) to a single
+isolated sub-agent (with an optional model override). This is an execution-mechanism
+change only — it touches no constraint, failure, scenario, or eval, so the ICE
+(`reference/ice.md`) and the fingerprint are unchanged. The `run_codex_judge.py` script
+was removed. A future rebuild from the ICE need not restore the dropped modes.

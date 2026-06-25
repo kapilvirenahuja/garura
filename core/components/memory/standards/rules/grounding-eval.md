@@ -42,7 +42,7 @@ capability's Functionalities section is by design a brief linked index (detail l
 the child docs), or it asks a functionality to be written as a user story when our rules
 say a functionality is a function, not a story. The guidance closes that gap.
 
-## The judge prompt (used verbatim by every mode)
+## The judge prompt
 
 > You are a skeptical reviewer grading ONE product-model grounding doc for whether a
 > stranger could understand it. You see the doc (and its parent doc if provided) and the
@@ -89,23 +89,18 @@ gate prints each failing criterion with its evidence and fix for the rewrite loo
 verdict missing any of the five criteria fails closed (a judge that drops a criterion
 is not trusted).
 
-## The two judge modes (config: `grounding-eval.judge.mode`)
+## How the judge runs — an isolated sub-agent
 
-The rubric, prompt, verdict, and gate are identical across modes — only WHO runs the
-judge changes. Stronger isolation = less chance of context bleed or reward hacking.
+The judge ALWAYS runs as an in-harness sub-agent spawned with a CLEAN context: it
+receives only the judge prompt + the kind's per-section guidance + the doc (+ parent),
+never the play's context, the brief, or the author's reasoning. The orchestrator spawns
+it; it returns the verdict JSON, which the gate scores. Clean context is what stops
+context bleed and reward hacking.
 
-- **`subagent`** — an in-harness sub-agent spawned with a CLEAN context: it receives
-  only the judge prompt + the doc (+ parent), never the play's context, the brief, or
-  the author's reasoning. The orchestrator spawns it; it returns the verdict JSON.
-- **`external`** — a different model or harness entirely:
-  - `external.kind: model` — a sub-agent forced onto a DIFFERENT model (e.g. Claude
-    Haiku via the sub-agent's model override). Different weights judging the output.
-  - `external.kind: codex` — the codex-cli grader, run in its approved dir
-    (`external.codex.dir`) via `run_codex_judge.py`. A separate process and model —
-    the strongest isolation.
-
-In every mode the judge is handed the same prompt and doc, and returns the same
-verdict JSON, which the same gate scores. The mode is purely a dial on isolation.
+Optionally pin a different model for the sub-agent via `grounding-eval.judge.model`
+(e.g. `claude-haiku-4-5-20251001`) for extra isolation — different weights judging the
+output. Default `inherit` uses the session model. Either way it is a sub-agent, handed
+the same prompt and returning the same verdict shape.
 
 ## Calibration (how we trust the eval itself)
 

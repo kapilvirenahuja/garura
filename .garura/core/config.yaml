@@ -116,18 +116,12 @@ evidence:
 # standards/schemas/product-os/grounding/_content-standard.md. Spec + rubric + judge
 # prompt + verdict shape live at standards/rules/grounding-eval.md.
 grounding-eval:
+  # The content-quality judge ALWAYS runs as an isolated, clean-context sub-agent — it
+  # sees only the doc + rubric + per-section guidance, never the brief or the author's
+  # reasoning, so it cannot reward-hack. Optionally pin a different model for stronger
+  # isolation; omit (inherit) to use the session model.
   judge:
-    # mode a) subagent — an isolated in-harness sub-agent with a CLEAN context (no
-    #                    brief, no author reasoning) so it cannot reward-hack.
-    # mode b) external — a different model / harness entirely (stronger isolation):
-    #                    external.kind: model → a different model (e.g. claude haiku)
-    #                    external.kind: codex → the codex-cli grader in its approved dir
-    mode: subagent          # subagent | external
-    external:
-      kind: model           # model | codex
-      model: claude-haiku-4-5-20251001   # used when kind: model
-      codex:
-        dir: /Users/kapilahuja/cto/dev-os/tools/codex   # codex-cli approved dir
+    model: inherit          # inherit | a claude model id (e.g. claude-haiku-4-5-20251001)
   gate: all-pass            # every judged criterion must be pass|na to proceed
 
 # Product artifacts — parallel to project, not nested (ADR 017 whitelist)
