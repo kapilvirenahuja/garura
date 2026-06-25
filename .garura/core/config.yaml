@@ -110,6 +110,26 @@ craft-ice:
 evidence:
   record: false
 
+# Grounding eval — the content-quality judge over product-model grounding docs
+# (domain/capability/functionality/epic). The linter (lint_grounding.py) checks shape;
+# this judge checks whether each section is actually understandable, scored against
+# standards/schemas/product-os/grounding/_content-standard.md. Spec + rubric + judge
+# prompt + verdict shape live at standards/rules/grounding-eval.md.
+grounding-eval:
+  judge:
+    # mode a) subagent — an isolated in-harness sub-agent with a CLEAN context (no
+    #                    brief, no author reasoning) so it cannot reward-hack.
+    # mode b) external — a different model / harness entirely (stronger isolation):
+    #                    external.kind: model → a different model (e.g. claude haiku)
+    #                    external.kind: codex → the codex-cli grader in its approved dir
+    mode: subagent          # subagent | external
+    external:
+      kind: model           # model | codex
+      model: claude-haiku-4-5-20251001   # used when kind: model
+      codex:
+        dir: /Users/kapilahuja/cto/dev-os/tools/codex   # codex-cli approved dir
+  gate: all-pass            # every judged criterion must be pass|na to proceed
+
 # Product artifacts — parallel to project, not nested (ADR 017 whitelist)
 # Stage-centric sub-folders, one per SDLC stage. Operational artifacts
 # (checkpoints, status, evidence) for product-scoped plays live at the

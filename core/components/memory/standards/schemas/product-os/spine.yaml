@@ -1,0 +1,194 @@
+# Product-OS Spine Schema — v2
+#
+# The SPINE is the single structured map of the product model. You read it FIRST —
+# one read tells you the whole tree, every entry's id/slug/status, the refs that connect
+# everything, the profile, and for every entry a one-line descriptor plus a pointer to
+# its grounding doc. You open a grounding doc (domain.md /
+# capability.md / functionality.md / epic.md) ONLY when you need to understand that
+# one node. Work runs on the spine; grounding is read on demand, one node at a time —
+# nobody reads all the Markdown to navigate or to do a play's job.
+#
+# This is the layer split that fixes the "files hold nothing" problem WITHOUT making
+# traversal expensive:
+#   - SPINE  (this schema, structured)  → structure + connection. Cheap to read whole.
+#   - GROUNDING (Markdown, linted + eval-gated) → meaning. Rich. Read per node.
+#
+# Supersedes the per-node `node.yaml` structural role: the tree's structural fields
+# now live as entries in the spine, not as a file in every folder. Also retires
+# `ice_ref` and the standalone ICE record — ICE content is now written INLINE in the
+# grounding docs (a capability's benefit + boundary, a functionality's acceptance, an
+# epic's full intent/constraints/failures/expectations/context). See the grounding
+# templates under `schemas/product-os/grounding/`.
+
+schema:
+  name: product-os-spine
+  version: 2
+  persistence: permanent
+
+# ---- Where the spine lives --------------------------------------------------
+# One spine file per product, at the product-os root:
+#   product-os/_spine.yaml
+# It MAY shard per domain if a product grows large (product-os/{domain}/_spine.yaml
+# with a root index) — single-file is the default and the starting shape.
+
+# ---- The tree: domain -> capability -> functionality ------------------------
+# Three FIRST-CLASS collections, one per level — the taxonomy IS the structure, there is
+# no generic "node". Each entry carries only its level's structure; its meaning lives in
+# the grounding doc named by `doc`. The parent is named by its real relation: a
+# capability names its `domain`, a functionality names its `capability`. The kind is
+# implied by the collection, so there is no `type` field.
+
+domains:
+  - id: string            # opaque, stable — never changes once assigned
+    slug: string          # human slug (the path is derived from slugs)
+    status: string        # proposed | active | deprecated
+    one_line: string      # the descriptor — what this domain is, readable WITHOUT opening
+                          # the doc. One sentence. This is what makes the spine browsable.
+    doc: string           # pointer to its domain.md, relative to product-os root.
+                          # The linter checks it exists and reads as a Theme doc.
+    decisions: [string]   # decision (ADR) record ids affecting this domain
+    metadata:
+      created_by: string
+      updated_by: string
+      version: integer
+
+capabilities:
+  - id: string
+    slug: string
+    domain: string        # parent DOMAIN id — REQUIRED (the named relation, not "parent")
+    status: string        # proposed | active | deprecated
+    detail: string        # directional (/vision) | detailed (/understand) — drives which
+                          # capability.md shape the linter requires
+    one_line: string
+    doc: string           # pointer to its capability.md
+    depends_on: [string]  # ids of OTHER capabilities this one needs
+    decisions: [string]
+    personas: [string]    # persona record ids attached to this capability
+    journeys: [string]    # journey record ids attached to this capability
+    metadata:
+      created_by: string
+      updated_by: string
+      version: integer
+
+functionalities:
+  - id: string
+    slug: string
+    capability: string    # parent CAPABILITY id — REQUIRED (the named relation)
+    status: string        # proposed | active | deprecated
+    one_line: string
+    doc: string           # pointer to its functionality.md
+    depends_on: [string]  # ids of OTHER functionalities this one needs
+    decisions: [string]
+    metadata:
+      created_by: string
+      updated_by: string
+      version: integer
+
+# Tree rules: exactly three levels, in this order. A domain has no parent; every
+# capability names a domain that exists; every functionality names a capability that
+# exists. The linter enforces that every parent ref resolves.
+
+# ---- The profile: THE BOX (structured; lives in the spine) ------------------
+# Decision: the profile is structured machine data — levels + gates — so it stays in
+# the spine, not in a grounding doc. (A short rationale per level may live in the
+# domain grounding doc, but the box itself is here.)
+profile:
+  state: string                 # directional (/vision) | set (/understand) | locked (/shape)
+  shape:
+    stage: string               # prototype | mvp | internal | public | monetized
+    users: [string]
+    monetization: string
+    surfaces: [string]          # web | mobile | cli | api | desktop | embedded | ...
+  nfr:                          # per dimension: a level AND a gate
+    performance:    { level: string, gate: string }
+    security:       { level: string, gate: string }
+    accessibility:  { level: string, gate: string }
+    scalability:    { level: string, gate: string }
+    reliability:    { level: string, gate: string }
+    privacy:        { level: string, gate: string }
+    observability:  { level: string, gate: string }
+    maintainability:{ level: string, gate: string }
+    # products may carry additional named dimensions (e.g. explainability, accuracy)
+  compliance: [string]
+  quality_vision:
+    statement: string
+    gates: [string]
+
+# ---- Delivery overlays: slices + epics (indexed here, detailed in their files) --
+# Slices and epics are NOT tree nodes — they are delivery groupings over functionalities.
+# The spine INDEXES them (so the map is complete and you can navigate to any of them);
+# their full structured records stay in their own files, and an epic's grounding lives
+# in its epic.md. The spine never duplicates that detail — it points to it.
+slices:
+  - id: string
+    slug: string
+    domain_ref: string
+    status: string        # proposed | planned | realized | deferred
+    order: integer        # set by /roadmap; null until planned
+    functionality_refs: [string]   # functionality node ids this slice bundles
+    record: string        # pointer to the full slice record, e.g.
+                          # "token-dash/slices/usage-data-foundation.yaml" (slice.yaml schema)
+epics:
+  - id: string
+    slug: string
+    slice_ref: string
+    status: string        # ready | in_delivery | validated | fix_required | delivered
+    order: integer        # delivery order within the slice
+    functionality_refs: [string]   # the functionalities this epic delivers (>= 1) — LINKED;
+                                    # the linter rejects an epic naming a functionality the
+                                    # spine does not have
+    surface_type: string  # web_dashboard | server_api | cli | library | service_read_model
+    surface_verified: bool
+    issue_ref: string     # GitHub issue; null until /start
+    doc: string           # pointer to the epic grounding doc, e.g.
+                          # "token-dash/slices/usage-data-foundation/epics/coverage.md"
+
+# ---- Fill rules: which play writes which part of the spine -------------------
+fill_rules:
+  - play: "/vision"
+    writes: "seeds the tree — one `domains` entry + candidate `capabilities` entries
+             (status proposed, detail directional, with one_line + doc pointers to the
+             domain.md and each directional capability.md it authors); writes the
+             directional profile."
+  - play: "/understand"
+    writes: "promotes each capability to detail: detailed (deepening its capability.md)
+             and adds the `functionalities` entries (with one_line + functionality.md
+             pointers); rolls the profile to state: set. The last detailing step."
+  - play: "/shape"
+    writes: "prioritizes into end-to-end testable verticals — slices index entries (+
+             slice records) and the epics — orders delivery; may flip capabilities
+             active; locks the profile. (Reconcile with the existing slice/grill split
+             when /shape is rebuilt.)"
+  - play: "/roadmap"
+    writes: "plans the slices index — order, depends_on resolution, status planned."
+  - play: "/grill"
+    writes: "adds the epics index entries (+ each epic.md grounding doc) cut from a
+             realized slice."
+  - play: "/start … /launch"
+    writes: "epic status chain (ready -> in_delivery -> validated -> delivered),
+             surface_verified, issue_ref — surgical structural stamps."
+  - play: "/learn"
+    writes: "status changes driven by real-world outcomes."
+
+# ---- On-disk layout ---------------------------------------------------------
+# product-os/
+#   _spine.yaml                                  # THIS file's instance — the map
+#   {domain}/
+#     domain.md                                  # grounding (domain template)
+#     {capability}/
+#       capability.md                            # grounding (capability template)
+#       {functionality}/
+#         functionality.md                       # grounding (functionality template)
+#       personas/  journeys/  decisions/         # structured records (referenced by id)
+#     slices/
+#       {slice}.yaml                             # slice record (slice.yaml schema)
+#       {slice}/epics/{epic}.md                  # epic grounding (epic template)
+#       {slice}/lens/{type}.yaml                 # realize lenses (unchanged)
+#
+# Note what is GONE vs v1: per-node `node.yaml` (structure moved into _spine.yaml) and
+# per-node `ice.yaml` (ICE content moved inline into the grounding docs).
+
+# ---- Enhance rules ----------------------------------------------------------
+enhance_rules:
+  governed_by: "PARKED — a dedicated schema-evolution play will own migrations"
+  immutable_in_v2: [domains, capabilities, functionalities]   # the 3-level taxonomy is fixed
