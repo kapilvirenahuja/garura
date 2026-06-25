@@ -1,243 +1,198 @@
 # shape — ICE source
 
 The clean ICE triple this play is compiled from. Update this and recompile via
-play-creator; never hand-edit the compiled SKILL.md.
+play-editor; never hand-edit the compiled SKILL.md.
 
 ## Intent
 
-Given one domain whose capabilities /understand has enriched and whose product
-profile is firmed (`set`), select what to build: confirm the capabilities that stay
-(and prune the ones that don't), choose the functionalities to build under each kept
-capability, and author each functionality's build-unit ICE, the personas it serves,
-and the **user journeys** those personas travel through the product's surfaces. Then
-bundle those functionalities into the domain's **vertical slices** — usable product
-increments that may cross capabilities, **each exposing at least one user-facing surface
-a named persona can open and check**, and each referencing its functionalities' ICE
-(never copying it). A slice is vertical only when it is testable through a surface; a
-slice with no surface is not a slice. /shape **names** the surface each slice exposes —
-what the persona opens and does on it — but never designs it (wireframes, components, and
-visual layout are /realize's UX lens, not /shape). /shape selects
-**against** the firmed box — it reads the profile to judge fit but never writes it. A
-selection that would need more than the box halts for the human to run /understand.
+Given one domain whose capabilities /understand has detailed (each `detail: detailed`
+with its functionalities created) and whose product profile is firmed (`set`), **select
+what to build and compose it into deliverable verticals**. /shape is the **product
+owner**: it confirms the capabilities that stay (and prunes the ones that don't), selects
+which of the functionalities /understand already created to build now, creates the
+personas served and the **user journeys** they travel, and bundles those functionalities
+into the domain's **vertical slices** — usable increments that may cross capabilities,
+each exposing at least one user-facing surface a named persona can open and check.
+
+/shape does NOT create functionalities or author ICE — /understand did that; /shape
+selects among the functionalities that already exist and references them by their spine
+id. It selects **against** the firmed box — it reads the profile to judge fit but never
+writes it (the box is /understand's). And it stops at slice composition: it never orders
+the slices, sizes them, or resolves cross-slice dependencies (that plan is /roadmap's),
+and it never cuts the slices into epics (that is /grill's).
+
+**Always scaffold the UI.** A slice is a vertical only when a user can OPEN a surface and
+CHECK its outcome, so every slice names at least one surface — and that surface is a thin
+**scaffold**, this slice's own piece of the screen, not the whole product UI. The dashboard
+accretes slice by slice; a backend-only slice, a one-per-capability horizontal layer, or a
+"deliver the whole UI at once" slice is invalid. /shape **names** the surface (its name, the
+persona who opens it, what they do on it); it never **designs** it — wireframes, components,
+and layout are /realize's UX lens.
+
 One domain per run; one human checkpoint approves the whole selection bundle before
 anything persists.
-
-/shape produces the **scope map + the slices** — it does NOT order the slices, size
-them, or resolve cross-slice dependencies. That plan (order, effort, dependencies) is
-/roadmap's job. So /shape's output is a product breakdown you can pick a slice from
-and build, not a build sequence.
 
 Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (vision → understand → shape → roadmap): it expects to run on the branch /vision already started, injects no `start-change` head and no close sequence, stops when its work is done, and leaves the branch as-is for the next play to pick up. The close belongs to /roadmap. It writes the persistent product model directly, on the already-started branch. (#437)
 
 ### Constraints
 
-- C1 — Operates on ONE domain per run, on a firmed model: the product profile is
-  `set` (firmed by /understand) and the domain's target capabilities have rich ICE.
-  If the profile is `directional`, or a target capability lacks rich ICE, halt —
-  /shape selects against a firmed model, it does not firm one.
-- C2 — /shape is the selector. For the domain it confirms capabilities
-  (`proposed → active`) or prunes them (`→ deprecated`), selects which
-  functionalities to build, and creates functionality nodes, each functionality's
-  build-unit ICE, the persona records, and the journey records.
-- C3 — Selection is grounded in the profile fit and the KB shelves: every kept
-  capability and every selected functionality traces to a KB shelf, or to a recorded
-  KB-node proposal. No invented functionality.
-- C4 — Schema conformance: functionality nodes conform to product-os v1, functionality
-  ICE to ice v1, personas and journeys to product-os v1, and decisions to decision v1.
-- C5 — Tree integrity: every created functionality's parent is a confirmed (`active`)
-  capability; every functionality ICE `context.persona` reference resolves to a
-  persona record that exists; every journey references existing personas and an
-  existing node.
-- C6 — /shape never writes the product profile — not a level, not a gate, not the
-  state. It selects within the box. A selection that needs more than the box halts
-  for the human to run /understand; /shape cannot redraw the box.
-- C7 — Structural scope: /shape may create functionality nodes and flip a capability's
-  `status` (`proposed → active` / `→ deprecated`). It never reparents or renames an
-  existing node, never creates or deletes a capability or a domain, and never edits a
-  capability node beyond its `status` field.
-- C8 — Re-entrant, idempotent, non-destructive: re-running re-selects against the
-  current box. Functionalities, personas, and journeys carry stable ids (derived from
-  name/slug) and are written skip-if-exists, so a re-run never duplicates them.
-  Pruning marks a node `deprecated` (never hard-deletes); an existing ICE or decision
-  is superseded by a new record, never overwritten in place.
-- C9 — There is exactly one human checkpoint, presenting the domain's selection bundle
-  — kept and pruned capabilities, selected functionalities, personas, journeys, AND the
-  vertical slices (each with the user-facing surface it exposes, its bundled
-  functionalities, and the deferred bucket). Nothing is persisted before the checkpoint
-  is approved.
-- C10 — Decisions: every prune and every material selection choice is recorded as a
-  decision (ADR) at the right level (capability or functionality).
-- C11 — /shape produces the domain's vertical slices: each slice (slice v1) bundles
-  selected functionalities — possibly across capabilities of THIS domain — into a
-  usable increment, with a name, an outcome, an acceptance intent, and a full/partial
-  flag per functionality. A slice REFERENCES each functionality's ICE by path; it never
-  copies ICE content (the functionality ICE stays the single source of truth).
-- C12 — Slice coverage: every selected functionality appears in at least one slice OR
-  in the explicit `_deferred` bucket — nothing selected is left unplaced. A
-  functionality MAY appear in more than one slice (deepened over time).
-- C13 — /shape stops at slice composition. It never writes a slice's `order`, `effort`,
-  or resolved `depends_on` — that plan is /roadmap's. Free-text `dependency_notes` on a
-  slice are allowed; resolved cross-slice ordering is not.
-- C14 — Every slice is a user-facing vertical: it names at least one **surface** — a
-  screen, view, or interaction a NAMED persona opens and checks — through which the
-  slice's outcome is observable. A slice that exposes no such surface is not a slice and
-  must not be drafted. Slices are cut toward surfaces and MAY cross capabilities; they are
-  never one-slice-per-capability horizontal layers (an ingestion layer, a rollup layer).
-- C15 — Journeys are **user journeys through surfaces**: each journey's ordered steps are
-  what a persona does ON a named surface to reach an outcome — not a backend or ingestion
-  pipeline. Every journey traverses at least one surface, and every surface a slice names
-  is reachable by at least one persona's journey.
-- C16 — /shape **names** surfaces; it never **designs** them. A slice records the surface
-  (its name, the persona who opens it, what they do and see on it). It writes no wireframe,
-  component breakdown, layout, or visual-design content — that is /realize's UX lens. The
-  surface a slice names is a build target for the UX lens to design, not a design /shape
-  produces.
+- C1 — Operates on ONE domain per run, on a firmed model: the product profile is `set`
+  (firmed by /understand) and every target capability is `detail: detailed` with its
+  functionalities created. If the profile is `directional`, or a target capability is not
+  detailed, halt — /shape selects against a detailed, firmed model; it never details or
+  firms one.
+- C2 — /shape SELECTS and COMPOSES only. It never creates a functionality or authors ICE
+  (/understand did that), and it never writes the product profile (the box is
+  /understand's). A selection that would need more than the box halts for the human to run
+  /understand; /shape cannot redraw the box.
+- C3 — Grounded: every kept capability and every selected functionality traces to a KB
+  shelf or to a recorded KB-node proposal. No invented selection.
+- C4 — Capability scope: /shape confirms a capability (`proposed → active`) or prunes it
+  (`→ deprecated`) by a `status` flip ONLY. It never reparents or renames a node, never
+  creates or deletes a capability or domain, and never edits a capability beyond its
+  `status`. A prune marks the capability `deprecated` (soft), never a hard delete.
+- C5 — Schema + integrity: the persona, journey, decision, and slice records conform to
+  their schemas; every slice `functionality_ref` resolves to a real functionality in the
+  spine; every journey's persona and surface references resolve.
+- C6 — Placement: every selected functionality lands in at least one slice OR in the
+  explicit `_deferred` bucket — nothing selected is left unplaced. A functionality MAY
+  appear in more than one slice.
+- C7 — Every slice is a user-facing vertical with a scaffolded surface: it names at least
+  one surface a named persona opens and checks, and that surface is a thin UI scaffold —
+  this slice's piece of the screen, not the whole UI. No backend-only slice, no
+  one-per-capability horizontal layer, no "whole UI at once" slice. The product surface
+  accretes slice by slice.
+- C8 — Surfaces are NAMED, not designed: a slice records the surface's name, the persona
+  who opens it, and the user action on it. It writes no wireframe, component breakdown,
+  layout, or visual-design content — that is /realize's UX lens.
+- C9 — Journeys are user journeys through surfaces: each journey's ordered steps are what a
+  persona does ON a named surface (`surface_refs` non-empty), never a backend pipeline; and
+  every surface a slice names is reached by at least one persona's journey.
+- C10 — Slices reference by spine id and carry no plan: a slice points at each functionality
+  by its spine `functionality_ref` (never copies its content), and carries no `order`,
+  `effort`, or resolved `depends_on` — that plan is /roadmap's. Free-text `dependency_notes`
+  are allowed.
+- C11 — Decisions: every prune and every material selection choice is recorded as a decision
+  (ADR) at the right level.
+- C12 — There is exactly one human checkpoint, presenting the domain's selection bundle —
+  kept and pruned capabilities, selected functionalities, personas, journeys, and the
+  vertical slices (each with its surface and bundled functionalities) plus the `_deferred`
+  bucket. Nothing is persisted before the checkpoint is approved.
+- C13 — Non-destructive allowlist: the run writes only capability `status` flips, the new
+  slices, personas, journeys, and decisions, and their refs onto the capabilities. It never
+  changes a functionality, a domain, or the profile. Stable ids (from name/slug) written
+  skip-if-exists mean a re-run never duplicates.
 
 ### Failure conditions
 
-- F1 — The product profile is `directional` (not firmed), or a target capability
-  lacks rich ICE, when /shape runs.
-- F2 — A written functionality, ICE, persona, journey, or decision violates its v1
-  schema.
-- F3 — A selected functionality, or a kept capability, has no grounding in the KB
-  shelves and no recorded proposal — it was invented.
-- F4 — A created functionality is orphaned (its parent is not an `active` capability),
-  a functionality ICE persona reference points to a non-existent persona, or a journey
-  references a missing persona or node.
-- F5 — /shape wrote any field of the product profile — a level, a gate, or the state.
-- F6 — /shape mutated structure beyond its scope — it reparented or renamed a node,
-  created or deleted a capability or domain, or edited a capability node beyond its
-  `status` flip.
-- F7 — A prune hard-deleted a node, ICE, or decision; an existing ICE or decision was
-  overwritten in place instead of superseded; or a re-run duplicated a persona,
-  journey, or functionality.
-- F8 — The selection was persisted without the human approving the checkpoint.
-- F9 — A prune or a material selection was made with no decision recorded.
-- F10 — A selected functionality is in neither a slice nor the `_deferred` bucket — it
-  fell through unplaced.
-- F11 — A slice copied ICE content instead of referencing it by path, or references a
-  functionality with no resolvable ICE.
-- F12 — /shape wrote a slice's `order`, `effort`, or resolved `depends_on` — it reached
-  into /roadmap's plan.
-- F13 — A slice exposes no user-testable surface — it names no screen/view/interaction a
-  persona can open and check (a backend-only or horizontal-layer slice). It is not
-  vertical.
-- F14 — A journey is not a user journey through a surface — its steps are a backend or
-  ingestion pipeline, or it traverses no surface at all; or a slice names a surface that
-  no persona's journey reaches.
-- F15 — /shape designed a surface instead of naming it — it wrote wireframe, component,
+- F1 — The product profile is `directional` (not firmed), or a target capability is not
+  `detail: detailed` (or has no functionalities), when /shape runs.
+- F2 — /shape created a functionality, authored ICE, or wrote any field of the product
+  profile — over-reaching into /understand's scope.
+- F3 — A selected functionality or kept capability has no KB-shelf grounding and no recorded
+  proposal — it was invented.
+- F4 — A capability was edited beyond its `status` flip; or a node was reparented or renamed;
+  or a capability or domain was created or deleted; or a prune hard-deleted instead of
+  marking `deprecated`.
+- F5 — A persona, journey, decision, or slice violates its schema; or a slice
+  `functionality_ref` or a journey reference does not resolve.
+- F6 — A selected functionality is in neither a slice nor the `_deferred` bucket — it fell
+  through unplaced.
+- F7 — A slice exposes no user-testable surface (a backend-only or horizontal-layer slice),
+  or a slice tries to deliver the whole product surface at once instead of a thin scaffold.
+- F8 — /shape designed a surface instead of naming it — it wrote wireframe, component,
   layout, or visual-design content that belongs to /realize's UX lens.
+- F9 — A journey is not a user journey through a surface — its steps are a backend pipeline
+  or it traverses no surface — or a slice names a surface that no journey reaches.
+- F10 — A slice copied a functionality's content instead of referencing it by spine id, or a
+  slice carries `order`, `effort`, or resolved `depends_on`.
+- F11 — A prune or a material selection was made with no decision recorded.
+- F12 — The selection was persisted without the human approving the checkpoint.
+- F13 — Allowlist breach: a functionality, a domain, or the profile changed during the run;
+  or a re-run duplicated a persona, journey, or slice.
 
 ## Expectation
 
 ### Success scenarios
 
-- S1 — (product strategist, first selection) Given a domain with enriched
-  capabilities and a `set` profile, when /shape runs and the checkpoint is approved,
-  then the kept capabilities are `active`, the selected functionalities exist with
-  build-unit ICE, and the personas and journeys are created — all schema-valid.
-  Measure: each kept capability node is `status: active`; each selected functionality
-  node is `type: functionality` with `parent` an active capability and an `ice_ref` to
-  a functionality ICE whose `intent.goals` is non-empty; persona and journey records
-  exist and validate; every artifact validates against its v1 schema.
-- S2 — (architect, grounding) Given the selection is drafted, when functionalities are
-  inspected, then each kept capability and selected functionality traces to a KB shelf
-  or a recorded proposal. Measure: the shape manifest names, for every kept capability
-  and selected functionality, a KB shelf or a proposal file; none is ungrounded.
-- S3 — (product owner, prune is soft) Given a capability is pruned, when /shape
-  persists, then the capability is marked `deprecated` with a recorded decision and is
-  not deleted. Measure: the pruned capability node still exists with `status:
-  deprecated`; a decision record names the prune; no node file was removed.
-- S4 — (reviewer, profile untouched) Given /shape runs, when the model is compared
-  before and after, then no field of the product profile changed. Measure: the
-  `profile.yaml` content is byte-identical before and after the run, and the apply
-  manifest's written set contains no profile path.
-- S5 — (product owner, re-run) Given /shape already ran on the domain, when it runs
-  again, then no persona, journey, or functionality is duplicated. Measure: every
-  persona/journey/functionality id present after the second run was already present
-  after the first; the second run's written set holds only genuinely new selections.
-- S6 — (QA engineer, the checkpoint) Given the selection bundle is ready, when the
-  checkpoint is presented, then it shows the kept and pruned capabilities, the selected
-  functionalities, the personas, the journeys, AND the vertical slices (with the
-  deferred bucket), inline, before any write. Measure: each of those sections —
-  including the slices and any deferred functionalities — is present in the checkpoint;
-  no product-model file was written before the approval.
-- S7 — (delivery lead, slices) Given the selection is drafted, when the slices are
-  inspected, then each slice bundles functionalities into a usable increment and points
-  at their ICE rather than copying it. Measure: each `slices/{id}.yaml` has a name, an
-  outcome, an acceptance_intent, and a non-empty `functionalities` list where every
-  entry carries a `functionality_ref` and an `ice_ref` that resolves to an existing ICE;
-  no slice file embeds ICE body content; no slice carries `order`, `effort`, or resolved
-  `depends_on`.
-- S8 — (planner, full coverage) Given the slices and the deferred bucket, when the
-  selected functionalities are checked, then every one is placed. Measure: the union of
-  all slices' `functionality_ref`s and the `_deferred` bucket's functionalities equals
-  the set of selected functionalities for the domain; none is missing from both.
-- S9 — (product owner, every slice is user-facing) Given the slices are drafted, when
-  they are inspected, then each names at least one surface a persona can open and check.
-  Measure: every `slices/{id}.yaml` carries a non-empty surface (a name, the persona who
-  opens it, and what they do/see on it); `validate_shape.py` reports zero surface-less
-  slices; no slice maps one-to-one onto a single capability as a horizontal layer.
-- S10 — (user, journeys are real journeys) Given the journeys are drafted, when they are
-  inspected, then each is a user journey whose steps occur on a named surface, and every
-  surface a slice names is reached by some journey. Measure: every journey record
-  references at least one surface its steps traverse; no journey is a pure backend or
-  ingestion pipeline; each slice's named surface appears in at least one journey.
-- S11 — (UX lead, names not designs) Given /shape persisted, when a slice's surface is
-  inspected, then it is named but not designed. Measure: a slice's surface carries a name,
-  a persona, and the user's intent on it, and carries NO wireframe, component, layout, or
-  visual-design content — that is left for /realize's UX lens.
+- S1 — (product owner, select + compose) Given a domain with detailed capabilities and a
+  `set` profile, when /shape runs and the checkpoint is approved, then the kept capabilities
+  are `active`, the selected (already-existing) functionalities are placed into slices, and
+  the personas and journeys are created — all schema-valid, and no functionality is created
+  or changed. Measure: each kept capability is `status: active`; each selected functionality
+  already existed in the spine and is referenced by a slice; persona and journey records
+  exist and validate; no functionality entry or doc changed.
+- S2 — (architect, grounding) Given the selection is drafted, when it is inspected, then each
+  kept capability and selected functionality traces to a KB shelf or a recorded proposal.
+  Measure: the shape manifest names, for every kept capability and selected functionality, a
+  KB shelf or a proposal; none is ungrounded.
+- S3 — (product owner, prune is soft) Given a capability is pruned, when /shape persists, then
+  it is marked `deprecated` with a recorded decision and is not deleted. Measure: the pruned
+  capability still exists with `status: deprecated`; a decision names the prune; nothing was
+  removed.
+- S4 — (reviewer, box and functionalities untouched) Given /shape runs, when the model is
+  compared before and after, then no field of the profile changed and no functionality
+  changed. Measure: the profile is byte-identical before and after; the before/after spine
+  diff shows no change to any functionality or domain.
+- S5 — (delivery lead, slices reference by id) Given the slices are drafted, when they are
+  inspected, then each bundles functionalities by spine id and carries no plan. Measure: each
+  slice has a name, an outcome, an acceptance_intent, and a non-empty `functionalities` list
+  whose every `functionality_ref` resolves to a real spine functionality; no slice embeds
+  content; no slice carries `order`, `effort`, or resolved `depends_on`.
+- S6 — (planner, full coverage) Given the slices and the deferred bucket, when the selected
+  functionalities are checked, then every one is placed. Measure: the union of all slices'
+  `functionality_ref`s and the `_deferred` bucket equals the set of selected functionalities;
+  none is missing from both.
+- S7 — (product owner, every slice is a user-facing scaffold) Given the slices are drafted,
+  when they are inspected, then each names at least one surface a persona can open and check,
+  and that surface is a thin scaffold, named not designed. Measure: every slice carries a
+  non-empty surface (name, persona, user_action) with no design content; `validate_shape.py`
+  reports zero surface-less slices and no one-per-capability horizontal slice; every named
+  surface is reached by a journey.
+- S8 — (reviewer, the checkpoint + re-run) Given the bundle is ready, when the checkpoint is
+  presented, then it shows the kept/pruned capabilities, selected functionalities, personas,
+  journeys, and slices (with the deferred bucket) inline before any write; and a re-run adds
+  no duplicates. Measure: each section is present in the checkpoint and no product-model file
+  was written before approval; on a re-run, every persona/journey/slice id already existed.
 
 ### Recovery (one per failure condition)
 
-- REC1 (F1) — trigger: the profile is `directional`, or a target capability lacks rich
-  ICE, at start. direction: halt and route to /understand to firm the profile and
-  enrich the capabilities before /shape runs. handoff: human.
-- REC2 (F2) — trigger: a written functionality, ICE, persona, journey, or decision
-  fails v1 schema validation. direction: re-emit the failing artifact to conform to
-  its schema before the play completes. handoff: autonomous.
-- REC3 (F3) — trigger: a selected functionality or kept capability has neither a KB
-  shelf match nor a proposal. direction: ground it against the KB, or record a
-  propose-kb-node proposal; never keep an invented selection. handoff: autonomous.
-- REC4 (F4) — trigger: an orphaned functionality, a dangling persona reference, or a
-  journey referencing a missing persona/node. direction: repair the references —
-  reparent the functionality under an active capability, create the missing persona,
-  or fix the journey — before persisting. handoff: autonomous.
-- REC5 (F5) — trigger: a write touched the product profile. direction: revert the
-  profile change; an out-of-box need routes to /understand, never to a /shape profile
-  write. handoff: human.
-- REC6 (F6) — trigger: a structural mutation beyond scope (reparent, rename,
-  create/delete a capability/domain, or a non-status capability edit). direction:
-  revert the out-of-scope mutation; /shape creates functionalities and flips
-  capability status only. handoff: autonomous.
-- REC7 (F7) — trigger: a hard delete, an in-place overwrite of an ICE/decision, or a
-  duplicated persona/journey/functionality. direction: restore the deleted/overwritten
-  record, switch the prune to `deprecated`, and de-duplicate by stable id, after a
-  human confirms the restore. handoff: human.
-- REC8 (F8) — trigger: the selection persisted with no checkpoint approval.
-  direction: revert the premature write and re-present the checkpoint; persist only
-  after the human approves. handoff: human.
-- REC9 (F9) — trigger: a prune or material selection with no decision record.
-  direction: write the decision (ADR) for each prune and material selection before
-  persisting. handoff: autonomous.
-- REC10 (F10) — trigger: a selected functionality is in neither a slice nor the
-  `_deferred` bucket. direction: place it — add it to an appropriate slice, or record it
-  in `_deferred` with a reason — before persisting. handoff: autonomous.
-- REC11 (F11) — trigger: a slice copied ICE content, or references a functionality whose
-  ICE does not resolve. direction: replace the copied content with an `ice_ref` path, or
-  fix the reference to point at the real ICE; never duplicate ICE. handoff: autonomous.
-- REC12 (F12) — trigger: a slice carries `order`, `effort`, or resolved `depends_on`.
-  direction: strip those fields — /shape composes slices; /roadmap plans them. handoff:
-  autonomous.
-- REC13 (F13) — trigger: a slice exposes no user-testable surface. direction: re-cut the
-  slice vertically toward a surface a persona can open and check — name that surface; if
-  the bundled functionalities genuinely serve no surface, fold them into a slice that has
-  one or move them to `_deferred` with a reason. Never persist a surface-less slice.
-  handoff: autonomous.
-- REC14 (F14) — trigger: a journey is not a user journey through a surface, or a named
-  surface no journey reaches. direction: rewrite the journey as the persona's steps on a
-  named surface; if no surface backs it, the slice is mis-cut — apply REC13. Ensure every
-  slice's surface is reached by at least one journey. handoff: autonomous.
-- REC15 (F15) — trigger: /shape wrote surface design (wireframe, component, layout,
-  visual). direction: strip the design down to the surface's name, persona, and user
-  intent; the design is /realize's UX lens, not /shape's. handoff: autonomous.
+- REC1 (F1) — trigger: the profile is `directional`, or a target capability is not detailed,
+  at start. direction: halt and route to /understand to firm the profile and detail the
+  capabilities before /shape runs. handoff: human.
+- REC2 (F2) — trigger: /shape created a functionality, authored ICE, or wrote the profile.
+  direction: strip the over-reach — remove the created functionality/ICE, revert the profile
+  write; detailing and the box belong to /understand. handoff: autonomous.
+- REC3 (F3) — trigger: a selected functionality or kept capability has neither a KB-shelf
+  match nor a proposal. direction: ground it against the KB, or record a propose-kb-node
+  proposal; never keep an invented selection. handoff: autonomous.
+- REC4 (F4) — trigger: a capability edited beyond status, a reparent/rename, a
+  create/delete, or a hard-deleted prune. direction: revert the out-of-scope mutation;
+  /shape flips capability status only and prunes soft (`deprecated`). handoff: autonomous.
+- REC5 (F5) — trigger: a persona/journey/decision/slice fails its schema, or a slice/journey
+  reference does not resolve. direction: re-emit the failing record to conform, and fix the
+  reference to point at a real spine functionality/persona/surface. handoff: autonomous.
+- REC6 (F6) — trigger: a selected functionality is in neither a slice nor `_deferred`.
+  direction: place it — add it to an appropriate slice or record it in `_deferred` with a
+  reason — before persisting. handoff: autonomous.
+- REC7 (F7) — trigger: a surface-less/horizontal slice, or a "whole UI at once" slice.
+  direction: re-cut the slice vertically toward one surface a persona opens and checks, as a
+  thin scaffold; fold or defer functionalities that serve no surface. handoff: autonomous.
+- REC8 (F8) — trigger: /shape wrote surface design (wireframe, component, layout, visual).
+  direction: strip the design to the surface's name, persona, and user action; design is
+  /realize's UX lens. handoff: autonomous.
+- REC9 (F9) — trigger: a journey is not a user journey on a surface, or a named surface no
+  journey reaches. direction: rewrite the journey as the persona's steps on a named surface,
+  and ensure every slice's surface is reached by at least one journey. handoff: autonomous.
+- REC10 (F10) — trigger: a slice copied content, or carries `order`/`effort`/`depends_on`.
+  direction: replace copied content with a spine `functionality_ref`, and strip the plan
+  fields — /shape composes, /roadmap plans. handoff: autonomous.
+- REC11 (F11) — trigger: a prune or material selection with no decision. direction: write the
+  decision (ADR) for each before persisting. handoff: autonomous.
+- REC12 (F12) — trigger: the selection persisted with no checkpoint approval. direction:
+  revert the premature write and re-present the checkpoint; persist only after approval.
+  handoff: human.
+- REC13 (F13) — trigger: a functionality/domain/profile changed, or a re-run duplicated a
+  record. direction: restore the changed artifact and re-run writing only /shape's allowlist
+  (status flips, new slices/personas/journeys/decisions), de-duplicating by stable id, after
+  a human confirms the restore. handoff: human.

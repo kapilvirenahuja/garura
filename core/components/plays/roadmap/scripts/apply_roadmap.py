@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-apply_roadmap.py — persist /roadmap's plan onto slices, plan fields only.
+apply_roadmap.py — persist /roadmap's plan onto the SPINE slices, plan fields only.
 
-Run only AFTER the human approves the checkpoint. For each planned slice it does a
-read-modify-write that changes ONLY the plan fields — `order`, `effort`, `depends_on`,
-and `status` (-> `planned`) — preserving every other field (C2/F2, C6/F6). It is handed
-only the plan + the snapshot (for each slice's file path), so it cannot reach a slice's
-composition, ICE, structure, the profile, the lenses, or decisions.
+Run only AFTER the human approves the checkpoint. It read-modify-writes the live
+`_spine.yaml`: for each planned slice it sets ONLY the plan fields — `order`, `effort`,
+`depends_on`, and `status` (-> `planned`) — on that slice's spine index entry, preserving
+every other part of the spine (domains/capabilities/functionalities/profile/epics and the
+slice's own id/slug/domain_ref/functionality_refs/record). The slice RECORDS and grounding
+docs are never opened, so composition is structurally unreachable from here (C2/F2, C6/F6).
 
 Layer rule: pure file writes from disk inputs; no git/gh/network.
 
@@ -27,54 +28,54 @@ except ImportError:
     sys.stderr.write("apply_roadmap.py: PyYAML is required (pip install pyyaml).\n")
     sys.exit(2)
 
+SPINE = "_spine.yaml"
 PLAN_FIELDS = ("order", "effort", "depends_on", "status")
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Persist /roadmap plan (plan fields only).")
+    ap = argparse.ArgumentParser(description="Persist /roadmap plan onto the spine slices.")
     ap.add_argument("--plan", required=True)
-    ap.add_argument("--snapshot", required=True)
+    ap.add_argument("--snapshot", required=True)   # kept for interface parity; not required to write
     ap.add_argument("--product-base", required=True)
     ap.add_argument("--out-manifest", required=True)
     args = ap.parse_args(argv)
 
     try:
         plan = json.load(open(args.plan, encoding="utf-8"))
-        snap = json.load(open(args.snapshot, encoding="utf-8"))
     except (OSError, ValueError) as exc:
-        sys.stderr.write(f"apply_roadmap.py: cannot read inputs: {exc}\n")
+        sys.stderr.write(f"apply_roadmap.py: cannot read plan: {exc}\n")
         sys.exit(2)
 
-    root = os.path.join(args.product_base, "product-os")
-    rel_of = {s["id"]: s["rel"] for s in snap.get("slices", []) if s.get("id")}
+    spine_path = os.path.join(args.product_base, "product-os", SPINE)
+    if not os.path.isfile(spine_path):
+        sys.stderr.write(f"apply_roadmap.py: no spine at {spine_path}\n")
+        sys.exit(2)
+    with open(spine_path, encoding="utf-8") as fh:
+        spine = yaml.safe_load(fh) or {}
+    by_id = {s.get("id"): s for s in (spine.get("slices") or []) if isinstance(s, dict)}
 
-    written, changes = [], []
+    changes, changed = [], False
     for entry in plan.get("plan", []):
         sid = entry["id"]
-        rel = rel_of.get(sid)
-        if not rel:
-            sys.stderr.write(f"apply_roadmap.py: no path for slice '{sid}' in snapshot\n")
+        sl = by_id.get(sid)
+        if sl is None:
+            sys.stderr.write(f"apply_roadmap.py: spine has no slice '{sid}'\n")
             continue
-        sf = os.path.join(root, rel)
-        if not os.path.isfile(sf):
-            sys.stderr.write(f"apply_roadmap.py: slice not found at {sf}\n")
-            continue
-        with open(sf, encoding="utf-8") as fh:
-            doc = yaml.safe_load(fh) or {}
-        sl = doc.get("slice", doc)
         before = {k: sl.get(k) for k in PLAN_FIELDS}
         sl["order"] = entry["order"]
         sl["effort"] = entry["effort"]
         sl["depends_on"] = entry.get("depends_on") or []
         sl["status"] = "planned"
         after = {k: sl.get(k) for k in PLAN_FIELDS}
-        with open(sf, "w", encoding="utf-8") as fh:
-            yaml.safe_dump(doc, fh, sort_keys=False)
         if before != after:
-            written.append(rel)
-        changes.append({"id": sid, "rel": rel, "from": before, "to": after})
+            changed = True
+        changes.append({"id": sid, "from": before, "to": after})
 
-    out = {"written": sorted(set(written)), "changes": changes}
+    if changed:
+        with open(spine_path, "w", encoding="utf-8") as fh:
+            yaml.safe_dump(spine, fh, sort_keys=False, allow_unicode=True)
+
+    out = {"written": [SPINE] if changed else [], "changes": changes}
     with open(args.out_manifest, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=2)
     print(json.dumps(out, indent=2))

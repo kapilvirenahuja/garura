@@ -1,6 +1,6 @@
 ---
 name: author-roadmap
-description: Draft /roadmap's plan over the vertical slices /shape produced — for each slice estimate its effort, resolve its dependency_notes (plus shared functionalities and their ICE depends_on) into concrete depends_on slice ids, and propose a value order. Writes a draft only (plan-draft.yaml in STM), never the live model and never the final order numbers. The judgment for the /roadmap play; the coherent order itself (topological sort, global 1..N, cycle detection) is the play's compute_plan.py, not this skill.
+description: Draft /roadmap's plan over the vertical slices /shape produced — for each slice estimate its effort, resolve its dependency_notes (plus shared functionalities and those functionalities' spine depends_on) into concrete depends_on slice ids, and propose a value order. Writes a draft only (plan-draft.yaml in STM), never the live model and never the final order numbers. The judgment for the /roadmap play; the coherent order itself (topological sort, global 1..N, cycle detection) is the play's compute_plan.py, not this skill.
 version: 0.2.0
 user-invocable: false
 model: opus
@@ -31,7 +31,7 @@ global order.
 | Field | Required | Description |
 |-------|----------|-------------|
 | `snapshot_path` | yes | The `snapshot.json` the play captured — every slice across every domain, with its id, domain_ref, bundled functionality_refs, and dependency_notes. The authoritative list of what to plan. |
-| `product_base` | yes | From config — to resolve each slice's functionalities' ICE for effort + dependency judgment. |
+| `product_base` | yes | From config — to read each slice's functionalities (their `functionality.md` grounding + the spine `depends_on` on their functionality entries) for effort + dependency judgment. |
 | `out_path` | yes | Where to write `plan-draft.yaml` under STM. |
 | `stm_base` | yes | From config. |
 
@@ -45,11 +45,11 @@ discipline is non-negotiable.
 
 2. **Resolve dependencies.** For each slice, decide which OTHER slices it must follow,
    from: its `dependency_notes`, functionalities it shares with another slice, and the
-   `depends_on` on those functionalities' nodes/ICE. Emit them as concrete `depends_on`
-   slice ids. Do NOT invent a dependency the notes/ICE don't support.
+   `depends_on` on those functionalities' spine entries. Emit them as concrete `depends_on`
+   slice ids. Do NOT invent a dependency the notes/grounding don't support.
 
 3. **Estimate effort.** Size each slice (e.g. S / M / L, or points) from what it bundles
-   and the ICE it references. Every slice gets an effort.
+   and the functionality docs it references. Every slice gets an effort.
 
 4. **Propose a value order.** Order the slices most-valuable-first against the product's
    goals. This is only the tie-breaker — the script will still put dependencies first.

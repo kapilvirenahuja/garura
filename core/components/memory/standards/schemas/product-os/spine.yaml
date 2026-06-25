@@ -139,8 +139,12 @@ slices:
   - id: string
     slug: string
     domain_ref: string
-    status: string        # proposed | planned | realized | deferred
-    order: integer        # set by /roadmap; null until planned
+    status: string        # proposed (/shape) | planned (/roadmap) | realized (/run) | deferred
+    order: integer        # /roadmap's global build position; null until planned
+    effort: string        # /roadmap's size estimate; null until planned
+    depends_on: [string]  # other slice ids that must build first (resolved by /roadmap,
+                          # acyclic); [] until planned. The PLAN lives here on the spine
+                          # index, NOT on the slice record (which stays composition-only).
     functionality_refs: [string]   # functionality node ids this slice bundles
     record: string        # pointer to the full slice record, e.g.
                           # "token-dash/slices/usage-data-foundation.yaml" (slice.yaml schema)
@@ -174,10 +178,14 @@ fill_rules:
              (out-of-box moves on an already-set box halt for a human decision). The last
              detailing step."
   - play: "/shape"
-    writes: "prioritizes into end-to-end testable verticals — slices index entries (+
-             slice records) and the epics — orders delivery; may flip capabilities
-             active; locks the profile. (Reconcile with the existing slice/grill split
-             when /shape is rebuilt.)"
+    writes: "SELECTS and COMPOSES (it does not create functionalities — /understand did):
+             confirms/prunes capabilities (status active/deprecated, with a decision);
+             places every functionality into a slice or the _deferred bucket; composes the
+             slices index entries (+ slice records), each bundling functionalities across
+             capabilities behind a user-facing surface (the UI scaffolded incrementally,
+             slice by slice); writes personas + journeys. Leaves the profile untouched
+             (understand is the last to write the box). Does NOT cut epics (/grill) or
+             plan order (/roadmap)."
   - play: "/roadmap"
     writes: "plans the slices index — order, depends_on resolution, status planned."
   - play: "/grill"

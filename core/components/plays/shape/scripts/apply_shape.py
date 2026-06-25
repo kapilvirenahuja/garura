@@ -2,26 +2,26 @@
 """
 apply_shape.py — persist /shape's selection bundle, on a fixed allowlist.
 
-Run only AFTER the human approves the checkpoint. It writes exactly two kinds of change
-and NOTHING else:
+Run only AFTER the human approves the checkpoint. /shape SELECTS and COMPOSES — it never
+creates functionalities and never writes the profile. This writes exactly:
 
-  1. New records — functionality node+ice, persona, journey, decision — copied from the
-     draft skip-if-exists (stable ids mean a re-run touches none of them again, so no
-     duplicates: C8/F7).
-  2. Capability status flips — a read-modify-write that changes ONLY `node.status`
-     (proposed->active / ->deprecated), preserving every other field (C7).
+  1. the live spine `_spine.yaml`, mutated ONLY for:
+       - capability `status` flips (active/deprecated) — status field only, every other
+         capability field preserved; never a functionality, never a domain, never the profile.
+       - persona / journey / decision refs appended onto the flipped capabilities (additive).
+       - new `slices` index entries (skip-if-exists by id).
+  2. the slice / persona / journey / decision RECORD files — copied from the draft
+     skip-if-exists (stable ids → a re-run adds no duplicates).
 
-The script is never handed the profile path, so it physically cannot write the profile
-(C6/F5 — structural). It copies, never deletes, so a prune can only deprecate
-(C8/F7). Structure beyond status + functionality-create is impossible because no other
-node path is in its inputs (C7/F6).
+The profile is never written (defensive: any profile path is refused). The spine's
+`functionalities` and `domains` collections are never touched.
 
 Layer rule: pure file writes from disk inputs; no git/gh/network.
 
     python3 apply_shape.py --draft <draft_dir> --product-base <product_base> \
-                           --manifest <shape-manifest.yaml> --out-manifest <apply-manifest.json>
+        --manifest <shape-manifest.yaml> --out-manifest <apply-manifest.json>
 
-Exit 0 on success, 2 on usage error.
+Exit 0 on success, 2 on usage/parse error.
 """
 
 import argparse
@@ -36,69 +36,99 @@ except ImportError:
     sys.stderr.write("apply_shape.py: PyYAML is required (pip install pyyaml).\n")
     sys.exit(2)
 
+SPINE_NAME = "_spine.yaml"
+REF_LISTS = ("personas", "journeys", "decisions")
+
+
+def load(path):
+    if not os.path.isfile(path):
+        return {}
+    with open(path, encoding="utf-8") as fh:
+        return yaml.safe_load(fh) or {}
+
+
+def find(entries, eid):
+    for e in entries:
+        if isinstance(e, dict) and e.get("id") == eid:
+            return e
+    return None
+
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Persist /shape on a fixed allowlist.")
     ap.add_argument("--draft", required=True)
     ap.add_argument("--product-base", required=True)
-    ap.add_argument("--manifest", required=True)
+    ap.add_argument("--manifest", required=True, help="shape-manifest.yaml (provenance)")
     ap.add_argument("--out-manifest", required=True)
     args = ap.parse_args(argv)
 
-    src_root = os.path.join(args.draft, "product-os")
-    if not os.path.isdir(src_root):
-        sys.stderr.write(f"apply_shape.py: no draft tree at {src_root}\n")
-        sys.exit(2)
-    dst_root = os.path.join(args.product_base, "product-os")
+    draft_root = os.path.join(args.draft, "product-os")
+    live_root = os.path.join(args.product_base, "product-os")
+    draft_spine_path = os.path.join(draft_root, SPINE_NAME)
+    live_spine_path = os.path.join(live_root, SPINE_NAME)
+    if not os.path.isdir(draft_root):
+        sys.stderr.write(f"apply_shape.py: no draft tree at {draft_root}\n")
+        return 2
+    if not os.path.isfile(draft_spine_path) or not os.path.isfile(live_spine_path):
+        sys.stderr.write("apply_shape.py: draft delta or live _spine.yaml missing\n")
+        return 2
 
-    written, skipped = [], []
+    draft_spine = load(draft_spine_path)
+    live = load(live_spine_path)
 
-    # 1 — new records, skip-if-exists (never overwrite, never the profile) ----
-    for dirpath, _dirs, files in os.walk(src_root):
-        rel_dir = os.path.relpath(dirpath, src_root)
+    written, skipped, status_flips = [], [], []
+
+    # --- 1. capability status flips + ref merges (only the named capabilities) ---
+    live_caps = live.setdefault("capabilities", [])
+    for dcap in draft_spine.get("capabilities") or []:
+        cid = dcap.get("id")
+        live_cap = find(live_caps, cid)
+        if live_cap is None:
+            sys.stderr.write(f"apply_shape.py: capability '{cid}' not in live spine — refusing\n")
+            return 2
+        new_status = dcap.get("status")
+        if new_status and new_status != live_cap.get("status"):
+            status_flips.append({"capability": cid, "from": live_cap.get("status"), "to": new_status})
+            live_cap["status"] = new_status            # ONLY the status field
+        for key in REF_LISTS:                          # additive ref merge
+            for ref in dcap.get(key) or []:
+                lst = live_cap.setdefault(key, [])
+                if ref not in lst:
+                    lst.append(ref)
+
+    # --- 2. new slices index entries (skip-if-exists by id) ---
+    live_slices = live.setdefault("slices", [])
+    have_slices = {s.get("id") for s in live_slices if isinstance(s, dict)}
+    for s in draft_spine.get("slices") or []:
+        sid = s.get("id")
+        if sid in have_slices:
+            skipped.append(f"spine:slice:{sid}")
+        else:
+            live_slices.append(s)
+            have_slices.add(sid)
+            written.append(f"spine:slice:{sid}")
+
+    # --- 3. copy the record files skip-if-exists (never spine, never profile) ---
+    for dirpath, _dirs, files in os.walk(draft_root):
+        rel_dir = os.path.relpath(dirpath, draft_root)
         for fn in files:
             rel = os.path.normpath(os.path.join(rel_dir, fn))
-            if os.path.basename(rel) == "profile.yaml":
-                continue                       # defensive: profile is never /shape's
-            dst = os.path.join(dst_root, rel)
+            if fn == SPINE_NAME and rel_dir == ".":
+                continue                               # merged, not copied
+            if fn == "profile.yaml":
+                continue                               # defensive: never /shape's
+            dst = os.path.join(live_root, rel)
             if os.path.exists(dst):
-                skipped.append(rel)
+                skipped.append(f"doc:{rel}")
                 continue
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             shutil.copy2(os.path.join(dirpath, fn), dst)
-            written.append(rel)
+            written.append(f"doc:{rel}")
 
-    # 2 — capability status flips: change ONLY node.status -------------------
-    try:
-        with open(args.manifest, encoding="utf-8") as fh:
-            man = (yaml.safe_load(fh) or {}).get("shape", {})
-    except (OSError, yaml.YAMLError) as exc:
-        sys.stderr.write(f"apply_shape.py: cannot read manifest: {exc}\n")
-        sys.exit(2)
-
-    status_flips = []
-    for cap in man.get("capabilities") or []:
-        flip = cap.get("status_flip")
-        if not flip:
-            continue
-        # the manifest names the capability's folder explicitly (rel to product-os),
-        # since the folder is a slug while the node id differs (cap-checkout vs checkout)
-        rel = cap.get("path")
-        if not rel:
-            sys.stderr.write(f"apply_shape.py: capability {cap.get('id')} has no 'path' in manifest\n")
-            continue
-        cap_node = os.path.join(dst_root, rel, "node.yaml")
-        if not os.path.isfile(cap_node):
-            sys.stderr.write(f"apply_shape.py: capability node not found at {cap_node}\n")
-            continue
-        doc = yaml.safe_load(open(cap_node, encoding="utf-8")) or {}
-        node = doc.get("node", doc)
-        old = node.get("status")
-        node["status"] = flip["to"]            # ONLY the status field changes
-        with open(cap_node, "w", encoding="utf-8") as fh:
-            yaml.safe_dump(doc, fh, sort_keys=False)
-        status_flips.append({"capability": cap["id"], "from": old, "to": flip["to"],
-                             "path": os.path.relpath(cap_node, dst_root)})
+    # --- write the mutated live spine back ---
+    with open(live_spine_path, "w", encoding="utf-8") as fh:
+        yaml.safe_dump(live, fh, sort_keys=False, allow_unicode=True)
+    written.append("spine:_spine.yaml")
 
     out = {"written": sorted(written), "skipped": sorted(skipped), "status_flips": status_flips}
     with open(args.out_manifest, "w", encoding="utf-8") as fh:

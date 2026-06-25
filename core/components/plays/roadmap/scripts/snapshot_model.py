@@ -1,22 +1,19 @@
 #!/usr/bin/env python3
 """
-snapshot_model.py — capture the SLICES across all shaped domains for /roadmap.
+snapshot_model.py — capture the spine slices + a tree census for /roadmap.
 
-Two jobs, by mode:
+The plan (order/effort/depends_on/status) lives on the SPINE slices index — the only
+thing /roadmap writes — so this snapshots the spine and a path->hash census of every file
+under product-os EXCEPT `_spine.yaml`. Each slice's `dependency_notes` is read from its
+record (composition, never touched) for the planner's dependency judgment.
 
-  1. Readiness probe (`--probe`, pre-flight): count the slices to plan and write
-     NOTHING. Zero ⇒ nothing to plan — the play exits gracefully (run /shape first).
-     Safe to re-run on every invocation (resume included).
-
-  2. Capture (`--out`, the play's first real step): the "before" picture for planning
-     + the non-destructive check. Holds:
-       - `slices`: every slice (across every domain) with the fields /roadmap reasons
-         over — id, domain_ref, the functionality_refs it bundles, dependency_notes,
-         current order/effort/depends_on/status, the file's path + hash, and the FULL
-         parsed slice (so the verify step can prove only plan fields changed).
-       - `files`: a path→sha256 map of EVERY file under product-os (non-destructive).
-
-The `_deferred.yaml` buckets are NOT slices and are skipped.
+Two modes:
+  --probe : count the spine slices, write NOTHING (pre-flight readiness; zero => run
+            /shape first). Safe to re-run on every invocation (resume included).
+  --out   : the "before" picture for planning + the non-destructive check. Holds
+            `spine_before` (the full spine, so verify proves only the slices' plan fields
+            changed), `slices` (id, domain_ref, functionality_refs, dependency_notes,
+            current plan fields), and `files` (path->sha256 of every file but the spine).
 
 Layer rule: reads files on disk only; no git/gh/network.
 
@@ -39,7 +36,7 @@ except ImportError:
     sys.stderr.write("snapshot_model.py: PyYAML is required (pip install pyyaml).\n")
     sys.exit(2)
 
-PLAN_FIELDS = ("order", "effort", "depends_on", "status")
+SPINE = "_spine.yaml"
 
 
 def load(path):
@@ -56,7 +53,7 @@ def sha256(path):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Capture slices for /roadmap.")
+    ap = argparse.ArgumentParser(description="Capture spine slices for /roadmap.")
     ap.add_argument("--product-base", required=True)
     ap.add_argument("--out", default=None)
     ap.add_argument("--probe", action="store_true", help="count only — write nothing")
@@ -66,42 +63,45 @@ def main(argv=None):
         sys.exit(2)
 
     root = os.path.join(args.product_base, "product-os")
-    if not os.path.isdir(root):
-        sys.stderr.write(f"snapshot_model.py: no product model at {root}\n")
+    spine_path = os.path.join(root, SPINE)
+    if not os.path.isfile(spine_path):
+        sys.stderr.write(f"snapshot_model.py: no spine at {spine_path}\n")
         sys.exit(2)
+    spine = load(spine_path)
 
     errors, slices = [], []
-    for sp in sorted(glob.glob(os.path.join(root, "**", "slices", "*.yaml"), recursive=True)):
-        if os.path.basename(sp) == "_deferred.yaml":
+    for sl in (spine.get("slices") or []):
+        if not isinstance(sl, dict):
             continue
-        try:
-            sl = (load(sp).get("slice") or {})
-        except (OSError, yaml.YAMLError) as exc:
-            errors.append(f"{sp}: unreadable slice ({exc})")
-            continue
+        notes, rec = None, sl.get("record")
+        if rec:
+            rp = os.path.join(root, rec)
+            if os.path.isfile(rp):
+                try:
+                    notes = (load(rp).get("slice") or {}).get("dependency_notes")
+                except yaml.YAMLError as exc:
+                    errors.append(f"{rec}: unreadable slice record ({exc})")
+            else:
+                errors.append(f"slice '{sl.get('id')}': record not found at {rec}")
         slices.append({
             "id": sl.get("id"),
             "domain_ref": sl.get("domain_ref"),
-            "functionality_refs": [f.get("functionality_ref")
-                                   for f in (sl.get("functionalities") or [])
-                                   if isinstance(f, dict)],
-            "dependency_notes": sl.get("dependency_notes"),
+            "functionality_refs": list(sl.get("functionality_refs") or []),
+            "dependency_notes": notes,
             "order": sl.get("order"),
             "effort": sl.get("effort"),
             "depends_on": list(sl.get("depends_on") or []),
             "status": sl.get("status"),
-            "rel": os.path.relpath(sp, root),
-            "hash": sha256(sp),
-            "slice": sl,
         })
 
     if not args.probe:
         files = {}
         for fp in glob.glob(os.path.join(root, "**", "*"), recursive=True):
-            if os.path.isfile(fp):
+            if os.path.isfile(fp) and os.path.basename(fp) != SPINE:
                 files[os.path.relpath(fp, root)] = sha256(fp)
         with open(args.out, "w", encoding="utf-8") as fh:
-            json.dump({"product_base": args.product_base, "slices": slices, "files": files},
+            json.dump({"product_base": args.product_base, "spine_rel": SPINE,
+                       "spine_before": spine, "slices": slices, "files": files},
                       fh, indent=2)
 
     print(json.dumps({"ok": not errors, "slice_count": len(slices), "errors": errors}, indent=2))
