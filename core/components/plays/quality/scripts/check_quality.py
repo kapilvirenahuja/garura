@@ -2,23 +2,21 @@
 """
 check_quality.py — assert /quality's persisted result obeys its guarantees.
 
-Post-apply verification, comparing the live capability folder + profile against
-snapshots taken just before apply (the snapshots are gated to the apply step, so a
-resume can never compare post-apply against post-apply).
+Post-apply verification, comparing the live slice folder + spine against snapshots taken
+just before apply (the snapshots are gated to the apply step, so a resume can never
+compare post-apply against post-apply).
 
-  - C8/F8  non-destructive: every file in the capability folder is byte-identical to
-           its pre-apply snapshot EXCEPT `lens/quality.yaml` (the re-derive); the
-           profile is byte-identical; an accepted decision present before apply is
-           unchanged (never edited in place).
-  - C2/F2  scope: nothing was added under the capability except the quality lens and
-           new decisions; the other lenses (ux/architecture/run/agentic) are untouched.
-  - C8     additions are allowed only for `lens/quality.yaml` and new `decisions/*.yaml`.
+  - non-destructive: every file in the slice folder is byte-identical to its pre-apply
+    snapshot EXCEPT `lens/quality.md` (the re-derive); the spine (where the profile lives)
+    is byte-identical; an accepted decision present before apply is unchanged.
+  - scope: nothing was added under the slice except the quality lens and new decisions; the
+    other lenses (quality/ux/architecture/measure/run) are untouched.
 
 Layer rule: reads files on disk only; no git/gh/network.
 
-    python3 check_quality.py --cap-before <snapshot of capability folder> \
-            --cap-dir <live capability folder> \
-            --profile-before <profile-before.yaml> --profile-after <live profile.yaml>
+    python3 check_quality.py --cap-before <snapshot of slice folder> \
+            --cap-dir <live slice folder> \
+            --spine-before <_spine.yaml snapshot> --spine-after <live _spine.yaml>
 
 Prints {ok, errors[]} JSON. Exit 0 clean, 1 on violation, 2 usage error.
 """
@@ -47,9 +45,9 @@ def census(root):
     return out
 
 
-def is_quality_lens(rel):
+def is_lens(rel):
     parts = rel.split(os.sep)
-    return len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == "quality.yaml"
+    return len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == "quality.md"
 
 
 def is_decision(rel):
@@ -59,22 +57,23 @@ def is_decision(rel):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Verify /quality's persisted result.")
-    ap.add_argument("--cap-before", required=True)
-    ap.add_argument("--cap-dir", required=True)
-    ap.add_argument("--profile-before", required=True)
-    ap.add_argument("--profile-after", required=True)
+    ap.add_argument("--cap-before", required=True, help="pre-apply snapshot of the slice folder")
+    ap.add_argument("--cap-dir", required=True, help="live slice folder")
+    ap.add_argument("--spine-before", required=True, help="pre-apply snapshot of _spine.yaml")
+    ap.add_argument("--spine-after", required=True, help="live _spine.yaml")
     args = ap.parse_args(argv)
 
     errors = []
 
-    # --- profile untouched ---------------------------------------------------
+    # --- spine untouched (the profile lives in the spine; /quality never writes it) ---
     try:
-        if sha256(args.profile_before) != sha256(args.profile_after):
-            errors.append("profile.yaml changed during /quality — it must never write the profile (F2)")
+        if sha256(args.spine_before) != sha256(args.spine_after):
+            errors.append("_spine.yaml changed during /quality — it must never write the "
+                          "spine or the profile")
     except OSError as exc:
-        errors.append(f"cannot compare profiles: {exc}")
+        errors.append(f"cannot compare the spine: {exc}")
 
-    # --- capability folder: only quality lens may change; decisions may be added
+    # --- slice folder: only the quality lens may change; decisions may be added ---
     before = census(args.cap_before)
     after = census(args.cap_dir)
 
@@ -82,21 +81,20 @@ def main(argv=None):
         if rel in before:
             if h == before[rel]:
                 continue
-            if is_quality_lens(rel):
+            if is_lens(rel):
                 continue                       # the re-derive is allowed to change
             if is_decision(rel):
-                errors.append(f"{rel}: accepted decision edited in place (F8)")
+                errors.append(f"{rel}: accepted decision edited in place")
             else:
-                errors.append(f"{rel}: changed but only the quality lens may change (F8)")
+                errors.append(f"{rel}: changed but only the quality lens may change")
         else:
-            # newly added file
-            if is_quality_lens(rel) or is_decision(rel):
+            if is_lens(rel) or is_decision(rel):
                 continue
-            errors.append(f"{rel}: added, but /quality may add only the quality lens or a decision (F2)")
+            errors.append(f"{rel}: added, but /quality may add only its lens or a decision")
 
     for rel in before:
         if rel not in after:
-            errors.append(f"{rel}: removed during /quality — the run is non-destructive (F8)")
+            errors.append(f"{rel}: removed during /quality — the run is non-destructive")
 
     result = {"ok": not errors, "errors": errors}
     print(json.dumps(result, indent=2))

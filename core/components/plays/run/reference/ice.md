@@ -1,277 +1,134 @@
 # run — ICE source
 
 The clean ICE triple this play is compiled from. Update this and recompile via
-play-creator; never hand-edit the compiled SKILL.md.
+play-editor; never hand-edit the compiled SKILL.md.
 
 ## Intent
 
 Given one shaped **slice** — a vertical product increment from /shape, the thing you actually
-deliver — whose **architecture lens is already written**, write its **run lens**: how the
-slice is deployed and runs. The slice is the unit of realization: you pick a slice and run
-quality → ux → agentic → arch → measure → run on it, then ship it. A slice has no ICE of its
-own — its hub is the union of its functionalities' ICE (which may span several capabilities)
-plus the product profile. /run is the **sixth and last** realize lens.
+deliver — write its **run lens** as a grounding doc (`run.md`): how the slice ships and operates.
+The slice is the unit of realization; a slice has no ICE of its own — its **hub** is the union of
+its functionalities' grounding docs (`functionality.md`, which may span several capabilities) plus
+the product profile (read from the spine). The run lens is five things and only five:
+**environments** (where it runs and what each needs), **rollout** (how it goes live and rolls back),
+**migrations** (data/schema moves, or "none" with the reason), **config & secrets** (what it needs
+and how secrets are handled, or "none — no credentials" with the reason), and **CI/CD** (how it is
+built, tested, shipped, and what the build gates on). The run plan flows from what the slice does
+(the hub) and how it is built — so /run also reads the slice's **architecture lens** (its components
+and stack), and only the architecture lens among the realize lenses. Every operational choice is
+grounded, never invented; any material choice is recorded as a decision. It writes only this slice's
+`run.md` (and any decision) — never the spine, the slice record, the profile, another lens, or
+another slice. Critically, /run does NOT stamp the slice `realized` — that belongs to /measure (the
+deliver pipe, which runs last). One slice per run; one human checkpoint before anything persists. The
+lens is gated by the structural linter (shape) and the content-quality eval (a judge).
 
-The run lens is the operational and ownership picture and only that: the **environments** the
-slice moves through (the path dev → staging → prod), the **rollout** (the feature flags it
-gates behind and the strategy — blue/green, canary, rolling), the **migrations** (the
-data-change strategy, gated and reversible), the **config/secrets** stance (per-environment
-config; secrets via a secrets manager, never in the repo), the **CI/CD** pipeline (build →
-quality gates → deploy on green), the **targets** — for every architecture component, where
-and how it runs — and the **TCO**: the ownership-cost picture an operating owner approves on —
-the hyperscaler decision (provider, default region, alternatives rejected), the concrete
-service map (which managed service runs each component), the user/load simulation (at least
-seed, pilot, and expanded scenarios), the cost estimate (a monthly range per scenario with its
-drivers, exclusions, confidence, and sensitivity), and the cost guardrails (budget alert,
-retention limits, scale-up and HA triggers, review cadence). /run
-**deploys what /arch designed**: every run target binds to a real component in the slice's
-architecture lens, so it reads the **architecture lens** — you cannot say how something runs
-without knowing the parts that run. As a foundation lens it MAY also ground on the three
-lens-trinity files (quality, ux, agentic — decision 23). The one lens whose content it never
-reads is the **measure** lens — presence only, via lines-up.
-
-Every operational choice is **grounded in the knowledge base, never invented**. Before it
-drafts, /run searches the KB's architecture and technology shelves for the learnings whose
-conditions match this product's situation (stage, scale, persistence, monetization) and bases
-the rollout strategy, the migration stance, the environment topology, and the CI/CD shape on
-**what has worked for us** — not on the model's taste. Any operational choice the KB does not
-cover is recorded as a KB-learning-gap proposal (a candidate architecture/technology learning,
-raised for review — never written to the KB here), never silently guessed. Material
-choices (the rollout strategy, the migration strategy, the environment topology) are recorded
-as slice-level decisions the product references.
-
-Because it is the **last** lens, /run also carries the **lines-up duty**: once the run lens is
-drafted, it verifies that all six lens files for the slice exist (quality, ux, agentic,
-architecture, measure, run) and that every cross-reference resolves — every architecture component has a
-run target, and every run target binds to a real component. **Only when the slice lines up**
-does /run **stamp the slice done**, flipping the slice record's `status` to `realized` — the
-single marker `/grill` checks before it cuts delivery work. If a lens is missing or a
-cross-reference dangles, /run still writes the run lens, reports what is missing, and does
-**not** stamp.
-
-It writes only the run lens (and a decision for any material choice), plus — on lines-up — the
-slice record's `status` stamp and nothing else of the record. Never the functionalities' ICE,
-the profile, another lens, structure, status of other nodes, personas, journeys, or other
-slices. One slice per run; one human checkpoint before anything persists.
-
-Pipeline position: **end**. /run CLOSES the foundation pipeline (arch → measure → run): it expects to run on the branch /arch started and injects no start head. After the verified persist and the realized stamp, the injected end sequence (commit-change → propose-change → review-change → merge-change) lands the foundation work on main for /grill to pick up. It runs after /measure and last in the realize sequence (quality → ux → agentic → arch → measure → run). It writes the persistent product model on the /arch-started branch, and the end sequence closes that branch. (#437, decision 24)
+Pipeline position: **end**. /run is the END of the NON-FUNCTIONAL realize pipe (architecture →
+quality → run): it expects to run on the branch /arch already started, injects no `start-change`
+head, and injects the close sequence (commit-change → propose-change → review-change → merge-change)
+that commits the non-functional pipe's lenses, opens the PR, takes the verdict, and merges to main.
+It writes the persistent product model directly (the slice's run lens), on the already-started
+branch, and reads the hub + the architecture lens — never another lens, and it never stamps the slice
+realized. (#437; 3-pipe realize 2026-06-25)
 
 ### Constraints
 
 - C1 — One slice per run, and only a ready one: the slice exists (shaped by /shape), every
-  functionality it bundles resolves to a rich ICE, the product profile is firmed (`set`), AND
-  the slice's **architecture lens is present** (run deploys arch's parts, so it cannot run
-  without them). If not, halt — /run realizes a shaped, architected slice; it does not shape or
-  architect one.
-- C2 — Writes only this slice's run lens (and any decision), plus — and only when the lines-up
-  gate passes — the slice record's `status` stamp (→ `realized`) and its updated_by/version
-  metadata. Never the functionalities' ICE, the profile, another lens (quality/ux/agentic/
-  architecture/measure), node structure, personas, journeys, other slices, or any slice-record field
-  besides `status` and that metadata.
-- C3 — run content only, and only the run-lens schema blocks: `content` carries
-  `environments`, `rollout` (flags + strategy), `migrations`, `config_secrets`, `cicd`,
-  `targets` (component + where/how it runs), and `tco` — and no other key. No architecture,
-  ux, agentic, or quality content smeared in.
-- C4 — Every operational choice is grounded in the KB, never invented: the rollout strategy,
-  the migration stance, the environment topology, the CI/CD shape, any runtime/stack pick,
-  **the hyperscaler/platform-service pick, and the cost model** the run lens names each trace
-  to a best-fit learning on the KB's architecture or technology shelf (matched by the
-  product's conditions via the kb-search interface) — or, where the KB does not cover it
-  (notably a cost model with no matching cost pattern), to a recorded KB-learning-gap proposal
-  (a candidate architecture/technology learning raised for review). No operational choice
-  rests on the model's taste alone.
-- C5 — Reads the hub + the architecture lens + (optionally) the lens trinity + the KB, and
-  binds to arch: /run derives from the slice's functionalities' ICE, the profile box, the
-  slice's **architecture lens**, and the KB, and MAY ground on the three lens-trinity files
-  (quality, ux, agentic — decision 23). It never reads or derives content from the **measure**
-  lens — presence only, via lines-up. Every entry in
-  `targets` binds to a real component named in the architecture lens — no target points at a
-  component that does not exist (no dangling target).
-- C6 — Just enough, and coherent: there is an environment path, a rollout strategy, a migration
-  stance (or an explicit "none, additive only"), a config/secrets stance, a CI/CD pipeline that
-  gates deploy on green, and a target for **every** architecture component. It anchors the
-  operational shape — it does not over-specify (no literal pipeline YAML, no per-resource
-  sizing, no environment-by-environment secret values; that is the build's job off this lens).
-- C7 — Material run choices are decisions: the rollout strategy, the migration strategy, the
-  environment topology, and **the hyperscaler/service-platform pick (the TCO posture)** are
-  deliberate choices recorded as slice-level decisions (ADRs) the product references — not
-  re-invented per slice.
-- C8 — Lines-up gate (the last-lens duty): before the slice is stamped, all six lens files
-  (quality, ux, agentic, architecture, measure, run) exist for the slice, every cross-reference
-  resolves — every architecture component has a run target and every run target binds to a real
-  component — AND the run lens carries a validated `tco` block (C13). If any lens is missing, a
-  reference dangles, or the TCO is absent, the run lens is still written, the gaps are
-  reported, and the slice is **not** stamped.
-- C9 — The stamp is additive and surgical: when (and only when) C8 passes, the slice record's
-  `status` flips to `realized` and its updated_by/version metadata is bumped — and nothing else
-  of the record changes. The slice's composition (functionalities, name, outcome,
-  dependency_notes, acceptance_intent, order, effort, depends_on) is unchanged.
-- C10 — Additive and non-destructive: a run changes only the run lens, any new decision, and
-  (on lines-up) the slice `status` stamp. Every other product-model file — the other lenses,
-  the ICE, the profile, the other slices, node structure — is byte-unchanged. Re-running
-  re-derives the run lens; accepted decisions are superseded by new records, never edited in
-  place; an idempotent re-run that still lines up leaves the stamp `realized`.
-- C11 — Schema conformance: the run lens and any decision validate against their v1 schemas
-  (lens v1, decision v1); after the stamp, the slice record still validates against slice v1.
-- C12 — Exactly one human checkpoint, presenting the proposed run lens (the seven blocks —
-  with the TCO shown inline: the hyperscaler, the service map, the simulation assumptions, the
-  monthly estimate, and the guardrails), the KB groundings, the lines-up result, and whether
-  the run will stamp the slice `realized`, before anything is written. Nothing persists before
-  approval.
-- C13 — TCO is first-class and material, never generic: the run lens's `tco` block carries
-  (1) the hyperscaler decision — selected provider, default region, and at least one
-  alternative considered with why it was rejected; (2) a concrete service map — every
-  architecture component mapped to the managed service that runs it, with its cost driver;
-  (3) a user/load simulation with at least seed, pilot, and expanded scenarios stating the
-  load assumptions (users, sources/volumes, frequencies, retention); (4) a cost estimate —
-  a monthly range per scenario in a named currency, its primary drivers, what is excluded,
-  a confidence level, and the variables that would change it (when exact pricing is unknown,
-  a directional range with stated assumptions and confidence is required — generic prose is
-  not acceptable); and (5) cost guardrails (budget alert, retention limits, scale-up and HA
-  triggers, review cadence). A slice is never stamped `realized` without a TCO that passes
-  validation.
+  functionality it bundles resolves through the spine to a `functionality.md` grounding doc, the
+  product profile is firmed (`set`), and the slice's `architecture.md` lens exists. If not, halt —
+  /run realizes a shaped, architected slice; it does not shape or architect one.
+- C2 — Writes only this slice's `run.md` (and any decision), in the slice's lens folder. Never the
+  spine, the slice record, the profile, another lens, the node tree, personas, journeys, or other
+  slices.
+- C3 — Shape: `run.md` conforms to the Run lens template — the sections Environments / Rollout /
+  Migrations / Config & secrets / CI/CD — and the structural linter passes. No content outside those
+  five sections.
+- C4 — Content quality: `run.md` clears the content-quality eval, not just the linter — each section
+  is self-explaining and the doc passes the stranger test.
+- C5 — Grounded, not invented: every operational choice traces to the hub (a functionality), the
+  profile, or the architecture lens; any material choice is recorded as a decision. (Tracked in the
+  manifest.)
+- C6 — Coverage: every functionality the slice bundles is considered by the run plan — nothing shaped
+  is left unaccounted for in how the slice ships.
+- C7 — Reads the hub + the architecture lens only: /run derives from the slice's functionalities'
+  grounding docs, the profile, and `architecture.md` — never from another realize lens
+  (ux/agentic/quality/measure/marketing).
+- C8 — Never stamps realized: /run authors its run lens and closes the non-functional pipe; it never
+  writes the slice's `status: realized` — that is /measure's job (the deliver pipe, last).
+- C9 — Additive and non-destructive: the run changes only this slice's `run.md` (and any new
+  decision); the spine, the slice record, the profile, the other lenses, and the other slices are
+  byte-unchanged. Re-running re-derives the lens; accepted decisions are superseded, never edited in
+  place.
+- C10 — Exactly one human checkpoint, presenting the five run sections plus any decision, before
+  anything is written. Nothing persists before approval.
 
 ### Failure conditions
 
-- F1 — /run ran on an unready slice — the slice is absent, a functionality's ICE does not
-  resolve or is not rich, the profile is not firmed, or the architecture lens is missing.
-- F2 — A write touched something other than this slice's run lens, a decision, or the slice
-  record's `status` stamp (the functionalities' ICE, the profile, another lens, structure, a
-  persona, a journey, another slice, or a slice-record field beyond `status`/metadata).
-- F3 — The run lens carries content outside the seven blocks (architecture parts, screens,
-  gates, agentic weights, per-resource sizing), or is not the
-  environments/rollout/migrations/config_secrets/cicd/targets/tco shape.
-- F4 — An operational choice is invented — a rollout strategy, migration stance, environment
-  topology, CI/CD shape, or runtime pick with neither a matched KB learning nor a recorded
-  KB-learning-gap proposal behind it.
-- F5 — /run read or derived content from the measure lens (whose content stays unread —
-  presence only, via lines-up); OR a `targets` entry
-  binds to a component that the architecture lens does not declare (a dangling target).
-- F6 — The run lens over- or under-specifies — a missing environment path, rollout strategy,
-  migration stance, config/secrets stance, or CI/CD pipeline; an architecture component with no
-  target; or build-level detail (literal pipeline YAML, resource sizing) smeared in.
-- F7 — A material run choice (the rollout strategy, the migration strategy, or the environment
-  topology) was made with no decision recorded.
-- F8 — The slice was stamped `realized` despite the lines-up gate failing — a lens was missing
-  or a cross-reference dangled.
-- F9 — The stamp changed more than `status` and its metadata, or the slice's composition
-  changed.
-- F10 — A product-model file other than the run lens, a new decision, or the slice `status`
-  stamp changed; an accepted decision was edited in place rather than superseded; or something
-  was removed.
-- F11 — The run lens or a decision violates its v1 schema, or the slice record fails slice v1
-  after the stamp.
-- F12 — The run lens (or the stamp) was persisted before the human approved the checkpoint.
-- F13 — The run lens passed validation, reached the checkpoint, or stamped the slice without a
-  material TCO — the `tco` block missing, empty, or generic prose; an architecture component
-  with a run target but no concrete service mapping; no user/load simulation; no monthly cost
-  range with drivers and confidence; or a hyperscaler/cost-model choice with neither a KB
-  grounding nor a recorded proposal.
+- F1 — /run ran on an unready slice — the slice is absent, a functionality does not resolve to a
+  grounding doc, the profile is not firmed, or the architecture lens is missing.
+- F2 — A write touched something other than this slice's `run.md` or a decision (the spine, the slice
+  record, the profile, another lens, structure, a persona, a journey, or another slice).
+- F3 — `run.md` fails its template/shape (a missing or extra section, an empty or telegraphic
+  section), or carries content outside the five run sections.
+- F4 — `run.md` fails the content-quality eval.
+- F5 — An operational choice is invented — with no hub, profile, or architecture source behind it —
+  or a material choice with no recorded decision.
+- F6 — A functionality of the slice is left unaccounted for in the run plan.
+- F7 — /run read or depended on a realize lens other than architecture.
+- F8 — /run stamped the slice `realized` (or otherwise wrote the slice's status) — that belongs to
+  /measure.
+- F9 — A product-model file other than this slice's `run.md` or a new decision changed, or an accepted
+  decision was edited in place rather than superseded.
+- F10 — The lens was persisted before the human approved the checkpoint.
 
 ## Expectation
 
 ### Success scenarios
 
-- S1 — (platform engineer, first run) Given a shaped slice whose functionalities have rich ICE,
-  a firmed profile, and a written architecture lens, when /run runs and the checkpoint is
-  approved, then the run lens is written as KB-grounded environments, rollout, migrations,
-  config/secrets, CI/CD, per-component targets, and TCO — and nothing else changes except, if
-  the slice lines up, the `status` stamp. Measure: `slices/{slice}/lens/run.yaml` exists with
-  `type: run`, a `slice_ref`, and non-empty `content.environments`, `content.rollout`,
-  `content.migrations`, `content.config_secrets`, `content.cicd`, `content.targets`, and
-  `content.tco`; every other product-model file is byte-identical before and after (except the
-  slice `status` if stamped); the lens validates against lens v1.
-- S2 — (SRE, KB-grounded) Given the lens is drafted, when inspected, then every operational
-  choice traces to a KB learning on the architecture or technology shelf, or to a recorded
-  proposal. Measure: the run's grounding map names, for the rollout strategy, the migration
-  stance, the environment topology, the CI/CD shape, and any runtime pick, the KB learning id
-  (architecture/* or technology/*) it matched or the proposal file it raised; none ungrounded;
-  `grounding_check.py` is clean.
-- S3 — (architect, targets bind) Given the targets and the architecture lens, when traced, then
-  every architecture component has a run target and every run target binds to a real component.
-  Measure: every component in `architecture.yaml` appears as a `targets[].component`; every
-  `targets[].component` resolves to a declared architecture component; no dangling target.
-- S4 — (release manager, lines-up + stamp) Given all six lens files exist and every
-  cross-reference resolves, when /run completes, then the slice is stamped `realized` and the
-  stamp is the only change to the slice record. Measure: `check_lines_up.py` reports
-  `lines_up: true`; the slice record's `status` is `realized`; every other slice-record field
-  is semantically unchanged.
-- S5 — (release manager, not yet lined up) Given a lens is missing or a cross-reference dangles,
-  when /run completes, then the run lens is still written, the gaps are reported, and the slice
-  is not stamped. Measure: `check_lines_up.py` reports `lines_up: false` with the missing lens
-  or dangling reference named; `run.yaml` exists; the slice record's `status` is unchanged from
-  before the run.
-- S6 — (product owner, re-run) Given /run already ran on the slice, when it runs again, then it
-  re-derives the run lens and changes nothing else; existing decisions are superseded, not
-  edited; an idempotent re-run that still lines up leaves the stamp `realized`. Measure: only
-  the slice's `run.yaml` (and possibly a new decision) differ; the other lenses, the ICE, the
-  profile, and the slice's composition are byte-identical; no accepted decision file is edited
-  in place.
-- S7 — (reviewer, the checkpoint) Given the lens is ready, when the checkpoint is shown, then it
-  presents the proposed run lens (the seven blocks), the KB groundings, the lines-up result, and
-  whether it will stamp, before any write. Measure: the checkpoint shows the run blocks —
-  including the TCO's hyperscaler, service map, simulation assumptions, and monthly estimate
-  inline — the groundings, and the lines-up verdict; no product-model file is written before
-  approval.
-- S8 — (product owner, ownership cost) Given the run lens is drafted, when it is validated and
-  shown at the checkpoint, then the owner can read which hyperscaler runs the slice, which
-  managed service runs each component, what load was assumed, what it costs per month per
-  scenario, and when the operating model changes — and the slice cannot become `realized`
-  without that picture. Measure: `validate_run.py` fails on a missing, empty, or generic `tco`
-  (no hyperscaler selected, a component without a concrete service, fewer than three simulation
-  scenarios, no digit-bearing monthly range, no drivers, or no confidence); the hyperscaler and
-  cost model appear as grounded choices in the manifest (KB learning or recorded proposal);
-  `check_lines_up.py` reports `lines_up: false` when `content.tco` is absent, so no stamp.
+- S1 — (devops engineer, first run) Given a shaped, architected slice whose functionalities resolve
+  and a firmed profile, when /run runs and the checkpoint is approved, then `run.md` is written as the
+  five run sections — passing the linter and the content eval — and nothing else changes. Measure:
+  `slices/{slice}/lens/run.md` exists and is a valid Run Lens doc; the content-eval gate passes; the
+  spine, slice record, profile, and other lenses are byte-identical.
+- S2 — (architect, grounded run) Given the lens is drafted, every operational choice traces to the
+  hub, the profile, or the architecture lens, and any material choice to a recorded decision. Measure:
+  the manifest names a real source for every choice; material choices name a decision that resolves.
+- S3 — (reviewer, architecture-driven) Given /run runs, it read the architecture lens and no other
+  realize lens, and the run plan flows from the architecture's stack and components. Measure: the run
+  grounds include the architecture lens; no other lens is read or grounded on.
+- S4 — (release manager, no premature realize) Given /run completes, the slice's `status` is unchanged
+  — /run never stamps `realized`. Measure: the slice record's `status` (and the spine slice entry's
+  status) is byte-identical before and after /run.
+- S5 — (product owner, re-run) Given /run already ran, when it runs again, it re-derives `run.md` and
+  changes nothing else; any new decision supersedes, none edited in place. Measure: only the slice's
+  `run.md` (and possibly a new decision) differ; the spine, slice record, other lenses, and profile
+  are byte-identical.
+- S6 — (reviewer, the checkpoint) Given the lens is ready, the checkpoint presents the five run
+  sections, plus any decision, before any write. Measure: the checkpoint shows the lens inline; no
+  product-model file is written before approval.
 
 ### Recovery (one per failure condition)
 
-- REC1 (F1) — trigger: the slice is absent, a functionality's ICE does not resolve or is not
-  rich, the profile is not firmed, or the architecture lens is missing. direction: halt and
-  route to /shape (to shape the slice), /understand (to enrich + firm), or /arch (to write the
-  architecture lens) before /run runs. handoff: human.
-- REC2 (F2) — trigger: a write touched something beyond this slice's run lens, a decision, or
-  the slice `status` stamp. direction: revert the out-of-scope write; /run writes only the run
-  lens, decisions, and (on lines-up) the slice `status`. handoff: autonomous.
-- REC3 (F3) — trigger: the run lens carries content outside the seven blocks or the wrong
-  shape. direction: strip it back to the
-  environments/rollout/migrations/config_secrets/cicd/targets/tco shape; move any
-  architecture/ux/quality content out of the run lens. handoff: autonomous.
-- REC4 (F4) — trigger: an invented operational choice with no KB learning and no recorded
-  proposal. direction: re-tie the choice to a best-fit KB learning on the architecture or
-  technology shelf, or raise a KB-learning-gap proposal (a candidate architecture/technology
-  learning) for the gap; never keep an ungrounded choice. handoff: autonomous.
-- REC5 (F5) — trigger: /run read the measure lens's content, or a target binds to no
-  declared architecture component. direction: remove the measure-lens dependency (run derives
-  from the hub + the architecture lens + the optional lens trinity + the KB; the measure lens
-  is presence-only, via lines-up); re-tie the dangling target to a real
-  architecture component or drop it. handoff: autonomous.
-- REC6 (F6) — trigger: an over- or under-specified run lens — a missing block, a component with
-  no target, or build-level detail smeared in. direction: complete the missing block or target,
-  or trim the over-specification back to the operational shape. handoff: autonomous.
-- REC7 (F7) — trigger: a material run choice with no decision recorded. direction: record the
-  slice-level decision (rollout strategy, migration strategy, environment topology, or the
-  hyperscaler/service-platform pick) before persisting. handoff: autonomous.
-- REC8 (F8) — trigger: the slice was stamped `realized` though a lens was missing or a
-  cross-reference dangled. direction: revert the stamp; the slice is stamped only when
-  `check_lines_up.py` reports lines_up; report the missing lens / dangling reference and route
-  to the lens that closes it. handoff: autonomous.
-- REC9 (F9) — trigger: the stamp changed more than `status`/metadata, or the slice's
-  composition changed. direction: restore the slice record's composition, re-apply only the
-  `status` stamp, after a human confirms the restore. handoff: human.
-- REC10 (F10) — trigger: a non-allowed file changed, an accepted decision was edited in place,
-  or something was removed. direction: restore it and re-apply only the run lens (and the new
-  decision, and the stamp on lines-up), after a human confirms the restore. handoff: human.
-- REC11 (F11) — trigger: the run lens or a decision fails v1 schema validation, or the slice
-  record fails slice v1 after the stamp. direction: re-emit the failing artifact to conform
-  before the play completes. handoff: autonomous.
-- REC12 (F12) — trigger: the run lens or the stamp was persisted before the checkpoint was
-  approved. direction: revert the premature write and re-present the checkpoint; persist only
-  after the human approves. handoff: human.
-- REC13 (F13) — trigger: the TCO is missing, empty, or generic; a component lacks a concrete
-  service; the simulation or the monthly range/drivers/confidence is absent; or the
-  hyperscaler/cost-model choice is ungrounded. direction: return to the Draft step —
-  regenerate the `tco` block from the hub (load assumptions), the architecture lens (the
-  components to map), the profile (scale facets), and the KB (platform + cost patterns;
-  raise a KB-learning-gap proposal for an uncovered cost model); re-validate before the
-  checkpoint. When exact pricing is unknown, produce a directional range with stated
-  assumptions and confidence — never skip the block. handoff: autonomous.
+- REC1 (F1) — trigger: the slice is absent, a functionality does not resolve, the profile is not
+  firmed, or the architecture lens is missing. direction: halt and route to /shape, /understand, or
+  /arch before /run runs. handoff: human.
+- REC2 (F2) — trigger: a write touched something beyond this slice's `run.md` or a decision. direction:
+  revert the out-of-scope write; /run writes only the slice's `run.md` (and any decision). handoff:
+  autonomous.
+- REC3 (F3) — trigger: `run.md` fails the template/shape or carries out-of-scope content. direction:
+  re-emit the doc to the Run lens template — the five run sections only. handoff: autonomous.
+- REC4 (F4) — trigger: `run.md` fails the content-quality eval. direction: rewrite the failing section
+  to the judge's cited fixes and re-judge until the gate passes. handoff: autonomous.
+- REC5 (F5) — trigger: an invented operational choice, or a material choice with no decision. direction:
+  re-tie each choice to the hub, the profile, or the architecture, and record the material decision.
+  handoff: autonomous.
+- REC6 (F6) — trigger: a functionality was left unaccounted for. direction: extend the run plan to
+  account for the missing functionality. handoff: autonomous.
+- REC7 (F7) — trigger: /run read or depended on a lens other than architecture. direction: remove the
+  dependency; /run reads only the hub + the architecture lens. handoff: autonomous.
+- REC8 (F8) — trigger: /run stamped the slice realized or wrote its status. direction: revert the
+  status write; the `realized` stamp belongs to /measure. handoff: autonomous.
+- REC9 (F9) — trigger: a non-lens/non-decision file changed, or an accepted decision was edited in
+  place. direction: restore it and re-apply only the `run.md` (and the new decision), after a human
+  confirms the restore. handoff: human.
+- REC10 (F10) — trigger: the lens was persisted before the checkpoint was approved. direction: revert
+  the premature write and re-present the checkpoint; persist only after approval. handoff: human.

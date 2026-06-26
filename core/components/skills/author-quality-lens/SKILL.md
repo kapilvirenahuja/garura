@@ -1,7 +1,7 @@
 ---
 name: author-quality-lens
-description: Draft /quality's quality lens for one SLICE — turn the profile targets that apply and the slice's functionalities' ICE constraints/failures into a grounded, checkable list of pass/fail gates, plus a decision for any material choice. Writes a draft only (the quality lens + a grounding manifest in STM), never the live model. The generative work for the /quality play; the first realize lens, so it reads only the slice's hub (its functionalities' ICE + the profile), never another lens.
-version: 0.2.0
+description: Author a shaped slice's quality lens as an MD grounding doc — a short statement of what "good" means for the slice plus a table of checkable gates (dimension / bar / how checked) — from the slice's hub (its functionalities' grounding docs + the spine profile's NFR gates). Every gate is grounded (a profile gate that applies or a functionality's rule made checkable) and concrete, never a vague adjective. Writes a draft quality.md (conforming to the Quality lens template) plus a grounding manifest and any material decision; reads the functionality.md docs + the profile for the hub, never another lens. Generative artifact production for the /quality play; writes a draft only, never the live model.
+version: 0.3.0
 user-invocable: false
 model: opus
 allowed-tools: Read, Write, Bash, Glob
@@ -9,101 +9,89 @@ allowed-tools: Read, Write, Bash, Glob
 
 # author-quality-lens
 
-Turns one shaped **slice's** hub and its quality targets into the **quality lens**: a flat
-list of gates the slice must pass. A gate is a pass/fail check — "p99 < 150ms", "no user
-enumeration", "WCAG 2.1 AA", "lockout after 5 failed attempts". A slice is a vertical product
-increment; its **hub** is the union of its functionalities' ICE (which may span several
-capabilities) plus the product profile. It draws every gate from one of two places and
-nowhere else:
+Turns a shaped slice's **hub** — the grounding docs of the functionalities it bundles, plus the
+product profile — into the slice's **quality lens**, written as the grounding doc `quality.md`:
+what "good" means for this slice, and the checkable gates it must clear. The gates are drawn from
+the profile's NFR gates that apply to the slice and from the slice's functionalities' own rules,
+made checkable — never invented. It reads the hub only (never another realize lens) and writes a
+draft — /quality's checkpoint and apply step persist it.
 
-- a **profile target** that applies to this slice (the box's NFR gates), or
-- one of the slice's functionalities' **ICE constraints or failures**, made checkable.
+## What it produces (against the locked template)
 
-It writes a draft only — /quality's checkpoint and apply step persist it. It is the **first**
-realize lens, so it reads the slice's hub and never another lens.
+`quality.md` conforms to `standards/schemas/product-os/grounding/lens/quality.md` — H1
+`# Quality Lens`, sections **Intent** (what good means for this slice and why that bar) and
+**Gates** (a table: dimension | bar | how checked). It must clear the linter (shape) and the
+content-quality eval (the play runs both). Alongside it, a structured `quality-manifest.yaml`
+carries the machine-checkable grounding the prose can't — which profile gate or functionality each
+gate traces to, and any material choice.
 
 ## Inputs
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `slice_ref` | yes | The slice, `{domain}/{slice-id}`. |
-| `slice_file` | yes | The slice record path (read-only). |
-| `functionality_ices` | yes | The resolved ICE file paths for the slice's functionalities (the hub), from the readiness gate. |
-| `profile_path` | yes | The product `profile.yaml`. Read-only — the source of the applicable targets. |
-| `lens_rel` | yes | The slice's lens path to mirror in the draft, e.g. `product-os/{domain}/slices/{slice-id}/lens/quality.yaml`. |
-| `draft_dir` | yes | Output folder under STM for the draft lens + manifest. |
+| `slice_ref` | yes | `{domain}/{slice-id}` — display reference. |
+| `slice_file` | yes | Path to the live slice record (read-only — for the functionalities it bundles). |
+| `functionality_groundings` | yes | Paths to each functionality's `functionality.md` grounding doc (the hub, resolved by `check_ready_slice`). Read these for rules/acceptance — NOT `ice.yaml` (retired). |
+| `profile` | yes | The product profile (from the spine) — its NFR gates and conditions. Read-only; the gates draw from the profile gates that apply. |
+| `product_base` | yes | Product model root (to reuse an existing material decision). |
+| `lens_rel` | yes | Relative path the lens mirrors: `product-os/{domain}/slices/{slice}/lens/quality.md`. |
+| `draft_dir` | yes | Output folder under STM for the draft + manifest. |
 | `stm_base` | yes | From config. |
 
 ## Procedure
 
-The gate wording and which targets apply are your judgment; grounding and shape are
-non-negotiable.
+Reasoning (which gates matter, the bar, how each is checked) is yours. Template conformance,
+grounding, and concreteness are non-negotiable.
 
-1. **Read the slice's hub + the box.** Load the slice record and every functionality ICE in
-   `functionality_ices` (intent constraints + failures, context, expectations, nfr_needs) and
-   the profile box. Do NOT read another lens — quality is first.
-
-2. **Pull the applicable targets.** From the profile box, take the NFR gates that apply to
-   this slice (speed, uptime, security, accessibility, and the like). Each becomes a gate,
-   stated as a pass/fail with its value (e.g. "p99 < 150ms").
-
-3. **Make the ICE rules checkable.** For each relevant ICE constraint or failure across the
-   slice's functionalities, write the gate that proves it holds — e.g. failure "user
-   enumeration is possible" → gate "no user enumeration on login or reset".
-
-4. **Keep it concrete.** Every gate is a clear pass/fail. Where the dimension has a number,
-   the gate carries it. No bare adjectives ("fast", "secure"). No how-to-test, no coverage,
-   no environments — that is the builder's and /validate's job, not this lens.
-
-5. **Record a decision for a material choice.** When you pick a specific level the box left
-   open (e.g. ASVS L2 rather than L1), draft a slice-level decision (ADR) naming the choice
-   and why.
-
-6. **Write the draft + manifest.** Write the quality lens (the v1 lens envelope with
-   `type: quality`, `slice_ref`, `content.gates`) under `draft_dir`, mirroring `lens_rel`,
-   plus any decisions, plus a `quality-manifest.yaml` that grounds **every gate** to its
-   source so the play's validate step is mechanical:
-
-```yaml
-quality:
-  slice: <domain>/<slice-id>
-  gates:
-    - gate: "p99 < 150ms"
-      source_type: profile          # profile | ice
-      source: "speed.p99 target"
-    - gate: "no user enumeration on login or reset"
-      source_type: ice
-      source: "func-...: intent.failures[2]"
-    - gate: "OWASP ASVS L2; no P1/P2"
-      source_type: profile
-      source: "security target (level left open)"
-      material: true                # a choice the box left open
-      decision: <decision-id>       # the ADR that records it
-  decisions: [<decision-id>, ...]    # ids of any decisions drafted
-```
+1. **Read the hub.** Load each functionality's `functionality.md` (its rules, behavior, acceptance)
+   and the profile (its NFR gates + conditions). Do NOT read any other lens.
+2. **State the intent.** What "good" means for THIS slice in a short paragraph — the bar it has to
+   hit to be trustworthy, and why that bar and not a looser one. Not a restating of the gates.
+3. **Derive the gates.** Build the gate table: for each dimension that matters to this slice, the
+   bar and how it is checked. Each gate is grounded — it traces to a profile NFR gate that applies
+   to the slice, or to a rule of one of the slice's functionalities made checkable. Every gate is
+   concrete (a value or a named standard plus a check), never a vague adjective.
+4. **Write the draft.** Write `quality.md` to the lens path under `draft_dir` (per the template);
+   write `quality-manifest.yaml` (the profile gate or functionality each gate grounds in; any
+   material choice → a decision); write the decision if any. Drafts only — never the live model,
+   never another lens.
 
 ## Output — the draft
 
 ```
 {draft_dir}/
-  product-os/<domain>/slices/<slice-id>/
-    lens/quality.yaml
-    decisions/<decision-id>.yaml      # only if a material choice was made
-  quality-manifest.yaml
+  product-os/{domain}/slices/{slice}/
+    lens/quality.md                               # the Quality lens grounding doc
+    decisions/{decision-id}.yaml                  # a material decision (if any)
+  quality-manifest.yaml                           # grounding map (gate -> profile gate / functionality)
 ```
 
-## Boundaries
+`quality-manifest.yaml`:
 
-### NEVER
-- Read or reference another lens (ux/agentic/architecture/run) — quality is first.
-- Write the slice record, a functionality's ICE, the profile, another lens, or node
-  structure/status — draft only the quality lens (+ decisions).
-- Invent a gate with no profile target and no ICE rule behind it.
-- Put how-to-test, coverage, or environments in the lens — gates only.
-- Emit a vague gate — every gate is a concrete pass/fail.
+```yaml
+quality:
+  slice_ref: token-dash/slice-trusted-coverage
+  grounds:                                        # every gate traces to a profile gate or a functionality
+    - { source_type: profile, source: "nfr.privacy" }
+    - { source_type: functionality, source: "func-privacy-trust-labeling", functionality_ref: func-privacy-trust-labeling }
+    - { source_type: functionality, source: "func-source-coverage-freshness", functionality_ref: func-source-coverage-freshness }
+  choices: []                                     # material quality choices (each → a decision), if any
+```
 
-### ALWAYS
-- Ground every gate in the manifest to a profile target or a functionality's ICE
-  constraint/failure.
-- Keep `content` to the single `gates` key per the quality lens schema.
-- Return the draft paths, not the contents.
+Return the enriched contract with the `draft_dir` and `quality-manifest.yaml` path — paths, never
+inline content.
+
+## Rules
+
+- **Hub only.** Derive from the functionalities' grounding docs + the profile; never read or ground
+  on another realize lens.
+- **Template-true.** `quality.md` conforms to the Quality lens template (Intent / Gates) and must
+  clear the linter + the content eval — every item self-explaining.
+- **Grounded, not invented.** Every gate traces to a profile NFR gate that applies or to a
+  functionality's rule; a material choice is recorded as a decision. No gate from taste.
+- **Concrete.** Every gate is a checkable bar — a value or a named standard plus how it is checked —
+  never a vague adjective. A gate that cannot be checked is not a gate.
+- **Cover the hub.** The gates consider every functionality the slice bundles, recorded in the
+  manifest grounds.
+- **Drafts only.** Write under `draft_dir`; never touch the live model.
+```

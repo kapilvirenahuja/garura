@@ -5,15 +5,14 @@ apply_quality.py — persist /quality's quality lens, on a fixed allowlist.
 Run only AFTER the human approves the checkpoint. It writes exactly two kinds of thing
 and NOTHING else:
 
-  1. The quality lens — `lens/quality.yaml` for the capability, written from the draft.
-     This is the re-derive, so it overwrites a prior quality lens (C8 allows the lens
-     itself to change on a re-run).
+  1. The quality lens — `lens/quality.md` (a grounding doc) for the slice, written from
+     the draft. This is the re-derive, so it overwrites a prior quality lens.
   2. Decisions — `decisions/*.yaml`, copied skip-if-exists, so an accepted decision is
-     never edited in place (C8/F8); a re-run adds only new ones.
+     never edited in place; a re-run adds only new ones.
 
-The script is handed only the draft, which holds only the quality lens + decisions, so
-it physically cannot touch the ICE, the profile, another lens, or node structure
-(C2/F2).
+The script is handed only the draft, which holds only the quality lens + decisions, so it
+physically cannot touch the hub (functionality grounding), the spine, another lens, the
+slice record, or the profile.
 
 Layer rule: pure file writes from disk inputs; no git/gh/network.
 
@@ -50,9 +49,9 @@ def main(argv=None):
         for fn in files:
             rel = os.path.normpath(os.path.join(rel_dir, fn))
             parts = rel.split(os.sep)
-            is_quality_lens = (len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == "quality.yaml")
+            is_lens = (len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == "quality.md")
             is_decision = ("decisions" in parts and fn.endswith(".yaml"))
-            if not (is_quality_lens or is_decision):
+            if not (is_lens or is_decision):
                 refused.append(rel)            # defensive: draft should hold only these
                 continue
             dst = os.path.join(dst_root, rel)

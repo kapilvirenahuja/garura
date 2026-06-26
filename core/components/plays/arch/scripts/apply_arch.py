@@ -5,15 +5,15 @@ apply_arch.py — persist /arch's architecture lens, on a fixed allowlist.
 Run only AFTER the human approves the checkpoint. It writes exactly two kinds of thing
 and NOTHING else:
 
-  1. The architecture lens — `lens/architecture.yaml` for the slice, written from the draft.
-     This is the re-derive, so it overwrites a prior architecture lens (C9 allows the lens
-     itself to change on a re-run).
+  1. The architecture lens — `lens/architecture.md` (a grounding doc) for the slice,
+     written from the draft. This is the re-derive, so it overwrites a prior architecture
+     lens (the lens itself may change on a re-run).
   2. Decisions — `decisions/*.yaml`, copied skip-if-exists, so an accepted decision is
-     never edited in place (C9/F9); a re-run adds only new ones.
+     never edited in place; a re-run adds only new ones.
 
 The script is handed only the draft, which holds only the architecture lens + decisions, so
-it physically cannot touch the ICE, the profile, another lens, the slices, or node
-structure (C2/F2).
+it physically cannot touch the spine, the profile, another lens, the slices, or the
+grounding tree.
 
 Layer rule: pure file writes from disk inputs; no git/gh/network.
 
@@ -28,6 +28,8 @@ import json
 import os
 import shutil
 import sys
+
+LENS_FILE = "architecture.md"
 
 
 def main(argv=None):
@@ -50,10 +52,9 @@ def main(argv=None):
         for fn in files:
             rel = os.path.normpath(os.path.join(rel_dir, fn))
             parts = rel.split(os.sep)
-            is_arch_lens = (len(parts) >= 2 and parts[-2] == "lens"
-                            and parts[-1] == "architecture.yaml")
+            is_lens = (len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == LENS_FILE)
             is_decision = ("decisions" in parts and fn.endswith(".yaml"))
-            if not (is_arch_lens or is_decision):
+            if not (is_lens or is_decision):
                 refused.append(rel)            # defensive: draft should hold only these
                 continue
             dst = os.path.join(dst_root, rel)

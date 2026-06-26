@@ -1,7 +1,7 @@
 ---
 name: author-architecture-lens
-description: Draft /arch's architecture lens for one SLICE — turn the slice's functionalities' ICE (their context.systems) and the profile surfaces into the horizontal components the slice threads, the contracts (seams) crossed between them with the data that flows, and the stack (tech + versions) per component, plus a decision for any material choice. Every component, contract, and tech pick is grounded — never invented; the build is one vertical end-to-end slice through the components. Writes a draft only (the architecture lens + a grounding manifest in STM), never the live model. The generative work for the /arch play; reads the slice's hub + the profile box, MAY read the three lens-trinity files (quality, ux, agentic — optional inputs), never the measure or run lens.
-version: 0.1.0
+description: Author a shaped slice's architecture lens as an MD grounding doc — the components the slice threads (each in its layer, with its contract), the stack (tech + versions) per component, and the vertical build (how the slice runs end-to-end through them) — from the slice's hub (its functionalities' grounding docs + the spine profile) and KB architecture/technology grounding. Writes a draft architecture.md (conforming to the Architecture lens template) plus a grounding manifest and any material-choice decisions; reads the functionality.md docs for the hub, MAY read the functional lens docs (ux/agentic/marketing) optionally, never the measure or run lens. Generative artifact production for the /arch play; writes a draft only, never the live model.
+version: 0.2.0
 user-invocable: false
 model: opus
 allowed-tools: Read, Write, Bash, Glob
@@ -9,196 +9,101 @@ allowed-tools: Read, Write, Bash, Glob
 
 # author-architecture-lens
 
-Turns one shaped **slice** into its **architecture lens** — the shape of the software that
-delivers the slice. A slice is a vertical product increment; its **hub** is the union of its
-functionalities' ICE (which may span several capabilities) plus the product profile. The lens
-is three things and only three:
+Turns a shaped slice's **hub** — the grounding docs of the functionalities it bundles, plus
+the product profile — into the slice's **architecture lens**, written as the grounding doc
+`architecture.md`: the components the slice threads, the stack behind them, and the vertical
+build that ties them end-to-end. A slice is a vertical increment; its hub is the union of its
+functionalities' grounding (which may span several capabilities) plus the profile box. It
+reads the hub (and MAY read the already-merged functional lens docs — ux/agentic/marketing —
+optionally), never the measure or run lens, and writes a draft — /arch's checkpoint and apply
+step persist it.
 
-- **components** — the **horizontal** platforms/tiers the slice threads, each in a **layer**
-  (experience / process / domain / cross-cutting), a **kind** (internal / external), and the
-  **part** the slice occupies inside it. A component is SELECTED, not invented: it is a system
-  the slice's functionalities talk to (their ICE `context.systems`) or a surface the product
-  exposes (the profile's `shape.surfaces`).
-- **contracts** — the **seams** crossed between components, each with an `interface` and the
-  `data` (the data model) that flows across. A contract is the seam two components must cross
-  to serve one of the slice's functionalities.
-- **stack** — the technology picked per component, **with versions**. Each pick is a
-  deliberate choice, sized by the profile box (its NFR levels + gates) and recorded as a
-  decision the product references.
+## What it produces (against the locked template)
 
-A component is a horizontal; the **slice is a vertical** that threads top-to-down through the
-components — and the build is that vertical, end-to-end through them: end-to-end or the story
-failed. So every functionality the slice bundles must thread through the components, the
-seam-graph must be acyclic, and no component is left an orphan.
-
-It draws everything from the slice's hub + the profile box, and MAY read the three
-lens-trinity files (quality, ux, agentic — optional inputs, read-only, to inform component
-selection; the trinity read rule, decision 23); it never reads the measure or run lens. The
-NFRs it sizes the stack against come from the **profile box** directly, not from the quality
-lens.
-
-It writes a draft only — /arch's checkpoint and apply step persist it.
+`architecture.md` conforms to `standards/schemas/product-os/grounding/lens/architecture.md` —
+H1 `# Architecture Lens`, sections **Intent**, **Components** (each in its layer, with its
+contract), **Stack** (a table: component | technology | version), **Vertical build** (how the
+slice runs top-to-bottom through the components). It must clear the linter (shape) and the
+content-quality eval (the play runs both). Alongside the doc it writes a structured
+`arch-manifest.yaml` carrying the machine-checkable grounding the prose can't — which
+component grounds to which functionality (its systems) or surface, and the stack's grounding.
 
 ## Inputs
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `slice_ref` | yes | The slice, `{domain}/{slice-id}`. |
-| `slice_file` | yes | The slice record path (read-only) — its `functionalities` list (the to-thread set). |
-| `functionality_ices` | yes | The resolved ICE file paths for the slice's functionalities (the hub), from the readiness gate. Their `context.systems` are the candidate components. |
-| `profile_path` | yes | The product profile (read-only) — its `shape.surfaces` (entry components) and `nfr` box (sizes the stack). |
-| `quality_lens` | no | The slice's quality lens (read-only, trinity read rule) — may inform component selection. |
-| `ux_lens` | no | The slice's ux lens (read-only, trinity read rule) — may inform component selection. |
-| `agentic_lens` | no | The slice's agentic lens (read-only, trinity read rule) — may inform component selection. |
-| `kb_search` | yes | Path to the `kb-search` skill's `scripts/kb_search.py` — the condition-search engine over the architecture/technology shelves. |
-| `kb_root` | yes | The `knowledge/` dir, so the manifest can name resolvable learning ids. |
-| `product_base` | yes | The product model root — read-only, to reuse an existing architecture decision if one exists. |
-| `lens_rel` | yes | The slice's lens path to mirror in the draft, e.g. `product-os/{domain}/slices/{slice-id}/lens/architecture.yaml`. |
-| `draft_dir` | yes | Output folder under STM for the draft lens + manifest + any proposals. |
+| `slice_ref` | yes | `{domain}/{slice-id}` — display reference. |
+| `slice_file` | yes | Path to the live slice record (read-only — for the functionalities it bundles). |
+| `functionality_groundings` | yes | Paths to each functionality's `functionality.md` grounding doc (the hub, resolved by `check_ready_slice`). Read these for systems/behavior — NOT `ice.yaml` (retired). |
+| `profile` | yes | The product profile (from the spine) — the box (NFR levels + gates) + surfaces. Read-only. |
+| `kb_search` | yes | Path to the KB search script, for architecture/technology grounding. |
+| `kb_root` | yes | Path to `knowledge/`, to resolve learning ids. |
+| `product_base` | yes | Product model root (to reuse an existing stack decision). |
+| `lens_rel` | yes | Relative path the lens mirrors: `product-os/{domain}/slices/{slice}/lens/architecture.md`. |
+| `draft_dir` | yes | Output folder under STM for the draft + manifest + proposals. |
 | `stm_base` | yes | From config. |
 
 ## Procedure
 
-The component naming, the layering, the seam shape, and the tech taste are your judgment;
-grounding, end-to-end coverage, the acyclic seam-graph, and the three-block shape are
-non-negotiable.
+Reasoning (selecting components, drawing contracts, picking the stack, writing the vertical
+build) is yours. Template conformance, grounding, and coverage are non-negotiable.
 
-1. **Read the slice's hub + the profile box.** Load the slice record (its functionalities —
-   the to-thread set) and every functionality ICE in `functionality_ices` (their
-   `context.systems` and `context.scope`), plus the profile (`shape.surfaces` and the `nfr`
-   box). When the optional trinity inputs (`quality_lens`, `ux_lens`, `agentic_lens`) are
-   provided, you MAY read them — read-only, to inform component selection. Do NOT read the
-   measure or run lens.
-
-2. **Select the components.** For each system named in the functionalities' ICE
-   `context.systems`, place a component in its layer (experience / process / domain /
-   cross-cutting), with its kind (internal / external) and the part the slice occupies. Add an
-   **entry** component for each profile surface the slice presents on (web / mobile / cli / api
-   …) in the experience layer. Never invent a component with no system and no surface behind it.
-
-3. **Draw the contracts.** For each pair of components that must talk to serve one of the
-   slice's functionalities, draw a contract: the `interface` and the `data` (the data model)
-   that crosses. Record, in the manifest, the directed `depends_on` for each component (which
-   components it calls) so the seam-graph is checkable — keep it **acyclic** (break a cycle by
-   removing a seam, splitting a component, or making a boundary async).
-
-4. **Search the KB, then pick the stack + record its decisions.** Build the product's condition
-   profile (stage / users / persistence / monetization, from the profile) and query the KB's
-   architecture/technology shelves through kb-search:
-
-   ```bash
-   python3 {kb_search} index            # all learnings + their conditions facets
-   python3 {kb_search} get <id>         # e.g. architecture/microservices, technology/backend-nodejs
-   ```
-
-   Reason over each candidate's **Conditions** (judgment, not keyword match) to pick the
-   best-fit architecture/technology learnings. Base the **system-level shape** (monolith /
-   modular-monolith / microservices / serverless) and each significant **technology pick** on a
-   matched learning — what has worked for a product in this situation, not your taste. For each
-   component, pick the tech and a **version** sized by the profile `nfr` box. Each significant
-   pick and the system-level shape is a **material** choice: record it as a slice-level decision
-   (ADR) **and** ground it in the matched KB learning in the manifest's `choices` block. For any
-   choice the shelves do not cover, write a **KB-learning-gap proposal** into
-   `{draft_dir}/proposals/<gap>.yaml` (a candidate architecture/technology learning shaped to the
-   KB's `_TEMPLATE.md`, for review — never written to the KB here), and reference it instead of a
-   learning id. If the product already has an architecture decision that fits (look under
-   `product_base`), **reuse it** — do not re-invent.
-
-5. **Write the draft + manifest.** Write the architecture lens (the v1 lens envelope with
-   `type: architecture`, `slice_ref`, and the three content blocks) under `draft_dir`,
-   mirroring `lens_rel`, plus the decisions, plus an `architecture-manifest.yaml` that grounds
-   **every** component, contract, and stack pick and carries the seam-graph so the play's
-   validate step is mechanical and end-to-end coverage is checkable:
-
-```yaml
-architecture:
-  slice: <domain>/<slice-id>
-  entry_layers: ["experience"]          # layers that count as the slice's surface/entry
-  components:
-    - name: "channel-bff"
-      layer: experience                 # experience | process | domain | cross-cutting
-      depends_on: ["order-orchestrator"]   # directed seams — for the acyclic + reachability check
-      grounds:
-        - source_type: surface          # ice | surface
-          source: "profile.shape.surfaces: web"
-        # or, when the component is a system the slice talks to:
-        # - source_type: ice
-        #   source: "func-...: context.systems[0] (order service)"
-        #   functionality_ref: "<functionality node id>"
-  contracts:
-    - between: "channel-bff <-> order-orchestrator"
-      serves: ["<functionality node id>"]    # the functionalities this seam carries
-      grounds:
-        - source_type: ice
-          source: "func-...: context.scope"
-          functionality_ref: "<functionality node id>"
-  stack:
-    - component: "order-orchestrator"
-      grounds:
-        - source_type: decision         # decision (the stack/shape ADR) | profile | kb
-          source: "sized by profile.nfr.performance"
-          material: true
-          decision: "<decision-id>"
-  choices:                              # the KB-grounded PATTERN choices (shape + material tech)
-    - choice: "system-level shape: microservices"
-      grounds:
-        - source_type: kb               # kb (a learning id under kb_root) | proposal (a gap file)
-          source: "architecture/microservices"
-          decision: "<decision-id>"
-    - choice: "order-orchestrator stack: node"
-      grounds:
-        - source_type: kb
-          source: "technology/backend-nodejs"
-          decision: "<decision-id>"
-    # for a gap the KB does not cover:
-    # - choice: "<the pattern choice>"
-    #   grounds: [ { source_type: proposal, source: "proposals/<gap>.yaml" } ]
-  decisions: ["<decision-id>", ...]
-```
-
-Every functionality the slice bundles must appear as a `functionality_ref` on at least one
-component or contract — that is the end-to-end coverage the validate step checks against the
-slice record. Every material pattern choice (the system-level shape + each significant tech
-pick) must appear in `choices` with a KB learning or a proposal — that is the KB grounding
-`check_kb_grounding.py` checks.
+1. **Read the hub.** Load each functionality's `functionality.md` (its behavior, its systems
+   in the boundary/rules, its acceptance) and the profile box (NFR levels + gates + surfaces).
+   You MAY read the functional lens docs if present; never read the measure or run lens.
+2. **Select the components.** The horizontal components the slice threads — each in a layer,
+   with the contract (what it takes and gives). A component is SELECTED, not invented: it is a
+   system the slice's functionalities talk to, or a surface the profile exposes. Every
+   functionality must thread through at least one component (coverage).
+3. **Pick the stack.** The technology per component WITH versions, sized by the profile box —
+   grounded in a KB architecture/technology learning (via `kb_search`) or a recorded
+   KB-learning-gap proposal. Record material picks as decisions.
+4. **Write the vertical build.** How this one slice runs end-to-end through the components,
+   top to bottom — the path a builder follows for this increment.
+5. **Write the draft.** Write `architecture.md` to the lens path under `draft_dir` (per the
+   template); write `arch-manifest.yaml` (every component's `grounds` → a functionality_ref or
+   surface; the stack's grounding → kb or decision); write the stack decision; write any KB
+   proposals. Drafts only — never the live model, never another lens.
 
 ## Output — the draft
 
 ```
 {draft_dir}/
-  product-os/<domain>/slices/<slice-id>/
-    lens/architecture.yaml
-    decisions/<decision-id>.yaml      # the stack/shape decision(s) (or reused id, not re-written)
-  proposals/<gap>.yaml                 # any KB-learning-gap proposal (referenced by choices)
-  architecture-manifest.yaml
+  product-os/{domain}/slices/{slice}/
+    lens/architecture.md                          # the architecture lens grounding doc
+    decisions/{decision-id}.yaml                  # the stack / material-choice decision (if material)
+  arch-manifest.yaml                              # grounding map (components → functionalities/surfaces; stack)
+  proposals/<gap>.yaml                            # KB-learning-gap proposals (only if gaps)
 ```
 
-## Boundaries
+`arch-manifest.yaml`:
 
-### NEVER
-- Read or reference the measure or run lens — /arch reads the slice's hub + the profile box,
-  plus at most the lens-trinity files (quality/ux/agentic) handed in as optional read-only
-  inputs.
-- Write the slice record, a functionality's ICE, the profile, another lens, or other slices —
-  draft only this slice's architecture lens (+ the decisions).
-- Invent an element — a component that is neither a system in the slice's functionalities' ICE
-  nor a profile surface, a contract no functionality requires, or a stack pick with no
-  recorded decision.
-- Leave a functionality of the slice un-threaded, a component an orphan, or a cycle in the
-  seam-graph.
-- Smear concrete tech or versions into `components` — that lives in `stack`. Keep `content` to
-  the three keys components/contracts/stack.
-- Over-specify — no resource sizing, no wire-level detail. Intent-level shape only.
+```yaml
+arch:
+  slice_ref: token-dash/slice-trusted-coverage
+  components:
+    - name: "Trust labeler"
+      grounds:
+        - { source_type: functionality, source: "func-privacy-trust-labeling", functionality_ref: func-privacy-trust-labeling }
+  stack:                                           # the stack grounding
+    source_type: decision                          # kb | decision
+    decision: dec-stack-token-dash
+```
 
-### ALWAYS
-- Ground every component (on an ICE system or a profile surface), every contract (on a
-  functionality), and every stack pick (on a decision / profile pin / KB) in the manifest.
-- Thread every functionality the slice bundles through at least one component/contract,
-  keep the seam-graph acyclic, and leave no orphan component.
-- Size the stack against the profile `nfr` box; record material choices (the component set,
-  the system-level shape, significant tech picks) as decisions that resolve.
-- Search the KB first and ground every material pattern choice (the system-level shape + each
-  significant tech pick) in a best-fit `architecture/*` or `technology/*` learning — or a
-  recorded KB-learning-gap proposal — in the manifest's `choices` block. Never pick the shape or
-  a tech on taste alone.
-- Return the draft paths, not the contents.
+Return the enriched contract with the `draft_dir` and `arch-manifest.yaml` path — paths,
+never inline content.
+
+## Rules
+
+- **Hub (+ optional functional trinity).** Derive from the functionalities' grounding docs +
+  the profile box; you may read the functional lens docs, never the measure or run lens.
+- **Template-true.** `architecture.md` conforms to the Architecture lens template
+  (Intent/Components/Stack/Vertical build) and must clear the linter + the content eval —
+  every item self-explaining; the stack as a table.
+- **Selected, not invented.** Every component is a system a functionality talks to or a
+  profile surface; every stack pick is grounded in a KB learning or a proposal and recorded
+  as a decision.
+- **Cover every functionality.** Every functionality the slice bundles threads through ≥1
+  component, recorded in the manifest. The build is one vertical, end-to-end.
+- **Drafts only.** Write under `draft_dir`; never touch the live model.
+```
