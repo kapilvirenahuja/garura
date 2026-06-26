@@ -1,7 +1,7 @@
 ---
 name: author-measure-lens
-description: Draft /measure's measure lens for one SLICE — the delivery-measurement claims for building it. Reads the slice's hub (its functionalities' ICE + the profile box) AND the three lens-trinity files (quality, ux, agentic — measure is a FOUNDATION lens; the trinity read rule), then grounds every metric claim in the KB's delivery-measurement learnings via kb-search — the triangle frame (speed, tokens, cognition) as the primary, industry frames (DORA/Flow/SPACE/DX) derived as translations, never parallel claims. Each claimed metric is a provable promise — baseline, target, and the proof source /capture later harvests. Anything the KB does not cover is raised as a KB-learning-gap proposal, never invented. Writes a draft only (the measure lens + a grounding manifest in STM), never the live model. The generative work for the /measure play; it reads quality/ux/agentic but never the architecture or run lens.
-version: 0.1.0
+description: Author a shaped slice's measure lens as an MD grounding doc — the delivery-measurement focus, a table of metrics (metric / baseline / target / proof, triangle-primary speed/tokens/cognition), and what is out of scope — from the slice's hub (its functionalities' grounding docs + the spine profile). Every metric is concrete (a baseline, a target, a proof), never a vague claim. Writes a draft measure.md (conforming to the Measure lens template) plus a grounding manifest and any material decision; reads the functionality.md docs + the profile for the hub. Generative artifact production for the /measure play; writes a draft only, never the live model.
+version: 0.3.0
 user-invocable: false
 model: opus
 allowed-tools: Read, Write, Bash, Glob
@@ -9,168 +9,87 @@ allowed-tools: Read, Write, Bash, Glob
 
 # author-measure-lens
 
-Turns one shaped slice (its lens trinity already authored) into its **measure lens** — the
-benefits the TEAM gets while delivering this slice: which delivery metrics it improves or
-holds, each as a provable claim. A slice is a vertical product increment; its **hub** is the
-union of its functionalities' ICE (which may span several capabilities) plus the product
-profile. /measure is a **foundation** lens (arch → measure → run); per the trinity read rule
-it reads the slice hub **plus all three lens-trinity files** (quality, ux, agentic) — the
-attributes whose delivery it prices — and never the architecture or run lens.
+Turns a shaped slice's **hub** — the grounding docs of the functionalities it bundles, plus the
+product profile — into the slice's **measure lens**, written as the grounding doc `measure.md`: what
+delivery the slice is proving, the metrics that prove it, and what is deliberately not measured. The
+metrics are concrete (each a baseline, a target, and how it is proven), triangle-primary on
+speed/tokens/cognition where it applies — never a vague claim. It reads the hub and writes a draft —
+/measure's checkpoint and apply step persist it. This is the seam /capture later harvests.
 
-The measure lens is three things and only three:
+## What it produces (against the locked template)
 
-- **focus** — one line: the team benefit this slice's delivery drives.
-- **metrics** — one entry per claim. The **triangle is the primary frame** (speed, tokens,
-  cognition — see `technology/delivery-triangle`): claims default to `framework: triangle`.
-  Industry-framework entries (dora/flow/space/dx) are exceptional — the industry numbers are
-  *derived translations* of triangle data (`technology/delivery-industry-frames-derived`),
-  never parallel claims with their own bookkeeping. Each claim carries:
-  - `why` — why THIS slice moves this metric, tied to hub or lens-trinity content (an
-    agentic-heavy slice prices cognition differently than a static page).
-  - `baseline` — today's number with `as_of` + `source`; a real number, or the word
-    `unmeasured` stated honestly — never a flattering guess.
-  - `target` — the number delivery is claimed to reach, and the `horizon` when it is
-    checkable.
-  - `proof` — the seam to /capture: the `source` where the number will be read (pipeline
-    timestamps, the token-burn dashboard, gate reports) and the exact `signal`. /capture
-    harvests ONLY what is declared here — an undeclared signal is unprovable.
-- **out_of_scope** — metrics consciously NOT claimed, one line of why each (grill fodder).
-
-**Every metric claim is grounded in the KB, never invented.** Before drafting, search the
-KB's `architecture/` and `technology/` shelves (conditions `concern: delivery-measurement`)
-and base the metric set, the target heuristics (e.g. the ≥5x speed expectation), and the
-proof sources on what is recorded — Kapil's frame, not the model's taste. Anything the
-shelves do not cover is a recorded KB-learning-gap proposal — never a silent guess.
-
-It writes a draft only — /measure's checkpoint and apply step persist it. Measure never
-stamps the slice (that stays /run's duty).
+`measure.md` conforms to `standards/schemas/product-os/grounding/lens/measure.md` — H1
+`# Measure Lens`, sections **Focus** (the one outcome whose movement tells you the slice worked),
+**Metrics** (a table: metric | baseline | target | proof), and **Out of scope** (what is not measured
+yet, with the reason). It must clear the linter (shape) and the content-quality eval (the play runs
+both). Alongside it, a structured `measure-manifest.yaml` carries the machine-checkable grounding —
+which functionality or profile outcome each metric traces to, and any material choice.
 
 ## Inputs
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `slice_ref` | yes | The slice, `{domain}/{slice-id}`. |
-| `slice_file` | yes | The slice record path (read-only) — its `functionalities` (the hub set). |
-| `functionality_ices` | yes | The resolved ICE file paths for the slice's functionalities (the hub), from the readiness gate. |
-| `quality_lens` | yes | The slice's quality lens path (read-only) — its gates are deterministic proof sources (one-shot cleanliness). |
-| `ux_lens` | yes | The slice's ux lens path (read-only) — UI weight shapes the speed/cognition pricing. |
-| `agentic_lens` | yes | The slice's agentic lens path (read-only) — offload weights shape the cognition claim and the token expectation. |
-| `profile_path` | yes | The product profile (read-only) — condition facets for the KB query. |
-| `kb_search` | yes | Path to the `kb-search` skill's `scripts/kb_search.py`. |
-| `kb_root` | yes | The `knowledge/` dir, so the manifest can name resolvable learning ids. |
-| `baselines_input` | no | Path to prior captured delivery data (earlier slices' /capture output), when it exists — the honest baseline source. Absent → baselines may be `unmeasured`. |
-| `product_base` | yes | The product model root — read-only. |
-| `lens_rel` | yes | The slice's lens path to mirror in the draft, e.g. `product-os/{domain}/slices/{slice-id}/lens/measure.yaml`. |
-| `draft_dir` | yes | Output folder under STM for the draft lens + manifest + any proposals. |
+| `slice_ref` | yes | `{domain}/{slice-id}` — display reference. |
+| `slice_file` | yes | Path to the live slice record (read-only — for the functionalities it bundles). |
+| `functionality_groundings` | yes | Paths to each functionality's `functionality.md` grounding doc (the hub, resolved by `check_ready_slice`). Read these for the acceptance/outcomes — NOT `ice.yaml` (retired). |
+| `profile` | yes | The product profile (from the spine) — its NFR gates and conditions. Read-only. |
+| `product_base` | yes | Product model root (to reuse an existing material decision). |
+| `lens_rel` | yes | Relative path the lens mirrors: `product-os/{domain}/slices/{slice}/lens/measure.md`. |
+| `draft_dir` | yes | Output folder under STM for the draft + manifest. |
 | `stm_base` | yes | From config. |
 
 ## Procedure
 
-The metric set, the targets, and the proof sources are **chosen from KB learnings**, not
-invented; the claim shape (baseline/target/proof on every metric) and the grounding are
-non-negotiable.
+Reasoning (which metrics prove delivery, the baselines/targets, the proof) is yours. Template
+conformance, grounding, and concreteness are non-negotiable.
 
-1. **Read the hub + the lens trinity.** Load the slice record (its functionalities), every
-   functionality ICE in `functionality_ices`, the profile, and the three trinity files —
-   quality (its deterministic gates), ux (the surface weight), agentic (the offload weights
-   + data substrate). Do NOT read the architecture or run lens — /measure reads the hub +
-   the trinity + the KB only.
-
-2. **Search the KB.** Query the shelves through kb-search:
-
-   ```bash
-   python3 {kb_search} index           # all learnings + their conditions facets
-   python3 {kb_search} get <id>        # e.g. technology/delivery-triangle
-   ```
-
-   The delivery-measurement learnings (`technology/delivery-triangle`,
-   `technology/delivery-industry-frames-derived`, `technology/delivery-one-shot-cleanliness`)
-   are the standing frame; reason over conditions for anything situational. Base every
-   claim — metric choice, target heuristic, proof source — on a matched learning.
-
-3. **Raise gaps, never invent.** For any measurement aspect the shelves do not cover (e.g. a
-   proof source no learning names), write a **KB-learning-gap proposal** into
-   `{draft_dir}/proposals/<gap>.yaml`, shaped to the KB's `_TEMPLATE.md` (Topic, Conditions,
-   Recommendation, Rationale, Evolve when, Provenance). It is a proposal for review, never
-   written to the KB here. The manifest references the proposal path; the play surfaces it
-   at the checkpoint.
-
-4. **Draft the measure lens.** Write `focus`, the `metrics` claims, and `out_of_scope`.
-   Default claims per the triangle: **speed** (pipe open → closed; target from the ≥5x
-   heuristic against the stated human baseline), **tokens** (burn per pipe; the
-   accuracy-upfront bet), **cognition** (pipe dwell after agent-done + adjustment rounds;
-   the directing-not-adjusting test), and **one-shot** (deploys and runs first try, zero
-   errors, deterministic gates green — sourced from the quality lens's actual gate list).
-   Scale the set to the slice — a slice can hold an axis (`direction: hold`) instead of
-   claiming improvement, but silence on an axis goes to `out_of_scope` with its why.
-   Baselines come from `baselines_input` when it exists; otherwise `unmeasured` with
-   `as_of` today — stated honestly, never guessed.
-
-5. **Write the draft + manifest.** Write the measure lens (the v1 lens envelope with
-   `type: measure`, `slice_ref`, the three content blocks) under `draft_dir`, mirroring
-   `lens_rel`, plus a `measure-manifest.yaml` that grounds **every** claim in a KB learning
-   id or a proposal path, so the play's validate + grounding steps are mechanical:
-
-```yaml
-measure:
-  slice: <domain>/<slice-id>
-  choices:                              # one per claimed metric (and per out_of_scope call)
-    - aspect: "metric:speed"            # metric:<name> | out_of_scope:<name>
-      value: "pipe open→closed; target 5x vs human baseline"
-      grounds:
-        - source_type: kb               # kb | proposal | lens | profile
-          source: "technology/delivery-triangle"
-    - aspect: "metric:one-shot"
-      value: "first-try deploy, zero errors, gates green"
-      grounds:
-        - source_type: kb
-          source: "technology/delivery-one-shot-cleanliness"
-        - source_type: lens             # the gate list itself
-          source: "<quality lens path>"
-    - aspect: "out_of_scope:dora-parallel-claims"
-      value: "industry numbers derived, not claimed"
-      grounds:
-        - source_type: kb
-          source: "technology/delivery-industry-frames-derived"
-  proof_sources:                        # every proof.source named once — the /capture contract
-    - "pipeline timestamps"
-    - "token-burn dashboard"
-    - "deterministic gate reports"
-```
+1. **Read the hub.** Load each functionality's `functionality.md` (its acceptance criteria, behavior)
+   and the profile (its NFR gates + conditions). The functional lenses may inform the metrics if
+   present, but the hub is the anchor.
+2. **State the focus.** What delivery this slice is proving in a short paragraph — the one outcome
+   whose movement tells you it worked.
+3. **Derive the metrics.** Build the metric table: for each thing worth measuring, a baseline, a
+   target, and how it is proven. Triangle-primary (speed / tokens / cognition) where it applies. Each
+   metric traces to a functionality's acceptance or a profile outcome. Concrete numbers, not adjectives.
+4. **Name what's out of scope.** What this slice deliberately does not measure yet, each with its
+   reason — so a missing metric reads as a choice.
+5. **Write the draft.** Write `measure.md` to the lens path under `draft_dir` (per the template);
+   write `measure-manifest.yaml` (the functionality or profile each metric grounds in; any material
+   choice → a decision); write the decision if any. Drafts only — never the live model.
 
 ## Output — the draft
 
 ```
 {draft_dir}/
-  product-os/<domain>/slices/<slice-id>/
-    lens/measure.yaml
-  proposals/<gap>.yaml                   # any KB-learning-gap proposal (referenced by the manifest)
-  measure-manifest.yaml
+  product-os/{domain}/slices/{slice}/
+    lens/measure.md                               # the Measure lens grounding doc
+    decisions/{decision-id}.yaml                  # a material decision (if any)
+  measure-manifest.yaml                           # grounding map (metric -> functionality / profile)
 ```
 
-## Boundaries
+`measure-manifest.yaml`:
 
-### NEVER
-- Read or reference the architecture or run lens — /measure reads the hub + the lens
-  trinity (quality, ux, agentic) + the KB only.
-- Write the slice record, a functionality's ICE, the profile, another lens, or other
-  slices — draft only this slice's measure lens. The slice `status` stamp is /run's job.
-- Invent a metric, target, or proof source — every claim traces to a matched KB learning
-  or a recorded proposal.
-- Claim an industry-framework metric as a parallel first-class entry — industry numbers
-  are derived translations of triangle data (`technology/delivery-industry-frames-derived`).
-- Write a flattering baseline — a number with a source, or the word `unmeasured`; nothing
-  between.
-- Declare a proof the pipes cannot produce — every `proof.source` must be readable
-  (timestamps, token dashboard, gate reports, /launch records), or it is a gap proposal.
-- Measure product outcomes — usage, revenue, adoption belong to the strategy layer;
-  this lens prices the DELIVERY only.
-- Smear quality, ux, agentic, architecture, or run content into the measure lens. Keep
-  `content` to focus/metrics/out_of_scope.
+```yaml
+measure:
+  slice_ref: token-dash/slice-trusted-coverage
+  grounds:                                        # every metric traces to a functionality or profile outcome
+    - { source_type: functionality, source: "func-source-coverage-freshness", functionality_ref: func-source-coverage-freshness }
+    - { source_type: profile, source: "nfr.performance" }
+  choices: []                                     # material measurement choices (each → a decision), if any
+```
 
-### ALWAYS
-- Ground every claim and every out-of-scope call in the manifest.
-- Give every claimed metric a complete baseline + target + proof block.
-- Name every proof source once in the manifest's `proof_sources` — the /capture contract.
-- Tie each claim's `why` to actual hub or trinity content, not generic prose.
-- Return the draft paths, not the contents.
+Return the enriched contract with the `draft_dir` and `measure-manifest.yaml` path — paths, never
+inline content.
+
+## Rules
+
+- **Hub-anchored.** Derive from the functionalities' grounding docs + the profile; the metrics measure
+  what the slice actually delivers.
+- **Template-true.** `measure.md` conforms to the Measure lens template (Focus / Metrics / Out of
+  scope) and must clear the linter + the content eval — every item self-explaining.
+- **Concrete.** Every metric has a baseline, a target, and a proof — never a vague claim. A metric
+  that cannot be proven is not a metric.
+- **Cover the hub.** The metrics consider every functionality the slice bundles, recorded in the
+  manifest grounds.
+- **Drafts only.** Write under `draft_dir`; never touch the live model.
+```

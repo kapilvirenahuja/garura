@@ -1,38 +1,23 @@
 #!/usr/bin/env python3
 """
-validate_measure.py — validate /measure's drafted lens before the checkpoint.
+validate_measure.py — assert /measure's draft is grounded and considers the slice's hub.
 
-Mechanical enforcement of the measure ICE over the draft on disk:
+Run over the draft before the checkpoint. The measure lens is an MD grounding doc
+(`measure.md`); its SHAPE (Focus / Metrics / Out of scope) is checked by `lint_grounding.py`
+and its UNDERSTANDABILITY by the content eval — both run by the play's validate step. THIS
+script checks what the manifest carries, which the prose can't enforce:
 
-  - C3/F2  complete claims: every metric carries why, direction, baseline
-           (value + as_of; a numeric value requires a source; the honest alternative is
-           the literal value "unmeasured"), target (value + horizon), proof
-           (source + signal).
-  - C4/F4  triangle-primary: every claimed metric's framework is `triangle` — industry
-           frames (dora/flow/space/dx) are derived translations, never first-class claims.
-  - C7/F7  delivery-only: every metric name is in the triangle vocabulary
-           (speed | tokens | cognition | one-shot) — anything else is treated as
-           product-outcome smuggling and fails.
-  - C6/F6  producible proof: every proof.source names a pipe-readable source (timestamps,
-           token dashboard, gate reports, launch records, git/CI) — an unrecognized
-           source fails; the recovery is a producible source or a recorded gap proposal.
-  - S5     axis coverage: each triangle axis (speed, tokens, cognition) appears either as
-           a claim or in an out_of_scope entry — never silently absent.
-  - C2/F5  forbidden grounds: nothing in the manifest grounds on the architecture or run
-           lens, or on another slice; `source_type: lens` grounds may name only this
-           slice's quality/ux/agentic lens.
-  - C5/F3  manifest coverage: every claimed metric and every out_of_scope entry has a
-           manifest choice (aspect `metric:<name>` / `out_of_scope:<...>`); grounding
-           resolution itself is check_kb_grounding.py's job.
-  - envelope: type is `measure`, slice_ref present, content keys are exactly within
-           focus/metrics/out_of_scope, focus non-empty, >=1 metric.
+  - grounded: every grounding entry names a real source from the slice's HUB (a functionality
+    or a profile outcome) — every metric ties to something the slice delivers.
+  - decisions: a grounding flagged `material: true` names a `decision` that resolves.
+  - coverage: every functionality of the slice is considered by the measure assessment.
 
 Layer rule: reads files on disk only; no git/gh/network.
 
-    python3 validate_measure.py --draft <draft_dir> \
-            --manifest <draft>/measure-manifest.yaml --slice-ref <domain>/<slice-id>
+    python3 validate_measure.py --draft <draft_dir> --manifest <measure-manifest.yaml> \
+            --slice-file <live slice record .yaml>
 
-Prints {ok, errors[]} JSON. Exit 0 clean, 1 on violation, 2 usage/parse error.
+Prints {ok, errors[], warnings[], counts} JSON. Exit 0 clean, 1 on violation, 2 usage.
 """
 
 import argparse
@@ -47,142 +32,104 @@ except ImportError:
     sys.stderr.write("validate_measure.py: PyYAML is required (pip install pyyaml).\n")
     sys.exit(2)
 
-CONTENT_KEYS = {"focus", "metrics", "out_of_scope"}
-TRIANGLE_METRICS = ("speed", "tokens", "cognition", "one-shot")
-AXES = ("speed", "tokens", "cognition")
-DIRECTIONS = ("improve", "hold")
-PRODUCIBLE_HINTS = ("timestamp", "pipe", "token", "gate", "launch", "git", "ci")
-FORBIDDEN_GROUND_HINTS = ("architecture.yaml", "run.yaml", "lens/architecture", "lens/run")
-TRINITY_LENS_HINTS = ("quality.yaml", "ux.yaml", "agentic.yaml")
+OTHER_LENSES = ("quality", "agentic", "ux", "architecture", "run", "marketing", "lens")
 
 
-def _load(path):
-    with open(path, "r", encoding="utf-8") as fh:
-        return yaml.safe_load(fh)
+def load(path):
+    with open(path, encoding="utf-8") as fh:
+        return yaml.safe_load(fh) or {}
 
 
-def _is_unmeasured(value):
-    return isinstance(value, str) and value.strip().lower() == "unmeasured"
+def _blank(v):
+    if v is None:
+        return True
+    if isinstance(v, str):
+        return len(v.strip()) == 0
+    if isinstance(v, (list, dict)):
+        return len(v) == 0
+    return False
+
+
+def collect_decisions(draft_root, errors):
+    ids = set()
+    for d in glob.glob(os.path.join(draft_root, "**", "decisions", "*.yaml"), recursive=True):
+        dec = (load(d).get("decision") or {})
+        for f in ("id", "title", "reason", "status", "level"):
+            if _blank(dec.get(f)):
+                errors.append(f"{d}: decision missing '{f}'")
+        if dec.get("id"):
+            ids.add(dec["id"])
+    return ids
+
+
+def check_grounding(man, decision_ids, errors):
+    grounded = set()
+    entries = man.get("grounds")
+    if _blank(entries):
+        errors.append("measure assessment has no grounding (grounds is empty)")
+        return grounded
+    for e in entries:
+        st = (e.get("source_type") or "").strip().lower()
+        if _blank(e.get("source")) and _blank(e.get("functionality_ref")):
+            errors.append("a grounding entry has no source")
+            continue
+        if st in OTHER_LENSES:
+            errors.append(f"grounds on another lens '{st}' — measure metrics tie to the hub "
+                          f"(functionality / profile), not a lens")
+        elif st not in ("profile", "functionality"):
+            errors.append(f"source_type '{st}' is not profile/functionality")
+        if st == "functionality":
+            fr = e.get("functionality_ref")
+            if not _blank(fr):
+                grounded.add(fr)
+        if e.get("material") is True:
+            dec = e.get("decision")
+            if _blank(dec):
+                errors.append("a material choice has no decision recorded")
+            elif dec not in decision_ids:
+                errors.append(f"a material choice names decision '{dec}' with no drafted record")
+    return grounded
+
+
+def slice_functionalities(slice_file, errors):
+    if not slice_file or not os.path.isfile(slice_file):
+        errors.append(f"slice record not found at {slice_file} — cannot verify coverage")
+        return set()
+    sl = (load(slice_file).get("slice") or {})
+    return {(f or {}).get("functionality_ref") for f in (sl.get("functionalities") or [])
+            if (f or {}).get("functionality_ref")}
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Validate /measure's drafted lens.")
+    ap = argparse.ArgumentParser(description="Validate /measure's draft grounding + coverage.")
     ap.add_argument("--draft", required=True)
     ap.add_argument("--manifest", required=True)
-    ap.add_argument("--slice-ref", required=True)
+    ap.add_argument("--slice-file", required=True)
     args = ap.parse_args(argv)
 
-    errors = []
-
-    lenses = glob.glob(os.path.join(args.draft, "**", "lens", "measure.yaml"),
-                       recursive=True)
-    if len(lenses) != 1:
-        print(json.dumps({"ok": False, "errors": [
-            f"expected exactly one drafted lens/measure.yaml under {args.draft}, found {len(lenses)}"]},
-            indent=2))
-        return 1
-    try:
-        doc = _load(lenses[0]) or {}
-        manifest = _load(args.manifest) or {}
-    except Exception as exc:  # noqa: BLE001 — surface any parse failure as a gap
-        print(json.dumps({"ok": False, "errors": [f"parse failure: {exc}"]}, indent=2))
+    draft_root = os.path.join(args.draft, "product-os")
+    if not os.path.isdir(draft_root):
+        sys.stderr.write(f"validate_measure.py: no draft tree at {draft_root}\n")
         return 2
 
-    lens = doc.get("lens", doc)
+    errors, warnings = [], []
+    decision_ids = collect_decisions(draft_root, errors)
+    try:
+        man = (load(args.manifest).get("measure") or {})
+    except (OSError, yaml.YAMLError) as exc:
+        errors.append(f"manifest unreadable: {exc}")
+        man = {}
 
-    # --- envelope ------------------------------------------------------------
-    if lens.get("type") != "measure":
-        errors.append("envelope: lens.type must be 'measure'")
-    if not lens.get("slice_ref"):
-        errors.append("envelope: lens.slice_ref is missing")
-    elif lens["slice_ref"] != args.slice_ref:
-        errors.append(f"envelope: slice_ref {lens['slice_ref']!r} != run target {args.slice_ref!r} (C1)")
-    content = lens.get("content") or {}
-    extra = set(content) - CONTENT_KEYS
-    if extra:
-        errors.append(f"content: keys outside focus/metrics/out_of_scope: {sorted(extra)} (C7/F7)")
-    if not (content.get("focus") or "").strip():
-        errors.append("content: focus is missing or empty")
-    metrics = content.get("metrics") or []
-    if not metrics:
-        errors.append("content: at least one metric claim is required (C3)")
+    grounded = check_grounding(man, decision_ids, errors)
+    to_cover = slice_functionalities(args.slice_file, errors)
+    for fid in sorted(f for f in to_cover if f):
+        if fid not in grounded:
+            warnings.append(f"slice functionality {fid!r} is not tied to a metric (acceptable if "
+                            f"out-of-scope is stated, but check)")
 
-    # --- per-claim checks ----------------------------------------------------
-    claimed_names = []
-    for i, m in enumerate(metrics):
-        tag = f"metrics[{i}]"
-        name = (m.get("metric") or "").strip()
-        claimed_names.append(name)
-        if m.get("framework") != "triangle":
-            errors.append(f"{tag}: framework {m.get('framework')!r} — industry frames are derived, "
-                          "never first-class claims; only 'triangle' may be claimed (C4/F4)")
-        if name not in TRIANGLE_METRICS:
-            errors.append(f"{tag}: metric {name!r} is outside the triangle vocabulary "
-                          f"{TRIANGLE_METRICS} — delivery measurement only (C7/F7)")
-        if not (m.get("why") or "").strip():
-            errors.append(f"{tag}: why is missing — tie the claim to hub/trinity content (C3)")
-        if m.get("direction") not in DIRECTIONS:
-            errors.append(f"{tag}: direction must be improve|hold (C3)")
-        baseline = m.get("baseline") or {}
-        b_value = baseline.get("value")
-        if b_value in (None, ""):
-            errors.append(f"{tag}: baseline.value is missing (C3/F2)")
-        elif not _is_unmeasured(b_value) and not (baseline.get("source") or "").strip():
-            errors.append(f"{tag}: baseline {b_value!r} has no source — a number needs a source, "
-                          "or the value is the literal 'unmeasured' (C3/F2)")
-        if not (str(baseline.get("as_of") or "")).strip():
-            errors.append(f"{tag}: baseline.as_of is missing (C3)")
-        target = m.get("target") or {}
-        if not (str(target.get("value") or "")).strip():
-            errors.append(f"{tag}: target.value is missing (C3)")
-        if not (str(target.get("horizon") or "")).strip():
-            errors.append(f"{tag}: target.horizon is missing (C3)")
-        proof = m.get("proof") or {}
-        p_source = (proof.get("source") or "").strip()
-        if not p_source:
-            errors.append(f"{tag}: proof.source is missing (C3/C6)")
-        elif not any(h in p_source.lower() for h in PRODUCIBLE_HINTS):
-            errors.append(f"{tag}: proof.source {p_source!r} names no pipe-readable source "
-                          f"(expects one of {PRODUCIBLE_HINTS}) — swap it or record a gap "
-                          "proposal (C6/F6)")
-        if not (proof.get("signal") or "").strip():
-            errors.append(f"{tag}: proof.signal is missing (C3/C6)")
-
-    # --- axis coverage (S5) ----------------------------------------------------
-    oos = [str(x) for x in (content.get("out_of_scope") or [])]
-    for axis in AXES:
-        in_claims = axis in claimed_names
-        in_oos = any(axis in entry.lower() for entry in oos)
-        if not in_claims and not in_oos:
-            errors.append(f"axis '{axis}' is neither claimed nor in out_of_scope — "
-                          "never silently absent (S5)")
-
-    # --- manifest: forbidden grounds + coverage --------------------------------
-    mroot = manifest.get("measure", manifest) or {}
-    choices = mroot.get("choices") or []
-    aspects = {(c.get("aspect") or "").strip() for c in choices}
-    for c in choices:
-        for g in (c.get("grounds") or []):
-            src = str(g.get("source") or "")
-            low = src.lower()
-            if any(h in low for h in FORBIDDEN_GROUND_HINTS):
-                errors.append(f"manifest choice {c.get('aspect')!r}: grounds on the "
-                              f"architecture/run lens ({src}) — forbidden (C2/F5)")
-            if g.get("source_type") == "lens" and not any(h in low for h in TRINITY_LENS_HINTS):
-                errors.append(f"manifest choice {c.get('aspect')!r}: lens ground {src!r} is not "
-                              "this slice's quality/ux/agentic lens (C2/F5)")
-            if args.slice_ref.split("/")[-1] not in src and "slices/" in low:
-                errors.append(f"manifest choice {c.get('aspect')!r}: grounds on another slice "
-                              f"({src}) (C1/F5)")
-    for name in claimed_names:
-        if name and f"metric:{name}" not in aspects:
-            errors.append(f"claimed metric {name!r} has no manifest choice 'metric:{name}' (C5/F3)")
-    for entry in oos:
-        if not any(a.startswith("out_of_scope:") for a in aspects):
-            errors.append("out_of_scope entries present but no out_of_scope:* manifest choice (C5/F3)")
-            break
-
-    result = {"ok": not errors, "errors": errors}
+    counts = {"grounds": len(man.get("grounds") or []), "decisions": len(decision_ids),
+              "to_cover": len(to_cover), "grounded": len(grounded)}
+    result = {"ok": not errors, "errors": errors, "warnings": warnings, "counts": counts}
     print(json.dumps(result, indent=2))
     return 0 if not errors else 1
 

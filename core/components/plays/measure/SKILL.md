@@ -1,316 +1,275 @@
 ---
 name: measure
-position: none
-description: 'Write a SLICE''s measure lens — the delivery-measurement claims for building it: the benefits the TEAM gets while delivering this slice, which delivery metrics it improves or holds. Every metric is a provable CLAIM — a baseline (a sourced number or an honest "unmeasured"), a target with a horizon, and the proof source /capture later harvests in the alignment pipeline. The TRIANGLE (speed, tokens, cognition) is the primary frame; industry frames (DORA/Flow/SPACE/DX) are derived translations, never parallel claims. A FOUNDATION lens (arch → measure → run, trinity read rule): reads the slice''s hub + the three lens-trinity files (quality, ux, agentic) + the KB''s delivery-measurement learnings — never the architecture or run lens; ungrounded aspects become recorded KB-learning-gap proposals. Writes only the measure lens; never stamps the slice (/run''s duty); opens no delivery issue.'
+position: both
+description: 'Write a SLICE''s measure lens as a grounding doc (measure.md) — the delivery-measurement focus, the metrics that prove it (baseline / target / proof, triangle-primary speed/tokens/cognition), and what is out of scope — then, when all seven lens docs line up, stamp the slice realized on the spine. The DELIVER pipe of realize (runs last): it opens its own branch (start-change) and closes it (commit → propose → review → merge). Reads the hub from the spine; the single play that flips a slice to realized — the marker /grill checks.'
 user-invocable: true
 ---
 
 # measure
 
-Take one shaped slice — a vertical product increment from /shape whose lens trinity
-(quality, ux, agentic) and architecture lens are already written — and write its **measure
-lens**: the delivery-measurement claims for building it. The slice is the unit of
-realization; a slice has no ICE of its own — its **hub** is the union of its
-functionalities' ICE (which may span several capabilities) plus the profile.
+Write a shaped slice's **measure lens** as the grounding doc `measure.md` — what delivery the slice is
+proving, the metrics that prove it (each a baseline, a target, and a proof; triangle-primary on
+speed/tokens/cognition), and what is out of scope — and, when the slice **lines up** (all seven lens
+docs present), **stamp it realized**. /measure reads the slice's **hub** — its functionalities'
+grounding docs plus the profile, both from the spine. It is the **deliver** lens, the last of the
+three realize pipes, and the one play that flips a slice's `status` to `realized` on the spine — the
+single marker /grill checks before it cuts delivery work.
 
-The measure lens is three things and only three: a **focus** line — the team benefit this
-slice's delivery drives; the **metrics** — each a provable claim carrying a `why` tied to
-hub or trinity content, a `baseline` (a sourced number or the literal "unmeasured" — never
-invented), a `target` with a horizon, and a `proof` block (source + signal — the seam the
-alignment pipeline's /capture harvests; an undeclared signal is unprovable); and
-**out_of_scope** — the metrics consciously not claimed, each with its why (grill fodder).
-
-**The triangle is the primary frame** (`technology/delivery-triangle`): speed (pipes close
-fast), tokens (the fuel cost), cognition (the human share — directing is fine, adjusting is
-the leak), plus the one-shot signal (`technology/delivery-one-shot-cleanliness`). Industry
-frames are **derived translations** of triangle data
-(`technology/delivery-industry-frames-derived`), never parallel first-class claims. Delivery
-measurement ONLY — product outcomes belong to the strategy layer.
-
-**Every claim is grounded in the KB, never invented.** Before drafting, /measure searches
-the KB's architecture/technology shelves for the delivery-measurement learnings and bases
-the metric set, the target heuristics (e.g. the ≥5x speed expectation), and the proof
-sources on **what we hold true** — not the model's taste. Any uncovered aspect is a
-recorded KB-learning-gap proposal, never a silent guess.
-
-**Pipeline position: none.** /measure is a MIDDLE play of the foundation pipeline (arch →
-measure → run): it expects to run on the branch the foundation pipeline already started,
-injects no head and no close, stops after the verified persist, and leaves the branch as-is
-for /run to close. It runs after /arch (foundation order) and before /run (whose lines-up
-gate must see the measure lens). It writes the persistent product model directly, on the
-already-started branch. (#437, decision 24)
+**Pipeline position: both.** /measure is the DELIVER pipe — a single-play pipe that runs last (after
+the functional pipe ux → agentic → marketing and the non-functional pipe architecture → quality → run
+have merged to main). The D2 rule prepends `start-change` (opens the deliver issue, cuts a fresh
+branch off main, inits STM) and, after the lens is persisted, the realized stamp is made, and both are
+verified, appends the close sequence `commit-change → propose-change → review-change → merge-change`,
+merging the realized slice to main. (#437; 3-pipe realize 2026-06-26)
 
 ## Compiled From
 
-This play was compiled from the measure ICE (`reference/ice.md`) by play-creator.
-Intent defines constraints (C1–C10) and failure conditions (F1–F9); the expectation
-defines success scenarios (S1–S5) and one recovery entry per failure condition.
-To modify this play, update `reference/ice.md` and recompile with play-creator.
-Do NOT edit this file manually — it is a compiled artifact.
+This play was compiled from the measure ICE (`reference/ice.md`) by play-creator. Intent defines
+constraints (C1–C12) and failure conditions (F1–F12); the expectation defines success scenarios
+(S1–S6) and one recovery entry per failure condition. To modify this play, update `reference/ice.md`
+and recompile with play-editor. Do NOT edit this file manually.
 
 ## Role
 
-You are the orchestrator. You own the workflow and the step order. You delegate the one
-piece of judgment — searching the KB for the delivery-measurement learnings, choosing the
-claims this slice can be held to, and pricing them honestly — to the `product-os-keeper`
-agent via a JSON contract over files on disk, and you run every mechanical part (the
-readiness + hub resolution, the foundation-order gate, the draft validation, the grounding
-check, the snapshot, the allowlisted persist, and the post-apply checks) through bundled
-scripts. You never write the model YAML yourself, you never write another lens or the slice
-record, and you persist nothing before the human approves the single checkpoint (C8).
+You are the orchestrator. You own the workflow and step order. You delegate the domain work —
+authoring the measure lens grounding doc — to the `product-os-keeper` agent via a JSON contract over
+files on disk, and you run the mechanical checks (readiness/hub resolution, the shape linter, the
+content-quality eval, grounding + coverage, KB grounding, the allowlisted apply, the lines-up gate,
+the realized stamp, the verify) through bundled scripts and an isolated judge. You never write the
+lens yourself, you never stamp a slice that has not lined up, and you never persist before the human
+approves the single checkpoint (C11).
 
-**Forbidden:** hand-writing lens YAML; reading the architecture or run lens to derive the
-measure lens; grounding a claim on the model's taste instead of a KB learning or a recorded
-proposal; claiming an industry-framework metric first-class; a numeric baseline without a
-source; persisting by any route other than `scripts/apply_measure.py`; persisting before
-Step 4 approval; stamping the slice (that is /run's duty, never /measure's).
+**Forbidden:** hand-writing the lens or a decision; writing anything other than this slice's
+`measure.md`, a decision, and (on lines-up) the one realized status field (C2); stamping the slice
+realized when a lens doc is missing (C8); reading or grounding on another realize lens (C7); persisting
+or stamping by any route other than `scripts/apply_measure.py` + `scripts/stamp_slice.py`; persisting
+before the checkpoint.
 
 **Agent boundaries:**
 
-| Agent | Domain | Skills it invokes | Phases |
-|-------|--------|-------------------|--------|
-| `product-os-keeper` | Search the KB's delivery-measurement learnings, read the slice's hub + lens trinity, draft the measure lens (focus + per-metric claims with baseline/target/proof + out_of_scope) grounded in those learnings, raise a KB-learning-gap proposal for any uncovered aspect | `kb-search`, `author-measure-lens` | Draft |
+| Agent | Domain | Skill it invokes | Phases |
+|-------|--------|------------------|--------|
+| `product-os-keeper` | Author the slice's measure lens (focus / metrics / out-of-scope) from the hub + KB measurement-frame grounding | `kb-search`, `author-measure-lens` | Draft |
 
-`product-os-keeper` is the single **domain agent** this play uses (1 of the ≤5 budget).
-No utility agents are needed — git/issue machinery is absent (position none).
+`product-os-keeper` is the single domain agent this play uses (1 of the ≤5 budget). The
+content-quality judge always runs as an isolated, clean-context sub-agent (optionally on a configured
+different model) — never the orchestrator's own context.
 
 ## Pre-flight
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
 | Resolve config + `product_base` (`.garura/core/config.yaml`) | — | Hard halt |
-| Profile firmed (`set`) AND the slice exists with every functionality ICE resolved + rich | C9 | Hard halt (REC8) |
-| The slice's **lens trinity (quality, ux, agentic) AND architecture lens are present** (foundation order: arch → measure → run) | C9 | Hard halt (REC8) |
+| Resolve `grounding-eval.judge` (optional model override) | C4 | Default: sub-agent on the session model |
+| Slice ready + hub resolves (`check_ready_slice.py`) | C1 | Hard halt (REC1) |
 
-Resolve config mechanically, then resolve the slice + hub, then assert the foundation
-order. /measure has no branch or issue resolution of its own (position none, C10 — a
-foundation middle: it expects the foundation pipeline's already-started branch, injects no
-head and no close, and leaves the branch for /run):
+Resolve the pre-flight facts mechanically with the bundled resolver:
 
 ```
 python3 scripts/preflight.py --play measure --config .garura/core/config.yaml
-python3 scripts/check_ready_slice.py --product-base <product_base> --slice <slice>
-python3 scripts/check_foundation_ready.py --product-base <product_base> --lens-dir <lens_dir>
 ```
 
-`preflight.py` returns config facts (`product_base`, `stm_base`, `evidence_record`).
-`check_ready_slice.py` is the readiness gate **and hub resolver**: it halts unless the
-profile is `set` and the slice — the play argument (e.g. `/measure <domain>/<slice-id>`) —
-exists with every `functionalities[].ice_ref` resolving to a rich ICE; an unresolved
-ice_ref **fails loud**. On success it emits `slice_file`, `domain`, `lens_dir`, and the
-resolved `functionality_ices`. `check_foundation_ready.py` halts unless all four of
-`quality.yaml`, `ux.yaml`, `agentic.yaml`, and `architecture.yaml` exist in the slice's
-lens folder — /measure reads the trinity and runs after /arch, though it never reads
-arch's content (presence only). If the profile is `directional`, the slice is missing, a
-functionality ICE is unresolved/thin, or a required lens is absent, hard halt and route to
-the play that closes the gap (REC8).
+Then resolve the slice and its hub from the spine — the readiness gate every realize lens shares:
 
-Resolve two more tokens here for Step 1's KB grounding: `<skills>` is the active skills
-base (where this play is deployed, e.g. `.claude/skills`), so `kb_search` =
-`<skills>/kb-search/scripts/kb_search.py`; `<knowledge_dir>` is the KB root (the
-`knowledge/` dir under the memory path from config's `ltm` section). Both are read-only
-inputs to the Draft step.
+```
+python3 scripts/check_ready_slice.py --product-base <product_base> --slice <slice-id>
+```
 
-**Resume check:** if `{stm_base}_realize/measure/status/<slice-id>.json` exists, resume —
-skip completed steps, reset any in-progress step to pending, continue from the first
-incomplete.
+It asserts the profile is `set` (from the spine), resolves the slice record, and resolves every
+`functionality_ref` through the spine to its `functionality.md` grounding doc — the hub. If the slice
+is absent, a functionality does not resolve, or the profile is not firmed, hard halt (C1/REC1).
+
+**Resume check:** if `{stm_base}_realize/measure/status/<slice-id>.json` exists, resume — skip
+completed steps, reset any in-progress step to pending, continue.
 
 ## Task DAG
 
 Create ALL tasks immediately after resolving config — before any domain work.
-The play owns this DAG; the agent must not edit its top-level tasks.
 
 ```
-[T1] Draft measure lens (KB-grounded)   blockedBy: []
-[T2] Validate the draft                 blockedBy: [T1]
-[T3] Grounding check (KB)               blockedBy: [T1]
-[T4] Checkpoint (approval)              blockedBy: [T2, T3]
-[T5] Persist                            blockedBy: [T4]
-[T6] Verify persisted                   blockedBy: [T5]
-[T7] Scenario Validation                blockedBy: [T6]
-[T8] Close                              blockedBy: [T7]
+[T0] start-change (injected — start head)   blockedBy: []
+[T1] Draft the lens          blockedBy: [T0]
+[T2] Validate the draft      blockedBy: [T1]
+[T3] Checkpoint (approval)   blockedBy: [T2]
+[T4] Persist + stamp         blockedBy: [T3]
+[T5] Verify persisted        blockedBy: [T4]
+[TE1] commit-change   (injected — end #1)  blockedBy: [T5]
+[TE2] propose-change  (injected — end #2)  blockedBy: [TE1]
+[TE3] review-change   (injected — end #3)  blockedBy: [TE2]
+[TE4] merge-change    (injected — end #4)  blockedBy: [TE3]
+[T6] Scenario Validation     blockedBy: [TE4]
+[T7] Close                   blockedBy: [T6]
 ```
 
 Mark each task in-progress before its step and completed right after its eval passes.
-No runtime reordering. On resume, skip completed and reset in-progress to pending.
 
 ## Workflow
 
+### Phase: Start (injected — D2 position: start)
+
+**Step 0 — start-change** · Owner: `start-change` (sub-play) · Depends on: pre-flight
+Run the start-of-pipeline member as a sub-play, dispatched with `parent_run_id` so it emits only its
+own C1 evidence and this play's close absorbs it. It resolves or creates the deliver-pipe issue, cuts a
+fresh branch off main, sets up a worktree iff config calls for it, and initializes the STM workspace.
+
+    { "play": "start-change", "parent_run_id": "<this run id>", "inputs": { "title": "realize (deliver): <slice>" }, "outputs": { "result": "{stm_base}_realize/measure/start/start-change.json" } }
+
+start-change owns its own evals (issue anchored, branch off latest main, worktree per config, STM
+initialized); they are not re-checked here.
+
 ### Phase: Draft
 
-**Step 1 — Draft measure lens (KB-grounded)** · Owner: `product-os-keeper` · Depends on: pre-flight
-The agent reads the slice's hub (its functionalities' ICE — resolved by the readiness
-gate — plus the profile) and the three lens-trinity files (quality — its deterministic
-gates are proof sources; ux — the surface weight; agentic — the offload weights + data
-substrate that price cognition). It queries the KB through `kb-search`, anchors on the
-delivery-measurement learnings, and invokes `author-measure-lens` to draft the lens to
-STM; for any aspect the KB does not cover, the skill writes a KB-learning-gap proposal
-into the draft's `proposals/` rather than guessing, and grounds every claim in the
-manifest:
+**Step 1 — Draft the lens** · Owner: `product-os-keeper` · Depends on: Step 0
+The agent invokes `author-measure-lens` to draft the slice's `measure.md` (focus / metrics / out of
+scope, per the Measure lens template) from the hub (the functionality grounding docs + the profile) and
+KB measurement-frame grounding, plus a `measure-manifest.yaml` (the grounding map) and any material
+decision:
 
     {
-      "task":    "search the KB's delivery-measurement learnings; draft this slice's measure lens — a focus line, per-metric CLAIMS (triangle-primary: speed/tokens/cognition/one-shot; each with why tied to hub or trinity content, an honest baseline — a sourced number or 'unmeasured', a target with horizon, and a proof source + signal /capture can harvest), and out_of_scope entries with their why — grounding every claim and out-of-scope call in a matched KB learning (or a recorded KB-learning-gap proposal for a gap); never an industry-framework first-class claim; never product-outcome measurement",
-      "inputs":  { "slice_ref": "<domain>/<slice-id>",
-                   "slice_file": "<product_base>/<slice_file>",
-                   "functionality_ices": [ "<product_base>/<ice_ref>", "..." ],
-                   "quality_lens": "<product_base>/<lens_dir>/quality.yaml",
-                   "ux_lens": "<product_base>/<lens_dir>/ux.yaml",
-                   "agentic_lens": "<product_base>/<lens_dir>/agentic.yaml",
-                   "profile_path": "<product_base>/product-os/profile.yaml",
-                   "kb_search": "<skills>/kb-search/scripts/kb_search.py",
-                   "kb_root": "<knowledge_dir>",
-                   "baselines_input": "<prior /capture output path, when it exists, else omit>",
-                   "product_base": "<product_base>",
-                   "lens_rel": "<lens_dir>/measure.yaml" },
-      "outputs": { "draft_dir":  "<working>/draft/",
-                   "lens":       "<working>/draft/<lens_dir>/measure.yaml",
-                   "manifest":   "<working>/draft/measure-manifest.yaml",
-                   "proposals":  "<working>/draft/proposals/" }
+      "task":    "author the slice's measure lens (focus / metrics baseline-target-proof / out-of-scope) from its hub; ground each metric in the functionalities + profile and the frames in the KB",
+      "inputs":  { "slice_ref": "<domain>/<slice>",
+                   "slice_file": "<slice record>",
+                   "functionality_groundings": "<from check_ready_slice>",
+                   "profile": "<spine profile>", "product_base": "<product_base>",
+                   "lens_rel": "product-os/<domain>/slices/<slice>/lens/measure.md" },
+      "outputs": { "draft_dir": "<working>/draft/", "manifest": "<working>/draft/measure-manifest.yaml" }
     }
 
-`slice_file`, `lens_dir`, and `functionality_ices` come from `check_ready_slice.py`. The
-skill reads the hub + the lens trinity + the KB **read-only** and never the architecture
-or run lens. It returns the contract with the output paths on disk — never inline content.
-**SE-1 (F8/C9, C1):** the readiness + hub + foundation-order gates passed at pre-flight —
-the profile is `set`, the slice exists with every functionality ICE resolved + rich, and
-all four required lens files exist; otherwise the run halted with nothing drafted (REC8).
+The skill reads the hub read-only and writes only the draft (the `measure.md`, the manifest, any
+decision, any KB proposals).
 
 ### Phase: Validate
 
 **Step 2 — Validate the draft** · Owner: play · Depends on: Step 1
-Run the measure validator over the draft before the checkpoint:
+Run the guards over the draft before the checkpoint — shape first, then content, then grounding.
 
 ```
-python3 scripts/validate_measure.py --draft <working>/draft \
-        --manifest <working>/draft/measure-manifest.yaml --slice-ref <domain>/<slice-id>
+python3 scripts/lint_grounding.py --doc <working>/draft/product-os/<domain>/slices/<slice>/lens/measure.md
+python3 scripts/validate_measure.py --draft <working>/draft --manifest <working>/draft/measure-manifest.yaml --slice-file <product_base>/<slice_file>
+python3 scripts/check_kb_grounding.py --manifest <working>/draft/measure-manifest.yaml --kb-root <kb_root> --proposals-dir <working>/draft/proposals
 ```
 
-**SE-2 (F2/C3):** every claim is complete — why, direction (improve|hold), baseline
-(value + as_of; a numeric value carries a source, or the value is the literal
-"unmeasured"), target (value + horizon), proof (source + signal); the envelope is
-`type: measure` with the right `slice_ref`; content keys are exactly within
-focus/metrics/out_of_scope.
-**SE-3 (F4/C4):** every claimed metric's framework is `triangle` — no dora/flow/space/dx
-first-class claim survives validation.
-**SE-7 (F7/C7):** every claimed metric is in the triangle vocabulary
-(speed | tokens | cognition | one-shot); content carries no key outside the three blocks —
-product-outcome measurement cannot land in the lens.
-**SE-6 (F6/C6):** every proof source names a pipe-readable source (timestamps, token
-dashboard, gate reports, launch records, git/CI); every triangle axis appears as a claim
-or an out-of-scope entry (S5 — never silently absent).
-**SE-5 (F5/C2):** nothing in the manifest grounds on the architecture or run lens or on
-another slice; `source_type: lens` grounds name only this slice's quality/ux/agentic lens.
-On any GAP, apply REC2/REC4/REC5/REC6/REC7 and re-run before the checkpoint.
-
-**Step 3 — Grounding check (KB)** · Owner: play · Depends on: Step 1
-Assert every claim is grounded in the KB — a matched learning, or a recorded proposal:
+Then run the **content-quality eval** over `measure.md`: spawn an isolated, clean-context sub-agent
+handed the judge prompt (`standards/rules/grounding-eval.md`), the doc, and the Measure lens
+per-section guidance, on the model from `grounding-eval.judge.model`. Gate the verdict:
 
 ```
-python3 scripts/check_kb_grounding.py --manifest <working>/draft/measure-manifest.yaml \
-        --proposals-dir <working>/draft/proposals --kb-root <knowledge_dir>
+python3 scripts/grounding_gate.py --verdict <verdict.json>
 ```
 
-**SE-4 (F3/C5):** `check_kb_grounding.py` exits 0 — every choice (each claimed metric and
-each out-of-scope call) carries a KB learning id that resolves on the
-architecture/technology shelf, or a proposal file that exists; none is invented.
-On any GAP, apply REC3 (re-ground or raise a proposal) and re-run.
+**SE-1 (F1/C1):** `check_ready_slice.py` passed at pre-flight — the slice is ready and its hub
+resolves; an unready slice halted (REC1).
+**SE-2 (F3/C3):** `lint_grounding.py` exits 0 — `measure.md` conforms to the Measure lens template
+(Focus / Metrics / Out of scope), no missing/extra/empty section.
+**SE-3 (F4/C4):** the content-quality eval gate (`grounding_gate.py`) passes — `measure.md` is
+self-explaining and clears the stranger test.
+**SE-4 (F5/C5):** `validate_measure.py` — every metric grounds in a functionality's acceptance or a
+profile outcome (the manifest grounds), and a material choice names a decision that resolves.
+**SE-5 (F6/C6):** `validate_measure.py` — every functionality the slice bundles is considered.
+**SE-6 (F7/C7):** `validate_measure.py` — the metrics ground on no other realize lens.
+**SE-7 (F12/C12):** `check_kb_grounding.py` exits 0 — the measurement-frame choices trace to a KB
+learning or a recorded proposal.
+On any GAP, apply the matching recovery (REC3–REC7, REC12) and re-run before the checkpoint.
 
-### Phase: Checkpoint (mandatory — never skipped, C8)
+### Phase: Checkpoint (mandatory — never skipped, C11)
 
-**Step 4 — Human review** · Owner: play · Depends on: Steps 2, 3
-Present the proposed measure lens **inline** — the focus, then each claim as a readable
-promise: the metric, why this slice moves it, the baseline (and where it came from, or
-that it is unmeasured), the target and when it is checkable, and where the proof number
-will be read — plus the out-of-scope calls with their why, each grounding (the KB learning
-or proposal behind it), and any gap proposals raised. The owner approves a set of promises
-the team can be held to, not a yaml file. This checkpoint is always presented and never
-skippable. Approve → continue to persist; cancel → halt with nothing written to the model.
-**SE-8 (F1/C8):** the lens is persisted only after this approval — Step 5 is the sole
-writer and depends on this step; no product-model file is written before Step 5; Step 6
-proves the persisted lens is byte-faithful to the draft approved here.
+**Step 3 — Human review** · Owner: play · Depends on: Step 2
+Present the proposed focus, metrics, and out-of-scope **inline**, plus any decision, AND the realized
+stamp this run will make — or, if a lens doc is missing, the lenses still outstanding (the slice will
+not be stamped). Always presented, never skippable. Approve → persist; cancel → halt, nothing written.
+**SE-11 (F11/C11):** the lens and the stamp are persisted only after this approval — Step 4 is the sole
+writer and depends on this step; nothing is written before approval.
 
 ### Phase: Apply
 
-**Step 5 — Persist** · Owner: play · Depends on: Step 4
-First **snapshot** the slice's folder, the slice record, and the profile (so Step 6 can
-prove only the measure lens changed). The snapshot is taken here, at the gated apply
-step — never at pre-flight — so a resume can never compare post-apply against post-apply.
-`<slice_dir>` is `<product_base>/product-os/<domain>/slices/<slice-id>` (the folder beside
-the record):
+**Step 4 — Persist + stamp** · Owner: play · Depends on: Step 3
+First snapshot the live spine and the slice folder so Step 5 can verify (`cp` the spine to
+`<working>/spine-before.yaml`; `cp -R` the slice folder to `<working>/slice-before`). Persist the lens
+on the fixed allowlist — only this slice's `measure.md` (re-derive) and decisions (skip-if-exists):
 
 ```
-mkdir -p <working>/slice-before
-cp -R <slice_dir>/. <working>/slice-before/ 2>/dev/null || true   # lens/ + decisions/
-cp <product_base>/<slice_file> <working>/slice-record-before.yaml
-cp <product_base>/product-os/profile.yaml <working>/profile-before.yaml
+python3 scripts/apply_measure.py --draft <working>/draft --product-base <product_base> --out-manifest <working>/apply-manifest.json
 ```
 
-Then persist the measure lens on the fixed allowlist. `apply_measure.py` writes the
-measure lens (overwrite — the re-derive) and refuses everything else; it is handed only
-the draft, so it cannot write the slice record, the ICE, the profile, or another lens:
+Then run the lines-up gate over the live slice, and stamp realized ONLY on a pass:
 
 ```
-python3 scripts/apply_measure.py --draft <working>/draft --product-base <product_base> \
-        --out-manifest <working>/apply-manifest.json
+python3 scripts/lines_up.py --product-base <product_base> --slice <slice-id> > <working>/lines-up.json
+python3 scripts/stamp_slice.py --product-base <product_base> --slice <slice-id>
 ```
 
-**SE-9 (F9/C1):** the apply manifest's `written` set holds only the slice's
-`lens/measure.yaml`; its `refused` set is empty (the draft held nothing out of scope);
-the slice record is never written — /measure does not stamp.
+Run `stamp_slice.py` only when `lines_up.py` exits 0 (all seven lens docs present). If a lens is
+missing, skip the stamp and carry the missing-lens list into the report — the slice stays un-realized.
+**SE-8 (F8/C8):** the slice is stamped `realized` only when `lines_up.py` reports every one of the
+seven lens docs present; a missing lens leaves the status unchanged and is reported.
 
-**Step 6 — Verify persisted** · Owner: play · Depends on: Step 5
-Verify the persisted result against the snapshots and the approved draft:
+### Phase: Verify
+
+**Step 5 — Verify persisted** · Owner: play · Depends on: Step 4
+Verify the persist and the stamp were surgical (pass `--expect-realized` iff the stamp was made):
 
 ```
-python3 scripts/check_measure.py --cap-before <working>/slice-before --cap-dir <slice_dir> \
-        --slice-before <working>/slice-record-before.yaml \
-        --slice-after <product_base>/<slice_file> \
-        --profile-before <working>/profile-before.yaml \
-        --profile-after <product_base>/product-os/profile.yaml \
-        --approved-lens <working>/draft/<lens_dir>/measure.yaml \
-        --live-lens <product_base>/<lens_dir>/measure.yaml
+python3 scripts/check_measure.py --cap-before <working>/slice-before --cap-dir <product_base>/product-os/<domain>/slices/<slice> --spine-before <working>/spine-before.yaml --spine-after <product_base>/product-os/_spine.yaml --slice <slice-id> --expect-realized
 ```
 
-The check proves: the persisted lens is byte-faithful to the approved draft (F1); the
-slice record and profile are byte-identical (no stamp, no profile write); within the slice
-folder only `lens/measure.yaml` changed or was added; nothing was removed (F9).
-On any GAP, apply REC1/REC9 and re-run.
+**SE-9 (F2/F9/C2/C9):** the only file changed in the slice folder is `lens/measure.md` (decisions may
+be added, never edited in place); on the spine, the ONLY change is this slice's `status` → `realized`
+(or none, when not stamped) — every other slice, field, and collection byte-identical.
+**SE-10 (F10/C10):** the run is non-destructive — no accepted decision edited in place, no file removed.
+
+### Phase: End sequence (injected — D2 position: end)
+
+After the lens is persisted, the stamp is made (or skipped), and both are verified, the D2 rule injects
+the close sequence — each a sub-play dispatched with `parent_run_id`, resolving its own context — to
+commit the deliver pipe, raise the PR, take the verdict, and merge the realized slice to main.
+
+**Step E1 — commit-change** · blockedBy: Step 5
+
+    { "play": "commit-change", "parent_run_id": "<this run id>", "inputs": {}, "outputs": { "result": "{stm_base}_realize/measure/end/commit-change.json" } }
+
+**Step E2 — propose-change** · blockedBy: E1
+
+    { "play": "propose-change", "parent_run_id": "<this run id>", "inputs": {}, "outputs": { "result": "{stm_base}_realize/measure/end/propose-change.json" } }
+
+**Step E3 — review-change** · blockedBy: E2
+
+    { "play": "review-change", "parent_run_id": "<this run id>", "inputs": {}, "outputs": { "result": "{stm_base}_realize/measure/end/review-change.json" } }
+
+**Step E4 — merge-change** · blockedBy: E3
+
+    { "play": "merge-change", "parent_run_id": "<this run id>", "inputs": {}, "outputs": { "result": "{stm_base}_realize/measure/end/merge-change.json" } }
+
+Each end member owns its own evals (commit grouped by concern, PR opened, verdict posted, branch merged
++ cleaned); they are not re-checked here. A review-change reject stops the chain before merge.
 
 ### Phase: Scenario Validation
 
-**Step 7 — Scenario evals** · Owner: play · Depends on: Step 6
-- **SCE-1 (S1 — product owner, clean realization):** the slice's `measure.yaml` exists with
-  `type: measure`, a `slice_ref`, a focus, and ≥1 complete triangle claim;
-  `validate_measure.py` and `check_kb_grounding.py` are clean; `check_measure.py` proves
-  the persisted lens byte-faithful to the approved draft and every other product-model
-  file untouched.
-- **SCE-2 (S2 — product owner, KB gap):** when an aspect had no matching learning, a
-  proposal file exists under the draft's `proposals/`, the manifest references its path,
-  and the grounding check still exits 0 — zero ungrounded claims.
-- **SCE-3 (S3 — product owner, ineligible slice):** with a trinity lens or the
-  architecture lens missing, `check_foundation_ready.py` exits 1 naming the missing file,
-  the run halts at pre-flight, and no draft or model write exists.
-- **SCE-4 (S4 — product owner, honest cold start):** with no `baselines_input`, every
-  baseline carries either a source or the literal value "unmeasured" —
-  `validate_measure.py` fails any sourceless number.
-- **SCE-5 (S5 — product owner, held axis):** every triangle axis (speed, tokens,
-  cognition) appears as a claim (direction improve|hold) or as an out-of-scope entry with
-  a grounded why — `validate_measure.py` fails a silently absent axis.
+**Step 6 — Scenario evals** · Owner: play · Depends on: the end sequence
+- **SCE-1 (S1 — delivery analyst, first run):** `measure.md` is a valid Measure Lens doc clearing the
+  linter + the content eval, grounded in the hub.
+- **SCE-2 (S2 — delivery owner, the realized stamp):** with all six other lens docs present, the slice
+  is stamped `realized` on the spine and that is the only spine change.
+- **SCE-3 (S3 — reviewer, not-yet-lined-up):** with a lens missing, `measure.md` is written but the
+  slice is NOT stamped; the missing lens is named and the status unchanged.
+- **SCE-4 (S4 — architect, hub-only):** every metric grounds in a functionality or the profile, never
+  another lens.
+- **SCE-5 (S5 — delivery owner, re-run):** a re-run re-derives only `measure.md` and re-affirms the
+  stamp; everything else byte-identical; no accepted decision edited in place.
+- **SCE-6 (S6 — reviewer, the checkpoint):** the checkpoint showed the lens and the stamp inline, and
+  no product-model file was written before approval.
 
 ### Phase: Evidence & Close
 
-**Step 8 — Close** · Owner: play · Depends on: Step 7
-Run the Standard Play Close. /measure is a **product-scoped** play (no issue) — use the
-product-scoped evidence base and slug. Evidence recording is play-only and config-gated
-per the D1 evidence rule (`standards/rules/evidence-recording.md`).
+**Step 7 — Close** · Owner: play · Depends on: Step 6
+Run the Standard Play Close. /measure is a slice-realize play — record evidence per the D1 rule.
 
 ```bash
 # --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
 # Path tokens resolved at pre-flight (resolve here if not already):
 #   ltm_project_target  = yq '.ltm.project-target' .garura/core/config.yaml
 #   evidence_base, slug:
-#     project-scoped play : evidence_base="${stm_base}${issue}/evidence/measure/"  ; slug="#${issue}"
-#     product-scoped play : evidence_base="${product_base}_evidence/measure/"      ; slug="${product_slug}"
+#     project-scoped play : evidence_base="${stm_base}${issue}/evidence/measure/"   ; slug="#${issue}"
+#     product-scoped play : evidence_base="${product_base}_evidence/measure/"        ; slug="${slice_slug}"
 evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
 delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
 ts=$(date -u +%Y%m%d-%H%M%S)
@@ -318,24 +277,21 @@ evidence_dest="${evidence_base}${ts}.md"
 mkdir -p "$(dirname "$evidence_dest")"
 ```
 
-`/measure` is product-scoped: `evidence_base="${product_base}_evidence/measure/"` and
-`slug="${product_slug}"` (the slice, e.g. `ai-usage-intelligence/slice-token-data-spine`).
+`/measure` opens its own deliver-pipe issue (position start), so it is project-scoped:
+`evidence_base="${stm_base}${issue}/evidence/measure/"` and `slug="#${issue}"`.
 
-**Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag (global +
-per-play `evidence.plays.measure`; first match wins, absent ⇒ record). When false, skip
-the write and record `evidence skipped (record=false)` in the report's pointer line.
-Otherwise fill the `evidence-file.md` slots (play `measure`, run_id `measure-${ts}`,
-product_slug = the slice, started_at/completed_at, status; artifacts produced: the measure
-lens, the measure + apply manifests, any gap proposals; step and scenario eval results
-SE-1…SE-9 / SCE-1…SCE-5; checkpoint decision from Step 4) and write to `$evidence_dest`.
-Do NOT hand-author the body.
+**Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag. When false, skip and
+record `evidence skipped (record=false)`. Otherwise fill the `evidence-file.md` slots (play `measure`,
+run_id `measure-${ts}`, slice slug, started/completed, status; artifacts: the slice's `measure.md`, the
+manifest, any decision, the lines-up result, the realized stamp; the content-eval verdict; step +
+scenario evals SE-1…SE-11 / SCE-1…SCE-6; checkpoint decision; the end-sequence results) and write to
+`$evidence_dest`. Do NOT hand-author the body.
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output the
-report: `## measure Delivered — ${product_slug}`, the Run Summary table, the Pipeline
-Steps table from the task DAG, the Artifacts Produced table (the focus, the claims with
-their baselines/targets/proof sources, the out-of-scope calls, any proposals), Next Steps
-(run /run to complete the foundation pipeline — its lines-up gate needs the measure lens —
-then /grill), and a pointer to `$evidence_dest`. Always emitted; never gated.
+**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots: `## measure Delivered —
+${slug}`, the Run Summary table, the Pipeline Steps table, the Artifacts Produced table (the measure
+lens + any decision + whether the slice was stamped realized), Next Steps (if realized: run /grill to
+cut this slice into epics; else: run the missing lens pipe), and a pointer to `$evidence_dest`. Always
+emitted.
 
 ```bash
 # --- end Standard Play Close ---
@@ -345,50 +301,47 @@ then /grill), and a pointer to `$evidence_dest`. Always emitted; never gated.
 
 | Scenario | Persona | Eval |
 |----------|---------|------|
-| S1 — clean realization | product owner | SCE-1 |
-| S2 — KB gap | product owner | SCE-2 |
-| S3 — ineligible slice | product owner | SCE-3 |
-| S4 — honest cold start | product owner | SCE-4 |
-| S5 — held axis | product owner | SCE-5 |
+| S1 — first run | delivery analyst | SCE-1 |
+| S2 — the realized stamp | delivery owner | SCE-2 |
+| S3 — not-yet-lined-up | reviewer | SCE-3 |
+| S4 — hub-only | architect | SCE-4 |
+| S5 — re-run | delivery owner | SCE-5 |
+| S6 — the checkpoint | reviewer | SCE-6 |
 
 ## Recovery
 
 | For | Trigger | Direction | Handoff |
 |-----|---------|-----------|---------|
-| F1 | the persisted lens differs from the approved draft, or no approval recorded | revert the write, re-present the checkpoint | human |
-| F2 | a claim missing baseline/target/proof, or a sourceless number | complete the claim or set the baseline to "unmeasured" honestly | autonomous |
-| F3 | an ungrounded claim or out-of-scope call | re-search the KB; ground in a matched learning or record a gap proposal | autonomous |
-| F4 | an industry metric claimed first-class | convert it to a derived translation note or a grounded out-of-scope entry | autonomous |
-| F5 | the draft grounds on the architecture or run lens, or another slice | re-draft from the hub + trinity only | autonomous |
-| F6 | a proof source the pipes cannot produce | swap to a producible source or record the gap proposal | autonomous |
-| F7 | a product-outcome metric in the lens | strip it; note it for the strategy layer | autonomous |
-| F8 | ineligible slice at pre-flight | halt; the missing lens play must run first | human |
-| F9 | a write outside the one measure lens | revert the stray write; re-apply the lens alone | autonomous |
+| F1 | the slice is absent, a functionality does not resolve, or the profile is not firmed | halt and route to /shape or /understand before /measure runs | human |
+| F2 | a write touched something beyond this slice's measure.md, a decision, or the one realized status field | revert the out-of-scope write; /measure writes only those | autonomous |
+| F3 | measure.md fails the template/shape | re-emit to the Measure lens template (Focus / Metrics / Out of scope only) | autonomous |
+| F4 | measure.md fails the content-quality eval | rewrite the failing section to the judge's cited fixes and re-judge until the gate passes | autonomous |
+| F5 | a metric lacks a baseline/target/proof or grounds in nothing the slice delivers | re-draft the metric as a concrete baseline + target + proof tied to the hub | autonomous |
+| F6 | a functionality is neither measured nor named out of scope | add a metric for it or name it in out-of-scope with the reason | autonomous |
+| F7 | the assessment read or grounded on another lens | remove the dependency; derive only from the slice's hub | autonomous |
+| F8 | the slice was stamped realized when a lens doc was missing | revert the stamp, report the missing lens, route to the pipe that owns it | human |
+| F9 | the stamp changed more than this slice's status on the spine | restore the spine and re-apply only the single status flip | human |
+| F10 | a non-lens/non-decision file changed, or an accepted decision was edited in place | restore it and re-apply only measure.md and the new decision, after a human confirms the restore | human |
+| F11 | the lens or stamp was persisted before the checkpoint was approved | revert the premature write and re-present the checkpoint; persist only after approval | human |
+| F12 | a measurement frame with no KB learning and no recorded proposal | search the KB via kb-search and ground the frame, or raise a KB-learning-gap proposal | autonomous |
 
 ## Pause and Resume
 
-Steps run top to bottom. On entry, resolve config, run the readiness + hub gate, assert
-the foundation order, resolve the target slice from the play argument or the in-progress
-draft, check the status marker, skip completed steps, reset any in-progress step to
-pending, and continue. The pre-apply snapshot is captured at Step 5 (the gated apply
-step) and preserved on resume, so the non-destructive comparison always diffs against
-true pre-apply state. A fresh start with no marker runs everything and creates the marker
-at Step 1.
+Steps run top to bottom. On entry, resolve config, resolve the target slice, check the status marker,
+skip completed steps, reset any in-progress step to pending, and continue.
 
 ## Compilation Metadata
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:f19d6fce6c77eefd50d092f5b36c42cfb9393c97e02771e51eea847e8a83cefd (of `reference/ice.md`) |
-| compiled_by | play-creator |
-| pipeline_position | none |
-| position_exception | middle of the foundation pipeline (arch → measure → run) — runs on the already-started branch; the close belongs to /run (#437, decision 24) |
-| structural_constraints | C10 (foundation middle — enforced by the play's shape: position none + this exception; no head, no close, the branch is left for /run) |
+| fingerprint | sha256:c65f8a235946a032709ae230032af9a4036049dc1d3c2b40d6b5bba4d9b96929 (of `reference/ice.md`) |
+| compiled_by | play-creator (spine+grounding+eval lens model; deliver pipe + realized stamp; 3-pipe realize 2026-06-26) |
+| pipeline_position | both (deliver pipe — injects start-change head and commit → propose → review → merge close) |
 | workflow_structure | A (mandatory, non-skippable checkpoint) |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |
 | skills_used | kb-search, author-measure-lens |
-| scripts | 7 (preflight.py, check_ready_slice.py, check_foundation_ready.py, validate_measure.py, check_kb_grounding.py, apply_measure.py, check_measure.py) |
-| step_evals | 9 (SE-1…SE-9; one per failure condition) |
-| scenario_evals | 5 (SCE-1…SCE-5) |
-| recovery_entries | 9 (one per failure condition; 7 autonomous / 2 human) |
+| scripts | 10 (preflight, check_ready_slice, lint_grounding, grounding_gate, validate_measure, check_kb_grounding, apply_measure, lines_up, stamp_slice, check_measure) |
+| step_evals | 11 (SE-1…SE-11) |
+| scenario_evals | 6 (SCE-1…SCE-6) |
+| recovery_entries | 12 (one per failure condition; 6 autonomous / 6 human) |

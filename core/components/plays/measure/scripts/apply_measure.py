@@ -2,14 +2,17 @@
 """
 apply_measure.py — persist /measure's measure lens, on a fixed allowlist.
 
-Run only AFTER the human approves the checkpoint. It writes exactly ONE kind of thing
-and NOTHING else: the measure lens — `lens/measure.yaml` for the slice, written from the
-draft. This is the re-derive, so it overwrites a prior measure lens (a re-run re-derives).
+Run only AFTER the human approves the checkpoint. It writes exactly two kinds of thing and
+NOTHING else:
 
-/measure records no decisions and never stamps the slice (the `realized` stamp is /run's
-duty), so anything in the draft that is not the measure lens is REFUSED and reported —
-the script physically cannot touch the slice record, the ICE, the profile, another lens,
-or node structure (C1/F9).
+  1. The measure lens — `lens/measure.md` (a grounding doc) for the slice, from the draft.
+     This is the re-derive, so it overwrites a prior measure lens.
+  2. Decisions — `decisions/*.yaml`, copied skip-if-exists, so an accepted decision is never
+     edited in place; a re-run adds only new ones.
+
+The realized STAMP is a separate step (lines_up.py + stamp_slice.py) — this script does not
+touch the spine; it is handed only the draft, which holds only the measure lens + decisions,
+so it physically cannot touch the hub, the spine, another lens, the slice record, or the profile.
 
 Layer rule: pure file writes from disk inputs; no git/gh/network.
 
@@ -39,24 +42,26 @@ def main(argv=None):
         sys.exit(2)
     dst_root = os.path.join(args.product_base, "product-os")
 
-    written, refused = [], []
-
+    written, skipped, refused = [], [], []
     for dirpath, _dirs, files in os.walk(src_root):
         rel_dir = os.path.relpath(dirpath, src_root)
         for fn in files:
             rel = os.path.normpath(os.path.join(rel_dir, fn))
             parts = rel.split(os.sep)
-            is_measure_lens = (len(parts) >= 2 and parts[-2] == "lens"
-                               and parts[-1] == "measure.yaml")
-            if not is_measure_lens:
-                refused.append(rel)            # defensive: draft should hold only the lens
+            is_lens = (len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == "measure.md")
+            is_decision = ("decisions" in parts and fn.endswith(".yaml"))
+            if not (is_lens or is_decision):
+                refused.append(rel)            # defensive: draft should hold only these
                 continue
             dst = os.path.join(dst_root, rel)
+            if is_decision and os.path.exists(dst):
+                skipped.append(rel)            # never edit an accepted decision in place
+                continue
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             shutil.copy2(os.path.join(dirpath, fn), dst)
             written.append(rel)
 
-    out = {"written": sorted(written), "skipped": [], "refused": sorted(refused)}
+    out = {"written": sorted(written), "skipped": sorted(skipped), "refused": sorted(refused)}
     with open(args.out_manifest, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=2)
     print(json.dumps(out, indent=2))
