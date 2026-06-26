@@ -99,6 +99,21 @@ CONTRACTS = {
             "Acceptance criteria",
         ],
     },
+    # --- The seven realize lenses (per-slice grounding docs). H1 is exactly "<Type> Lens". ---
+    "lens-quality": {"title": "Quality Lens", "exact_title": True,
+                     "h2": ["Intent", "Gates"]},
+    "lens-ux": {"title": "UX Lens", "exact_title": True,
+                "h2": ["Intent", "Screens", "States", "Visual core"]},
+    "lens-agentic": {"title": "Agentic Lens", "exact_title": True,
+                     "h2": ["Is it an agent?", "Load weights", "Controls"]},
+    "lens-architecture": {"title": "Architecture Lens", "exact_title": True,
+                          "h2": ["Intent", "Components", "Stack", "Vertical build"]},
+    "lens-measure": {"title": "Measure Lens", "exact_title": True,
+                     "h2": ["Focus", "Metrics", "Out of scope"]},
+    "lens-run": {"title": "Run Lens", "exact_title": True,
+                 "h2": ["Environments", "Rollout", "Migrations", "Config & secrets", "CI/CD"]},
+    "lens-marketing": {"title": "Marketing Lens", "exact_title": True,
+                       "h2": ["Intent", "Discoverability", "Accessibility", "Marketing analytics"]},
 }
 
 # H1 prefix -> kind, for inferring a doc's kind from its title.
@@ -188,6 +203,10 @@ def check_doc(path, text, kind, errors, warnings, expected_stage=None):
     # --- H1 title ---
     if title is None:
         errors.append(f"{path}: no H1 title line")
+    elif contract.get("exact_title"):
+        # lens docs are titled exactly "<Type> Lens" — no trailing name
+        if title.strip() != contract["title"]:
+            errors.append(f"{path}: H1 '{title}' must be exactly '{contract['title']}'")
     elif not title.startswith(contract["title"]):
         errors.append(f"{path}: H1 '{title}' must start with '{contract['title']}' for a {kind} doc")
     elif _words(title[len(contract['title']):]) < 1:
