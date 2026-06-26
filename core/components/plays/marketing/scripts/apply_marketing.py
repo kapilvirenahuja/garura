@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """
-apply_agentic.py — persist /agentic's agentic lens, on a fixed allowlist.
+apply_marketing.py — persist /marketing's marketing lens, on a fixed allowlist.
 
 Run only AFTER the human approves the checkpoint. It writes exactly two kinds of thing
 and NOTHING else:
 
-  1. The agentic lens — `lens/agentic.md` (a grounding doc) for the slice, written from
-     the draft. This is the re-derive, so it overwrites a prior agentic lens.
+  1. The marketing lens — `lens/marketing.md` (a grounding doc) for the slice, written
+     from the draft. This is the re-derive, so it overwrites a prior marketing lens.
   2. Decisions — `decisions/*.yaml`, copied skip-if-exists, so an accepted decision is
      never edited in place; a re-run adds only new ones.
 
-The script is handed only the draft, which holds only the agentic lens + decisions, so it
-physically cannot touch the hub (functionality grounding), the spine, another lens, the
+The script is handed only the draft, which holds only the marketing lens + decisions, so
+it physically cannot touch the hub (functionality grounding), the spine, another lens, the
 slice record, or the profile.
 
 Layer rule: pure file writes from disk inputs; no git/gh/network.
 
-    python3 apply_agentic.py --draft <draft_dir> --product-base <product_base> \
+    python3 apply_marketing.py --draft <draft_dir> --product-base <product_base> \
             --out-manifest <apply-manifest.json>
 
 Exit 0 on success, 2 on usage error.
@@ -30,7 +30,7 @@ import sys
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Persist /agentic on a fixed allowlist.")
+    ap = argparse.ArgumentParser(description="Persist /marketing on a fixed allowlist.")
     ap.add_argument("--draft", required=True)
     ap.add_argument("--product-base", required=True)
     ap.add_argument("--out-manifest", required=True)
@@ -38,7 +38,7 @@ def main(argv=None):
 
     src_root = os.path.join(args.draft, "product-os")
     if not os.path.isdir(src_root):
-        sys.stderr.write(f"apply_agentic.py: no draft tree at {src_root}\n")
+        sys.stderr.write(f"apply_marketing.py: no draft tree at {src_root}\n")
         sys.exit(2)
     dst_root = os.path.join(args.product_base, "product-os")
 
@@ -49,7 +49,7 @@ def main(argv=None):
         for fn in files:
             rel = os.path.normpath(os.path.join(rel_dir, fn))
             parts = rel.split(os.sep)
-            is_lens = (len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == "agentic.md")
+            is_lens = (len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == "marketing.md")
             is_decision = ("decisions" in parts and fn.endswith(".yaml"))
             if not (is_lens or is_decision):
                 refused.append(rel)            # defensive: draft should hold only these

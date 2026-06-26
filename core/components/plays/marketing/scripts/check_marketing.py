@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """
-check_agentic.py — assert /agentic's persisted result obeys its guarantees.
+check_marketing.py — assert /marketing's persisted result obeys its guarantees.
 
 Post-apply verification, comparing the live slice folder + spine against snapshots taken
 just before apply (the snapshots are gated to the apply step, so a resume can never
 compare post-apply against post-apply).
 
   - non-destructive: every file in the slice folder is byte-identical to its pre-apply
-    snapshot EXCEPT `lens/agentic.md` (the re-derive); the spine (where the profile lives)
+    snapshot EXCEPT `lens/marketing.md` (the re-derive); the spine (where the profile lives)
     is byte-identical; an accepted decision present before apply is unchanged.
-  - scope: nothing was added under the slice except the agentic lens and new decisions; the
-    other lenses (quality/ux/architecture/measure/run) are untouched.
+  - scope: nothing was added under the slice except the marketing lens and new decisions;
+    the other lenses (quality/ux/agentic/architecture/measure/run) are untouched.
 
 Layer rule: reads files on disk only; no git/gh/network.
 
-    python3 check_agentic.py --cap-before <snapshot of slice folder> \
+    python3 check_marketing.py --cap-before <snapshot of slice folder> \
             --cap-dir <live slice folder> \
             --spine-before <_spine.yaml snapshot> --spine-after <live _spine.yaml>
 
@@ -47,7 +47,7 @@ def census(root):
 
 def is_lens(rel):
     parts = rel.split(os.sep)
-    return len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == "agentic.md"
+    return len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == "marketing.md"
 
 
 def is_decision(rel):
@@ -56,7 +56,7 @@ def is_decision(rel):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Verify /agentic's persisted result.")
+    ap = argparse.ArgumentParser(description="Verify /marketing's persisted result.")
     ap.add_argument("--cap-before", required=True, help="pre-apply snapshot of the slice folder")
     ap.add_argument("--cap-dir", required=True, help="live slice folder")
     ap.add_argument("--spine-before", required=True, help="pre-apply snapshot of _spine.yaml")
@@ -65,15 +65,15 @@ def main(argv=None):
 
     errors = []
 
-    # --- spine untouched (the profile lives in the spine; /agentic never writes it) ---
+    # --- spine untouched (the profile lives in the spine; /marketing never writes it) ---
     try:
         if sha256(args.spine_before) != sha256(args.spine_after):
-            errors.append("_spine.yaml changed during /agentic — it must never write the "
+            errors.append("_spine.yaml changed during /marketing — it must never write the "
                           "spine or the profile")
     except OSError as exc:
         errors.append(f"cannot compare the spine: {exc}")
 
-    # --- slice folder: only the agentic lens may change; decisions may be added ---
+    # --- slice folder: only the marketing lens may change; decisions may be added ---
     before = census(args.cap_before)
     after = census(args.cap_dir)
 
@@ -86,15 +86,15 @@ def main(argv=None):
             if is_decision(rel):
                 errors.append(f"{rel}: accepted decision edited in place")
             else:
-                errors.append(f"{rel}: changed but only the agentic lens may change")
+                errors.append(f"{rel}: changed but only the marketing lens may change")
         else:
             if is_lens(rel) or is_decision(rel):
                 continue
-            errors.append(f"{rel}: added, but /agentic may add only its lens or a decision")
+            errors.append(f"{rel}: added, but /marketing may add only its lens or a decision")
 
     for rel in before:
         if rel not in after:
-            errors.append(f"{rel}: removed during /agentic — the run is non-destructive")
+            errors.append(f"{rel}: removed during /marketing — the run is non-destructive")
 
     result = {"ok": not errors, "errors": errors}
     print(json.dumps(result, indent=2))

@@ -50,7 +50,7 @@ def census(root):
 
 def is_ux_lens(rel):
     parts = rel.split(os.sep)
-    return len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == "ux.yaml"
+    return len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == "ux.md"
 
 
 def is_decision(rel):
@@ -60,20 +60,21 @@ def is_decision(rel):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Verify /ux's persisted result.")
-    ap.add_argument("--cap-before", required=True)
-    ap.add_argument("--cap-dir", required=True)
-    ap.add_argument("--profile-before", required=True)
-    ap.add_argument("--profile-after", required=True)
+    ap.add_argument("--cap-before", required=True, help="pre-apply snapshot of the slice folder")
+    ap.add_argument("--cap-dir", required=True, help="live slice folder")
+    ap.add_argument("--spine-before", required=True, help="pre-apply snapshot of _spine.yaml")
+    ap.add_argument("--spine-after", required=True, help="live _spine.yaml")
     args = ap.parse_args(argv)
 
     errors = []
 
-    # --- profile untouched ---------------------------------------------------
+    # --- spine untouched (the profile lives in the spine; /ux never writes it) -
     try:
-        if sha256(args.profile_before) != sha256(args.profile_after):
-            errors.append("profile.yaml changed during /ux — it must never write the profile (F2)")
+        if sha256(args.spine_before) != sha256(args.spine_after):
+            errors.append("_spine.yaml changed during /ux — it must never write the spine "
+                          "or the profile (F2)")
     except OSError as exc:
-        errors.append(f"cannot compare profiles: {exc}")
+        errors.append(f"cannot compare the spine: {exc}")
 
     # --- capability folder: only ux lens may change; decisions may be added --
     before = census(args.cap_before)

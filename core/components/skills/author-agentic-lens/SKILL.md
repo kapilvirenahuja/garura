@@ -1,7 +1,7 @@
 ---
 name: author-agentic-lens
-description: Draft /agentic's agentic lens for one SLICE — decide whether it's agentic at all (by how much load it's OK to lift off the user) and, if so, rate five axes on the low→ultra scale: the three weights (cognitive/creative/logistical = the degree of offload) and the two controls (guardrails, handoff). Grounds the weights in the slice's hub (its functionalities' ICE) and the controls in their constraints/failures. A slice that should offload nothing comes out is_agent=false. Records a decision for any material autonomy choice. Writes a draft only (the agentic lens + a grounding manifest in STM), never the live model. The generative work for the /agentic play; reads the slice's hub, never another lens.
-version: 0.3.0
+description: Author a shaped slice's agentic lens as an MD grounding doc — the is-it-an-agent gate, the load weights (cognitive / creative / logistical on a low→ultra scale), and the controls (guardrails, handoff) — from the slice's hub (its functionalities' grounding docs + the spine profile) and KB grounding. A slice that should offload nothing comes out "not an agent", stated plainly. Writes a draft agentic.md (conforming to the Agentic lens template) plus a grounding manifest and any autonomy decision; reads the functionality.md docs for the hub, never another lens. Generative artifact production for the /agentic play; writes a draft only, never the live model.
+version: 0.4.0
 user-invocable: false
 model: opus
 allowed-tools: Read, Write, Bash, Glob
@@ -9,154 +9,96 @@ allowed-tools: Read, Write, Bash, Glob
 
 # author-agentic-lens
 
-Decides one shaped **slice's** agentic lens — how much load it should lift off the user,
-and the frame around it. A slice is a vertical product increment; its **hub** is the union
-of its functionalities' ICE (which may span several capabilities) plus the product profile.
-This is garura's two-fold agentic decision:
+Turns a shaped slice's **hub** — the grounding docs of the functionalities it bundles, plus
+the product profile — into the slice's **agentic lens**, written as the grounding doc
+`agentic.md`: whether the slice is (or contains) an agent at all, and if so how much human
+load it offloads on three axes and what controls bound it. A slice that should offload nothing
+comes out "not an agent" — a valid, common answer, stated plainly. It reads the hub only
+(never another realize lens) and writes a draft — /agentic's checkpoint and apply step persist it.
 
-1. **Is it agentic, and how much** — judged by how much load it is OK to offload to this
-   slice. The "how much" is the three **weights**, each rated on the low→ultra scale, where
-   the level is the **degree of offload**:
-   - **cognitive** — analysis + decision-making,
-   - **creative** — visualization + media creation,
-   - **logistical** — operational + workflow.
-   A max/ultra weight means lift as much of that load off the user as possible — the slice
-   fires as much agentic behaviour as it can on that dimension.
-2. **The frame** — once agentic, the two **controls**, same scale:
-   - **guardrails** — how tight the hard limits (low = loose … ultra = every action fenced),
-   - **handoff** — how readily it returns to a human (low = rarely … ultra = human each step).
+## What it produces (against the locked template)
 
-The scale is `low | medium | high | xhigh | ultra` on every axis — there is no "none".
-"Not agentic" is the **is_agent** gate up front: a slice that should offload nothing comes
-out `is_agent: false` with a note saying why. It draws the is_agent decision and the
-weights from the slice's hub (the load its functionalities carry), and the controls from
-their constraints/failures (the safety risks); it reads the hub (the functionalities' ICE +
-the profile box) and never another lens.
-
-It writes a draft only — /agentic's checkpoint and apply step persist it.
+`agentic.md` conforms to `standards/schemas/product-os/grounding/lens/agentic.md` — H1
+`# Agentic Lens`, sections **Is it an agent?** (the gate + why), **Load weights** (a table:
+cognitive / creative / logistical on a low→ultra scale, with rationale; "n/a — not an agent"
+when the gate is no), **Controls** (guardrails, handoff; for a non-agent slice, the determinism
+boundaries). It must clear the linter (shape) and the content-quality eval (the play runs both).
+Alongside it, a structured `agentic-manifest.yaml` carries the machine-checkable grounding the
+prose can't — which functionalities the assessment is grounded in, and any material autonomy choice.
 
 ## Inputs
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `slice_ref` | yes | The slice, `{domain}/{slice-id}`. |
-| `slice_file` | yes | The slice record path (read-only) — its `functionalities` list. |
-| `functionality_ices` | yes | The resolved ICE file paths for the slice's functionalities (the hub), from the readiness gate. |
-| `profile_path` | yes | The product `profile.yaml`. Read-only — its conditions feed the KB query for the control approach. |
-| `kb_search` | yes | Path to the `kb-search` skill's `scripts/kb_search.py` — the condition-search engine over the architecture/technology shelves. |
-| `kb_root` | yes | The `knowledge/` dir, so the manifest can name resolvable learning ids. |
-| `lens_rel` | yes | The slice's lens path to mirror in the draft, e.g. `product-os/{domain}/slices/{slice-id}/lens/agentic.yaml`. |
-| `draft_dir` | yes | Output folder under STM for the draft lens + manifest + any proposals. |
+| `slice_ref` | yes | `{domain}/{slice-id}` — display reference. |
+| `slice_file` | yes | Path to the live slice record (read-only — for the functionalities it bundles). |
+| `functionality_groundings` | yes | Paths to each functionality's `functionality.md` grounding doc (the hub, resolved by `check_ready_slice`). Read these for behavior/acceptance — NOT `ice.yaml` (retired). |
+| `profile` | yes | The product profile (from the spine) — conditions + surfaces. Read-only. |
+| `kb_search` | yes | Path to the KB search script, for agentic-framing grounding. |
+| `kb_root` | yes | Path to `knowledge/`, to resolve learning ids. |
+| `product_base` | yes | Product model root (to reuse an existing autonomy decision). |
+| `lens_rel` | yes | Relative path the lens mirrors: `product-os/{domain}/slices/{slice}/lens/agentic.md`. |
+| `draft_dir` | yes | Output folder under STM for the draft + manifest + proposals. |
 | `stm_base` | yes | From config. |
 
 ## Procedure
 
-The is_agent call, the levels, and the notes are your judgment; grounding, the five-axis
-shape, and the low→ultra scale are non-negotiable.
+Reasoning (the agent verdict, the weight ratings, the controls) is yours. Template conformance,
+grounding, and honesty are non-negotiable.
 
-1. **Read the slice's hub.** Load the slice record (its functionalities) and every
-   functionality ICE in `functionality_ices` (intent constraints + failures, context,
-   expectations) plus the profile box. Do NOT read another lens — /agentic reads the hub
-   only.
-
-2. **Decide is_agent — by load.** Judge how much load it is OK to lift off the user for this
-   slice. If the answer is "none — it should stay fully with the user", set
-   `is_agent: false` with a note saying why, and stop (no axes). Otherwise `is_agent: true`.
-
-3. **Rate the three weights — the degree of offload.** On the low→ultra scale, rate how much
-   of each load to lift off the user across the slice: cognitive, creative, logistical. A
-   note on each justifies the level from the slice's hub (the load its functionalities
-   carry). Ultra = offload as much as possible / maximally agentic on that dimension.
-
-4. **Rate the two controls — the frame, grounded in the KB.** On the same scale: `guardrails`
-   (how tight the hard limits) and `handoff` (how readily it returns to a human). The *levels*
-   are grounded in the functionalities' constraints and failures (the hub). But the **control
-   approach** — how an agent of this kind is fenced and when it defers — is a pattern: search
-   the KB's architecture/technology shelves through kb-search for a fitting control/guardrail
-   learning and base the approach on it.
-
-   ```bash
-   python3 {kb_search} index            # all learnings + their conditions facets
-   python3 {kb_search} get <id>         # e.g. architecture/microservices (isolation/guardrails)
-   ```
-
-   Record the control approach (guardrail tightness + handoff cadence) in the manifest's
-   `choices` block, grounded in the matched learning. Where the KB has no fitting control
-   pattern yet (it is young on agentic patterns), write a **KB-learning-gap proposal** into
-   `{draft_dir}/proposals/<gap>.yaml` (a candidate architecture/technology learning shaped to the
-   KB's `_TEMPLATE.md`, for review — never written to the KB here) and reference it instead. On
-   an `is_agent: false` slice there are no controls, so there is no `choices` block.
-
-5. **Record a decision for a material autonomy choice.** When a weight is xhigh/ultra (you
-   are lifting most/all of a load off the user) or you are making a sensitive slice agentic
-   at all, draft a slice-level decision (ADR) naming the choice and why.
-
-6. **Write the draft + manifest.** Write the agentic lens (the v1 lens envelope with
-   `type: agentic`, `slice_ref`, and the content above) under `draft_dir`, mirroring
-   `lens_rel`, plus any decisions, plus an `agentic-manifest.yaml` that grounds the
-   **is_agent decision and every rated axis** to its hub source so the play's validate step
-   is mechanical:
-
-```yaml
-agentic:
-  slice: <domain>/<slice-id>
-  is_agent: true
-  axes:                         # one entry per rated axis (the 5 axes when is_agent)
-    - axis: cognitive           # cognitive | creative | logistical | guardrails | handoff
-      level: ultra
-      grounds:
-        - source_type: ice      # MUST be ice (the hub) — never another lens
-          source: "func-...: intent.outcomes[0] — heavy decision load"
-          material: true        # set for an xhigh/ultra weight or a sensitive agentic call
-          decision: <decision-id>
-    - axis: guardrails
-      level: high
-      grounds:
-        - source_type: ice
-          source: "func-...: intent.failures[2]"
-  choices:                        # the KB-grounded control APPROACH (only when is_agent)
-    - choice: "guardrails: every external action fenced + dry-run"
-      grounds: [ { source_type: kb, source: "architecture/microservices" } ]
-    - choice: "handoff: confirm before any irreversible step"
-      grounds: [ { source_type: proposal, source: "proposals/agent-handoff-cadence.yaml" } ]
-  decisions: ["<decision-id>", ...]
-```
-
-For `is_agent: false`, set `axes: []` and omit `choices` — no grounding needed; the lens note
-carries the call. When `is_agent: true`, the `choices` block records the control approach,
-grounded in a KB learning or a proposal — that is what `check_kb_grounding.py` checks.
+1. **Read the hub.** Load each functionality's `functionality.md` (its behavior, rules,
+   acceptance) and the profile. Do NOT read any other lens.
+2. **Decide the gate.** Does this slice do agentic work — decide and act on its own toward a
+   goal — or is it deterministic? State the verdict AND why, grounded in what the functionalities
+   actually do. A deterministic read/compute slice is "not an agent"; say so — never manufacture
+   an agent that isn't there.
+3. **Rate the weights (only if an agent).** Cognitive, creative, logistical load offloaded, each
+   on the low→ultra scale, with the rationale tied to the functionalities. If not an agent, write
+   "n/a — not an agent" and explain.
+4. **Define the controls.** Guardrails on any agentic behavior and the human handoff points. For a
+   non-agent slice, the controls are the determinism boundaries that keep it predictable.
+5. **Write the draft.** Write `agentic.md` to the lens path under `draft_dir` (per the template);
+   write `agentic-manifest.yaml` (the functionalities the assessment grounds in; any material
+   autonomy choice → a decision); write the decision and any KB proposals. Drafts only — never the
+   live model, never another lens.
 
 ## Output — the draft
 
 ```
 {draft_dir}/
-  product-os/<domain>/slices/<slice-id>/
-    lens/agentic.yaml
-    decisions/<decision-id>.yaml      # only if a material autonomy choice was made
-  proposals/<gap>.yaml                 # any KB-learning-gap proposal (referenced by choices)
-  agentic-manifest.yaml
+  product-os/{domain}/slices/{slice}/
+    lens/agentic.md                               # the Agentic lens grounding doc
+    decisions/{decision-id}.yaml                  # an autonomy decision (if material)
+  agentic-manifest.yaml                           # grounding map (functionalities considered)
+  proposals/<gap>.yaml                            # KB-learning-gap proposals (only if gaps)
 ```
 
-## Boundaries
+`agentic-manifest.yaml`:
 
-### NEVER
-- Read or reference another realize lens (quality/ux/architecture/run) — /agentic reads the
-  slice's hub only.
-- Write the slice record, a functionality's ICE, the profile, another lens, or other slices
-  — draft only this slice's agentic lens (+ decisions).
-- Invent the is_agent call or an axis level with no hub source behind it.
-- Use a level off the low/medium/high/xhigh/ultra scale, or rate an axis while is_agent is
-  false.
-- Put anything beyond is_agent + weights + controls in the lens.
+```yaml
+agentic:
+  slice_ref: token-dash/slice-trusted-coverage
+  is_agent: false
+  grounds:                                        # the functionalities the assessment considered
+    - { source_type: functionality, source: "func-source-usage-ingest", functionality_ref: func-source-usage-ingest }
+    - { source_type: functionality, source: "func-privacy-trust-labeling", functionality_ref: func-privacy-trust-labeling }
+  choices: []                                     # KB-grounded agentic-framing choices (if any)
+```
 
-### ALWAYS
-- Ground the is_agent decision and every rated axis in the manifest to the slice's hub
-  (weights to its functionalities' load, controls to their constraints/failures).
-- On an agentic slice, search the KB and ground the control approach (guardrail tightness +
-  handoff cadence) in a best-fit `architecture/*` or `technology/*` learning — or a recorded
-  KB-learning-gap proposal — in the manifest's `choices` block. Never pick the control approach
-  on taste alone. (No `choices` on an is_agent=false slice.)
-- Rate all five axes when is_agent is true; rate none when it is false.
-- Keep `content` to is_agent + note + weights (cognitive/creative/logistical) + controls
-  (guardrails/handoff).
-- Return the draft paths, not the contents.
+Return the enriched contract with the `draft_dir` and `agentic-manifest.yaml` path — paths, never
+inline content.
+
+## Rules
+
+- **Hub only.** Derive from the functionalities' grounding docs + the profile; never read or
+  ground on another realize lens.
+- **Template-true.** `agentic.md` conforms to the Agentic lens template (Is it an agent? / Load
+  weights / Controls) and must clear the linter + the content eval — every item self-explaining.
+- **Honest gate.** A deterministic slice is "not an agent"; do not invent agentic behavior. The
+  weights table is omitted (n/a) when the gate is no.
+- **Cover the hub.** The assessment considers every functionality the slice bundles, recorded in
+  the manifest grounds.
+- **Grounded, not invented.** The verdict and weights ground in the functionalities' behavior;
+  any material autonomy choice grounds in a KB learning or a proposal and is recorded as a decision.
+- **Drafts only.** Write under `draft_dir`; never touch the live model.
+```

@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """
-validate_agentic.py — assert /agentic's draft is grounded and considers the slice's hub.
+validate_marketing.py — assert /marketing's draft is grounded and considers the slice's hub.
 
-Run over the draft before the checkpoint. In the spine+grounding model the agentic lens is an
-MD grounding doc (`agentic.md`); its SHAPE (the "Is it an agent?", "Load weights", "Controls"
-sections, each substantive) is checked by `lint_grounding.py`, and its UNDERSTANDABILITY by
-the content eval — both run by the play's validate step. THIS script checks what the manifest
-carries, which the prose can't enforce:
+Run over the draft before the checkpoint. In the spine+grounding model the marketing lens is
+an MD grounding doc (`marketing.md`); its SHAPE (the Intent / Discoverability / Accessibility /
+Marketing analytics sections, each substantive) is checked by `lint_grounding.py`, and its
+UNDERSTANDABILITY by the content eval — both run by the play's validate step. THIS script
+checks what the manifest carries, which the prose can't enforce:
 
   - grounded: every grounding entry names a real source from the slice's HUB (a functionality,
-    persona, or journey) — never another lens (the agentic read is hub-only).
+    persona, or journey) — never another lens (the marketing read is hub-only).
   - decisions: a grounding flagged `material: true` names a `decision` that resolves.
-  - coverage: every functionality of the slice is considered by the agentic assessment (each
-    appears in the manifest grounds) — the agent gate can't ignore part of the slice.
+  - coverage: every functionality of the slice is considered by the marketing assessment (each
+    appears in the manifest grounds) — the reach assessment can't ignore part of the slice.
 
 Layer rule: reads files on disk only; no git/gh/network.
 
-    python3 validate_agentic.py --draft <draft_dir> --manifest <agentic-manifest.yaml> \
+    python3 validate_marketing.py --draft <draft_dir> --manifest <marketing-manifest.yaml> \
             --slice-file <live slice record .yaml>
 
 Prints {ok, errors[], warnings[], counts} JSON. Exit 0 clean, 1 on violation, 2 usage.
@@ -31,10 +31,10 @@ import sys
 try:
     import yaml
 except ImportError:
-    sys.stderr.write("validate_agentic.py: PyYAML is required (pip install pyyaml).\n")
+    sys.stderr.write("validate_marketing.py: PyYAML is required (pip install pyyaml).\n")
     sys.exit(2)
 
-OTHER_LENSES = ("quality", "ux", "architecture", "run", "measure", "marketing", "lens")
+OTHER_LENSES = ("quality", "ux", "agentic", "architecture", "run", "measure", "lens")
 
 
 def load(path):
@@ -69,7 +69,7 @@ def check_grounding(man, decision_ids, errors):
     grounded = set()
     entries = man.get("grounds")
     if _blank(entries):
-        errors.append("agentic assessment has no grounding (grounds is empty)")
+        errors.append("marketing assessment has no grounding (grounds is empty)")
         return grounded
     for e in entries:
         st = (e.get("source_type") or "").strip().lower()
@@ -77,7 +77,7 @@ def check_grounding(man, decision_ids, errors):
             errors.append("a grounding entry has no source")
             continue
         if st in OTHER_LENSES:
-            errors.append(f"grounds on another lens '{st}' — /agentic reads the slice's hub, "
+            errors.append(f"grounds on another lens '{st}' — /marketing reads the slice's hub, "
                           f"never a lens")
         elif st not in ("ice", "functionality", "persona", "journey"):
             errors.append(f"source_type '{st}' is not functionality/persona/journey")
@@ -104,7 +104,7 @@ def slice_functionalities(slice_file, errors):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Validate /agentic's draft grounding + coverage.")
+    ap = argparse.ArgumentParser(description="Validate /marketing's draft grounding + coverage.")
     ap.add_argument("--draft", required=True)
     ap.add_argument("--manifest", required=True)
     ap.add_argument("--slice-file", required=True)
@@ -112,13 +112,13 @@ def main(argv=None):
 
     draft_root = os.path.join(args.draft, "product-os")
     if not os.path.isdir(draft_root):
-        sys.stderr.write(f"validate_agentic.py: no draft tree at {draft_root}\n")
+        sys.stderr.write(f"validate_marketing.py: no draft tree at {draft_root}\n")
         return 2
 
     errors, warnings = [], []
     decision_ids = collect_decisions(draft_root, errors)
     try:
-        man = (load(args.manifest).get("agentic") or {})
+        man = (load(args.manifest).get("marketing") or {})
     except (OSError, yaml.YAMLError) as exc:
         errors.append(f"manifest unreadable: {exc}")
         man = {}
@@ -127,7 +127,7 @@ def main(argv=None):
     to_cover = slice_functionalities(args.slice_file, errors)
     for fid in sorted(f for f in to_cover if f):
         if fid not in grounded:
-            errors.append(f"slice functionality {fid!r} is not considered by the agentic assessment")
+            errors.append(f"slice functionality {fid!r} is not considered by the marketing assessment")
 
     counts = {"grounds": len(man.get("grounds") or []), "decisions": len(decision_ids),
               "to_cover": len(to_cover), "grounded": len(grounded)}

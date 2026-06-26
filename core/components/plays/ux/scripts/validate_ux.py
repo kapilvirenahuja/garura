@@ -1,25 +1,19 @@
 #!/usr/bin/env python3
 """
-validate_ux.py — assert /ux's draft lens is schema-true, just-enough, grounded, and covers
-the slice's functionalities.
+validate_ux.py — assert /ux's draft is grounded and covers the slice's functionalities.
 
-Run over the draft before the checkpoint. The ux lens is three blocks only — screens (with a
-low-fidelity layout), states, and the visual core (palette + typography). The lens realizes a
-SLICE; its hub is the slice's functionalities' ICE. Enforces /ux's artifact-side constraints:
+Run over the draft before the checkpoint. In the spine+grounding model the ux lens is an MD
+grounding doc (`ux.md`); its SHAPE (the Intent/Screens/States/Visual core sections, each
+substantive) is checked by `lint_grounding.py`, and its UNDERSTANDABILITY by the content
+eval — both run by the play's validate step. THIS script checks the things the manifest
+carries, which the prose can't enforce:
 
-  - C10/F10  schema: the lens carries the v1 envelope (id, slice_ref, type=ux, content,
-             status) and any decision carries its required v1 fields.
-  - C3/F3    shape: content has exactly the three keys screens/states/design_system, each
-             present and non-empty — no flows, no accessibility, no gates/components/envs.
-  - C5/F5    just enough: every screen has a purpose and a layout; every states entry names a
-             declared screen and enumerates states; design_system carries palette + typography.
   - C4/F4    grounded: every screen in the manifest names >=1 real source (a functionality of
-             the slice, or a persona/journey); design_system grounds on the KB or a decision.
-  - C7/F7    hub-only: no screen grounds on another lens (quality/agentic/architecture/run).
+             the slice, or a persona/journey); the visual core grounds on the KB or a decision.
+  - C7/F7    hub-only: no screen grounds on another lens (quality/agentic/architecture/run/...).
   - C8/F8    decisions: a grounding flagged `material: true` names a `decision` that resolves.
-  - C6/F6    coverage: the slice's functionalities (read straight from the slice record) are
-             each visualized by at least one screen — so nothing shaped is left unvisualized.
-             (The human checkpoint is the final coverage authority; this catches gaps.)
+  - C6/F6    coverage: the slice's functionalities (read from the slice record) are each
+             grounded by at least one screen — nothing shaped is left unvisualized.
 
 Layer rule: reads files on disk only; no git/gh/network.
 
@@ -41,6 +35,8 @@ except ImportError:
     sys.stderr.write("validate_ux.py: PyYAML is required (pip install pyyaml).\n")
     sys.exit(2)
 
+OTHER_LENSES = ("quality", "agentic", "architecture", "run", "measure", "marketing", "lens")
+
 
 def load(path):
     with open(path, encoding="utf-8") as fh:
@@ -57,60 +53,6 @@ def _blank(v):
     return False
 
 
-OTHER_LENSES = ("quality", "agentic", "architecture", "run", "measure", "lens")
-CONTENT_KEYS = {"screens", "states", "design_system"}
-
-
-def validate_lens(draft_root, errors):
-    """C10/C3/C5 — the lens file shape + just-enough coherence. Returns declared screen names."""
-    screens = set()
-    lenses = glob.glob(os.path.join(draft_root, "**", "lens", "ux.yaml"), recursive=True)
-    if not lenses:
-        errors.append("no ux.yaml in the draft (F3)")
-        return screens
-    for lp in lenses:
-        doc = (load(lp).get("lens") or {})
-        for f in ("id", "slice_ref", "type", "status"):
-            if _blank(doc.get(f)):
-                errors.append(f"{lp}: lens missing '{f}' (F10)")
-        if doc.get("type") != "ux":
-            errors.append(f"{lp}: type is '{doc.get('type')}', must be ux (F10)")
-        content = doc.get("content") or {}
-        extra = [k for k in content if k not in CONTENT_KEYS]
-        if extra:
-            errors.append(f"{lp}: content has keys outside the three blocks {extra} — "
-                          f"screens/states/design_system only (F3)")
-        for k in CONTENT_KEYS:
-            if _blank(content.get(k)):
-                errors.append(f"{lp}: content.{k} is empty (F3)")
-
-        for s in (content.get("screens") or []):
-            nm = (s or {}).get("name")
-            if _blank(nm):
-                errors.append(f"{lp}: a screen has no name (F5)")
-                continue
-            screens.add(nm.strip() if isinstance(nm, str) else nm)
-            if _blank((s or {}).get("purpose")):
-                errors.append(f"{lp}: screen {nm!r} has no purpose (F5)")
-            if _blank((s or {}).get("layout")):
-                errors.append(f"{lp}: screen {nm!r} has no low-fidelity layout (F5)")
-
-        for st in (content.get("states") or []):
-            scr = (st or {}).get("screen")
-            if _blank(scr):
-                errors.append(f"{lp}: a states entry names no screen (F5)")
-            elif isinstance(scr, str) and scr.strip() not in screens:
-                errors.append(f"{lp}: states entry references screen {scr!r} not in screens (F5)")
-            if _blank((st or {}).get("states")):
-                errors.append(f"{lp}: states for screen {scr!r} are not enumerated (F5)")
-
-        ds = content.get("design_system") or {}
-        for f in ("palette", "typography"):
-            if _blank(ds.get(f)):
-                errors.append(f"{lp}: design_system missing '{f}' (F5)")
-    return screens
-
-
 def collect_decisions(draft_root, errors):
     ids = set()
     for d in glob.glob(os.path.join(draft_root, "**", "decisions", "*.yaml"), recursive=True):
@@ -124,11 +66,10 @@ def collect_decisions(draft_root, errors):
 
 
 def check_grounding(man, decision_ids, errors):
-    """C4/C7/C8 over the manifest. Returns (grounded_funcs, manifest_screen_names)."""
+    """C4/C7/C8 over the manifest. Returns grounded functionality refs."""
     grounded_funcs = set()
-    scr_names = set()
 
-    def walk_grounds(label, entries):
+    def walk(label, entries):
         if _blank(entries):
             errors.append(f"{label} has no grounding source (C4/F4)")
             return
@@ -138,11 +79,11 @@ def check_grounding(man, decision_ids, errors):
                 errors.append(f"{label} has a grounding entry with no source (C4/F4)")
                 continue
             if st in OTHER_LENSES:
-                errors.append(f"{label} grounds on another lens '{st}' — "
-                              f"/ux reads the slice's hub, never a lens (C7/F7)")
-            elif st not in ("ice", "persona", "journey"):
-                errors.append(f"{label} source_type '{st}' is not ice/persona/journey (C4/F4)")
-            if st == "ice":
+                errors.append(f"{label} grounds on another lens '{st}' — /ux reads the slice's "
+                              f"hub, never a lens (C7/F7)")
+            elif st not in ("ice", "functionality", "persona", "journey"):
+                errors.append(f"{label} source_type '{st}' is not functionality/persona/journey (C4/F4)")
+            if st in ("ice", "functionality"):
                 fr = e.get("functionality_ref")
                 if not _blank(fr):
                     grounded_funcs.add(fr)
@@ -154,39 +95,32 @@ def check_grounding(man, decision_ids, errors):
                     errors.append(f"{label} names decision '{dec}' with no drafted record (C8/F8)")
 
     for s in (man.get("screens") or []):
-        nm = s.get("name", "<screen>")
-        scr_names.add(nm.strip() if isinstance(nm, str) else nm)
-        walk_grounds(f"screen '{nm}'", s.get("grounds"))
+        walk(f"screen '{s.get('name', '<screen>')}'", s.get("grounds"))
 
-    ds = man.get("design_system") or {}
-    if (ds.get("source_type") or "").strip().lower() not in ("kb", "decision"):
-        errors.append("design_system must ground on the KB technology learning or a decision (C4/F4)")
-    if (ds.get("source_type") or "").strip().lower() == "decision":
+    ds = man.get("design_system") or man.get("visual_core") or {}
+    vt = (ds.get("source_type") or "").strip().lower()
+    if vt not in ("kb", "decision"):
+        errors.append("visual core must ground on a KB technology learning or a decision (C4/F4)")
+    if vt == "decision":
         dec = ds.get("decision")
         if _blank(dec):
-            errors.append("design_system visual core has no decision recorded (C8/F8)")
+            errors.append("visual core has no decision recorded (C8/F8)")
         elif dec not in decision_ids:
-            errors.append(f"design_system names decision '{dec}' with no drafted record (C8/F8)")
-
-    return grounded_funcs, scr_names
+            errors.append(f"visual core names decision '{dec}' with no drafted record (C8/F8)")
+    return grounded_funcs
 
 
 def slice_functionalities(slice_file, errors):
-    """The slice's own functionalities (read straight from the slice record) — the to-cover set."""
     if not slice_file or not os.path.isfile(slice_file):
         errors.append(f"slice record not found at {slice_file} — cannot verify coverage (C6/F6)")
         return set()
     sl = (load(slice_file).get("slice") or {})
-    refs = set()
-    for f in (sl.get("functionalities") or []):
-        fr = (f or {}).get("functionality_ref")
-        if fr:
-            refs.add(fr)
-    return refs
+    return {(f or {}).get("functionality_ref") for f in (sl.get("functionalities") or [])
+            if (f or {}).get("functionality_ref")}
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Validate /ux's draft lens.")
+    ap = argparse.ArgumentParser(description="Validate /ux's draft grounding + coverage.")
     ap.add_argument("--draft", required=True)
     ap.add_argument("--manifest", required=True)
     ap.add_argument("--slice-file", required=True)
@@ -195,37 +129,24 @@ def main(argv=None):
     draft_root = os.path.join(args.draft, "product-os")
     if not os.path.isdir(draft_root):
         sys.stderr.write(f"validate_ux.py: no draft tree at {draft_root}\n")
-        sys.exit(2)
+        return 2
 
     errors, warnings = [], []
-
-    lens_screens = validate_lens(draft_root, errors)
     decision_ids = collect_decisions(draft_root, errors)
-
     try:
         man = (load(args.manifest).get("ux") or {})
     except (OSError, yaml.YAMLError) as exc:
         errors.append(f"manifest unreadable: {exc}")
         man = {}
 
-    grounded_funcs, man_screens = check_grounding(man, decision_ids, errors)
-
-    for s in sorted(lens_screens - man_screens):
-        errors.append(f"lens screen {s!r} has no grounding entry in the manifest (C4/F4)")
-    for s in sorted(man_screens - lens_screens):
-        errors.append(f"manifest grounds screen {s!r} that is not in the lens (C4/F4)")
-
-    # coverage (C6/F6): the slice's own functionalities must each be visualized
+    grounded_funcs = check_grounding(man, decision_ids, errors)
     to_cover = slice_functionalities(args.slice_file, errors)
-    for fid in sorted(to_cover):
+    for fid in sorted(f for f in to_cover if f):
         if fid not in grounded_funcs:
             errors.append(f"slice functionality {fid!r} is visualized by no screen (C6/F6)")
 
-    counts = {
-        "lens_screens": len(lens_screens), "manifest_screens": len(man_screens),
-        "decisions": len(decision_ids), "to_cover": len(to_cover),
-        "grounded_funcs": len(grounded_funcs),
-    }
+    counts = {"manifest_screens": len(man.get("screens") or []), "decisions": len(decision_ids),
+              "to_cover": len(to_cover), "grounded_funcs": len(grounded_funcs)}
     result = {"ok": not errors, "errors": errors, "warnings": warnings, "counts": counts}
     print(json.dumps(result, indent=2))
     return 0 if not errors else 1
