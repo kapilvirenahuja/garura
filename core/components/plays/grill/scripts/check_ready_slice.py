@@ -1,27 +1,29 @@
 #!/usr/bin/env python3
 """
-check_ready_slice.py — slice-realize readiness gate (C1/F1) + hub resolution.
+check_ready_slice.py — slice-realize readiness gate + hub resolution (SPINE model).
 
-A realize lens (quality / ux / agentic / arch / run) runs on ONE SLICE — the unit of
-delivery. A slice has no ICE of its own; its HUB is the union of its functionalities'
-ICE (each `functionalities[].ice_ref`, which may span several capabilities of the
-domain) plus the product profile. This gate:
+A realize lens (ux / agentic / marketing / architecture / quality / run / measure) runs on
+ONE SLICE — the unit of delivery. A slice has no ICE of its own; its HUB is the union of
+its functionalities' grounding (each `functionality_ref` → the spine's `functionalities`
+entry → its `functionality.md` doc, which may span several capabilities) plus the product
+profile (now structured in the spine). This gate:
 
-  - asserts the product profile is `set` (firmed by /understand);
-  - resolves the slice record and EVERY functionality `ice_ref`, asserting each file
-    exists and its ICE is RICH.
+  - asserts the product profile is `set` (firmed by /understand) — read from the SPINE;
+  - resolves the slice record and EVERY `functionality_ref` via the spine to a
+    `functionality.md` grounding doc, asserting each doc exists on disk.
 
-LOUD-FAIL rule: an `ice_ref` that does not resolve to a file is a BROKEN HUB, not an
-empty one — it is an error, never a silent pass. (Same lesson as the ux coverage guard.)
+LOUD-FAIL rule: a `functionality_ref` that does not resolve to a real spine functionality
+with an on-disk doc is a BROKEN HUB, not an empty one — an error, never a silent pass.
 
-It also emits the resolved slice context (the lens dir + the functionality ICE paths) so
-downstream steps read the hub without re-deriving it.
+It emits the resolved slice context (the lens dir + the functionality grounding docs) so
+downstream steps read the hub without re-deriving it. This script is SHARED — every lens
+play uses the same hub resolution.
 
 Layer rule: reads files on disk only; no git/gh/network.
 
     python3 check_ready_slice.py --product-base <pb> --slice <slice-id | domain/slice-id>
 
-Prints {ok, errors[], slice_id, domain, slice_file, lens_dir, functionality_ices[]} JSON.
+Prints {ok, errors[], slice_id, domain, slice_file, lens_dir, functionality_groundings[]} JSON.
 Exit 0 ready, 1 not ready, 2 usage error.
 """
 
@@ -47,28 +49,6 @@ def _empty(v):
     return v is None or (isinstance(v, (list, dict, str)) and len(v) == 0)
 
 
-def ice_is_rich(ice_path, errors, label):
-    try:
-        ice = (load(ice_path).get("ice") or {})
-    except (OSError, yaml.YAMLError) as exc:
-        errors.append(f"{label}: ICE unreadable ({exc})")
-        return
-    intent = ice.get("intent") or {}
-    ctx = ice.get("context") or {}
-    checks = {
-        "intent.constraints": intent.get("constraints"),
-        "intent.failures": intent.get("failures"),
-        "context.persona": ctx.get("persona"),
-        "context.systems": ctx.get("systems"),
-        "context.scope": ctx.get("scope"),
-        "expectations.outcomes": (ice.get("expectations") or {}).get("outcomes"),
-        "nfr_needs": ice.get("nfr_needs"),
-    }
-    for lbl, val in checks.items():
-        if _empty(val):
-            errors.append(f"{label}: ICE not rich — {lbl} is empty (run /understand first)")
-
-
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Slice-realize readiness gate + hub resolution.")
     ap.add_argument("--product-base", required=True)
@@ -77,21 +57,27 @@ def main(argv=None):
 
     errors = []
     root = os.path.join(args.product_base, "product-os")
-
-    # --- profile firmed? -----------------------------------------------------
-    profile_path = os.path.join(root, "profile.yaml")
-    if not os.path.isfile(profile_path):
-        errors.append(f"no profile at {profile_path} — run /vision + /understand first (C1/F1)")
-    else:
-        state = ((load(profile_path).get("profile") or {}).get("state") or "").strip().lower()
-        if state != "set":
-            errors.append(f"profile.state is '{state}', must be 'set' (firmed by /understand) (C1/F1)")
-
-    # --- resolve the slice (accept 'slice-id' or 'domain/slice-id') ----------
     slice_id = args.slice.split("/")[-1]
-    matches = glob.glob(os.path.join(root, "*", "slices", slice_id + ".yaml"))
     out = {"ok": False, "errors": errors, "slice_id": slice_id}
 
+    # --- the spine: slice REALIZED? + functionality doc index ------------------
+    # /grill's precondition (C1/F2): the slice is stamped `realized` (by /measure, once all
+    # seven lens docs lined up). Stronger than the lens plays' profile==set gate.
+    LENSES = ["quality", "ux", "agentic", "marketing", "architecture", "run", "measure"]
+    spine_path = os.path.join(root, "_spine.yaml")
+    func_doc = {}
+    slice_status = {}
+    if not os.path.isfile(spine_path):
+        errors.append(f"no spine at {spine_path} — run /vision + /understand first (C1/F2)")
+    else:
+        spine = load(spine_path)
+        func_doc = {f.get("id"): f.get("doc") for f in (spine.get("functionalities") or [])
+                    if isinstance(f, dict)}
+        slice_status = {s.get("id"): (s.get("status") or "").strip().lower()
+                        for s in (spine.get("slices") or []) if isinstance(s, dict)}
+
+    # --- resolve the slice (accept 'slice-id' or 'domain/slice-id') -----------
+    matches = glob.glob(os.path.join(root, "*", "slices", slice_id + ".yaml"))
     if not matches:
         errors.append(f"slice '{slice_id}' not found under any domain's slices/ "
                       f"— shape it with /shape first (C1/F1)")
@@ -105,26 +91,41 @@ def main(argv=None):
         funcs = sl.get("functionalities") or []
         if _empty(funcs):
             errors.append(f"slice '{slice_id}' bundles no functionalities — nothing to realize (C1/F1)")
-        func_ices = []
+        groundings = []
         for f in funcs:
             ref = (f or {}).get("functionality_ref")
-            ice_ref = (f or {}).get("ice_ref")
-            if _empty(ice_ref):
-                errors.append(f"functionality '{ref}' has no ice_ref in the slice (C1/F1)")
+            doc = func_doc.get(ref)
+            if _empty(doc):
+                errors.append(f"functionality '{ref}' is not in the spine, or has no grounding "
+                              f"doc — broken hub, cannot realize (C1/F1)")
+                groundings.append({"functionality_ref": ref, "doc": None, "resolved": False})
                 continue
-            ice_path = os.path.join(args.product_base, ice_ref)
-            resolved = os.path.isfile(ice_path)
+            doc_path = os.path.join(root, doc)
+            resolved = os.path.isfile(doc_path)
             if not resolved:
-                errors.append(f"functionality '{ref}' ice_ref does not resolve: {ice_ref} "
+                errors.append(f"functionality '{ref}' grounding doc does not resolve: {doc} "
                               f"— broken hub, cannot realize (C1/F1)")
-            else:
-                ice_is_rich(ice_path, errors, f"functionality '{ref}'")
-            func_ices.append({"ref": ref, "ice_ref": ice_ref, "resolved": resolved})
+            groundings.append({"functionality_ref": ref, "doc": doc, "resolved": resolved})
 
         rel_slice = os.path.relpath(slice_file, args.product_base)
         lens_dir = os.path.join(os.path.dirname(rel_slice), slice_id, "lens")
+
+        # --- C1/F2: the slice must be REALIZED ---
+        st = slice_status.get(slice_id, "")
+        if st != "realized":
+            errors.append(f"slice '{slice_id}' status is '{st or 'unset'}', must be 'realized' "
+                          f"(run the realize pipes first; /measure stamps it) (C1/F2)")
+        # --- C1/F2: all seven lens docs present ---
+        abs_lens = os.path.join(args.product_base, lens_dir)
+        missing = [t for t in LENSES if not os.path.isfile(os.path.join(abs_lens, t + ".md"))]
+        if missing:
+            errors.append(f"slice '{slice_id}' is missing lens docs: "
+                          f"{', '.join(t + '.md' for t in missing)} — not realized (C1/F2)")
+
         out.update({"domain": domain, "slice_file": rel_slice, "lens_dir": lens_dir,
-                    "functionality_ices": func_ices})
+                    "realized": st == "realized",
+                    "lens_docs": [os.path.join(lens_dir, t + ".md") for t in LENSES],
+                    "functionality_groundings": groundings})
 
     out["ok"] = not errors
     out["errors"] = errors

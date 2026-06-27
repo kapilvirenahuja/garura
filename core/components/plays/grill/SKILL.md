@@ -1,13 +1,13 @@
 ---
 name: grill
 position: both
-description: 'Cut one REALIZED slice into user-testable delivery epics — the handoff from the product model to the delivery pipeline. /roadmap says which slice to build; the six realize lenses have solved its design and /run has stamped it realized — the marker /grill requires before it cuts. Each epic is a meaningful increment a user can open, exercise, and verify when delivered (the user-testability grain — never internal-only work), self-contained, referencing the slice''s intent and lenses, never copying them. The cut is GRILLED before it is written — grilling draws the box from realized slice to delivery epics so nothing drifts outside the declared intents: every challenge cites a specific declared item (never taste), questions are asked plainly ONE AT A TIME with no recommendations attached, a tension closes only on the typed human answer (the record carries the push-back shown, the human''s words, and the human-derived directive or reason — the agent never self-resolves), and an unresolved delivery-method choice becomes a cited decision question, never an assumption. Lens defects route back to their lens play. Ordered, every functionality covered or explicitly deferred, written atomically only after human approval. Writes only epics; opens no implementation issue — /start picks epics up one at a time. Position BOTH (#437, decision 24): /grill is self-contained — start-change opens its own branch at the head, and the standard end sequence (commit-change → propose-change → review-change → merge-change) closes it after the verified persist — no manual /commit-change.'
+description: 'Cut one REALIZED slice into user-testable delivery epics — the handoff from the product model to the delivery pipeline. /roadmap says which slice to build; the seven realize lenses have solved its design and /measure has stamped it realized — the marker /grill requires before it cuts. Each epic is a meaningful increment a user can open, exercise, and verify when delivered (the user-testability grain — never internal-only work), self-contained, referencing the slice''s intent and lenses, never copying them. The cut is GRILLED before it is written — grilling draws the box from realized slice to delivery epics so nothing drifts outside the declared intents: every challenge cites a specific declared item (never taste), questions are asked plainly ONE AT A TIME with no recommendations attached, a tension closes only on the typed human answer (the record carries the push-back shown, the human''s words, and the human-derived directive or reason — the agent never self-resolves), and an unresolved delivery-method choice becomes a cited decision question, never an assumption. Lens defects route back to their lens play. Ordered, every functionality covered or explicitly deferred, written atomically only after human approval. Writes only epics; opens no implementation issue — /start picks epics up one at a time. Position BOTH (#437, decision 24): /grill is self-contained — start-change opens its own branch at the head, and the standard end sequence (commit-change → propose-change → review-change → merge-change) closes it after the verified persist — no manual /commit-change.'
 user-invocable: true
 ---
 
 # grill
 
-Take one **realized** slice — a vertical product increment whose design the six realize
+Take one **realized** slice — a vertical product increment whose design the seven realize
 lenses (quality → ux → agentic → arch → measure → run) have already solved, stamped
 `status: realized` by /run — and cut it into **epics**: the ordered, user-testable delivery
 increments the delivery pipeline picks up. /grill sits below /roadmap (which says which
@@ -44,9 +44,9 @@ question; only the human draws that wall.
 
 **Pipeline position: both (#437, decision 24; confirmed by Kapil).** /grill is
 SELF-CONTAINED: it opens and closes its own branch, like fix-bug. The realize work lands
-through its own two pipelines — the LENS pipeline (quality start → ux → agentic end) and
-the FOUNDATION pipeline (arch start → measure → run end), each merging to main — so /grill
-no longer rides a branch another play opened. The D2 pipeline-position rule injects
+through its own three pipes — the FUNCTIONAL pipe (ux start → agentic → marketing end), the
+NON-FUNCTIONAL pipe (architecture start → quality → run end), and the DELIVER pipe (measure),
+each merging to main — so /grill no longer rides a branch another play opened. The D2 pipeline-position rule injects
 `start-change` at the head (resolve or create the grill issue, cut the branch off fresh
 main, optional worktree, init STM) and keeps the close sequence `commit-change →
 propose-change → review-change → merge-change` at the tail: after the epics are persisted
@@ -60,7 +60,7 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
 
 This play was compiled from the grill ICE (`reference/ice.md`) by play-creator and
 recompiled via play-editor (#436, #437; closed-schema round-report fix). Intent defines
-constraints (C1–C15) and failure conditions (F1–F16); the expectation defines success
+constraints (C1–C16) and failure conditions (F1–F17); the expectation defines success
 scenarios (S1–S8) and one recovery entry per failure condition.
 To modify this play, update `reference/ice.md` and recompile with play-creator.
 Do NOT edit this file manually — it is a compiled artifact.
@@ -96,7 +96,7 @@ creation at `ready`.
 
 | Agent | Domain | Skills it invokes | Phases |
 |-------|--------|-------------------|--------|
-| `product-os-keeper` | Read the slice's hub (functionality ICEs + profile) and all six lenses; draft the epic cut by the user-testability grain (self-contained, referenced, ordered, deferrals recorded); revise it per grilling-round directives; detect tensions between the cut and the declared design, each with a verbatim citation | `author-epics`, `check-cut-tensions` | Draft, Grill |
+| `product-os-keeper` | Read the slice's hub (functionality ICEs + profile) and all seven lenses; draft the epic cut by the user-testability grain (self-contained, referenced, ordered, deferrals recorded); revise it per grilling-round directives; detect tensions between the cut and the declared design, each with a verbatim citation | `author-epics`, `check-cut-tensions` | Draft, Grill |
 
 `product-os-keeper` is the single **domain agent** this play uses (1 of the ≤5 budget).
 No utility agents are needed in the play's own core — git/issue machinery arrives only via
@@ -111,7 +111,7 @@ counted here.
 | Resolve config + `product_base` (`.garura/core/config.yaml`) | — | Hard halt |
 | Slice argument supplied (`/grill <slice-id>` or `/grill <domain>/<slice-id>`) | C1 | Hard halt — name the slice to cut |
 | Profile firmed (`set`) AND the slice exists with every functionality ICE resolved + rich | C1 | Hard halt (REC2) |
-| Slice stamped `realized` AND all six lens files present | C1 | Hard halt (REC2) |
+| Slice stamped `realized` AND all seven lens files present | C1 | Hard halt (REC2) |
 
 Resolve config mechanically, then resolve the slice + hub, then assert the realized stamp.
 /grill's issue and branch arrive via the injected `start-change` head (Step 0); pre-flight
@@ -120,20 +120,20 @@ itself runs no git — it resolves config and gates only:
 ```
 python3 scripts/preflight.py --play grill --config .garura/core/config.yaml
 python3 scripts/check_ready_slice.py --product-base <product_base> --slice <slice>
-python3 scripts/check_realized.py --product-base <product_base> \
-        --slice-file <slice_file> --lens-dir <lens_dir>
 ```
 
 `preflight.py` returns config facts (`product_base`, `stm_base`, `evidence_record`).
-`check_ready_slice.py` resolves the slice and its hub (C1): it halts unless the profile is
-`set` and the slice exists with every `functionalities[].ice_ref` resolving to a rich ICE —
-an unresolved ice_ref fails loud. On success it emits `slice_file`, `domain`, `lens_dir`,
-and the resolved `functionality_ices`. `check_realized.py` is the gate this play exists
-behind (C1): it halts unless the slice record's `status` is `realized` and all six lens
-files (quality, ux, agentic, architecture, measure, run) exist — /grill cuts solved
-designs only. On any halt, route to the missing step (REC2): /shape to shape the slice,
-/understand to enrich + firm, or the realize lenses (/quality, /ux, /agentic, /arch,
-/measure, /run) to solve and stamp it. No epic is written on a halt.
+`check_ready_slice.py` is the single gate this play exists behind (C1): it resolves the
+slice and its hub and halts unless the profile (in the spine) is `set`, the slice's spine
+`status` is `realized`, and all SEVEN lens grounding docs exist for it
+(`quality.md`, `ux.md`, `agentic.md`, `marketing.md`, `architecture.md`, `run.md`,
+`measure.md`) — /grill cuts solved designs only. The hub resolves each of the slice's
+`functionality_ref`s to its `functionality.md` grounding doc; an unresolved ref fails loud.
+On success it emits `slice_file`, `domain`, `lens_dir`, and the resolved
+`functionality_groundings`. On any halt, route to the missing step (REC2): /shape to shape
+the slice, /understand to detail it, or the realize pipes (functional: /ux /agentic
+/marketing; non-functional: /arch /quality /run; deliver: /measure, which stamps it
+realized) to solve and stamp it. No epic is written on a halt.
 
 The working base is `<working>` = `{stm_base}_grill/<slice-id>/` (the draft, the rounds,
 the snapshots); `<slice_dir>` = `<product_base>/product-os/<domain>/slices/<slice-id>`
@@ -195,7 +195,7 @@ config, STM initialized); they are not re-checked here.
 
 **Step 1 — Draft the cut** · Owner: `product-os-keeper` · Depends on: Step 0
 The agent reads the slice's hub (its functionalities' ICE — resolved by the readiness
-gate — plus the profile) and **all six lenses** (the solved design — /grill is the
+gate — plus the profile) and **all seven lenses** (the solved design — /grill is the
 reconciliation point, so unlike a realize lens it reads everything), then invokes
 `author-epics` to draft the cut to STM: epics by the user-testability grain, each
 self-contained with a concrete `user_check`, referencing the slice's functionalities,
@@ -206,20 +206,20 @@ functionality deliberately not cut this run:
       "task":    "cut this realized slice into user-testable epics — each a meaningful increment a user can open, exercise, and verify when delivered, self-contained (context + acceptance + a concrete one-line user_check), threading the slice functionalities it needs, referencing ICE/lenses never copying them, ordered (acyclic depends_on, first epic stands alone, order 1..n), with every slice functionality covered or explicitly deferred with a reason. Declare each epic's surface per surface-contract.md — a surface block {type: web_dashboard|server_api|cli|library|service_read_model, human_run_target, must_open[]} sourced from the slice's own named surface (slice.surface — the authoritative user-facing surface /shape wrote) and refined by the epic's user_check; the epic surface must trace to a surface the slice names, never invented and never silently defaulted to a non-user-facing type. When the slice surface is user-facing (web_dashboard/server_api), the first epic (order 1) must scaffold a minimal openable app/server shell in its acceptance/scope so later epics extend a surface that already opens.",
       "inputs":  { "slice_ref": "<domain>/<slice-id>",
                    "slice_file": "<product_base>/<slice_file>",
-                   "functionality_ices": [ "<product_base>/<ice_ref>", "..." ],
+                   "functionality_groundings": [ "<product_base>/<functionality.md>", "..." ],
                    "lens_dir": "<product_base>/<lens_dir>",
-                   "profile_path": "<product_base>/product-os/profile.yaml",
+                   "spine_path": "<product_base>/product-os/_spine.yaml",
                    "product_base": "<product_base>" },
       "outputs": { "draft_dir": "<working>/draft/",
                    "epics": "<working>/draft/epics/" }
     }
 
-`slice_file`, `lens_dir`, and `functionality_ices` come from `check_ready_slice.py`. The
-skill reads the hub + the six lenses **read-only** and writes the draft only — never the
+`slice_file`, `lens_dir`, and `functionality_groundings` come from `check_ready_slice.py`. The
+skill reads the hub + the seven lenses **read-only** and writes the draft only — never the
 live model. It returns the contract with the output paths on disk — never inline content.
 **SE-1 (F2/C1):** the readiness + realized gates passed at pre-flight — the profile is
 `set`, the slice exists with every functionality ICE resolved + rich, the slice record is
-stamped `realized`, and all six lens files exist; otherwise the run halted (REC2) and no
+stamped `realized`, and all seven lens files exist; otherwise the run halted (REC2) and no
 epic was written.
 
 ### Phase: Validate
@@ -260,6 +260,7 @@ dependencies; violations are re-ordered or split (REC9).
 **SE-11 (C10):** every epic's `status` is `ready` and `issue_ref` is unset — creation
 only; pickup, delivery, and deletion belong to /start and /merge.
 On any GAP, apply the named recovery and re-run before grilling starts.
+**SE-18 (F17/C16):** every drafted `epic.md` passes `lint_grounding.py` (kind `epic`: the template's section set, no drift) AND the content-quality eval gate (`grounding_gate.py` over the judge verdict); and each epic's spine entry conforms to the spine schema with `functionality_refs` that resolve. A thin or off-template epic doc, or a dangling ref, fails the gate and is not written.
 
 ### Phase: Grill (rounds — the play's reason to exist)
 
@@ -272,12 +273,12 @@ clean against the rounds:
    cut and everything the slice declared:
 
        {
-         "task":    "detect tensions between this epic cut and the declared design — hub ICEs, all six lenses, profile bars — one entry per real contradiction, each citing source file + verbatim quote; emit unresolved delivery-method choices that shape an epic as cited decision_questions entries (plain questions, no recommendations, human_response always absent); suppress tensions and questions already closed in prior rounds",
+         "task":    "detect tensions between this epic cut and the declared design — the functionality grounding docs, all seven lenses, profile bars — one entry per real contradiction, each citing source file + verbatim quote; emit unresolved delivery-method choices that shape an epic as cited decision_questions entries (plain questions, no recommendations, human_response always absent); suppress tensions and questions already closed in prior rounds",
          "inputs":  { "cut_dir": "<working>/draft/",
                       "slice_file": "<product_base>/<slice_file>",
-                      "functionality_ices": [ "<product_base>/<ice_ref>", "..." ],
+                      "functionality_groundings": [ "<product_base>/<functionality.md>", "..." ],
                       "lens_dir": "<product_base>/<lens_dir>",
-                      "profile_path": "<product_base>/product-os/profile.yaml",
+                      "spine_path": "<product_base>/product-os/_spine.yaml",
                       "round_id": "R<n>",
                       "prior_rounds_dir": "<working>/rounds/" },
          "outputs": { "report": "<working>/rounds/R<n>-tensions.yaml" }
@@ -360,20 +361,18 @@ prove only `epics/` changed). The snapshot is taken here, at the gated apply ste
 at pre-flight — so a resume can never compare post-apply against post-apply:
 
 ```
-mkdir -p <working>/slice-before
-cp -R <slice_dir>/. <working>/slice-before/ 2>/dev/null || true
-cp <product_base>/<slice_file> <working>/slice-record-before.yaml
-cp <product_base>/product-os/profile.yaml <working>/profile-before.yaml
+cp <product_base>/product-os/_spine.yaml <working>/spine-before.yaml
 ```
 
-Then persist the approved cut on the fixed allowlist. `apply_epics.py` is handed only the
-draft's `epics/` folder, so it cannot write the slice record, a lens, an ICE, or the
-profile; it is all-or-none — if anything is refused (including an existing `in_delivery`
-epic the cut would overwrite), nothing is written:
+Then persist the approved cut additively. `apply_epics.py` writes each `epic.md` into the
+slice's `epics/` home and merges the epic entries into the spine `epics` index (additive by
+id, replacing only a `ready` epic the cut re-states, never an `in_delivery` one), and writes
+NOTHING else — no slice record, lens, functionality, profile, or any spine field outside
+`epics`. It is all-or-none: if anything is refused, nothing is written:
 
 ```
 python3 scripts/apply_epics.py --draft <working>/draft \
-        --slice-dir <slice_dir> --out-manifest <working>/apply-manifest.json
+        --product-base <product_base> --out-manifest <working>/apply-manifest.json
 ```
 
 **SE-9 (F7/C9):** this step depends on Step 4's typed approval, and the apply manifest
@@ -385,17 +384,16 @@ re-presented (REC7).
 Prove the persist wrote exactly the approved cut and nothing else:
 
 ```
-python3 scripts/check_epics.py --before <working>/slice-before --slice-dir <slice_dir> \
-        --draft <working>/draft \
-        --slice-record-before <working>/slice-record-before.yaml \
-        --slice-record-after <product_base>/<slice_file> \
-        --profile-before <working>/profile-before.yaml \
-        --profile-after <product_base>/product-os/profile.yaml
+python3 scripts/check_epics.py --manifest <working>/apply-manifest.json \
+        --spine-before <working>/spine-before.yaml \
+        --spine-after <product_base>/product-os/_spine.yaml \
+        --slice-ref <domain>/<slice-id>
 ```
 
-**SE-10 (F8/C11):** the slice record and profile are byte-identical to their snapshots;
-within the slice folder every file outside `epics/` is byte-identical, nothing added or
-removed; every persisted epic equals its approved draft byte-for-byte; any out-of-scope
+**SE-10 (F8/C11):** the live spine is byte-identical to its snapshot except the added
+`epics` entries — the slice record, the lenses, the profile, and every other spine field
+are unchanged, nothing else added or removed; every persisted `epic.md` equals its approved
+draft byte-for-byte; any out-of-scope
 change is restored from the snapshot and the write re-confined to epics (REC8).
 
 ### Phase: End sequence (injected — D2 position: both, tail)
@@ -542,6 +540,7 @@ order to begin delivery; if a lens defect was recorded, run that lens play first
 | F14 | a round report carries question evidence under an unrecognized top-level key (a legacy `questions:` list, or any other off-schema key) | read a legacy `questions:` key as `decision_questions:` and validate it identically; for any other off-schema key, block the write-gate until the round is rewritten under the canonical `tensions:`/`decision_questions:` schema, then re-run the gate | autonomous |
 | F15 | an epic at the write-gate has no `surface` block, or a surface defaulted to a non-user-facing type with no human confirmation | source the surface from the slice's own named surface (slice.surface) refined by the epic's user_check per surface-contract.md, put it to the human at the checkpoint, and write it; block the cut until every epic carries a confirmed surface that traces to a slice surface | human |
 | F16 | a user-facing slice's first epic scaffolds no app/server shell | rework the order so the first epic seeds a minimal openable shell, or recut so one does, then re-present | autonomous |
+| F17 | an epic doc fails the linter or the content eval, or its spine entry fails the schema or names an unknown functionality | re-emit the `epic.md` to its template, rewrite to the judge's cited fixes and re-judge until the gate passes, and fix the spine entry to resolve; never write a degraded epic | autonomous |
 
 ## Pause and Resume
 
@@ -559,7 +558,7 @@ marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:89c9d40e317980400adf8a8abf647f0251f76f93309faaf6f7e5acebeb51174a (of `reference/ice.md`) |
+| fingerprint | sha256:d5a82963b7d2082c1792bada65642dcf321bb4252db4cda1fc63b546ca51c98e (of `reference/ice.md`) |
 | compiled_by | play-creator (#434; edited via play-editor, #436, #437), edited via play-editor (#434, decision 24; closed-schema round-report fix — F14); epic-lifecycle prose corrected #439 (see deviation note) |
 
 **Direct-edit deviation note (#439, ADR 019):** the epic-lifecycle sentence ("epics are temporary… deleted on merge") was corrected to "epics are permanent… stamped `delivered` on merge and kept" in both `reference/ice.md` and this compiled body, and the fingerprint recomputed to match. This is descriptive context about the epic's downstream life, not grill's own guarantee — no constraint, failure condition, scenario, step, or eval changed; grill still cuts epics and deletes nothing. No re-interview/rebuild required.
@@ -568,8 +567,18 @@ marker at Step 1.
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |
 | skills_used | author-epics, check-cut-tensions |
-| scripts | 6 (preflight.py, check_ready_slice.py, check_realized.py, validate_epics.py, apply_epics.py, check_epics.py) |
+| scripts | 7 (preflight.py, check_ready_slice.py, lint_grounding.py, grounding_gate.py, validate_epics.py, apply_epics.py, check_epics.py) |
 | member_subplays | start-change (injected head); commit-change, propose-change, review-change, merge-change (injected end sequence) |
-| step_evals | 17 (SE-1…SE-17; one per failure condition F1–F16, plus SE-11 for C10; SE-16/SE-17 cover the surface contract C14/C15) |
+| step_evals | 18 (SE-1…SE-18; one per failure condition F1–F17, plus SE-11 for C10) |
 | scenario_evals | 8 (SCE-1…SCE-8) |
-| recovery_entries | 16 (one per failure condition; 11 autonomous / 5 human) |
+| recovery_entries | 17 (one per failure condition; 12 autonomous / 5 human) |
+
+**Direct-edit deviation note (grill-spine-reconcile):** the recompile left the pre-flight,
+apply, and verify prose on the OLD model — it called `check_realized.py` (redundant; the gate
+is in `check_ready_slice.py`) and the `functionality_ices`/`ice_ref`/`profile.yaml` field
+shapes, and the apply/verify commands used the old `--slice-dir`/`--profile-*` CLIs. These were
+aligned to the actual reworked scripts (the spine hub-resolution emitting
+`functionality_groundings`; `apply_epics.py --draft --product-base` merging the spine `epics`
+index; `check_epics.py --manifest --spine-before/after --slice-ref` doing the before/after spine
+diff) and `check_realized.py` was deleted. Execution-mechanism only — no constraint, failure,
+scenario, or eval changed; the ICE (`reference/ice.md`) and the fingerprint are unchanged.

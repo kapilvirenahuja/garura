@@ -7,8 +7,9 @@ play-creator; never hand-edit the compiled SKILL.md.
 
 Turn one **realized slice** into an ordered set of **user-testable epics** — each a
 meaningful increment a user can open, exercise, and verify — grilled steelman-hard against
-the slice's intent and all six lenses before anything is written, as the handoff from the
-product model to delivery.
+the slice's intent and all seven lenses before anything is written, as the handoff from the
+product model to delivery. Each epic is a structured entry in the spine `epics` index PLUS
+a rich `epic.md` grounding doc, gated by the shape linter and the content-quality eval.
 
 **What grilling is for: drawing the box.** Going from A (the realized slice — the declared
 intents, lenses, and profile) to B (delivery epics) must have no drift. The declared
@@ -19,14 +20,15 @@ yet and only the human may draw one; the human-response record proves the box he
 the human held it, not because the agent assumed it did.
 
 /grill sits below /roadmap and above the delivery pipeline. /roadmap says "build this slice
-next"; the six realize lenses (quality → ux → agentic → arch → measure → run) — run as the
-LENS pipeline (quality → ux → agentic) and the FOUNDATION pipeline (arch → measure → run),
-each merged to main — have solved the slice's
-design and /run has stamped its record `status: realized` — that stamp is the single marker
-/grill checks before it cuts delivery work. /grill then cuts the slice into **epics**: the
-slice-level delivery units `/start` picks up (opening an issue per epic) and `/merge`
-stamps `delivered` and keeps when landed — the kept epic is the product model's
-as-delivered record (ADR 019).
+next"; the seven realize lenses — run as three pipes, the FUNCTIONAL pipe (ux → agentic →
+marketing), the NON-FUNCTIONAL pipe (architecture → quality → run), and the DELIVER pipe
+(measure), each merged to main — have solved the slice's design, and **/measure** has
+stamped its record `status: realized` (its lines-up gate confirms all seven lens docs are
+present) — that stamp is the single marker /grill checks before it cuts delivery work.
+/grill then cuts the slice into **epics**: each epic is a structured entry in the spine
+`epics` index plus a rich `epic.md` grounding doc. An epic is the slice-level delivery unit
+`/start` picks up (opening an issue per epic) and `/merge` stamps `delivered` and keeps when
+landed — the kept epic is the product model's as-delivered record (ADR 019).
 
 The **grain of an epic is user-testability**, not the functionality: when an epic is
 delivered, a user must be able to open the product, do something, and see it work. An epic
@@ -65,9 +67,10 @@ dressing up the question.
 
 Pipeline position: **both** (#437, decision 24; confirmed by Kapil). /grill is
 SELF-CONTAINED: it opens and closes its own branch, like fix-bug. The realize work now
-lands through its own two pipelines — the LENS pipeline (quality start → ux → agentic end)
-and the FOUNDATION pipeline (arch start → measure → run end), each merging to main — so
-/grill no longer rides a branch another play opened. The D2 rule injects `start-change` at
+lands through its own three pipes — the FUNCTIONAL pipe (ux start → agentic → marketing
+end), the NON-FUNCTIONAL pipe (architecture start → quality → run end), and the DELIVER
+pipe (measure), each merging to main — so /grill no longer rides a branch another play
+opened. The D2 rule injects `start-change` at
 the head (resolve or create the grill issue, cut the branch off fresh main, optional
 worktree, init STM) and keeps the end sequence `commit-change → propose-change →
 review-change → merge-change` at the tail: after the approved epics are persisted and
@@ -80,7 +83,8 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
 ### Constraints
 
 - C1 — The play operates on exactly one slice per run, and only a slice stamped realized
-  (all six lenses written and lined up).
+  (its spine status is `realized`, stamped by /measure once all seven lens docs are written
+  and lined up).
 - C2 — Every epic is a user-testable increment: its acceptance criteria describe what a
   user can open, do, and observe working — never internal-only completion.
 - C3 — Every epic is self-contained for delivery: it carries its own context and
@@ -91,7 +95,7 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
   deferred with a recorded reason; a functionality may yield more than one epic.
 - C6 — Every push-back during grilling cites a specific declared item — an intent goal,
   constraint, or failure; a lens decision; or a profile bar. Never uncited taste.
-- C7 — The cut is reconciled against all six lenses; any tension between an epic and a
+- C7 — The cut is reconciled against all seven lenses; any tension between an epic and a
   lens is surfaced and either resolved in the cut or explicitly accepted with a recorded
   reason before writing.
 - C8 — Epics are ordered: dependencies among them are explicit and acyclic, and the first
@@ -132,6 +136,12 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
   server_api) scaffolds the app/server shell — a minimal openable app — or the cut is
   reworked until it does. Later epics extend a surface that already opens; none invents one
   from nothing.
+- C16 — Each epic is written as a structured entry in the spine `epics` index (id,
+  slice_ref, status `ready`, order, functionality_refs, surface, doc pointer) AND a rich
+  `epic.md` grounding doc that conforms to the epic template and clears the content-quality
+  eval — its intent, constraints, failures, expectations, context, outcome, user check,
+  surface, delivered functionalities, and acceptance are self-explaining at delivery
+  altitude, not thin. A thin or off-template epic doc fails the gate and is not written.
 
 ### Failure conditions
 
@@ -170,6 +180,10 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
 - F16 — A slice with a user-facing surface has a first epic that opens nothing — no
   app/server shell — so every later epic has no surface to extend and the vertical decays
   to internal work.
+- F17 — An epic doc fails its template/shape (the linter) or the content-quality eval (a
+  thin, off-altitude, or label-only `epic.md`), or its spine `epics` entry fails the spine
+  schema or names a functionality the spine does not have — so a degraded epic reaches
+  delivery.
 
 ## Expectation
 
@@ -272,3 +286,8 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
 - REC16 (F16) — trigger: a user-facing slice's first epic scaffolds no app/server shell.
   direction: rework the order so the first epic seeds a minimal openable shell, or recut so
   one does, then re-present. handoff: autonomous.
+- REC17 (F17) — trigger: an epic doc fails the linter or the content eval, or its spine
+  entry fails the schema or names an unknown functionality. direction: re-emit the failing
+  `epic.md` to its template and rewrite to the judge's cited fixes (re-judge until the gate
+  passes), and fix the spine entry to resolve; never write a degraded epic. handoff:
+  autonomous.
