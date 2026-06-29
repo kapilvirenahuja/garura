@@ -1,36 +1,30 @@
 #!/usr/bin/env python3
 """
-check_gates.py — quality-gate + profile-benchmark + surface gate for /validate
+check_gates.py — quality-gate + measure-benchmark + surface gate for /validate
 (C11/F3, C13/F13).
 
-Green is the entry, the profile floor is the bar
-(KB: technology/validation-floor-profile-benchmarks):
+Green is the entry, the declared bar is the bar. In the spine + grounding model the
+gate and benchmark DEFINITIONS live in the slice's lens GROUNDING DOCS (Markdown), not
+in YAML lens files or a standalone profile:
 
-  gates      — every gate the slice's quality lens declares must map to a
-               captured check result (by gate id == check_id, or the gate's
-               declared check ref); a gate with no captured result is a
-               finding — an unmeasured bar is not a passed bar.
-  benchmarks — every benchmark the product profile declares for a measure the
-               results carry (or a declared mandatory measure) is compared
-               against the captured `measures`; below the floor = finding,
-               regardless of the tool being green. Direction per benchmark:
-               floor (>=) or ceiling (<=).
-  surface    — the epic's declared `surface.type` (surface-contract.md) maps to
-               exactly one required runnable check. A captured result must carry
-               `surface_check: <type>` matching the epic's `surface.type` and
-               status pass — a real browser check that opened each `must_open`
-               artifact (web_dashboard), an HTTP/API call to the declared
-               endpoint (server_api), a run of `human_run_target` (cli), or the
-               library/service's own tests. A required surface that was not
-               measured, or whose captured surface result does not match the
-               declared type, is a finding — "no browser/API probes available"
-               does NOT waive the check, it fails it (F13). Verdict ⇒
-               fix_required.
+  gates      — every gate the slice's QUALITY lens (`quality.md` "## Gates" table:
+               Dimension | Bar | How checked) declares must map to a captured check
+               result (by check_id == the gate's dimension slug). A gate with no
+               captured result is a finding — an unmeasured bar is not a passed bar.
+  benchmarks — every metric the slice's MEASURE lens (`measure.md` "## Metrics" table:
+               Metric | Baseline | Target | Proof) declares must be captured. Where the
+               Target cell yields a comparator + number (e.g. "< 2s", ">= 100", "0 ..."),
+               the captured value is compared against it (floor/ceiling); where the
+               target is prose-only, the metric is presence-required. (The structured
+               floor/ceiling numbers the old profile carried now live as prose targets
+               in the measure lens — see the spine+grounding migration.)
+  surface    — the epic's declared `surface_type` (read from the spine epics entry) maps
+               to exactly one required runnable check (surface-contract.md), unchanged.
 
 Layer rule: asserts over captured files only; runs nothing.
 
-    python3 check_gates.py --quality-lens <quality.yaml> --profile <profile.yaml>
-        --results-dir <dir> --out <gates-map.json> [--epic-file <epic.yaml>]
+    python3 check_gates.py --quality-lens <quality.md> --measure-lens <measure.md>
+        --results-dir <dir> --out <gates-map.json> [--product-base <pb> --epic <epic-id>]
 
 Prints {ok, gates[], benchmarks[], surface{}, findings[], errors[]}.
 Exit 0 all satisfied, 1 findings, 2 usage.
@@ -40,6 +34,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import sys
 
 try:
@@ -49,22 +44,75 @@ except ImportError:
     sys.exit(2)
 
 
-def load(path):
+def slug(text):
+    return re.sub(r"[^a-z0-9]+", "-", str(text).strip().lower()).strip("-")
+
+
+def read_text(path):
     with open(path, "r", encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}
+        return fh.read()
+
+
+def parse_md_table(text, section):
+    """Return the rows (list of dicts keyed by header) of the markdown table under the
+    given '## <section>' heading. Ignores fenced code blocks."""
+    rows = []
+    in_section = False
+    in_fence = False
+    headers = None
+    for raw in text.splitlines():
+        s = raw.strip()
+        if s.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        if s.startswith("## "):
+            in_section = (s[3:].strip().lower() == section.strip().lower())
+            headers = None
+            continue
+        if not in_section or not s.startswith("|"):
+            continue
+        cells = [c.strip() for c in s.strip("|").split("|")]
+        if set("".join(cells)) <= set("-: "):      # the |---|---| separator row
+            continue
+        if headers is None:
+            headers = [c.lower() for c in cells]
+            continue
+        rows.append(dict(zip(headers, cells)))
+    return rows
+
+
+def parse_target(text):
+    """Tolerantly read a comparator + number out of a prose target cell.
+    Returns (floor, ceiling) where either may be None."""
+    if not text:
+        return None, None
+    m = re.search(r"(<=|<|>=|>)\s*([0-9]+(?:\.[0-9]+)?)", text)
+    if m:
+        num = float(m.group(2))
+        return (num, None) if m.group(1).startswith(">") else (None, num)
+    m = re.search(r"\b([0-9]+(?:\.[0-9]+)?)\s*%", text)        # bare "100%" / "0 ..."
+    if m:
+        return float(m.group(1)), None
+    m = re.match(r"\s*([0-9]+(?:\.[0-9]+)?)\b", text)
+    if m:
+        return float(m.group(1)), None
+    return None, None                                          # prose-only → presence
 
 
 def main():
     ap = argparse.ArgumentParser(description="/validate gate + benchmark check.")
-    ap.add_argument("--quality-lens", required=True)
-    ap.add_argument("--profile", required=True)
+    ap.add_argument("--quality-lens", required=True, help="the slice's quality.md")
+    ap.add_argument("--measure-lens", required=True, help="the slice's measure.md")
     ap.add_argument("--results-dir", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--epic-file", default=None,
-                    help="the epic.yaml whose surface.type the run must measure (C13/F13)")
+    ap.add_argument("--product-base", default=None,
+                    help="product base — with --epic, enables the surface check (C13/F13)")
+    ap.add_argument("--epic", default=None,
+                    help="epic id whose spine surface_type the run must measure (C13/F13)")
     args = ap.parse_args()
 
-    # surface types and whether each requires a user-reachable run surface.
     SURFACE_REQUIRES_RUN = {"web_dashboard", "server_api", "cli"}
     SURFACE_ALL = SURFACE_REQUIRES_RUN | {"library", "service_read_model"}
 
@@ -85,95 +133,95 @@ def main():
             continue
         results[rec.get("check_id")] = rec
         for metric, value in (rec.get("measures") or {}).items():
-            measures[metric] = {"value": value, "check_id": rec.get("check_id"),
-                                "raw_log_path": rec.get("raw_log_path")}
+            measures[slug(metric)] = {"value": value, "check_id": rec.get("check_id"),
+                                      "raw_log_path": rec.get("raw_log_path")}
 
-    # --- quality-lens gates (C11) ----------------------------------------------
+    # --- quality-lens gates (C11) — from quality.md "## Gates" table ------------
     gates_out = []
     try:
-        lens = load(args.quality_lens)
-        gates = ((lens.get("content") or lens).get("gates")
-                 or lens.get("gates") or [])
+        rows = parse_md_table(read_text(args.quality_lens), "Gates")
+        gates = [{"id": slug(r.get("dimension", "")), "bar": r.get("bar", "")}
+                 for r in rows if r.get("dimension")]
     except Exception as exc:
         gates = []
         errors.append(f"quality lens unreadable: {exc}")
     for gate in gates:
-        gid = gate.get("id") if isinstance(gate, dict) else str(gate)
-        ref = (gate.get("check") if isinstance(gate, dict) else None) or gid
-        rec = results.get(ref)
-        entry = {"gate": gid, "check_id": ref,
-                 "status": rec["status"] if rec else "unmeasured"}
-        gates_out.append(entry)
+        gid = gate["id"]
+        rec = results.get(gid)
+        gates_out.append({"gate": gid, "check_id": gid,
+                          "status": rec["status"] if rec else "unmeasured"})
         if rec is None:
             findings.append({"kind": "gate-unmeasured", "id": gid,
-                             "citation": f"quality lens gate '{gid}' has no captured "
-                                         f"result for check '{ref}'",
+                             "citation": f"quality lens gate '{gid}' ({gate['bar']}) has no "
+                                         f"captured result for check '{gid}'",
                              "location": args.quality_lens})
         elif rec["status"] != "pass":
             findings.append({"kind": "gate-failed", "id": gid,
-                             "citation": f"check '{ref}' status={rec['status']}: "
+                             "citation": f"check '{gid}' status={rec['status']}: "
                                          f"{rec.get('summary', '')}",
-                             "location": rec.get("raw_log_path") or ref})
+                             "location": rec.get("raw_log_path") or gid})
 
-    # --- profile benchmarks (the floor) -----------------------------------------
+    # --- measure benchmarks — from measure.md "## Metrics" table ----------------
     bench_out = []
     try:
-        profile = load(args.profile)
-        benches = (profile.get("benchmarks")
-                   or (profile.get("profile") or {}).get("benchmarks") or [])
+        rows = parse_md_table(read_text(args.measure_lens), "Metrics")
+        benches = [{"metric": slug(r.get("metric", "")), "raw_metric": r.get("metric", ""),
+                    "target": r.get("target", "")}
+                   for r in rows if r.get("metric")]
     except Exception as exc:
         benches = []
-        errors.append(f"profile unreadable: {exc}")
+        errors.append(f"measure lens unreadable: {exc}")
     for bench in benches:
-        metric = bench.get("metric")
-        floor = bench.get("floor")
-        ceiling = bench.get("ceiling")
+        metric = bench["metric"]
+        floor, ceiling = parse_target(bench["target"])
         got = measures.get(metric)
-        entry = {"metric": metric, "floor": floor, "ceiling": ceiling,
-                 "value": got["value"] if got else None}
-        bench_out.append(entry)
+        bench_out.append({"metric": metric, "target": bench["target"],
+                          "floor": floor, "ceiling": ceiling,
+                          "value": got["value"] if got else None})
         if got is None:
-            if bench.get("mandatory", True):
-                findings.append({"kind": "benchmark-unmeasured", "id": metric,
-                                 "citation": f"profile declares '{metric}' "
-                                             f"(floor={floor}, ceiling={ceiling}) but no "
-                                             "captured result measures it — an unmeasured "
-                                             "bar is not a passed bar",
-                                 "location": args.profile})
+            findings.append({"kind": "benchmark-unmeasured", "id": metric,
+                             "citation": f"measure lens declares '{bench['raw_metric']}' "
+                                         f"(target: {bench['target']}) but no captured "
+                                         "result measures it — an unmeasured bar is not a "
+                                         "passed bar",
+                             "location": args.measure_lens})
             continue
-        if floor is not None and got["value"] < floor:
+        try:
+            val = float(got["value"])
+        except (TypeError, ValueError):
+            continue                                           # non-numeric capture: presence only
+        if floor is not None and val < floor:
             findings.append({"kind": "benchmark-below-floor", "id": metric,
-                             "citation": f"'{metric}' = {got['value']} < floor {floor} "
-                                         f"(check '{got['check_id']}') — green is the "
-                                         "entry, the floor is the bar",
+                             "citation": f"'{metric}' = {val} < floor {floor} "
+                                         f"(check '{got['check_id']}', target: {bench['target']})",
                              "location": got.get("raw_log_path") or got["check_id"]})
-        if ceiling is not None and got["value"] > ceiling:
+        if ceiling is not None and val > ceiling:
             findings.append({"kind": "benchmark-above-ceiling", "id": metric,
-                             "citation": f"'{metric}' = {got['value']} > ceiling {ceiling} "
-                                         f"(check '{got['check_id']}')",
+                             "citation": f"'{metric}' = {val} > ceiling {ceiling} "
+                                         f"(check '{got['check_id']}', target: {bench['target']})",
                              "location": got.get("raw_log_path") or got["check_id"]})
 
-    # --- surface contract (C13/F13) ---------------------------------------------
+    # --- surface contract (C13/F13) — read from the spine epics entry ------------
     surface_out = {}
-    if args.epic_file:
+    if args.product_base and args.epic:
         try:
-            epic_doc = load(args.epic_file)
-            epic = epic_doc.get("epic") or epic_doc
-            surface = epic.get("surface") or {}
-            stype = (surface.get("type") or "").strip()
+            with open(os.path.join(args.product_base, "product-os", "_spine.yaml"),
+                      encoding="utf-8") as fh:
+                spine = yaml.safe_load(fh) or {}
+            epic = next((e for e in (spine.get("epics") or [])
+                         if isinstance(e, dict) and e.get("id") == args.epic.split("/")[-1]), None) or {}
+            stype = (epic.get("surface_type") or "").strip()
         except Exception as exc:
             stype = ""
-            errors.append(f"epic unreadable for surface check: {exc}")
+            errors.append(f"spine unreadable for surface check: {exc}")
         if stype and stype not in SURFACE_ALL:
             findings.append({"kind": "surface-unknown-type", "id": stype,
-                             "citation": f"epic surface.type '{stype}' is not a "
+                             "citation": f"epic surface_type '{stype}' is not a "
                                          "surface-contract type — declare one of "
                                          f"{sorted(SURFACE_ALL)} (C13)",
-                             "location": args.epic_file})
+                             "location": f"spine epics[{args.epic}]"})
         elif stype:
-            # the captured result claiming to measure this surface
-            matched = [r for r in results.values()
-                       if (r or {}).get("surface_check")]
+            matched = [r for r in results.values() if (r or {}).get("surface_check")]
             for r in matched:
                 if r.get("surface_check") != stype:
                     findings.append(
@@ -197,7 +245,7 @@ def main():
                                  "runnable check (surface-contract.md) was never run; "
                                  "the absence of a probe FAILS the surface, it does not "
                                  "waive it (F13)",
-                     "location": args.epic_file})
+                     "location": f"spine epics[{args.epic}]"})
             elif not passing:
                 worst = on_type[0]
                 findings.append(

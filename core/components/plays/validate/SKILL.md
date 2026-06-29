@@ -85,7 +85,7 @@ utility. The judge skill carries no Bash — it cannot run mechanics (C4).
 ```
 python3 scripts/preflight.py --play validate --config .garura/core/config.yaml \
         --branch "$(git branch --show-current)" --porcelain-file <captured>
-python3 scripts/check_ready_validate.py --epic-file <epic_file> \
+python3 scripts/check_ready_validate.py --product-base <product_base> --epic <epic_id> \
         --plan {stm_base}{issue}/plan.yaml \
         --gates {stm_base}{issue}/gates-results.yaml \
         --verdict {stm_base}{issue}/verdict.yaml \
@@ -93,10 +93,9 @@ python3 scripts/check_ready_validate.py --epic-file <epic_file> \
 ```
 
 `preflight.py` returns config facts (`stm_base`, `product_base`, `evidence_record`, the
-issue from the branch). The epic file resolves from the play argument
-(`[domain/]slice-id/epic-id` →
-`{product_base}/product-os/{domain}/slices/{slice-id}/epics/{epic-id}.yaml`) or from the
-single in_delivery epic carrying this branch's issue_ref. `check_ready_validate.py` is the
+issue from the branch). The epic resolves by id to its entry in the spine `epics` index
+(`{product_base}/product-os/_spine.yaml`); its grounding lives in the epic.md the entry
+points to. `check_ready_validate.py` is the
 eligibility gate AND round resolver: it emits `round` (prior rejections + 1) and
 `prior_report` (the last fix report, the round-N scope source). At the cap it sets
 `escalate: true` — present the round history to the human and stop; never start the round
@@ -157,11 +156,12 @@ The agent gathers the epic, the slice's quality + architecture lenses, the profi
 scope, and the repo, and invokes `plan-validation-checks`:
 
     {
-      "task":    "author the check manifest for this epic: detect the stack(s) (arch lens + repo manifests), resolve each to KB-grounded tooling (build, tests, scoped regression per scope.json, lint/static analysis, dependency audit, the scanners the bars demand), map every quality-lens gate and profile benchmark to a concrete check; code-level security only; round > 1 plans only what the prior report and narrowed scope require; uncovered tool choices become KB-learning-gap proposals, never silent picks. ALSO map the epic's declared surface.type (surface-contract.md) to its ONE required runnable check and add it to the manifest tagged `surface_check: <surface.type>` — a real browser check that opens each must_open artifact (web_dashboard), an HTTP/API call to the declared endpoint (server_api), a run of human_run_target (cli), or the library/service's own tests (library/service_read_model). The plan is INCOMPLETE for a required (user-facing) surface unless it carries that surface_check entry — never omit it for lack of a browser/API probe; the absence of a probe fails the surface, it does not waive it.",
+      "task":    "author the check manifest for this epic: detect the stack(s) (arch lens + repo manifests), resolve each to KB-grounded tooling (build, tests, scoped regression per scope.json, lint/static analysis, dependency audit, the scanners the bars demand), map every quality-lens gate (quality.md "## Gates" table) and measure-lens metric (measure.md "## Metrics" table) to a concrete check; code-level security only; round > 1 plans only what the prior report and narrowed scope require; uncovered tool choices become KB-learning-gap proposals, never silent picks. ALSO map the epic's declared surface.type (surface-contract.md) to its ONE required runnable check and add it to the manifest tagged `surface_check: <surface.type>` — a real browser check that opens each must_open artifact (web_dashboard), an HTTP/API call to the declared endpoint (server_api), a run of human_run_target (cli), or the library/service's own tests (library/service_read_model). The plan is INCOMPLETE for a required (user-facing) surface unless it carries that surface_check entry — never omit it for lack of a browser/API probe; the absence of a probe fails the surface, it does not waive it.",
       "inputs":  { "epic_file": "<epic_file>",
-                   "quality_lens": "<lens_dir>/quality.yaml",
-                   "arch_lens": "<lens_dir>/architecture.yaml",
-                   "profile_path": "<product_base>/product-os/profile.yaml",
+                   "quality_lens": "<lens_dir>/quality.md",
+                   "arch_lens": "<lens_dir>/architecture.md",
+                   "measure_lens": "<lens_dir>/measure.md",
+                   "profile_path": "<product_base>/product-os/_spine.yaml",
                    "scope_file": "{working}/scope.json",
                    "repo_root": "<repo_root>",
                    "round": "<round>",
@@ -226,18 +226,20 @@ validate edited no product code (build outputs are untracked; any tracked diff i
 **Step 6 — Gates + benchmarks** · Owner: play · Depends on: Step 5
 
 ```
-python3 scripts/check_gates.py --quality-lens <lens_dir>/quality.yaml \
-        --profile <product_base>/product-os/profile.yaml \
+python3 scripts/check_gates.py --quality-lens <lens_dir>/quality.md \
+        --measure-lens <lens_dir>/measure.md \
         --results-dir {working}/results --out {working}/gates-map.json \
-        --epic-file <epic_file>
+        --product-base <product_base> --epic <epic_id>
 ```
 
-**SE-11 (F3-partial/C11):** every quality-lens gate maps to a captured result and every
-profile benchmark is measured and at/above its floor — or it is a FINDING in
+**SE-11 (F3-partial/C11):** every quality-lens gate (read from `quality.md`'s "## Gates"
+table, by dimension) maps to a captured result and every measure-lens metric (read from
+`measure.md`'s "## Metrics" table) is captured and, where its Target cell yields a
+comparator + number, at/above its floor (or at/below its ceiling) — or it is a FINDING in
 `gates-map.json` with citation + location (gate-unmeasured, benchmark-below-floor). The
 floor is the bar; exit 1 with findings is a valid (failing) outcome, not an error.
-**SE-14 (F13/C13) — verdict half:** `check_gates.py` (with `--epic-file`) requires a
-captured result tagged `surface_check: <epic.surface.type>` with status pass; a required
+**SE-14 (F13/C13) — verdict half:** `check_gates.py` (with `--product-base --epic`) requires a
+captured result tagged `surface_check: <epic.surface_type>` with status pass; a required
 surface the run did not measure, or a captured surface result whose type does not match the
 declared `surface.type`, is a finding (`surface-unmeasured` / `surface-mismatch` /
 `surface-failed`) in `gates-map.json` with citation + location — so the verdict step
@@ -281,8 +283,8 @@ copy `verdict.json` → `{stm_base}{issue}/validate/status/verdict-round-<round>
 Snapshot first, then the one durable model write:
 
 ```
-cp <epic_file> {working}/epic-before.yaml
-python3 scripts/stamp_epic.py --epic-file <epic_file> --verdict-file {working}/verdict.json
+cp <product_base>/product-os/_spine.yaml {working}/spine-before.yaml
+python3 scripts/stamp_epic.py --product-base <product_base> --epic <epic_id> --verdict-file {working}/verdict.json
 ```
 
 On a `validated` verdict the stamp also sets `surface_verified: true` — the surface-parity
@@ -319,7 +321,7 @@ the issue carries the posted comment.
 ```
 python3 scripts/check_validate.py --verdict {working}/verdict.json \
         --summary {working}/results/summary.json --gates-map {working}/gates-map.json \
-        --epic-before {working}/epic-before.yaml --epic-file <epic_file> \
+        --spine-before {working}/spine-before.yaml --product-base <product_base> --epic <epic_id> \
         --report-yaml {working}/report.yaml --report-md {working}/report.md
 ```
 
@@ -446,3 +448,31 @@ at Step 1. Each round is its own progress marker; a resumed round never re-count
 | step_evals | 14 (SE-1…SE-14; every failure condition covered; SE-14 covers the surface contract F13/C13 at the plan and verdict halves) |
 | scenario_evals | 5 (SCE-1…SCE-5) |
 | recovery_entries | 13 (one per failure condition; 11 autonomous / 2 human) |
+
+## Direct-edit deviation note (#434, spine + grounding model)
+
+Non-intent edit: the epic moved from a per-epic `epic.yaml` file to an entry in the spine
+`epics` index (`product-os/_spine.yaml`) plus an `epic.md` grounding doc. The mechanism
+scripts were retargeted: `check_ready_validate.py` reads the epic entry by id from the spine;
+`check_gates.py` reads the epic's `surface_type` from the spine entry (was `epic.yaml`
+`surface.type`); `stamp_epic.py` makes the in_delivery → validated/fix_required flip (plus
+`surface_verified` on a pass) as a surgical write to the spine epics entry (`--product-base
+--epic`); the surgical-write proof now diffs the epic entry between a pre-stamp spine snapshot
+(`--spine-before`) and the live spine (`check_validate.py`). Prose invocations updated to
+match. No constraint/failure/scenario/eval text changed — the verdict logic, the surface gate,
+and the surgical-write guarantee are identical; only the storage moved. `reference/ice.md` and
+the fingerprint are unchanged.
+
+**Direct-edit deviation note (#434, validate-readers-spine-migration):** `check_gates.py`'s
+gate + benchmark DEFINITIONS now read the lens GROUNDING DOCS, not YAML: quality gates parse
+`quality.md`'s "## Gates" table (gate id = dimension slug; captured check_id matches the slug),
+and benchmarks parse `measure.md`'s "## Metrics" table (each metric is presence-required, and
+where its Target cell yields a comparator + number it is also compared as a floor/ceiling). The
+old standalone `profile.yaml` benchmark source is retired — the structured floor/ceiling numbers
+it carried now live as prose targets in the measure lens, so a tolerant comparator parse stands
+in (prose-only targets are presence-checked). CLI: `--quality-lens` now takes `quality.md`,
+`--profile` is replaced by `--measure-lens <measure.md>`; the plan-validation-checks contract
+points at the `.md` lenses + the spine. The gate LOGIC (every declared bar maps to a captured
+result; an unmeasured bar is not a passed bar) is identical — only the definition source moved
+from YAML to the linted, eval-gated grounding docs. `reference/ice.md` and the fingerprint are
+unchanged.

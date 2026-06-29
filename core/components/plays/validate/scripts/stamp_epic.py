@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-stamp_epic.py — surgical epic-record stamper for /validate (C8, F6/F11).
+stamp_epic.py — surgical epic-entry stamper for /validate (C8, F6/F11), on the spine.
 
-The ONE durable model write of this play: flip the epic's status per the
-computed verdict — in_delivery → validated (pass) or in_delivery →
-fix_required (fail). Touches exactly `epic.status`, `epic.metadata.version`,
-and — on a pass — `epic.surface_verified: true` (the required surface-parity
-check ran and matched, surface-contract.md / ADR 022); nothing else; refuses
+The ONE durable model write of this play: flip the epic's status per the computed
+verdict — in_delivery → validated (pass) or in_delivery → fix_required (fail). In
+the spine model the epic lives as an entry in product-os/_spine.yaml `epics` index;
+this stamper finds it by id and touches exactly its `status`, `metadata.version`,
+and — on a pass — `surface_verified: true` (the required surface-parity check ran
+and matched, surface-contract.md / ADR 022) on that entry; nothing else; refuses
 every other transition.
 
 Refusals:
@@ -14,7 +15,7 @@ Refusals:
   - epic status not `in_delivery` → refuse (only implement's hand-off is stampable)
   - epic `delivered` or `ready` → refuse, always
 
-    python3 stamp_epic.py --epic-file <epic.yaml> --verdict-file <verdict.json>
+    python3 stamp_epic.py --product-base <pb> --epic <epic-id> --verdict-file <verdict.json>
         [--dry-run]
 
 Prints {ok, changed, epic_id, status, errors[]}. Exit 0 ok, 1 refuse, 2 usage.
@@ -22,6 +23,7 @@ Prints {ok, changed, epic_id, status, errors[]}. Exit 0 ok, 1 refuse, 2 usage.
 
 import argparse
 import json
+import os
 import sys
 
 try:
@@ -32,8 +34,9 @@ except ImportError:
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Surgical epic verdict stamper.")
-    ap.add_argument("--epic-file", required=True)
+    ap = argparse.ArgumentParser(description="Surgical epic verdict stamper (spine).")
+    ap.add_argument("--product-base", required=True)
+    ap.add_argument("--epic", required=True, help="epic id")
     ap.add_argument("--verdict-file", required=True)
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
@@ -54,14 +57,19 @@ def main():
         errors.append("verdict file is not a computed verdict — run "
                       "compute_verdict.py first (C8/F3)")
 
+    spine_path = os.path.join(args.product_base, "product-os", "_spine.yaml")
     try:
-        with open(args.epic_file, "r", encoding="utf-8") as fh:
-            doc = yaml.safe_load(fh) or {}
+        spine = yaml.safe_load(open(spine_path, encoding="utf-8")) or {}
     except Exception as exc:
-        errors.append(f"epic unreadable: {exc}")
+        errors.append(f"spine unreadable: {exc}")
         print(json.dumps(out, indent=2))
         sys.exit(1)
-    epic = doc.get("epic") or doc
+    epic = next((e for e in (spine.get("epics") or [])
+                 if isinstance(e, dict) and e.get("id") == args.epic.split("/")[-1]), None)
+    if epic is None:
+        errors.append(f"epic '{args.epic}' not in the spine epics index")
+        print(json.dumps(out, indent=2))
+        sys.exit(1)
     out["epic_id"] = epic.get("id")
     status = (epic.get("status") or "").strip().lower()
     out["status"] = status
@@ -69,7 +77,7 @@ def main():
     if verdict.get("epic_id") and epic.get("id") and \
             verdict["epic_id"] != epic["id"]:
         errors.append(f"verdict is for epic '{verdict['epic_id']}', "
-                      f"file holds '{epic['id']}' — refuse (C8)")
+                      f"target holds '{epic['id']}' — refuse (C8)")
     if status != "in_delivery":
         errors.append(f"epic status is '{status}' — only an in_delivery epic is "
                       "stampable (ready: not built; validated/fix_required: already "
@@ -91,8 +99,8 @@ def main():
             epic["surface_verified"] = True
         meta = epic.setdefault("metadata", {})
         meta["version"] = int(meta.get("version") or 1) + 1
-        with open(args.epic_file, "w", encoding="utf-8") as fh:
-            yaml.safe_dump(doc, fh, sort_keys=False, allow_unicode=True)
+        with open(spine_path, "w", encoding="utf-8") as fh:
+            yaml.safe_dump(spine, fh, sort_keys=False, allow_unicode=True)
     out.update({"ok": True, "changed": not args.dry_run, "status": new_status,
                 "surface_verified": new_status == "validated"})
     print(json.dumps(out, indent=2))

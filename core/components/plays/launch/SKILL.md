@@ -87,8 +87,8 @@ policy here:
 ```
 python3 scripts/preflight.py --play launch --config .garura/core/config.yaml \
         --branch "<current branch>" --porcelain-file <captured>
-python3 scripts/check_ready_launch.py --epic-file <epic_file> \
-        --run-lens <lens_dir>/run.yaml --issue <issue from preflight> \
+python3 scripts/check_ready_launch.py --product-base <product_base> --epic <epic_id> \
+        --run-lens <lens_dir>/run.md --issue <issue from preflight> \
         > {working}/ready-facts.json
 ```
 
@@ -141,7 +141,7 @@ decision; T13–T14 only on `fix_required` — the gate (T7) decides, never the 
 
     {
       "task":    "stand up the launch environment on the resolved tier and prove it reachable",
-      "inputs":  { "run_lens": "<lens_dir>/run.yaml",
+      "inputs":  { "run_lens": "<lens_dir>/run.md",
                    "tier": "<tier from ready-facts.json>",
                    "repo_root": ".", "mode": "up" },
       "outputs": { "deploy_record": "{working}/deploy.json" },
@@ -167,7 +167,7 @@ Step 11). A wrong tier is torn down and redeployed per the lens (REC5).
 
 ```
 python3 scripts/check_scenario_coverage.py --scenarios {working}/scenarios.yaml \
-        --epic-file <epic_file>
+        --product-base <product_base> --epic <epic_id>
 ```
 
 **SE-3 (F4/C3):** exits 0 — every acceptance criterion and the user_check have a
@@ -176,11 +176,12 @@ steps and an observable check. On a gap, rebuild the set (REC4) and re-run.
 
 **Step 3b — Surface-contract gate** · Owner: play · Depends on: Step 3
 The deploy target and the scenarios must match the epic's DECLARED surface
-(`surface.type`, `surface.must_open`) per `surface-contract.md` — checked here, BEFORE the
+(`surface_type` on the spine entry, `Must open` in the epic.md Surface section) per
+`surface-contract.md` — checked here, BEFORE the
 human is ever asked to accept anything:
 
 ```
-python3 scripts/check_surface_contract.py --epic-file <epic_file> \
+python3 scripts/check_surface_contract.py --product-base <product_base> --epic <epic_id> \
         --deploy-record {working}/deploy.json --scenarios {working}/scenarios.yaml
 ```
 
@@ -264,7 +265,7 @@ The epic schema's /merge fill, executed by /launch right after the merge member 
 of epics):
 
 ```
-python3 scripts/deliver_epic.py --epic-file <epic_file> \
+python3 scripts/deliver_epic.py --product-base <product_base> --epic <epic_id> \
         --merge-evidence {stm_base}{issue}/evidence/launch/end/merge.json \
         --delivery-record {working}/delivery.json
 ```
@@ -290,7 +291,7 @@ tracked issue via `manage-issue` — every epic defect lives on the issue; the l
 survive a lost session.
 
 ```
-python3 scripts/stamp_fix_required.py --epic-file <epic_file> \
+python3 scripts/stamp_fix_required.py --product-base <product_base> --epic <epic_id> \
         --gate-file {working}/gate.json
 ```
 
@@ -307,7 +308,7 @@ list. The play then halts unclosed: no end member dispatches.
 ```
 python3 scripts/check_launch.py --gate {working}/gate.json \
         --facts {working}/ready-facts.json --deploy-record {working}/deploy.json \
-        --epic-file <epic_file> --delivery-record {working}/delivery.json \
+        --product-base <product_base> --epic <epic_id> --delivery-record {working}/delivery.json \
         --report-yaml {working}/report.yaml \
         --end-evidence-dir {stm_base}{issue}/evidence/launch/end
 ```
@@ -431,3 +432,19 @@ error).
 | scenario_evals | 5 (SCE-1…SCE-5) |
 | recovery_entries | 10 (one per failure condition; 7 autonomous / 3 human) |
 | structural_constraints | C8-part (no production step exists in the play's shape; the beyond-tier scan re-proves it), C9 (evidence via the Standard Play Close) |
+
+## Direct-edit deviation note (#434, spine + grounding model)
+
+Non-intent edit: the epic moved from a per-epic `epic.yaml` file to an entry in the spine
+`epics` index (`product-os/_spine.yaml`) plus an `epic.md` grounding doc, and the run lens
+moved from `run.yaml` to `run.md`. The mechanism scripts were retargeted:
+`check_ready_launch.py` reads the epic entry by id from the spine, takes user_check +
+acceptance from epic.md, and reads the dev/QA tier from the run.md `## Environments` section;
+`check_scenario_coverage.py` and `check_surface_contract.py` read acceptance / `surface_type`
++ `Must open` from the spine entry + epic.md; `deliver_epic.py` and `stamp_fix_required.py`
+make the validated → delivered / validated → fix_required flips as surgical writes to the
+spine epics entry (the entry + epic.md are the kept as-delivered record, never deleted);
+`check_launch.py` proves the end-state on the kept spine entry. Prose invocations updated to
+match. No constraint/failure/scenario/eval text changed — the sign-off walk, the surface
+contract, the kept-epic guarantee, and the dev/QA-only rule are identical; only the storage
+moved. `reference/ice.md` and the fingerprint are unchanged.

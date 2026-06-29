@@ -1,26 +1,23 @@
 #!/usr/bin/env python3
 """
-update_epic_status.py — surgical epic-record writer for /implement.
+update_epic_status.py — surgical epic-entry writer for /implement (on the spine).
 
-Executes the epic schema's /start fill rule (the epic file's ONLY sanctioned
+Executes the epic schema's /start fill rule (the epic entry's ONLY sanctioned
 mutation by this play): write `issue_ref` and flip `status` ready → in_delivery
 once the injected start-change has opened the issue — or fix_required →
-in_delivery on the C14 fix-round re-entry (same issue only; /validate stamped
-it, /implement re-admits it). Wiring note: the schema assigns this fill to
-/start; start-change predates epics, so /implement executes it immediately
-after the injected start step (#434 decision — can move into start-change
-later).
+in_delivery on the C14 fix-round re-entry (same issue only). In the spine model
+the epic lives as an entry in product-os/_spine.yaml `epics` index; this writer
+finds it by id and mutates only its `status`, `issue_ref`, and `metadata.version`
+(+1) on that entry — nothing else in the spine.
 
-Surgical: touches exactly `epic.status`, `epic.issue_ref`, and
-`epic.metadata.version` (+1). Refuses anything else:
-
+Refuses anything else:
   - target not `ready`, not `fix_required` under the SAME issue, and not
     already `in_delivery` with the SAME issue (idempotent resume) → refuse;
   - target `delivered` → refuse, always.
 
-Layer rule: reads/writes files on disk only; no git/gh/network.
+Layer rule: reads/writes the spine file on disk only; no git/gh/network.
 
-    python3 update_epic_status.py --epic-file <path> --issue <number> [--dry-run]
+    python3 update_epic_status.py --product-base <pb> --epic <epic-id> --issue <number> [--dry-run]
 
 Prints {ok, changed, epic_id, status, issue_ref, errors[]} JSON.
 Exit 0 ok (changed or idempotent), 1 refused, 2 usage error.
@@ -28,6 +25,7 @@ Exit 0 ok (changed or idempotent), 1 refused, 2 usage error.
 
 import argparse
 import json
+import os
 import sys
 
 try:
@@ -38,22 +36,34 @@ except ImportError:
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Surgical epic status/issue_ref writer.")
-    ap.add_argument("--epic-file", required=True)
+    ap = argparse.ArgumentParser(description="Surgical epic status/issue_ref writer (spine).")
+    ap.add_argument("--product-base", required=True)
+    ap.add_argument("--epic", required=True, help="epic id")
     ap.add_argument("--issue", required=True, help="issue number/ref start-change resolved")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args(argv)
 
     errors = []
-    try:
-        with open(args.epic_file, encoding="utf-8") as fh:
-            doc = yaml.safe_load(fh) or {}
-    except (OSError, yaml.YAMLError) as exc:
+    spine_path = os.path.join(args.product_base, "product-os", "_spine.yaml")
+    if not os.path.isfile(spine_path):
         print(json.dumps({"ok": False, "changed": False,
-                          "errors": [f"epic file unreadable: {exc}"]}, indent=2))
+                          "errors": [f"no spine at {spine_path}"]}, indent=2))
+        return 1
+    try:
+        spine = yaml.safe_load(open(spine_path, encoding="utf-8")) or {}
+    except yaml.YAMLError as exc:
+        print(json.dumps({"ok": False, "changed": False,
+                          "errors": [f"spine parse error: {exc}"]}, indent=2))
         return 1
 
-    epic = doc.get("epic") or {}
+    epic = next((e for e in (spine.get("epics") or [])
+                 if isinstance(e, dict) and e.get("id") == args.epic.split("/")[-1]), None)
+    if epic is None:
+        print(json.dumps({"ok": False, "changed": False,
+                          "errors": [f"epic '{args.epic}' not in the spine epics index"]},
+                         indent=2))
+        return 1
+
     status = (epic.get("status") or "").strip().lower()
     issue = str(args.issue).lstrip("#")
     out = {"ok": False, "changed": False, "epic_id": epic.get("id"),
@@ -76,10 +86,9 @@ def main(argv=None):
         epic["issue_ref"] = issue
         meta = epic.setdefault("metadata", {})
         meta["version"] = int(meta.get("version") or 1) + 1
-        doc["epic"] = epic
         if not args.dry_run:
-            with open(args.epic_file, "w", encoding="utf-8") as fh:
-                yaml.safe_dump(doc, fh, sort_keys=False, allow_unicode=True)
+            with open(spine_path, "w", encoding="utf-8") as fh:
+                yaml.safe_dump(spine, fh, sort_keys=False, allow_unicode=True)
         out.update({"ok": True, "changed": True,
                     "status": "in_delivery", "issue_ref": issue})
     else:

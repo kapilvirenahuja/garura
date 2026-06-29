@@ -121,7 +121,7 @@ python3 scripts/check_ready_epic.py --product-base <product_base from preflight>
 | config readable (preflight.py exit 0) | — | Hard halt — config is required |
 | `stm_base`, `product_base` resolved | — | Hard halt |
 | epic/slice argument present | C1 | Hard halt — "Name an epic or a slice." |
-| `check_ready_epic.py` exit 0 (slice realized; epic ready, resuming in_delivery, or fix_required WITH its /validate fix report — the fix round; deps delivered; hub resolves; six lenses present) | C1, C14 | Hard halt (F1) — surface every error it printed |
+| `check_ready_epic.py` exit 0 (slice realized; epic ready, resuming in_delivery, or fix_required WITH its /validate fix report — the fix round; deps delivered; hub resolves; seven lens .md present) | C1, C14 | Hard halt (F1) — surface every error it printed |
 | `mode` (build \| resume \| fix, from check_ready_epic) | C14 | — recorded; fix → Step 4 runs in revision mode off the report |
 | `--slice` auto-pick found no eligible epic | C1 | Graceful exit — "No eligible ready epic; deliver dependencies or cut epics with /grill." |
 | `plan_tracking` (from check_ready_epic, `implement.plan-tracking`, default true) | C12 | — recorded; gates the publish/sync steps |
@@ -194,7 +194,7 @@ Execute the epic schema's /start fill rule (wiring decision #434 — start-chang
 epics): read the issue number from `start/issue.json`, then
 
 ```
-python3 scripts/update_epic_status.py --epic-file <epic_file> --issue <issue>
+python3 scripts/update_epic_status.py --product-base <product_base> --epic <epic_id> --issue <issue>
 ```
 
 **SE-2 (F1/C1, F11/C14):** `update_epic_status.py` exited 0 — it refuses a delivered
@@ -252,7 +252,7 @@ finding id; the plan's piece count grew only by revision pieces (no second plan 
 new STM workspace); the epic file read `in_delivery` before the first build dispatch.
 
 ```
-python3 scripts/validate_plan.py --plan <plan.yaml> --epic-file <epic_file>
+python3 scripts/validate_plan.py --plan <plan.yaml> --product-base <product_base> --epic <epic_id>
 ```
 
 **SE-4 (F3/C3/C5/C11/C13):** `validate_plan.py` exited 0: every piece carries a grounding
@@ -286,7 +286,7 @@ the same script — C19/F15, `surface-contract.md`):
 
 ```
 python3 scripts/check_spec.py --spec {stm_base}/{issue}/specs/implement/spec.md \
-        --epic-file <epic_file>
+        --product-base <product_base> --epic <epic_id>
 ```
 
 **SE-16 (F14/C16):** `check_spec.py` exited 0 — the spec exists, is ICE-shaped
@@ -294,8 +294,8 @@ python3 scripts/check_spec.py --spec {stm_base}/{issue}/specs/implement/spec.md 
 code block (it references code, never copies it), and is within the readable bound (~1-2
 pages); a spec that copies code, balloons, or omits a needed boundary is re-authored before
 the checkpoint (REC14).
-**SE-20 (F15/C19):** `check_spec.py --epic-file` exited 0 on the surface gate — the epic
-carries a declared `surface.type` (a legacy epic with none fails until it is declared,
+**SE-20 (F15/C19):** `check_spec.py --product-base --epic` exited 0 on the surface gate — the epic
+carries a declared `surface_type` on its spine entry (a legacy epic with none fails until it is declared,
 REC15), the spec states a `Surface:` line, and the spec's surface is NOT below the epic's
 declared surface by the `surface-contract.md` ordering (user-facing web_dashboard/server_api/cli
 > non-user-facing service_read_model/library). A downgrade fails the gate and halts the build
@@ -335,7 +335,7 @@ play's eval area and is never placed in any builder or test-author contract:
       "task":   "author the steelman refutation evals for this epic",
       "skill":  "author-steelman-evals",
       "inputs": { "epic_file": "<epic_file>", "functionality_ices": ["<ice paths>"],
-                  "quality_lens": "<lens_dir>/quality.yaml",
+                  "quality_lens": "<lens_dir>/quality.md",
                   "plan_path": "<plan.yaml>" },
       "outputs": { "evals": "{stm_base}/{issue}/evidence/implement/evals/steelman-evals.yaml" }
     }
@@ -438,7 +438,7 @@ python3 scripts/cut_piece_context.py --plan <plan.yaml> --piece-id <piece_id> \
 ```
 python3 scripts/check_box.py --plan <plan.yaml> --porcelain-file <captured> \
         --reports-dir .../implement/pieces/ --product-base <product_base> \
-        --epic-file <epic_file> --stm-base <stm_base>
+        --stm-base <stm_base>
 ```
 
 4. Green → flip the piece `done`, sync, continue the walk. Red → retry the piece (cap 2);
@@ -466,7 +466,7 @@ outside the spec.
 
 ```
 python3 scripts/run_gates.py --harness .../implement/harness.yaml \
-        --quality-lens <lens_dir>/quality.yaml \
+        --quality-lens <lens_dir>/quality.md \
         --output {stm_base}/{issue}/evidence/implement/gates-results.yaml
 ```
 
@@ -638,7 +638,7 @@ entries below cover this play's build core.
 | F12 | a build piece is about to dispatch on the initial build with no recorded human approval of the spec | hold all build work, present the spec, and dispatch nothing until the human approves; record the approval as the gate the run passed | human |
 | F13 | a builder or test-author contract carries context beyond its piece — the whole plan, a sibling piece, or a free-repo directive | rebuild the contract to carry only the piece's cut context slice (piece + transitive deps + spec) and re-dispatch | autonomous |
 | F14 | the spec copies code, exceeds the readable bound, or omits a boundary the build needs (`check_spec.py` non-zero) | re-author it as a crisp ICE boundary doc — trim code to references, cut to the bound, add the missing rule/pattern/design/config — then return it to the human for approval | human |
-| F15 | the generated spec's surface is below the epic's declared `surface.type` (a downgrade), or the epic has no declared surface (`check_spec.py --epic-file` non-zero) | halt at the spec-approval gate and present the downgrade — the spec's surface beside the epic's promised surface per `surface-contract.md`; build the lower surface only on explicit human approval of a recut, else regenerate the spec preserving the declared surface; a missing surface is declared before building, never defaulted | human |
+| F15 | the generated spec's surface is below the epic's declared `surface_type` (a downgrade), or the epic has no declared surface (`check_spec.py --product-base --epic` non-zero) | halt at the spec-approval gate and present the downgrade — the spec's surface beside the epic's promised surface per `surface-contract.md`; build the lower surface only on explicit human approval of a recut, else regenerate the spec preserving the declared surface; a missing surface is declared before building, never defaulted | human |
 
 The piece retry loop (cap 2, then tech-designer re-plan) and the refutation loop (cap 2
 rounds, then human escalation with the full record) are governed in Steps 8 and 10.
@@ -680,3 +680,24 @@ Non-intent edit: lens-count prose (three mentions) updated five → six when the
 lens landed (decision 19/23/24); mirrors the already-patched `check_ready_epic.py`
 LENS_TYPES constant. No constraint/failure/scenario/eval text changed; `reference/ice.md`
 and the fingerprint are unchanged.
+
+## Direct-edit deviation note (#434, spine + grounding model)
+
+Non-intent edit: the epic moved from a per-epic `epic.yaml` file to an entry in the spine
+`epics` index (`product-os/_spine.yaml`) plus an `epic.md` grounding doc, and lens files
+moved from `.yaml` to `.md`. The mechanism scripts were retargeted accordingly —
+`check_ready_epic.py` (resolves the epic + slice + seven lens `.md` + functionality
+groundings from the spine), `update_epic_status.py` (the ready → in_delivery status flip is
+now a surgical write to the spine epics entry, `--product-base --epic`), `check_spec.py` and
+`validate_plan.py` (read `surface_type` / acceptance from the spine entry + epic.md instead
+of `epic.yaml`), and `check_box.py` (the one allowlisted product-model write is now the
+spine, not a per-epic file). Prose invocations updated to match. No constraint/failure/
+scenario/eval text changed — the lifecycle, the box discipline, and the surface gate are
+identical; only the storage the scripts read/write moved. `reference/ice.md` and the
+fingerprint are unchanged.
+
+Follow-on (validate-readers-spine-migration): `run_gates.py` now reads the quality gate
+list from `quality.md`'s "## Gates" table (each gate = its dimension + how it is checked)
+instead of a `quality.yaml` `content.gates` list; the harness-family mapping is unchanged.
+The `quality_lens` input to `author-steelman-evals` and the `run_gates.py` invocation point
+at `quality.md`. Mechanism only — `reference/ice.md` and the fingerprint are unchanged.

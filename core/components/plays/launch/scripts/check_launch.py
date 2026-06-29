@@ -10,13 +10,13 @@ Proves the run's own discipline over the captured artifacts before close:
   environment    — the deploy record's tier matches the eligibility gate's
                    resolved dev/QA tier, and no further-ahead target appears
                    (F5/S5).
-  epic end-state — release path: the epic file is KEPT, stamped delivered, and
-                   the delivery record reads delivered (F7; ADR 019 — epics are
-                   never deleted); defect path: the epic file remains, stamped
-                   fix_required.
+  epic end-state — release path: the epic's spine entry is KEPT, stamped delivered,
+                   and the delivery record reads delivered (F7; ADR 019 — epics are
+                   never deleted); defect path: the entry remains, stamped
+                   fix_required. The epic is the spine `epics` entry (read by id).
 
     python3 check_launch.py --gate <gate.json> --facts <ready-facts.json>
-        --deploy-record <deploy.json> --epic-file <epic.yaml>
+        --deploy-record <deploy.json> --product-base <pb> --epic <epic-id>
         --delivery-record <delivery.json> --report-yaml <report.yaml>
         --end-evidence-dir <end dir>
 
@@ -48,7 +48,8 @@ def main():
     ap.add_argument("--gate", required=True)
     ap.add_argument("--facts", required=True)
     ap.add_argument("--deploy-record", required=True)
-    ap.add_argument("--epic-file", required=True)
+    ap.add_argument("--product-base", required=True)
+    ap.add_argument("--epic", required=True, help="epic id")
     ap.add_argument("--delivery-record", required=True)
     ap.add_argument("--report-yaml", required=True)
     ap.add_argument("--end-evidence-dir", required=True)
@@ -85,30 +86,31 @@ def main():
         errors.append(f"deploy record unreadable: {exc} (F5)")
 
     # --- epic end-state (F7) ---------------------------------------------------------
+    spine_path = os.path.join(args.product_base, "product-os", "_spine.yaml")
+    epic = None
+    if os.path.isfile(spine_path):
+        with open(spine_path, "r", encoding="utf-8") as fh:
+            spine = yaml.safe_load(fh) or {}
+        epic = next((e for e in (spine.get("epics") or [])
+                     if isinstance(e, dict) and e.get("id") == args.epic.split("/")[-1]), None)
     if decision == "release":
-        if not os.path.isfile(args.epic_file):
-            errors.append("release path but the epic record is gone — epics are kept "
-                          "as the as-delivered record and must never be deleted (F7)")
-        else:
-            with open(args.epic_file, "r", encoding="utf-8") as fh:
-                epic = (yaml.safe_load(fh) or {}).get("epic") or {}
-            if (epic.get("status") or "") != "delivered":
-                errors.append(f"release path but epic status is "
-                              f"'{epic.get('status')}', not delivered (F7)")
+        if epic is None:
+            errors.append("release path but the epic's spine entry is gone — epics are "
+                          "kept as the as-delivered record and must never be deleted (F7)")
+        elif (epic.get("status") or "") != "delivered":
+            errors.append(f"release path but epic status is "
+                          f"'{epic.get('status')}', not delivered (F7)")
         if not os.path.isfile(args.delivery_record):
             errors.append("release path but no delivery record (F7)")
         elif (jload(args.delivery_record).get("status") != "delivered"):
             errors.append("delivery record does not read delivered (F7)")
     elif decision == "fix_required":
-        if not os.path.isfile(args.epic_file):
-            errors.append("defect path but the epic record is gone — deleted without "
-                          "a merge (F7)")
-        else:
-            with open(args.epic_file, "r", encoding="utf-8") as fh:
-                epic = (yaml.safe_load(fh) or {}).get("epic") or {}
-            if (epic.get("status") or "") != "fix_required":
-                errors.append(f"defect path but epic status is "
-                              f"'{epic.get('status')}', not fix_required (F6)")
+        if epic is None:
+            errors.append("defect path but the epic's spine entry is gone — removed "
+                          "without a merge (F7)")
+        elif (epic.get("status") or "") != "fix_required":
+            errors.append(f"defect path but epic status is "
+                          f"'{epic.get('status')}', not fix_required (F6)")
         if not os.path.isfile(args.report_yaml):
             errors.append("defect path but no defect report rendered (F6)")
 

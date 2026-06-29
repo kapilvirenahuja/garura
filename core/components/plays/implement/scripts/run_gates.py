@@ -16,15 +16,16 @@ Inputs:
                     typecheck: "..."
                     build: "..."
                     coverage: "..."
-  --quality-lens  the slice's lens/quality.yaml (gates: [string]) — each gate is
-              listed in the output, mapped `runnable` when a harness command
-              family covers it, else `needs-judgment` for the verifier.
+  --quality-lens  the slice's lens/quality.md (the "## Gates" table:
+              Dimension | Bar | How checked) — each gate (its dimension + how it is
+              checked) is listed in the output, mapped `runnable` when a harness
+              command family covers it, else `needs-judgment` for the verifier.
   --output    gates-results.yaml
 
 Local process execution only (the project's own commands, cwd = repo root);
 no git/gh/network of its own. Overall pass = every harness command exits 0.
 
-    python3 run_gates.py --harness <harness.yaml> --quality-lens <quality.yaml>
+    python3 run_gates.py --harness <harness.yaml> --quality-lens <quality.md>
                          --output <gates-results.yaml> [--cwd <repo-root>]
                          [--timeout <secs-per-command>]
 
@@ -50,6 +51,41 @@ TAIL = 4000  # chars of output kept per command
 def load(path):
     with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}
+
+
+def parse_gates_table(path):
+    """Read the rows of the '## Gates' markdown table in a quality.md grounding doc.
+    Returns gate labels '<Dimension> — <How checked>'. Ignores fenced code blocks."""
+    in_section = in_fence = False
+    headers = None
+    labels = []
+    with open(path, encoding="utf-8") as fh:
+        for raw in fh:
+            s = raw.strip()
+            if s.startswith("```"):
+                in_fence = not in_fence
+                continue
+            if in_fence:
+                continue
+            if s.startswith("## "):
+                in_section = (s[3:].strip().lower() == "gates")
+                headers = None
+                continue
+            if not in_section or not s.startswith("|"):
+                continue
+            cells = [c.strip() for c in s.strip("|").split("|")]
+            if set("".join(cells)) <= set("-: "):
+                continue
+            if headers is None:
+                headers = [c.lower() for c in cells]
+                continue
+            row = dict(zip(headers, cells))
+            dim = row.get("dimension", "").strip()
+            if not dim:
+                continue
+            how = row.get("how checked", "").strip()
+            labels.append(f"{dim} — {how}" if how else dim)
+    return labels
 
 
 def main(argv=None):
@@ -91,8 +127,8 @@ def main(argv=None):
     gates = []
     if args.quality_lens:
         try:
-            lens_gates = ((load(args.quality_lens).get("content") or {}).get("gates") or [])
-        except (OSError, yaml.YAMLError):
+            lens_gates = parse_gates_table(args.quality_lens)
+        except OSError:
             lens_gates = []
         families = {r["name"] for r in results}
         for g in lens_gates:

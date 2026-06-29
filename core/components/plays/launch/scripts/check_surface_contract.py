@@ -25,7 +25,7 @@ scenario standing in for an "open" check.
     whose run steps only run a unit-test / command (and never open/visit/load the
     artifact) is a semantic mismatch — an "open" check covered by a test run.
 
-    python3 check_surface_contract.py --epic-file <epic.yaml>
+    python3 check_surface_contract.py --product-base <pb> --epic <epic-id>
         --deploy-record <deploy.json> --scenarios <scenarios.yaml>
 
 Prints {ok, surface_type, errors[]}. Exit 0 conform, 1 mismatch, 2 usage.
@@ -33,6 +33,7 @@ Prints {ok, surface_type, errors[]}. Exit 0 conform, 1 mismatch, 2 usage.
 
 import argparse
 import json
+import os
 import re
 import sys
 
@@ -65,6 +66,30 @@ def is_url(s):
     return bool(URL_RE.search(s or ""))
 
 
+def parse_must_open(md_path):
+    """The 'Must open:' items from the epic.md '## Surface' section — a list of
+    artifact names (quoted or comma-separated), or [] when absent."""
+    try:
+        text = open(md_path, encoding="utf-8").read()
+    except OSError:
+        return []
+    capturing = False
+    for line in text.splitlines():
+        s = line.strip()
+        if s.startswith("## "):
+            if capturing:
+                break
+            capturing = s[3:].strip().lower() == "surface"
+            continue
+        if capturing and re.match(r"(?i)^[-*]?\s*must open\s*[:=]", s):
+            val = re.split(r"(?i)must open\s*[:=]", s, maxsplit=1)[1]
+            quoted = re.findall(r'"([^"]+)"', val)
+            if quoted:
+                return [q.strip() for q in quoted if q.strip()]
+            return [p.strip().strip('"').strip() for p in val.split(",") if p.strip()]
+    return []
+
+
 def looks_like_command_or_path(s):
     s = (s or "").strip()
     if not s:
@@ -85,16 +110,19 @@ def looks_like_command_or_path(s):
 
 def main():
     ap = argparse.ArgumentParser(description="/launch surface-contract gate.")
-    ap.add_argument("--epic-file", required=True)
+    ap.add_argument("--product-base", required=True)
+    ap.add_argument("--epic", required=True, help="epic id")
     ap.add_argument("--deploy-record", required=True)
     ap.add_argument("--scenarios", required=True)
     args = ap.parse_args()
 
     errors = []
-    epic = (yload(args.epic_file).get("epic") or yload(args.epic_file)) or {}
-    surface = epic.get("surface") or {}
-    stype = (surface.get("type") or "").strip().lower()
-    must_open = surface.get("must_open") or []
+    spine = yload(os.path.join(args.product_base, "product-os", "_spine.yaml"))
+    epic = next((e for e in (spine.get("epics") or [])
+                 if isinstance(e, dict) and e.get("id") == args.epic.split("/")[-1]), None) or {}
+    stype = (epic.get("surface_type") or "").strip().lower()
+    must_open = parse_must_open(
+        os.path.join(args.product_base, "product-os", epic.get("doc") or ""))
 
     out = {"ok": False, "surface_type": stype or None, "errors": errors}
 

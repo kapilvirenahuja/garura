@@ -22,7 +22,11 @@ in the box. This gate checks the plan mechanically before it is published:
 
 Layer rule: reads files on disk only; no git/gh/network.
 
-    python3 validate_plan.py --plan <plan.yaml> --epic-file <epic.yaml>
+    python3 validate_plan.py --plan <plan.yaml> --product-base <pb> --epic <epic-id>
+
+The epic id resolves to its spine `epics` entry; its acceptance criteria come from
+the epic.md grounding doc (one criterion per top-level bullet under
+"## Acceptance criteria" — the stable enumeration the index cross-checks rely on).
 
 Prints {ok, errors[], warnings[], counts{}, open_questions} JSON.
 Exit 0 valid, 1 invalid, 2 usage error.
@@ -30,6 +34,7 @@ Exit 0 valid, 1 invalid, 2 usage error.
 
 import argparse
 import json
+import os
 import sys
 
 try:
@@ -41,6 +46,43 @@ except ImportError:
 KINDS = {"story", "task", "test", "docs"}
 STATUSES = {"planned", "in_progress", "done", "blocked"}
 SOURCES = {"epic", "ice", "lens", "repo"}
+
+
+def md_section_bullets(md_path, heading):
+    """Top-level '- '/'* ' bullets under a '## heading' in a grounding doc, each
+    joined across wrapped continuation lines. The stable enumeration the
+    acceptance-index cross-checks rely on."""
+    try:
+        text = open(md_path, encoding="utf-8").read()
+    except OSError:
+        return []
+    items, capturing, cur = [], False, None
+    for line in text.splitlines():
+        s = line.strip()
+        if s.startswith("## "):
+            if capturing:
+                break
+            capturing = s[3:].strip().lower() == heading.strip().lower()
+            continue
+        if not capturing:
+            continue
+        if s.startswith("- ") or s.startswith("* "):
+            if cur is not None:
+                items.append(cur.strip())
+            cur = s[2:].strip()
+        elif s and cur is not None:
+            cur += " " + s
+    if cur is not None:
+        items.append(cur.strip())
+    return [i for i in items if i]
+
+
+def spine_epic(product_base, epic_id):
+    """The epic's spine `epics` entry (and the loaded spine), or (None, spine)."""
+    spine = load(os.path.join(product_base, "product-os", "_spine.yaml"))
+    entry = next((e for e in (spine.get("epics") or [])
+                  if isinstance(e, dict) and e.get("id") == str(epic_id).split("/")[-1]), None)
+    return entry, spine
 
 
 def load(path):
@@ -70,13 +112,23 @@ def has_cycle(pieces):
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Build-plan validity gate.")
     ap.add_argument("--plan", required=True)
-    ap.add_argument("--epic-file", required=True)
+    ap.add_argument("--product-base", required=True)
+    ap.add_argument("--epic", required=True, help="epic id")
     args = ap.parse_args(argv)
 
     errors, warnings = [], []
     try:
         plan = (load(args.plan).get("plan") or {})
-        epic = (load(args.epic_file).get("epic") or {})
+        entry, _spine = spine_epic(args.product_base, args.epic)
+        if entry is None:
+            print(json.dumps({"ok": False,
+                              "errors": [f"epic '{args.epic}' not in the spine epics index"],
+                              "warnings": []}, indent=2))
+            return 1
+        acceptance = md_section_bullets(
+            os.path.join(args.product_base, "product-os", entry.get("doc") or ""),
+            "Acceptance criteria")
+        epic = {"id": entry.get("id"), "acceptance": acceptance}
     except (OSError, yaml.YAMLError) as exc:
         print(json.dumps({"ok": False, "errors": [f"unreadable input: {exc}"],
                           "warnings": []}, indent=2))

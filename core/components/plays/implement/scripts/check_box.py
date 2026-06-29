@@ -14,13 +14,14 @@ Checks:
                  the play's own evidence are exempt (the play's bookkeeping).
   model guard  — ZERO changed paths under the product model tree
                  (--product-base), with exactly one allowlisted exception: the
-                 anchored epic file (the status flip, --epic-file).
+                 spine (product-os/_spine.yaml — the status flip /implement makes
+                 via update_epic_status.py).
   piece guard  — every piece-report names a piece id present in the plan, and
                  that piece is in_progress or done (work outside the plan = F10).
 
     python3 check_box.py --plan <plan.yaml> --porcelain-file <captured>
                          --reports-dir <piece-reports dir> --product-base <pb>
-                         --epic-file <epic.yaml> --stm-base <stm base>
+                         --stm-base <stm base>
 
 Prints {ok, errors[], changed, mapped} JSON. Exit 0 ok, 1 violation, 2 usage.
 """
@@ -66,7 +67,6 @@ def main(argv=None):
     ap.add_argument("--porcelain-file", required=True)
     ap.add_argument("--reports-dir", required=True)
     ap.add_argument("--product-base", required=True)
-    ap.add_argument("--epic-file", required=True)
     ap.add_argument("--stm-base", required=True)
     args = ap.parse_args(argv)
 
@@ -100,7 +100,7 @@ def main(argv=None):
 
     stm = norm(args.stm_base)
     model_root = norm(os.path.join(args.product_base, "product-os"))
-    epic_ok = norm(args.epic_file)
+    epic_ok = norm(os.path.join(args.product_base, "product-os", "_spine.yaml"))
 
     for path in changed:
         exempt = path.startswith(stm) or path == epic_ok

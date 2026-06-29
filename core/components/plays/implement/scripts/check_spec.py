@@ -21,8 +21,9 @@ the RIGHT ones) stays with the human at the approval gate; this does the countin
               bound it is no longer a crisp boundary doc — it is drifting toward
               code/spec-bloat (F14). Defaults: ~1-2 pages.
 
-When --epic-file is given, the script also runs the SURFACE-DOWNGRADE gate
-(C19/F15, surface-contract.md). It reads the epic's declared `surface.type` and
+When --product-base and --epic are given, the script also runs the SURFACE-DOWNGRADE
+gate (C19/F15, surface-contract.md). It reads the epic's `surface_type` from its spine
+entry and
 the spec's own declared surface (a `Surface: <type>` line), and compares them by
 the contract's ordering:
 
@@ -36,7 +37,7 @@ the surface must be DECLARED before building, never defaulted.
 
 Layer rule: reads files on disk only; no git/gh/network.
 
-    python3 check_spec.py --spec <spec.md> [--epic-file <epic.yaml>]
+    python3 check_spec.py --spec <spec.md> [--product-base <pb> --epic <epic-id>]
                           [--max-lines 160] [--max-words 1100]
 
 Prints {ok, errors[], warnings[], counts{}} JSON. Exit 0 clean, 1 gaps, 2 usage.
@@ -67,8 +68,10 @@ def main(argv=None):
                     help="hard line cap — over this the spec is no longer crisp (default 160)")
     ap.add_argument("--max-words", type=int, default=1100,
                     help="hard word cap (~1-2 pages; default 1100)")
-    ap.add_argument("--epic-file",
-                    help="epic yaml — enables the surface-downgrade gate (C19/F15)")
+    ap.add_argument("--product-base",
+                    help="product base — with --epic, enables the surface-downgrade gate (C19/F15)")
+    ap.add_argument("--epic",
+                    help="epic id — with --product-base, enables the surface-downgrade gate (C19/F15)")
     args = ap.parse_args(argv)
 
     errors, warnings = [], []
@@ -125,8 +128,8 @@ def main(argv=None):
     # Surface-downgrade gate (C19/F15, surface-contract.md). The spec must not
     # promise a lower user surface than the epic declared, and a legacy epic with
     # no surface must declare one before the build runs.
-    if args.epic_file:
-        epic_surface = _epic_surface(args.epic_file)
+    if args.product_base and args.epic:
+        epic_surface = _epic_surface(args.product_base, args.epic)
         spec_surface = _spec_surface(text)
         counts["epic_surface"] = epic_surface
         counts["spec_surface"] = spec_surface
@@ -175,19 +178,22 @@ def _section_body(text, title):
     return text[start:]
 
 
-def _epic_surface(epic_file):
-    """The epic's declared surface.type, or None when absent/unreadable (legacy)."""
+def _epic_surface(product_base, epic_id):
+    """The epic's declared surface_type from the spine epics entry, or None
+    when absent/unreadable (legacy)."""
     try:
+        import os
         import yaml
-        with open(epic_file, encoding="utf-8") as fh:
-            data = yaml.safe_load(fh) or {}
+        spine_path = os.path.join(product_base, "product-os", "_spine.yaml")
+        with open(spine_path, encoding="utf-8") as fh:
+            spine = yaml.safe_load(fh) or {}
     except Exception:
         return None
-    epic = data.get("epic", data) if isinstance(data, dict) else {}
-    surface = epic.get("surface") if isinstance(epic, dict) else None
-    if not isinstance(surface, dict):
+    epic = next((e for e in (spine.get("epics") or [])
+                 if isinstance(e, dict) and e.get("id") == str(epic_id).split("/")[-1]), None)
+    if not isinstance(epic, dict):
         return None
-    t = surface.get("type")
+    t = epic.get("surface_type")
     return t.strip() if isinstance(t, str) and t.strip() else None
 
 

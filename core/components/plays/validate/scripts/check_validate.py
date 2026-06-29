@@ -15,14 +15,18 @@ Proves the run's own discipline over the captured artifacts before close:
               carries citation + location (F7 downstream guard).
 
     python3 check_validate.py --verdict <verdict.json> --summary <summary.json>
-        --gates-map <gates-map.json> --epic-before <snapshot.yaml>
-        --epic-file <epic.yaml> --report-yaml <report.yaml> --report-md <report.md>
+        --gates-map <gates-map.json> --spine-before <spine-before.yaml>
+        --product-base <pb> --epic <epic-id> --report-yaml <report.yaml> --report-md <report.md>
+
+The epic is the spine `epics` entry (read by id from the live spine for the
+after-state, and from the pre-stamp spine snapshot for the before-state).
 
 Prints {ok, errors[]}. Exit 0 clean, 1 violation, 2 usage.
 """
 
 import argparse
 import json
+import os
 import sys
 
 try:
@@ -47,8 +51,10 @@ def main():
     ap.add_argument("--verdict", required=True)
     ap.add_argument("--summary", required=True)
     ap.add_argument("--gates-map", required=True)
-    ap.add_argument("--epic-before", required=True)
-    ap.add_argument("--epic-file", required=True)
+    ap.add_argument("--spine-before", required=True,
+                    help="pre-stamp snapshot of product-os/_spine.yaml")
+    ap.add_argument("--product-base", required=True)
+    ap.add_argument("--epic", required=True, help="epic id")
     ap.add_argument("--report-yaml", required=True)
     ap.add_argument("--report-md", required=True)
     args = ap.parse_args()
@@ -71,16 +77,20 @@ def main():
                       f"(recomputed: '{expected}') (F3)")
 
     # --- stamp matches verdict (F6) ----------------------------------------------
-    after_doc = load_yaml(args.epic_file)
-    after = after_doc.get("epic") or after_doc
+    def spine_entry(spine_path, epic_id):
+        spine = load_yaml(spine_path)
+        return next((e for e in (spine.get("epics") or [])
+                     if isinstance(e, dict) and e.get("id") == str(epic_id).split("/")[-1]), {})
+
+    eid = args.epic.split("/")[-1]
+    after = spine_entry(os.path.join(args.product_base, "product-os", "_spine.yaml"), eid)
     if (after.get("status") or "") != verdict.get("verdict"):
         errors.append(f"epic status '{after.get('status')}' does not carry the "
                       f"verdict '{verdict.get('verdict')}' — /launch is not actually "
                       "gated (F6)")
 
     # --- surgical write (F11) ------------------------------------------------------
-    before_doc = load_yaml(args.epic_before)
-    before = before_doc.get("epic") or before_doc
+    before = spine_entry(args.spine_before, eid)
     verdict_pass = verdict.get("verdict") == "validated"
     for key in set(list(before.keys()) + list(after.keys())):
         if key in ("status", "metadata"):

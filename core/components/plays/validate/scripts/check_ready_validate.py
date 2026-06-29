@@ -12,9 +12,12 @@ human escalation (C10/F10 — the loop cap is enforced before work, not after).
 
 Layer rule: asserts over files already on disk; never shells out.
 
-    python3 check_ready_validate.py --epic-file <epic.yaml> --plan <plan.yaml>
+    python3 check_ready_validate.py --product-base <pb> --epic <epic-id> --plan <plan.yaml>
         --gates <gates-results.yaml> --verdict <verdict.yaml>
         --status-dir <stm validate status dir> [--max-rounds 3]
+
+The epic is read from the spine `epics` index (product-os/_spine.yaml); the plan,
+gates, and verdict are /implement's STM build artifacts, unchanged.
 
 Prints JSON facts: {ok, epic_id, slice_ref, issue_ref, round, prior_report,
 escalate, errors[]}. Exit 0 eligible, 1 not, 2 usage.
@@ -40,7 +43,8 @@ def load(path):
 
 def main():
     ap = argparse.ArgumentParser(description="/validate eligibility gate.")
-    ap.add_argument("--epic-file", required=True)
+    ap.add_argument("--product-base", required=True)
+    ap.add_argument("--epic", required=True, help="epic id")
     ap.add_argument("--plan", required=True)
     ap.add_argument("--gates", required=True)
     ap.add_argument("--verdict", required=True)
@@ -52,12 +56,17 @@ def main():
     out = {"ok": False, "epic_id": None, "slice_ref": None, "issue_ref": None,
            "round": None, "prior_report": None, "escalate": False, "errors": errors}
 
-    # --- epic record (C1) -----------------------------------------------------
+    # --- epic entry from the spine (C1) ---------------------------------------
     epic = {}
     try:
-        epic = (load(args.epic_file).get("epic") or load(args.epic_file)) or {}
+        spine = load(os.path.join(args.product_base, "product-os", "_spine.yaml"))
+        epic = next((e for e in (spine.get("epics") or [])
+                     if isinstance(e, dict) and e.get("id") == args.epic.split("/")[-1]), None)
+        if epic is None:
+            errors.append(f"epic '{args.epic}' not in the spine epics index (C1/F1)")
+            epic = {}
     except Exception as exc:
-        errors.append(f"epic unreadable: {exc} (C1/F1)")
+        errors.append(f"spine unreadable: {exc} (C1/F1)")
     out["epic_id"] = epic.get("id")
     out["slice_ref"] = epic.get("slice_ref")
     out["issue_ref"] = epic.get("issue_ref")

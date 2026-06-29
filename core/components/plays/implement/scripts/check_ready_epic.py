@@ -4,18 +4,21 @@ check_ready_epic.py — epic eligibility gate (C1/F1) + box resolution for /impl
 
 /implement works ONE epic — the tightest box. This gate asserts the epic is
 buildable and resolves everything the box references, so downstream steps read
-paths without re-deriving them:
+paths without re-deriving them. In the spine + grounding model an epic is an
+entry in the spine `epics` index (status/issue_ref/order/depends_on/
+functionality_refs/surface_type/doc) plus a rich `epic.md` grounding doc:
 
-  - the slice exists and its status is `realized` (the /run stamp — the slice's
-    design is solved; epics were cut from it by /grill);
-  - the epic exists under the slice's epics/ folder, its status is `ready`
-    (or `in_delivery` carrying an issue_ref — the resume case);
-  - every epic in this slice's `depends_on` chain for THIS epic is `delivered`;
-  - every `functionality_refs` entry resolves into the slice's functionality
-    set and that functionality's `ice_ref` resolves to a file (broken hub =
-    LOUD error, never a silent pass);
-  - all six lens files exist on the slice (quality, ux, agentic,
-    architecture, measure, run).
+  - the slice exists in the spine `slices` index and its status is `realized`
+    (the /measure stamp — the slice's design is solved; epics were cut by /grill);
+  - the epic exists in the spine `epics` index for this slice, its status is
+    `ready` (or `in_delivery` carrying an issue_ref — the resume case, or
+    `fix_required` with the /validate fix report — the fix round);
+  - every epic in this epic's `depends_on` chain is `delivered`;
+  - the epic's `epic.md` grounding doc resolves on disk;
+  - every `functionality_refs` entry resolves to a spine functionality whose
+    `functionality.md` grounding doc exists (broken hub = LOUD error);
+  - all seven lens .md docs exist on the slice (quality, ux, agentic, marketing,
+    architecture, run, measure).
 
 With --slice and no --epic it auto-picks the lowest-`order` ready epic whose
 dependencies are all delivered (graceful "none eligible" otherwise).
@@ -26,15 +29,14 @@ Also resolves the play's config flags the canonical preflight does not know:
 Layer rule: reads files on disk only; no git/gh/network.
 
     python3 check_ready_epic.py --product-base <pb> [--config <config.yaml>]
-                                (--epic <[domain/][slice-id/]epic-id> | --slice <[domain/]slice-id>)
+                                (--epic <epic-id> | --slice <[domain/]slice-id>)
 
-Prints {ok, errors[], epic_id, epic_file, slice_id, slice_file, domain,
-        lens_dir, lens_files{}, functionality_ices[], epic{...}, plan_tracking} JSON.
+Prints {ok, errors[], epic_id, epic_doc, slice_id, slice_file, domain,
+        lens_dir, lens_files{}, functionality_groundings[], epic{...}, plan_tracking} JSON.
 Exit 0 eligible, 1 not eligible, 2 usage error.
 """
 
 import argparse
-import glob
 import json
 import os
 import sys
@@ -45,7 +47,7 @@ except ImportError:
     sys.stderr.write("check_ready_epic.py: PyYAML is required (pip install pyyaml).\n")
     sys.exit(2)
 
-LENS_TYPES = ["quality", "ux", "agentic", "architecture", "measure", "run"]
+LENS_TYPES = ["quality", "ux", "agentic", "marketing", "architecture", "run", "measure"]
 
 
 def load(path):
@@ -69,22 +71,12 @@ def plan_tracking_from_config(config_path):
     return True if val is None else bool(val)
 
 
-def resolve_slice(root, slice_arg, errors):
-    slice_id = slice_arg.split("/")[-1]
-    matches = glob.glob(os.path.join(root, "*", "slices", slice_id + ".yaml"))
-    if not matches:
-        errors.append(f"slice '{slice_id}' not found under any domain's slices/ (C1/F1)")
-        return slice_id, None, None
-    if len(matches) > 1:
-        errors.append(f"slice id '{slice_id}' is ambiguous across domains: {matches}")
-        return slice_id, None, None
-    slice_file = matches[0]
-    domain = os.path.basename(os.path.dirname(os.path.dirname(slice_file)))
-    return slice_id, slice_file, domain
+def slice_id_of(ref):
+    """The slice id from a slice_ref that may be 'domain/slice-id' or 'slice-id'."""
+    return ref.split("/")[-1] if ref else ref
 
 
-def epic_eligible(epic, all_epics, errors, label, allow_in_delivery,
-                  fix_report=None):
+def epic_eligible(epic, epics_by_id, errors, label, allow_in_delivery, fix_report=None):
     """Returns the entry mode: 'build' (ready), 'resume' (in_delivery), or
     'fix' (fix_required + the /validate fix report — the C14 fix round)."""
     status = (epic.get("status") or "").strip().lower()
@@ -95,12 +87,12 @@ def epic_eligible(epic, all_epics, errors, label, allow_in_delivery,
         mode = "resume"
         if _empty(epic.get("issue_ref")):
             errors.append(f"{label}: in_delivery but carries no issue_ref — "
-                          f"inconsistent state, fix the epic record (C1/F1)")
+                          f"inconsistent state, fix the epic entry (C1/F1)")
     elif status == "fix_required":
         mode = "fix"
         if _empty(epic.get("issue_ref")):
             errors.append(f"{label}: fix_required but carries no issue_ref — "
-                          f"inconsistent state, fix the epic record (C1/F1)")
+                          f"inconsistent state, fix the epic entry (C1/F1)")
         if not fix_report or not os.path.isfile(fix_report):
             errors.append(f"{label}: fix_required but no /validate fix report at "
                           f"'{fix_report}' — the report is the fix round's exact "
@@ -110,9 +102,9 @@ def epic_eligible(epic, all_epics, errors, label, allow_in_delivery,
                       f"(or 'in_delivery' with issue_ref on resume, or "
                       f"'fix_required' with its fix report — the fix round) (C1/F1)")
     for dep in (epic.get("depends_on") or []):
-        dep_epic = all_epics.get(dep)
+        dep_epic = epics_by_id.get(dep)
         if dep_epic is None:
-            errors.append(f"{label}: depends_on '{dep}' does not exist in this slice (C1/F1)")
+            errors.append(f"{label}: depends_on '{dep}' does not exist in the spine (C1/F1)")
         elif (dep_epic.get("status") or "").strip().lower() != "delivered":
             errors.append(f"{label}: dependency '{dep}' is "
                           f"'{dep_epic.get('status')}', must be 'delivered' (C1/F1)")
@@ -120,10 +112,10 @@ def epic_eligible(epic, all_epics, errors, label, allow_in_delivery,
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Epic eligibility gate + box resolution.")
+    ap = argparse.ArgumentParser(description="Epic eligibility gate + box resolution (spine).")
     ap.add_argument("--product-base", required=True)
     ap.add_argument("--config", default=".garura/core/config.yaml")
-    ap.add_argument("--epic", help="[domain/][slice-id/]epic-id")
+    ap.add_argument("--epic", help="epic id")
     ap.add_argument("--slice", help="[domain/]slice-id — auto-pick earliest eligible ready epic")
     ap.add_argument("--fix-report",
                     help="/validate fix report (report.yaml) — required when the "
@@ -136,131 +128,112 @@ def main(argv=None):
 
     errors = []
     root = os.path.join(args.product_base, "product-os")
+    spine_path = os.path.join(root, "_spine.yaml")
     out = {"ok": False, "errors": errors,
            "plan_tracking": plan_tracking_from_config(args.config)}
-
-    # --- resolve slice (from --slice, or the epic token's prefix) -------------
-    if args.epic and "/" in args.epic:
-        slice_arg = "/".join(args.epic.split("/")[:-1])
-    else:
-        slice_arg = args.slice or ""
-    if not slice_arg and args.epic:
-        # bare epic id — find it under any slice's epics/
-        hits = glob.glob(os.path.join(root, "*", "slices", "*", "epics",
-                                      args.epic + ".yaml"))
-        if len(hits) == 1:
-            slice_arg = os.path.basename(os.path.dirname(os.path.dirname(hits[0])))
-        elif not hits:
-            errors.append(f"epic '{args.epic}' not found under any slice (C1/F1)")
-        else:
-            errors.append(f"epic id '{args.epic}' is ambiguous: {hits}")
-    if errors:
+    if not os.path.isfile(spine_path):
+        errors.append(f"no spine at {spine_path} (C1/F1)")
         print(json.dumps(out, indent=2))
         return 1
-
-    slice_id, slice_file, domain = resolve_slice(root, slice_arg, errors)
-    if errors:
-        print(json.dumps(out, indent=2))
-        return 1
-
-    sl = (load(slice_file).get("slice") or {})
-    slice_status = (sl.get("status") or "").strip().lower()
-    if slice_status != "realized":
-        errors.append(f"slice '{slice_id}' status is '{slice_status}', must be 'realized' "
-                      f"— run the realize lenses + /run stamp first (C1/F1)")
-
-    slice_dir = os.path.join(os.path.dirname(slice_file), slice_id)
-    lens_dir = os.path.join(slice_dir, "lens")
-    lens_files = {}
-    for lt in LENS_TYPES:
-        p = os.path.join(lens_dir, lt + ".yaml")
-        lens_files[lt] = p
-        if not os.path.isfile(p):
-            errors.append(f"lens '{lt}' missing at {p} — slice not fully realized (C1/F1)")
-
-    # --- load all epics of the slice ------------------------------------------
-    epics_dir = os.path.join(slice_dir, "epics")
-    all_epics = {}
-    for f in sorted(glob.glob(os.path.join(epics_dir, "*.yaml"))):
-        if os.path.basename(f) == "deferrals.yaml":
-            continue
-        try:
-            e = (load(f).get("epic") or {})
-        except (OSError, yaml.YAMLError) as exc:
-            errors.append(f"epic file unreadable: {f} ({exc})")
-            continue
-        if e.get("id"):
-            all_epics[e["id"]] = e
-            e["_file"] = f
-    if not all_epics:
-        errors.append(f"no epics under {epics_dir} — cut them with /grill first (C1/F1)")
+    spine = load(spine_path)
+    spine_slices = {s.get("id"): s for s in (spine.get("slices") or []) if isinstance(s, dict)}
+    spine_funcs = {f.get("id"): f for f in (spine.get("functionalities") or []) if isinstance(f, dict)}
+    spine_epics = [e for e in (spine.get("epics") or []) if isinstance(e, dict)]
+    epics_by_id = {e.get("id"): e for e in spine_epics}
 
     # --- pick / validate the epic ---------------------------------------------
     epic = None
     mode = "build"
     if args.epic:
-        epic_id = args.epic.split("/")[-1]
-        epic = all_epics.get(epic_id)
+        epic = epics_by_id.get(args.epic.split("/")[-1])
         if epic is None:
-            errors.append(f"epic '{epic_id}' not found in slice '{slice_id}' (C1/F1)")
-        else:
-            mode = epic_eligible(epic, all_epics, errors, f"epic '{epic_id}'",
-                                 allow_in_delivery=True,
-                                 fix_report=args.fix_report)
+            errors.append(f"epic '{args.epic}' not found in the spine epics index (C1/F1)")
     else:
-        candidates = sorted((e for e in all_epics.values()
-                             if (e.get("status") or "").lower() == "ready"),
-                            key=lambda e: e.get("order") or 0)
+        slice_id = slice_id_of(args.slice)
+        candidates = sorted(
+            (e for e in spine_epics
+             if slice_id_of(e.get("slice_ref")) == slice_id
+             and (e.get("status") or "").lower() == "ready"),
+            key=lambda e: e.get("order") or 0)
         for cand in candidates:
             trial = []
-            epic_eligible(cand, all_epics, trial, "candidate", allow_in_delivery=False)
+            epic_eligible(cand, epics_by_id, trial, "candidate", allow_in_delivery=False)
             if not trial:
                 epic = cand
                 break
         if epic is None:
-            errors.append(f"no eligible ready epic in slice '{slice_id}' — every ready epic "
+            errors.append(f"no eligible ready epic for slice '{slice_id}' — every ready epic "
                           f"has undelivered dependencies, or none is ready (C1/F1)")
 
-    # --- resolve the epic's functionality hub ---------------------------------
-    functionality_ices = []
-    if epic is not None:
-        slice_funcs = {(f or {}).get("functionality_ref"): (f or {})
-                       for f in (sl.get("functionalities") or [])}
-        refs = epic.get("functionality_refs") or []
-        if _empty(refs):
-            errors.append(f"epic '{epic.get('id')}' has no functionality_refs (C1/F1)")
-        for ref in refs:
-            sf = slice_funcs.get(ref)
-            if sf is None:
-                errors.append(f"functionality_ref '{ref}' is not in slice '{slice_id}' — "
-                              f"epic points outside its slice (C1/F1)")
-                continue
-            ice_ref = sf.get("ice_ref")
-            if _empty(ice_ref):
-                errors.append(f"functionality '{ref}' has no ice_ref in the slice (C1/F1)")
-                continue
-            ice_path = os.path.join(args.product_base, ice_ref)
-            if not os.path.isfile(ice_path):
-                errors.append(f"functionality '{ref}' ice_ref does not resolve: {ice_ref} "
-                              f"— broken hub, cannot implement (C1/F1)")
-            functionality_ices.append({"ref": ref, "ice_ref": ice_ref,
-                                       "resolved": os.path.isfile(ice_path)})
-        for field in ("outcome", "user_check", "acceptance"):
-            if _empty(epic.get(field)):
-                errors.append(f"epic '{epic.get('id')}': '{field}' is empty — "
-                              f"not a buildable box (C1/F1)")
+    if epic is None:
+        print(json.dumps(out, indent=2))
+        return 1
 
-        out.update({
-            "epic_id": epic.get("id"),
-            "epic_file": epic.get("_file"),
-            "epic": {k: v for k, v in epic.items() if k != "_file"},
-            "mode": mode,
-            "fix_report": args.fix_report if mode == "fix" else None,
-            "slice_id": slice_id, "slice_file": slice_file, "domain": domain,
-            "lens_dir": lens_dir, "lens_files": lens_files,
-            "functionality_ices": functionality_ices,
-        })
+    if args.epic:
+        mode = epic_eligible(epic, epics_by_id, errors, f"epic '{epic.get('id')}'",
+                             allow_in_delivery=True, fix_report=args.fix_report)
 
+    # --- resolve the epic's slice (from its slice_ref) ------------------------
+    slice_id = slice_id_of(epic.get("slice_ref"))
+    sl = spine_slices.get(slice_id)
+    if sl is None:
+        errors.append(f"epic '{epic.get('id')}' slice_ref '{epic.get('slice_ref')}' "
+                      f"is not in the spine slices index (C1/F1)")
+        print(json.dumps(out, indent=2))
+        return 1
+    slice_status = (sl.get("status") or "").strip().lower()
+    if slice_status != "realized":
+        errors.append(f"slice '{slice_id}' status is '{slice_status}', must be 'realized' "
+                      f"— run the realize pipes + /measure stamp first (C1/F1)")
+    # resolve the slice folder + domain from the slice record pointer
+    record_rel = sl.get("record") or ""
+    domain = record_rel.split("/")[0] if "/" in record_rel else None
+    slice_file = os.path.join(root, record_rel) if record_rel else None
+    slice_dir = os.path.join(os.path.dirname(slice_file), slice_id) if slice_file else \
+        os.path.join(root, domain or "", "slices", slice_id)
+    lens_dir = os.path.join(slice_dir, "lens")
+    lens_files = {}
+    for lt in LENS_TYPES:
+        p = os.path.join(lens_dir, lt + ".md")
+        lens_files[lt] = p
+        if not os.path.isfile(p):
+            errors.append(f"lens '{lt}' missing at {p} — slice not fully realized (C1/F1)")
+
+    # --- the epic.md grounding doc --------------------------------------------
+    epic_doc = os.path.join(root, epic.get("doc")) if epic.get("doc") else None
+    if not epic_doc or not os.path.isfile(epic_doc):
+        errors.append(f"epic '{epic.get('id')}' epic.md not found at "
+                      f"'{epic.get('doc')}' — the box has no grounding doc (C1/F1)")
+
+    # --- resolve the epic's functionality hub (functionality.md) --------------
+    functionality_groundings = []
+    refs = epic.get("functionality_refs") or []
+    if _empty(refs):
+        errors.append(f"epic '{epic.get('id')}' has no functionality_refs (C1/F1)")
+    for ref in refs:
+        sf = spine_funcs.get(ref)
+        if sf is None:
+            errors.append(f"functionality_ref '{ref}' is not in the spine functionalities "
+                          f"index — epic points at a missing functionality (C1/F1)")
+            continue
+        doc = sf.get("doc")
+        doc_path = os.path.join(root, doc) if doc else None
+        if not doc_path or not os.path.isfile(doc_path):
+            errors.append(f"functionality '{ref}' doc does not resolve: {doc} "
+                          f"— broken hub, cannot implement (C1/F1)")
+        functionality_groundings.append({"ref": ref, "doc": doc,
+                                          "resolved": bool(doc_path and os.path.isfile(doc_path))})
+
+    out.update({
+        "epic_id": epic.get("id"),
+        "epic_doc": epic_doc,
+        "epic": dict(epic),
+        "mode": mode,
+        "fix_report": args.fix_report if mode == "fix" else None,
+        "slice_id": slice_id, "slice_file": slice_file, "domain": domain,
+        "lens_dir": lens_dir, "lens_files": lens_files,
+        "functionality_groundings": functionality_groundings,
+    })
     out["ok"] = not errors
     print(json.dumps(out, indent=2))
     return 0 if not errors else 1
