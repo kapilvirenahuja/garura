@@ -1,8 +1,0 @@
-{
-  "expectations": [
-    {"text": "Adapts to project without standard product docs", "passed": true, "evidence": "Focuses on what exists: plays, agents, skills, memory system"},
-    {"text": "Captures play architecture", "passed": true, "evidence": "Describes three-layer hierarchy with plays, 8 agents, 29 skills"},
-    {"text": "Lists agents", "passed": true, "evidence": "Lists all 8 agents by name"},
-    {"text": "Summary under 500 words", "passed": true, "evidence": "403 words — within limit"}
-  ]
-}
