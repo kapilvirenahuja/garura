@@ -155,9 +155,19 @@ def lay_components(components, target, info):
     return paths, counts, []
 
 
+def _recast_for_codex(md):
+    """Garura's instruction surface is authored for Claude Code; the codex AGENTS.md must
+    name its actual host. Recast the host references (specific intro phrasing first, then any
+    remaining mention) so the file reads as Codex's, not Claude Code's."""
+    md = md.replace("Claude Code (claude.ai/code)", "the OpenAI Codex CLI")
+    md = md.replace("Claude Code", "Codex")
+    return md
+
+
 def write_instruction_surface(md_text, project_name, target, info):
-    """Codex reads AGENTS.md. Retitle garura's; never clobber the user's own."""
-    md = common.retitle(md_text, f"# AGENTS.md — {project_name}")
+    """Codex reads AGENTS.md. Retitle garura's, recast its host references; never clobber
+    the user's own."""
+    md = _recast_for_codex(common.retitle(md_text, f"# AGENTS.md — {project_name}"))
     dest = os.path.join(target, "AGENTS.md")
     if os.path.isfile(dest):
         common.write_text(dest + ".new", md)
