@@ -27,7 +27,7 @@ The tree (framed with the user, #434 follow-on):
          ready + deps NOT delivered .................... blocked (dep named)
          in_delivery ................................... /validate {epic}
          validated ..................................... /launch {epic}
-  realized slice, grilled, all epics delivered/gone .... /enrich (learning)
+  realized slice, grilled, all epics delivered/gone .... /learn (learning)
   everything delivered ................................. strategy refresh
       (/shape from deferred when a deferred bucket exists; /roadmap re-plan)
 
@@ -96,7 +96,7 @@ def derive(state):
         why = [f"profile state is '{profile_state}' (must be set before /shape)"]
         if goals_only:
             why.append(f"{len(goals_only)} capability ICE still goals-only "
-                       "(seed depth, not yet enriched)")
+                       "(seed depth, not yet learned)")
         candidates.append(cand(
             "strategy/understand", "understand", "/understand", "(product)",
             "strategy", gates=why,
@@ -377,7 +377,7 @@ def derive(state):
     for domain, sl, order in learning_targets:
         ref = slice_ref(domain, sl)
         candidates.append(cand(
-            f"learning/{ref}", "enrich", "/enrich", ref, "learning",
+            f"learning/{ref}", "learn", "/learn", ref, "learning",
             gates=[f"{ref} is grilled and every epic is delivered/cleared"],
             order_hint=order,
             unblocks=["the KB and product LTM (skipping learning piles up "

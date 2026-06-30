@@ -52,7 +52,7 @@ explanation of why it is recommended and what it unblocks.
   same candidate set. Judgment applies only to ranking and explanation.
 - C9 — Coverage spans the full loop: strategy (vision, understand, shape, roadmap),
   realization (the six lenses), grilling, execution (implement, validate, launch),
-  learning (enrich), and strategy refresh once everything is delivered.
+  learning (learn), and strategy refresh once everything is delivered.
 - C10 — The play leaves no working artifacts behind. Its only durable product is the
   recommendation presented to the user (plus, when evidence recording is on, the
   evidence record). All transient working files written during the run are deleted

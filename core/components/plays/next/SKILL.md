@@ -9,7 +9,7 @@ user-invokable: true
 
 Read the product model, work out everything that could happen next — strategy
 (vision, understand, shape, roadmap), realization (the six lenses), grilling,
-execution (implement, validate, launch), learning (enrich), and strategy refresh
+execution (implement, validate, launch), learning (learn), and strategy refresh
 once everything is delivered — and recommend: one **next-best-action** plus a
 ranked list of alternatives (parallel lanes included), every entry carrying the
 exact command and a plain-language explanation of why and what it unblocks.
@@ -246,7 +246,7 @@ themselves — this play launches nothing (C2).
 - **SCE-4 (S4 — founder, fresh start):** with no product model,
   the NBA's command is `/vision` and its `why` explains the cold start.
 - **SCE-5 (S5 — product owner, everything delivered):** with all slices realized
-  and every epic delivered, the list contains a learning (`/enrich`) or
+  and every epic delivered, the list contains a learning (`/learn`) or
   strategy-refresh (`/shape` from deferred, `/roadmap`) entry with a
   plain-language explanation — never "nothing to do".
 - **SCE-6 (S6 — team running parallel agents):** with slice 1 mid-execution and
@@ -353,7 +353,7 @@ overwritten. There is no status marker.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:7005b80da679887bd03a475d191490c718d6260b63162c20f5fb7380e3b251b6 (of `reference/ice.md`) |
+| fingerprint | sha256:e5c9b6a38d0db74e9e7a6e2005091bc901f71df97f1641e6c029f57f68bc4e03 (of `reference/ice.md`) |
 | compiled_by | play-creator |
 | pipeline_position | none |
 | structural_constraints | C1 (scan + derivation read only the model tree — by construction of `scan_model.py`/`derive_candidates.py`); C9 (the decision tree's branches span strategy → lenses → repair → grill → execute → learning → refresh — `derive_candidates.py`); C11 (surface debt is detected mechanically — `scan_model.py` reads each epic's `surface.type` + `surface_verified`, `derive_candidates.py` flags a delivered user-facing epic that is not `surface_verified`, emits the `surface-debt` inconsistency + repair lane, and withholds further execute epics) |
