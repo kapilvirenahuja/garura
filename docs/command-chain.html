@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garura — Command Supply Chain</title>
+<style>
+  :root{
+    --bg:#070a10; --edge:#243044; --ink:#e8eef6; --muted:#7f8 da0;--muted:#7f8da0;
+    --strategy:#5b8cff; --func:#3fb950; --nonfunc:#e0a12a; --deliver:#a371f7;
+    --execute:#f778ba; --change:#58a6ff; --maint:#ff7b72; --sorter:#f5c542; --meta:#6e7681;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  header{padding:26px 30px 6px;max-width:1360px;margin:0 auto}
+  h1{font-size:27px;margin:0 0 5px;letter-spacing:-.4px;display:flex;align-items:center;gap:12px}
+  h1 .plate{font-size:11px;background:#12serving;background:#141b28;border:1px solid var(--edge);
+    color:var(--sorter);padding:4px 11px;border-radius:5px;letter-spacing:2px;
+    box-shadow:inset 0 0 0 1px #0006,0 2px 6px #0008;font-weight:700}
+  .sub{color:#93a1b5;font-size:13.5px;margin:0;max-width:920px}
+  .source{color:#66748a;font-size:11.5px;margin-top:6px}
+  .source code{background:#121826;padding:2px 6px;border-radius:5px;color:#9fb0c6}
+
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;max-width:1360px;margin:12px auto 4px;padding:0 30px;color:#8593a8;font-size:11.5px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:2px;box-shadow:0 0 6px currentColor}
+
+  /* scroll frame */
+  .scene{overflow:auto;padding:22px 30px 40px}
+  .stage{
+    position:relative;width:1300px;height:1010px;margin:0 auto;
+    background:
+      radial-gradient(1100px 520px at 60% 8%, #12233d 0%, transparent 60%),
+      repeating-linear-gradient(0deg,#0b111c 0 1px,transparent 1px 40px),
+      repeating-linear-gradient(90deg,#0b111c 0 1px,transparent 1px 40px),
+      linear-gradient(180deg,#0a0f18,#070a10);
+    border:1px solid #1b2434;border-radius:16px;
+    box-shadow:inset 0 0 120px #000a, 0 20px 60px #000a;
+  }
+  /* corner bolts */
+  .stage::before,.stage::after{content:"";position:absolute;width:9px;height:9px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#4a5straight,#2a3446);background:radial-gradient(circle at 35% 30%,#586780,#2a3446);
+    box-shadow:0 0 0 1px #0008;}
+  .stage::before{left:12px;top:12px}.stage::after{right:12px;top:12px}
+
+  svg.wires{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:visible}
+  .casing{fill:none;stroke:#141c2a;stroke-width:15;stroke-linecap:round;stroke-linejoin:round}
+  .casing2{fill:none;stroke:#0c1220;stroke-width:19;stroke-linecap:round;stroke-linejoin:round}
+  .flow{fill:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;
+    stroke-dasharray:2 14;animation:dash .9s linear infinite;filter:drop-shadow(0 0 5px currentColor)}
+  @keyframes dash{to{stroke-dashoffset:-16}}
+  .joint{fill:#1a2troubleshoot;fill:#1a2334;stroke:#33415a;stroke-width:2}
+
+  /* machines */
+  .m{position:absolute;z-index:3;width:150px;border-radius:10px;
+    background:linear-gradient(180deg,#1b2534 0%,#111826 100%);
+    border:1px solid #2c3a51;border-top:3px solid var(--tone,#3a4658);
+    box-shadow:0 8px 20px #000a, inset 0 1px 0 #ffffff10;}
+  .m::after{content:"";position:absolute;left:6px;right:6px;bottom:4px;height:4px;border-radius:3px;
+    background:repeating-linear-gradient(90deg,#0000 0 6px,#00000030 6px 12px)}
+  .m .cap{display:flex;align-items:center;gap:7px;padding:8px 10px 4px}
+  .m .ico{font-size:17px;filter:drop-shadow(0 1px 2px #000c)}
+  .m .cmd{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-weight:700;font-size:13.5px;color:#fff}
+  .m .role{font-size:9.5px;color:#7f8da0;padding:0 10px 8px;letter-spacing:.4px;text-transform:uppercase}
+  .m .good{margin:0 8px 9px;background:#0e1622;border:1px dashed var(--tone,#3a4658);border-radius:6px;
+    padding:3px 8px;font-size:10.5px;color:#cfe0f0;display:flex;gap:5px;align-items:center}
+  .m .status{position:absolute;top:9px;right:9px;width:7px;height:7px;border-radius:50%;
+    background:var(--tone,#3a4658);box-shadow:0 0 8px var(--tone,#3a4658);animation:blink 1.6s ease-in-out infinite}
+  @keyframes blink{50%{opacity:.35}}
+  .m .rej{position:absolute;top:-10px;left:50%;transform:translateX(-50%);white-space:nowrap;
+    background:#2a2410;border:1px solid var(--sorter);color:var(--sorter);font-size:9px;font-weight:700;
+    border-radius:11px;padding:1px 8px;box-shadow:0 0 10px #f5c54240}
+
+  /* intake hopper */
+  .hopper{position:absolute;z-index:3;width:150px;text-align:center;border-radius:10px;padding:12px 8px 14px;
+    background:radial-gradient(circle at 50% 15%,#26374f,#0f1826);border:1px solid #2c3a51;
+    box-shadow:0 8px 20px #000a;}
+  .hopper .ico{font-size:26px;filter:drop-shadow(0 2px 3px #000)}
+  .hopper .t{font-size:11.5px;color:#dfeaf6;font-weight:700;margin-top:2px}
+  .hopper .s{font-size:9.5px;color:#7f8da0}
+  .hopper::before{content:"▼▼▼";position:absolute;bottom:-2px;left:0;right:0;color:#2c3a51;font-size:9px;letter-spacing:6px}
+
+  /* /next hub — big refinery drum */
+  .hub{position:absolute;z-index:3;width:172px;text-align:center;border-radius:16px;padding:14px 10px 16px;
+    background:radial-gradient(circle at 50% 25%,#4a4118,#211c0c 70%,#151007);
+    border:1px solid var(--sorter);box-shadow:0 0 40px #f5c54235,0 10px 26px #000b,inset 0 1px 0 #fff2;}
+  .hub .ico{font-size:26px;animation:spin 6s linear infinite;display:inline-block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .hub .cmd{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-weight:800;font-size:18px;color:var(--sorter);margin-top:2px}
+  .hub .s{font-size:10px;color:#d8c88f;margin-top:3px;line-height:1.35}
+  .hub .ring{position:absolute;inset:-6px;border:1px dashed #f5c54255;border-radius:20px;animation:spin 20s linear infinite}
+
+  /* decorative infra */
+  .silo{position:absolute;z-index:2;width:52px;border-radius:26px 26px 8px 8px;
+    background:linear-gradient(90deg,#0e141f,#212c3d 40%,#2c3a4f 55%,#131a26);
+    border:1px solid #303c52;box-shadow:0 10px 24px #000a,inset 0 0 12px #0008;}
+  .silo::before{content:"";position:absolute;left:8px;right:8px;top:22%;height:2px;background:#3a475f;box-shadow:0 26px 0 #3a475f,0 52px 0 #3a475f,0 78px 0 #3a475f}
+  .silo .band{position:absolute;left:0;right:0;bottom:14px;height:11px;background:repeating-linear-gradient(45deg,#c9a12633 0 7px,#0000 7px 14px)}
+  .stack{position:absolute;z-index:2;width:26px;border-radius:5px 5px 0 0;
+    background:linear-gradient(90deg,#161d2a,#2a3purchases);background:linear-gradient(90deg,#161d2a,#2a3547 55%,#141b27);border:1px solid #303c52}
+  .stack::before{content:"";position:absolute;top:-4px;left:-4px;right:-4px;height:8px;border-radius:4px;background:#2a3547;border:1px solid #3a475f}
+  .steam{position:absolute;z-index:2;width:34px;height:34px;border-radius:50%;background:#9fb0c622;filter:blur(6px);
+    animation:rise 4s ease-in infinite}
+  @keyframes rise{0%{transform:translateY(0) scale(.6);opacity:0}30%{opacity:.5}100%{transform:translateY(-70px) scale(1.6);opacity:0}}
+  .beam{position:absolute;z-index:0;height:10px;border-radius:2px;
+    background:repeating-linear-gradient(90deg,#141b27 0 14px,#0f1521 14px 16px);border-top:1px solid #26324700}
+  .gauge{position:absolute;z-index:2;width:26px;height:26px;border-radius:50%;
+    background:radial-gradient(circle at 50% 50%,#0c1220,#1a2333);border:2px solid #33415a;
+    box-shadow:inset 0 0 6px #000}
+  .gauge::after{content:"";position:absolute;left:50%;top:50%;width:2px;height:9px;background:var(--sorter);
+    transform-origin:bottom;transform:translate(-50%,-100%) rotate(38deg);box-shadow:0 0 4px var(--sorter)}
+
+  /* off-line shed */
+  .shed{position:absolute;z-index:3;left:40px;top:930px;right:40px;display:flex;align-items:center;gap:10px;
+    border:1px dashed #46516a;border-radius:12px;padding:11px 16px;background:#0b1119cc}
+  .shed .lbl{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:#8a97ac;font-weight:700}
+  .crate{background:repeating-linear-gradient(45deg,#161d29 0 8px,#121824 8px 16px);border:1px solid #46516a;
+    border-radius:7px;padding:6px 11px;font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11.5px;color:#c2ccd8}
+
+  .foot{max-width:1360px;margin:6px auto 0;padding:0 30px;color:#66748a;font-size:11.5px}
+  .foot b{color:var(--sorter)} .foot code{background:#121826;padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Garura — Command Supply Chain <span class="plate">PLANT&nbsp;01</span></h1>
+  <p class="sub">One live production line. Raw intent is fed in at the hopper, refined machine by machine, and the return main pipes it back through the <b>/next</b> sorting drum to start the next unit. Material flows through the pipes as it runs.</p>
+  <p class="source">Pipe routing is the successor map in <code>core/components/memory/standards/rules/pipeline-next.md</code>.</p>
+</header>
+
+<div class="legend">
+  <span><i class="dot" style="background:var(--strategy);color:var(--strategy)"></i>Strategy</span>
+  <span><i class="dot" style="background:var(--func);color:var(--func)"></i>Realize · functional</span>
+  <span><i class="dot" style="background:var(--nonfunc);color:var(--nonfunc)"></i>Realize · non-functional</span>
+  <span><i class="dot" style="background:var(--deliver);color:var(--deliver)"></i>Deliver</span>
+  <span><i class="dot" style="background:var(--execute);color:var(--execute)"></i>Execute</span>
+  <span><i class="dot" style="background:var(--change);color:var(--change)"></i>Change chain</span>
+  <span><i class="dot" style="background:var(--maint);color:var(--maint)"></i>Maintenance</span>
+  <span><i class="dot" style="background:var(--sorter);color:var(--sorter)"></i>/next sorter · return main</span>
+</div>
+
+<div class="scene">
+<div class="stage" id="stage">
+
+  <!-- structural beams (behind) -->
+  <div class="beam" style="left:60px;top:190px;width:840px"></div>
+  <div class="beam" style="left:120px;top:380px;width:840px"></div>
+  <div class="beam" style="left:60px;top:570px;width:900px"></div>
+  <div class="beam" style="left:120px;top:760px;width:840px"></div>
+
+  <!-- decorative infrastructure -->
+  <div class="silo" style="left:1140px;top:70px;height:150px"><div class="band"></div></div>
+  <div class="silo" style="left:1205px;top:120px;height:110px"><div class="band"></div></div>
+  <div class="stack" style="left:1150px;top:470px;height:120px"></div>
+  <div class="steam" style="left:1154px;top:450px"></div>
+  <div class="steam" style="left:1160px;top:450px;animation-delay:1.6s"></div>
+  <div class="silo" style="left:1150px;top:640px;height:160px"><div class="band"></div></div>
+  <div class="gauge" style="left:1215px;top:470px"></div>
+  <div class="gauge" style="left:1215px;top:520px"></div>
+
+  <!-- PIPE NETWORK -->
+  <svg class="wires" id="wires"></svg>
+
+  <!-- ROW 1 · strategy (L→R) -->
+  <div class="hopper" style="left:40px;top:62px"><div class="ico">💡</div><div class="t">Raw capability</div><div class="s">an idea, unshaped</div></div>
+  <div class="m" id="vision" style="left:260px;top:62px;--tone:var(--strategy)"><span class="status"></span><div class="cap"><span class="ico">🔭</span><span class="cmd">/vision</span></div><div class="role">framer</div><div class="good">📜 Framed intent</div></div>
+  <div class="m" id="understand" style="left:480px;top:62px;--tone:var(--strategy)"><span class="status"></span><div class="cap"><span class="ico">🔬</span><span class="cmd">/understand</span></div><div class="role">expander</div><div class="good">🧾 ICE spec</div></div>
+  <div class="m" id="shape" style="left:700px;top:62px;--tone:var(--strategy)"><span class="status"></span><div class="cap"><span class="ico">🔪</span><span class="cmd">/shape</span></div><div class="role">slicer</div><div class="good">🍰 Slices</div></div>
+  <div class="m" id="roadmap" style="left:920px;top:62px;--tone:var(--strategy)"><span class="status"></span><div class="cap"><span class="ico">📊</span><span class="cmd">/roadmap</span></div><div class="role">prioritiser</div><div class="good">🗂️ Ranked backlog</div></div>
+
+  <!-- ROW 2 · /next hub + functional (R→L) -->
+  <div class="hub" id="next" style="left:906px;top:250px"><div class="ring"></div><div class="ico">⚙️</div><div class="cmd">/next</div><div class="s">sorting drum —<br>routes the line</div></div>
+  <div class="m" id="ux" style="left:700px;top:262px;--tone:var(--func)"><span class="status"></span><div class="cap"><span class="ico">🎨</span><span class="cmd">/ux</span></div><div class="role">functional lens</div></div>
+  <div class="m" id="agentic" style="left:480px;top:262px;--tone:var(--func)"><span class="status"></span><div class="cap"><span class="ico">🤖</span><span class="cmd">/agentic</span></div><div class="role">functional lens</div></div>
+  <div class="m" id="marketing" style="left:260px;top:262px;--tone:var(--func)"><div class="rej">↺ /next</div><span class="status"></span><div class="cap"><span class="ico">📣</span><span class="cmd">/marketing</span></div><div class="role">functional lens</div></div>
+  <div class="m" id="arch" style="left:40px;top:262px;--tone:var(--nonfunc)"><span class="status"></span><div class="cap"><span class="ico">🏛️</span><span class="cmd">/arch</span></div><div class="role">non-func lens</div></div>
+
+  <!-- ROW 3 · non-functional + deliver + execute head (L→R) -->
+  <div class="m" id="quality" style="left:40px;top:452px;--tone:var(--nonfunc)"><span class="status"></span><div class="cap"><span class="ico">✅</span><span class="cmd">/quality</span></div><div class="role">non-func lens</div></div>
+  <div class="m" id="run" style="left:260px;top:452px;--tone:var(--nonfunc)"><div class="rej">↺ /next</div><span class="status"></span><div class="cap"><span class="ico">🛡️</span><span class="cmd">/run</span></div><div class="role">non-func lens</div></div>
+  <div class="m" id="measure" style="left:480px;top:452px;--tone:var(--deliver)"><span class="status"></span><div class="cap"><span class="ico">⚗️</span><span class="cmd">/measure</span></div><div class="role">deliver · combiner</div><div class="good">💠 Realized slice</div></div>
+  <div class="m" id="grill" style="left:700px;top:452px;--tone:var(--execute)"><span class="status"></span><div class="cap"><span class="ico">🍢</span><span class="cmd">/grill</span></div><div class="role">splitter</div><div class="good">📦 Epics</div></div>
+  <div class="m" id="implement" style="left:920px;top:452px;--tone:var(--execute)"><span class="status"></span><div class="cap"><span class="ico">🔨</span><span class="cmd">/implement</span></div><div class="role">assembler</div><div class="good">🧱 Built epic</div></div>
+
+  <!-- ROW 4 · execute tail + change head (R→L) -->
+  <div class="m" id="validate" style="left:920px;top:642px;--tone:var(--execute)"><span class="status"></span><div class="cap"><span class="ico">🔍</span><span class="cmd">/validate</span></div><div class="role">QC gate</div></div>
+  <div class="m" id="launch" style="left:700px;top:642px;--tone:var(--execute)"><span class="status"></span><div class="cap"><span class="ico">🚀</span><span class="cmd">/launch</span></div><div class="role">acceptance</div></div>
+  <div class="m" id="deploy" style="left:480px;top:642px;--tone:var(--execute)"><div class="rej">↺ /next</div><span class="status"></span><div class="cap"><span class="ico">☁️</span><span class="cmd">/deploy</span></div><div class="role">shipper</div><div class="good">📡 Deployed</div></div>
+  <div class="m" id="commit" style="left:260px;top:642px;--tone:var(--change)"><span class="status"></span><div class="cap"><span class="ico">💾</span><span class="cmd">/commit-change</span></div><div class="role">git · press</div></div>
+  <div class="m" id="propose" style="left:40px;top:642px;--tone:var(--change)"><span class="status"></span><div class="cap"><span class="ico">📤</span><span class="cmd">/propose-change</span></div><div class="role">git · raise PR</div></div>
+
+  <!-- ROW 5 · change tail + maintenance (L→R) -->
+  <div class="m" id="review" style="left:40px;top:822px;--tone:var(--change)"><span class="status"></span><div class="cap"><span class="ico">🧑‍⚖️</span><span class="cmd">/review-change</span></div><div class="role">git · gate</div></div>
+  <div class="m" id="merge" style="left:260px;top:822px;--tone:var(--change)"><div class="rej">↺ /next</div><span class="status"></span><div class="cap"><span class="ico">🔗</span><span class="cmd">/merge-change</span></div><div class="role">git · weld</div></div>
+  <div class="m" id="fixbug" style="left:480px;top:822px;--tone:var(--maint)"><div class="rej">↺ /next</div><span class="status"></span><div class="cap"><span class="ico">🛠️</span><span class="cmd">/fix-bug</span></div><div class="role">repair</div></div>
+  <div class="m" id="refactor" style="left:700px;top:822px;--tone:var(--maint)"><div class="rej">↺ /next</div><span class="status"></span><div class="cap"><span class="ico">♻️</span><span class="cmd">/refactor</span></div><div class="role">reclaim</div></div>
+  <div class="m" id="learn" style="left:920px;top:822px;--tone:var(--maint)"><span class="status"></span><div class="cap"><span class="ico">🧠</span><span class="cmd">/learn</span></div><div class="role">retune</div></div>
+
+  <!-- OFF-LINE shed -->
+  <div class="shed"><span class="lbl">Off the line · builds the plant itself</span>
+    <div class="crate">🧰 /install-garura</div><div class="crate">🗑️ /uninstall-garura</div>
+    <div class="crate">🏗️ /play-creator</div><div class="crate">🔧 /play-editor</div>
+  </div>
+
+</div>
+</div>
+
+<p class="foot">Machines wired by successor pipes; material flows the way the line runs. The spinning <b>/next</b> drum is the sorter — the gold <b>↺ /next</b> caps mark the six stations whose real successor is that drum, and the bright return main carries them back to it. The crates at the bottom sit off the line: they build the plant, they don't ride it.</p>
+
+<script>
+(function(){
+  var stage=document.getElementById('stage'), svg=document.getElementById('wires');
+  function edgeAnchor(el){var r={x:el.offsetLeft,y:el.offsetTop,w:el.offsetWidth,h:el.offsetHeight};r.cx=r.x+r.w/2;r.cy=r.y+r.h/2;return r;}
+  // successor pipes: [from,to,color]
+  var C={s:'#5b8cff',f:'#3fb950',n:'#e0a12a',d:'#a371f7',e:'#f778ba',c:'#58a6ff',m:'#ff7b72',g:'#f5c542'};
+  var edges=[
+    ['hopper','vision',C.s],['vision','understand',C.s],['understand','shape',C.s],['shape','roadmap',C.s],
+    ['roadmap','next',C.s],
+    ['next','ux',C.f],['ux','agentic',C.f],['agentic','marketing',C.f],['marketing','arch',C.n],
+    ['arch','quality',C.n],['quality','run',C.n],['run','measure',C.d],['measure','grill',C.e],
+    ['grill','implement',C.e],['implement','validate',C.e],['validate','launch',C.e],['launch','deploy',C.e],
+    ['deploy','commit',C.c],['commit','propose',C.c],['propose','review',C.c],['review','merge',C.c],
+    ['merge','fixbug',C.m],['fixbug','refactor',C.m],['refactor','learn',C.m]
+  ];
+  var hopper=document.querySelector('.hopper'); hopper.id='hopper';
+  function path(d,color,width){
+    function mk(cls,w,col){var p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('d',d);p.setAttribute('class',cls);if(col){p.style.stroke=col;p.style.color=col;}if(w)p.setAttribute('stroke-width',w);svg.appendChild(p);return p;}
+    mk('casing2');mk('casing');mk('flow',width,color);
+  }
+  function joint(x,y){var c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r',6);c.setAttribute('class','joint');svg.appendChild(c);}
+  edges.forEach(function(e){
+    var a=edgeAnchor(document.getElementById(e[0])), b=edgeAnchor(document.getElementById(e[1]));
+    var d;
+    if(Math.abs(a.cy-b.cy)<8){ // same row: horizontal, connect edges
+      var x1=a.cx<b.cx?a.x+a.w:a.x, x2=a.cx<b.cx?b.x:b.x+b.w, y=(a.cy+b.cy)/2;
+      d='M '+x1+' '+y+' L '+x2+' '+y;
+      joint(x1,y);joint(x2,y);
+    } else { // turn: vertical with a small S so it reads as a real bend
+      var y1=a.y+a.h, y2=b.y, x=(a.cx+b.cx)/2, my=(y1+y2)/2;
+      d='M '+a.cx+' '+y1+' C '+a.cx+' '+my+' '+b.cx+' '+my+' '+b.cx+' '+y2;
+      joint(a.cx,y1);joint(b.cx,y2);
+    }
+    path(d,e[2],5);
+  });
+  // RETURN MAIN: learn -> down -> right corridor -> up -> into /next drum
+  var L=edgeAnchor(document.getElementById('learn')), N=edgeAnchor(document.getElementById('next'));
+  var cx=1240, dY=L.y+L.h+30, ret='M '+L.cx+' '+(L.y+L.h)+
+      ' L '+L.cx+' '+dY+' L '+cx+' '+dY+' L '+cx+' '+(N.cy)+' L '+(N.x+N.w)+' '+N.cy;
+  (function(d){var p1=document.createElementNS('http://www.w3.org/2000/svg','path');p1.setAttribute('d',d);p1.setAttribute('class','casing2');svg.appendChild(p1);
+    var p2=document.createElementNS('http://www.w3.org/2000/svg','path');p2.setAttribute('d',d);p2.setAttribute('class','casing');svg.appendChild(p2);
+    var p3=document.createElementNS('http://www.w3.org/2000/svg','path');p3.setAttribute('d',d);p3.setAttribute('class','flow');p3.setAttribute('stroke-width',6);p3.style.stroke=C.g;p3.style.color=C.g;svg.appendChild(p3);})(ret);
+  joint(L.cx,L.y+L.h); joint(N.x+N.w,N.cy);
+})();
+</script>
+</body>
+</html>
