@@ -7,9 +7,9 @@ Proves the run's own discipline over the captured artifacts before close:
   gate-vs-close  — close-chain evidence exists ONLY when the gate decision is
                    `release` (F2); on `fix_required`, zero end evidence and the
                    defect report + stamp exist (S2).
-  environment    — the deploy record's tier matches the eligibility gate's
-                   resolved dev/QA tier, and no further-ahead target appears
-                   (F5/S5).
+  environment    — the deploy record's environment matches the eligibility gate's
+                   resolved LOCAL environment, and no cloud environment target
+                   appears (F5/S5). Cloud tiers belong to /deploy + CD, not launch.
   epic end-state — release path: the epic's spine entry is KEPT, stamped delivered,
                    and the delivery record reads delivered (F7; ADR 019 — epics are
                    never deleted); defect path: the entry remains, stamped
@@ -35,7 +35,9 @@ except ImportError:
     sys.stderr.write("check_launch.py: PyYAML is required (pip install pyyaml).\n")
     sys.exit(2)
 
-BEYOND_TIERS = ("prod", "production", "live", "uat", "staging", "stage")
+# /launch stands up ONLY the local environment; any cloud tier is beyond its scope.
+BEYOND_TIERS = ("dev", "qa", "test", "preview", "uat", "staging", "stage",
+                "prod", "production", "live")
 
 
 def jload(path):
@@ -74,14 +76,16 @@ def main():
     # --- environment (F5) ----------------------------------------------------------
     try:
         deploy = jload(args.deploy_record)
-        tier = (deploy.get("tier") or "").strip().lower()
-        if tier != (facts.get("tier") or ""):
-            errors.append(f"deploy tier '{tier}' is not the gate-resolved tier "
-                          f"'{facts.get('tier')}' (F5)")
+        env = (deploy.get("environment") or deploy.get("tier") or "").strip().lower()
+        want = (facts.get("environment") or "").strip().lower()
+        if env != want:
+            errors.append(f"deploy environment '{env}' is not the gate-resolved local "
+                          f"environment '{want}' (F5)")
         blob = json.dumps(deploy).lower()
         hit = next((t for t in BEYOND_TIERS if f'"{t}"' in blob), None)
         if hit:
-            errors.append(f"deploy record names a beyond-dev/QA target '{hit}' (F5)")
+            errors.append(f"deploy record names a cloud-tier target '{hit}' — /launch "
+                          f"stands up only the local environment (F5)")
     except Exception as exc:
         errors.append(f"deploy record unreadable: {exc} (F5)")
 

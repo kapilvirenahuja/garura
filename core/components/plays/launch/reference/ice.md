@@ -6,7 +6,8 @@ play-creator; never hand-edit the compiled SKILL.md.
 ## Intent
 
 Given an **epic** /validate stamped `validated`, land it on a **human's evidenced
-acceptance**: bring the increment up live on the slice's run-lens dev/QA tier, build the
+acceptance**: bring the increment up live on the slice's **local environment** (the
+`local` environment declared in the run lens's `run.yaml`), build the
 HITL testing scenarios from the epic's user_check and acceptance criteria — each telling
 the human what to run and what to test — walk the human through them one at a time
 recording their typed verdict on every scenario, and only a complete, recorded sign-off
@@ -32,9 +33,10 @@ decisions 20 + 24; ADR 019, #439)
 
 - C1 — Runs only on an epic stamped `validated`, on its issue branch. Hard halt
   otherwise — validate's stamp is the gate.
-- C2 — The live environment is the dev or QA tier from the slice's run lens — the early
-  tiers, nothing further ahead. Launch deploys what the lens declares for that tier; it
-  never invents infrastructure and never touches anything beyond dev/QA.
+- C2 — The live environment is the **local environment** declared in the slice's run
+  lens (`run.yaml`, type `local`, tier 0). Launch brings the increment up on that local
+  environment exactly as the lens declares it; it never invents infrastructure and never
+  stands up a cloud environment (dev/qa/stage/prod — those belong to /deploy and CD).
 - C3 — Launch builds the HITL testing scenarios from the epic's user_check and
   acceptance criteria: each scenario tells the human what to run (concrete steps on the
   deployed environment) and what to test (what they should see if it works). Every
@@ -79,8 +81,8 @@ decisions 20 + 24; ADR 019, #439)
   evidence.
 - F4 — A scenario traces to nothing in user_check or acceptance — invented scope — or
   an acceptance criterion has no scenario covering it.
-- F5 — The deploy target wasn't drawn from the run lens's dev/QA tier, or anything
-  beyond dev/QA was touched.
+- F5 — The increment was brought up on an environment other than the declared local one
+  — a cloud environment (dev/qa/stage/prod) was stood up or touched.
 - F6 — A rejected scenario was dropped or smoothed over instead of becoming the defect
   report on the tracked issue.
 - F7 — The epic was stamped `delivered` before the merge landed, was not stamped
@@ -98,12 +100,12 @@ decisions 20 + 24; ADR 019, #439)
 ### Success scenarios
 
 - S1 — (product owner, happy launch) Given a validated epic, when the increment comes
-  up on the run lens's dev/QA tier and the human accepts every scenario, then the close
+  up on the slice's local environment and the human accepts every scenario, then the close
   chain merges the epic and it ends delivered and kept, with production following
   from main. Measure: the sign-off record holds every scenario with a verbatim typed
   response, all accepted; the close-chain evidence exists; the deploy record cites the
-  lens tier; the epic record is present after merge reading `delivered`, with delivered
-  also recorded in evidence.
+  local environment; the epic record is present after merge reading `delivered`, with
+  delivered also recorded in evidence.
 - S2 — (product owner, rejection) Given a scenario the human rejects, then a defect
   report lands on the epic's tracked issue via the project-tracking role, the epic is
   stamped `fix_required`, and the close chain never runs. Measure: the issue carries
@@ -115,9 +117,9 @@ decisions 20 + 24; ADR 019, #439)
 - S4 — (delivery lead, coverage) Given the epic's user_check and acceptance criteria,
   then every criterion maps to at least one scenario and every scenario traces back to
   the box. Measure: the coverage check reports zero unmapped in both directions.
-- S5 — (operator, safe environment) Given the deploy, then only the run lens's dev/QA
-  tier was touched. Measure: the deploy record's target matches the lens's declared
-  tier; no further-ahead target appears anywhere in the run.
+- S5 — (operator, safe environment) Given the deploy, then only the declared local
+  environment was touched. Measure: the deploy record's environment matches the lens's
+  declared local environment; no cloud-tier target appears anywhere in the run.
 
 ### Recovery (one per failure condition)
 
@@ -129,8 +131,9 @@ decisions 20 + 24; ADR 019, #439)
   it, re-present the scenario, record only the typed answer. handoff: human.
 - REC4 (F4) — trigger: a scenario maps to nothing, or a criterion has no scenario.
   direction: rebuild the scenario set from the epic's fields. handoff: autonomous.
-- REC5 (F5) — trigger: a deploy target beyond dev/QA or not from the lens. direction:
-  tear down; redeploy per the lens's dev/QA tier. handoff: autonomous.
+- REC5 (F5) — trigger: an environment other than the declared local one was brought up
+  (a cloud environment). direction: tear down; bring up only the declared local
+  environment. handoff: autonomous.
 - REC6 (F6) — trigger: a rejection smoothed over or dropped. direction: build the
   defect report, post it through the project-tracking role, stamp `fix_required`.
   handoff: autonomous.

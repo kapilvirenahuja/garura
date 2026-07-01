@@ -1,7 +1,7 @@
 ---
 name: launch
 position: end
-description: 'Land one VALIDATED epic on a human''s evidenced acceptance — the HITL gate closing the execute pipeline (implement → validate → launch). Brings the increment up live on the run lens''s dev/QA tier (nothing further ahead), builds HITL testing scenarios from the epic''s user_check + acceptance — each telling the human what to RUN and what to TEST — walks them one at a time expecting a typed answer, and only a complete accepted sign-off releases the close chain that merges the epic (then stamped delivered + kept as the as-delivered record, never deleted; prod follows from main via CD). A rejected scenario becomes a defect report on the epic''s tracked issue and stamps the epic fix_required — /implement''s lightweight fix loop, the same seam /validate uses. An agent never signs for the human (#436). The /launch command in the ProductOS command model. Use when a validated epic is ready for human acceptance.'
+description: 'Land one VALIDATED epic on a human''s evidenced acceptance — the HITL gate closing the execute pipeline (implement → validate → launch). Brings the increment up live on the run lens''s local environment (cloud is /deploy''s), builds HITL testing scenarios from the epic''s user_check + acceptance — each telling the human what to RUN and what to TEST — walks them one at a time expecting a typed answer, and only a complete accepted sign-off releases the close chain that merges the epic (then stamped delivered + kept as the as-delivered record, never deleted; prod follows from main via CD). A rejected scenario becomes a defect report on the epic''s tracked issue and stamps the epic fix_required — /implement''s lightweight fix loop, the same seam /validate uses. An agent never signs for the human (#436). The /launch command in the ProductOS command model. Use when a validated epic is ready for human acceptance.'
 user-invocable: true
 ---
 
@@ -10,8 +10,9 @@ user-invocable: true
 Take one epic /validate stamped `validated` and land it on a **human's evidenced
 acceptance** — the HITL gate, and it is critical: agents built it, agents verified it
 hard, now the HUMAN accepts the running product, and only then does it land. The
-increment comes up live on the run lens's **dev or QA tier** — the early tiers, nothing
-further ahead — and the play builds the **HITL testing scenarios** from the epic's
+increment comes up live on the slice's **local environment** — the one the run lens's
+`run.yaml` declares for /launch, never a cloud environment — and the play builds the
+**HITL testing scenarios** from the epic's
 `user_check` and acceptance criteria: each tells the human what to run (concrete steps on
 the deployed environment) and what to test (what they should see), then expects an answer
 before moving on.
@@ -52,7 +53,7 @@ through bundled scripts.
 
 **Forbidden:** answering, paraphrasing, or auto-accepting a scenario for the human
 (forged evidence, #436); running the close chain — or any part of it — before the gate
-script says `release`; deploying or probing beyond the dev/QA tier; touching production;
+script says `release`; standing up or probing any cloud environment (dev/qa/stage/prod — /deploy's and CD's); touching production;
 deleting the epic at all, or stamping it delivered before the merge member lands; dropping
 a rejection instead of reporting it on the tracked issue; hand-rolling commit/PR/merge
 steps (they come only via
@@ -62,7 +63,7 @@ the injected end members).
 
 | Agent | Type | Domain | Skills it invokes | Phases |
 |-------|------|--------|-------------------|--------|
-| `env-operator` | domain | Live environments: stand the increment up on the resolved dev/QA tier, prove it reachable, tear it down after the walk | `stand-up-launch-env` | Deploy; Teardown |
+| `env-operator` | domain | Live environments: stand the increment up on the declared local environment, prove it reachable, tear it down after the walk | `stand-up-launch-env` | Deploy; Teardown |
 | `product-os-keeper` | domain | Author the HITL scenarios from the epic's box | `author-hitl-scenarios` | Scenarios |
 | `project-orchestrator` | utility | Post the defect report to the epic's tracked issue (the epic-defect connection) | `manage-issue` | Defect path |
 | `repo-orchestrator` | utility | Evidence self-commit per the close standard | — | Evidence & Close |
@@ -88,7 +89,7 @@ policy here:
 python3 scripts/preflight.py --play launch --config .garura/core/config.yaml \
         --branch "<current branch>" --porcelain-file <captured>
 python3 scripts/check_ready_launch.py --product-base <product_base> --epic <epic_id> \
-        --run-lens <lens_dir>/run.md --issue <issue from preflight> \
+        --run-lens <lens_dir>/run.yaml --issue <issue from preflight> \
         > {working}/ready-facts.json
 ```
 
@@ -96,11 +97,11 @@ python3 scripts/check_ready_launch.py --product-base <product_base> --epic <epic
 |-------|-----------|-------------------|
 | Config + tokens resolved; on the epic's issue branch | — | Hard halt |
 | Epic stamped `validated`, issue_ref matches the branch issue, user_check + acceptance present | C1 | Hard halt (REC1) |
-| Run lens exists and declares a dev/QA tier (`tier` resolved in the facts) | C2 | Hard halt — the lens must declare the early tier first |
+| Run lens `run.yaml` declares a local environment (`environment` resolved in the facts) | C2 | Hard halt — the lens must declare the local environment first |
 
 The epic file resolves from the play argument or the branch issue, exactly as /validate
-resolves it. `ready-facts.json` carries `tier` (the resolved dev/QA tier — every later
-environment assertion compares against it), `user_check`, and `acceptance`.
+resolves it. `ready-facts.json` carries `environment` (the resolved local environment —
+every later environment assertion compares against it), `user_check`, and `acceptance`.
 
 **Resume check:** if `{stm_base}{issue}/launch/status/progress.json` exists, resume —
 skip completed steps, reset any in-progress step to pending; an already-answered
@@ -113,7 +114,7 @@ this DAG; agents must not edit its top-level tasks. T8–T12 run only on the `re
 decision; T13–T14 only on `fix_required` — the gate (T7) decides, never the model.
 
 ```
-[T1]  Deploy to dev/QA (env-operator)            blockedBy: []
+[T1]  Deploy to local env (env-operator)         blockedBy: []
 [T2]  Author HITL scenarios (product-os-keeper)  blockedBy: [T1]
 [T3]  Coverage gate (script)                     blockedBy: [T2]
 [T3b] Surface-contract gate (script)             blockedBy: [T3]
@@ -137,20 +138,21 @@ decision; T13–T14 only on `fix_required` — the gate (T7) decides, never the 
 
 ### Phase: Deploy
 
-**Step 1 — Deploy to dev/QA** · Owner: `env-operator` · Depends on: pre-flight
+**Step 1 — Deploy to local env** · Owner: `env-operator` · Depends on: pre-flight
 
     {
-      "task":    "stand up the launch environment on the resolved tier and prove it reachable",
-      "inputs":  { "run_lens": "<lens_dir>/run.md",
-                   "tier": "<tier from ready-facts.json>",
+      "task":    "stand up the launch environment on the declared local environment and prove it reachable",
+      "inputs":  { "run_lens": "<lens_dir>/run.yaml",
+                   "environment": "<environment from ready-facts.json>",
                    "repo_root": ".", "mode": "up" },
       "outputs": { "deploy_record": "{working}/deploy.json" },
-      "task_id": "launch-deploy"
+      "task_id": "env-operate"
     }
 
-**SE-2 (F5/C2):** `deploy.json` exists with `reachable: true` and `tier` equal to the
-gate-resolved tier; no target beyond dev/QA appears in it (re-asserted mechanically at
-Step 11). A wrong tier is torn down and redeployed per the lens (REC5).
+**SE-2 (F5/C2):** `deploy.json` exists with `reachable: true` and `environment` equal to
+the gate-resolved local environment; no cloud environment appears in it (re-asserted
+mechanically at Step 11). A wrong environment is torn down and redeployed on the declared
+local environment (REC5).
 
 ### Phase: Scenarios
 
@@ -316,9 +318,9 @@ python3 scripts/check_launch.py --gate {working}/gate.json \
 **SE-1 (F1/C1):** holistic re-assert — the run only got here through the eligibility
 gate (exit 0 recorded in the progress marker). **SE-8 (F8/C8):** no production rollout
 happened: the play has no prod step by shape, and `check_launch.py` proves no
-beyond-dev/QA target appears in the deploy record — prod is recorded as following from
-main via CD, nothing more. `check_launch.py` exits 0: end evidence exists iff the gate
-said release (F2); the deploy stayed on the resolved tier (F5); the epic's end-state
+cloud-environment target appears in the deploy record — prod (and every cloud tier) is
+recorded as following from main via CD, nothing more. `check_launch.py` exits 0: end evidence exists iff the gate
+said release (F2); the deploy stayed on the declared local environment (F5); the epic's end-state
 matches the path taken — delivered+kept on release, present+fix_required on defect
 (F7/F6).
 
@@ -335,9 +337,9 @@ matches the path taken — delivered+kept on release, present+fix_required on de
   entry missing the human's own text fails it (fixture-proven).
 - **SCE-4 (S4 — delivery lead, coverage):** `check_scenario_coverage.py` exits 0 —
   zero unmapped in both directions.
-- **SCE-5 (S5 — operator, safe environment):** the deploy record's `tier` equals the
-  facts' resolved tier and `check_launch.py` finds no beyond-dev/QA target anywhere in
-  it.
+- **SCE-5 (S5 — operator, safe environment):** the deploy record's `environment` equals
+  the facts' resolved local environment and `check_launch.py` finds no cloud-tier target
+  anywhere in it.
 
 ### Phase: Evidence & Close
 
@@ -398,7 +400,7 @@ Always emitted; never gated.
 | F2 | the close chain attempted with unanswered or rejected scenarios | block the chain; return to the open scenarios | autonomous |
 | F3 | a result not in the human's own typed words | strip it, re-present the scenario, record only the typed answer | human |
 | F4 | a scenario maps to nothing, or a criterion has no scenario | rebuild the scenario set from the epic's fields | autonomous |
-| F5 | a deploy target beyond dev/QA or not from the lens | tear down; redeploy per the lens's dev/QA tier | autonomous |
+| F5 | an environment other than the declared local one was brought up (a cloud environment) | tear down; bring up only the declared local environment | autonomous |
 | F6 | a rejection smoothed over or dropped | build the defect report, post it through the project-tracking role, stamp `fix_required` | autonomous |
 | F7 | the epic deleted at all, stamped delivered before merge, or not stamped delivered after | restore the epic from git if deleted; execute the delivered stamp — merge always first | autonomous |
 | F8 | a production rollout attempted | stop it; record the handoff — prod belongs to CD from main | autonomous |
@@ -419,8 +421,8 @@ error).
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:efe84045c2232fa484d62c792fd425e60fa3a2d8262a71e135853f4ff8e50632 (of `reference/ice.md`) |
-| compiled_by | play-creator; edited via play-editor (#439, ADR 019 — epic kept on delivery, not deleted); edited via play-editor (#442, ADR 022 — surface-contract deploy-target + scenario-verb checks, C10/C11/F9/F10) |
+| fingerprint | sha256:face0dad413a7846a52f79fe573c78649050ad6e681eeaca86dec8e14f03e050 (of `reference/ice.md`) |
+| compiled_by | play-creator; edited via play-editor (#439, ADR 019 — epic kept on delivery, not deleted); edited via play-editor (#442, ADR 022 — surface-contract deploy-target + scenario-verb checks, C10/C11/F9/F10); edited via play-editor (#434 per-environment model — /launch brings the increment up on the run.yaml LOCAL environment, C2/F5/S1/S5/REC5) |
 | pipeline_position | end (the execute closer — commit-change → propose-change → review-change → merge-change injected after the sign-off gate; release path only) |
 | workflow_structure | A (the HITL walk is the mandatory human phase — never skippable) |
 | domain_agents | 2 (env-operator — NEW, product-os-keeper) |
@@ -448,3 +450,19 @@ spine epics entry (the entry + epic.md are the kept as-delivered record, never d
 match. No constraint/failure/scenario/eval text changed — the sign-off walk, the surface
 contract, the kept-epic guarantee, and the dev/QA-only rule are identical; only the storage
 moved. `reference/ice.md` and the fingerprint are unchanged.
+
+## Per-environment migration note (#434) — supersedes the tier parts above
+
+Intent edit (via play-editor, recompiled): the run lens moved to the structured
+`run.yaml` per-environment model, and /launch now brings the increment up on the slice's
+**LOCAL environment** (type `local`, tier 0) rather than an abstract "dev/QA tier" — cloud
+environments (dev/qa/stage/prod) belong to /deploy and CD. C2, F5, S1, S5, and REC5 were
+restated from "dev/QA tier" to "the local environment"; `reference/ice.md` and the
+fingerprint changed accordingly. The mechanism was retargeted: `check_ready_launch.py`
+reads the local environment from `run.yaml` `environments[]` and emits `environment` (not
+`tier`) in the facts; the Deploy dispatch passes `environment` + `run.yaml` to `env-operator`
+(task_id `env-operate`, matching the updated agent contract); `stand-up-launch-env` reads the
+local environment's `local.run`/seed and writes `environment` in the deploy record;
+`check_launch.py` compares the record's `environment` to the resolved local one and rejects
+any cloud tier. The sign-off walk, surface contract, kept-epic guarantee, and prod-is-CD's
+rule are unchanged.

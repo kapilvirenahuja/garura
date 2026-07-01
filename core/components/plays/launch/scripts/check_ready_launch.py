@@ -3,17 +3,18 @@
 check_ready_launch.py — epic eligibility gate for /launch (C1/F1, C2-presence), on the spine.
 
 /launch runs only on an epic /validate stamped `validated`, on its issue branch,
-whose slice run lens stands the increment up on a dev/QA tier. In the spine +
-grounding model the epic is an entry in product-os/_spine.yaml `epics` index
+whose slice run lens declares a LOCAL environment for /launch to stand up. In the
+spine + grounding model the epic is an entry in product-os/_spine.yaml `epics` index
 (status/issue_ref/slice_ref/doc); its user_check and acceptance live in the
-`epic.md` grounding doc; the run lens is the slice's `lens/run.md` grounding doc.
+`epic.md` grounding doc; the environments are the slice's structured `lens/run.yaml`
+(#434 per-environment model — the machine-readable env definitions).
 Layer rule: asserts over files on disk; never shells out.
 
     python3 check_ready_launch.py --product-base <pb> --epic <epic-id>
-        --run-lens <lens/run.md> [--issue <number from branch>]
+        --run-lens <lens/run.yaml> [--issue <number from branch>]
 
 Prints JSON facts: {ok, epic_id, slice_ref, issue_ref, epic_doc, user_check,
-acceptance[], tier, errors[]}. Exit 0 eligible, 1 not, 2 usage.
+acceptance[], environment, errors[]}. Exit 0 eligible, 1 not, 2 usage.
 """
 
 import argparse
@@ -27,12 +28,21 @@ except ImportError:
     sys.stderr.write("check_ready_launch.py: PyYAML is required (pip install pyyaml).\n")
     sys.exit(2)
 
-DEV_QA_TIERS = ("local", "local-dev", "dev", "qa", "test", "preview", "uat-dev")  # early tiers only
-
-
 def load(path):
     with open(path, "r", encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}
+
+
+def content_of(data):
+    """The run.yaml content, tolerating either a top-level `content:` or the
+    shared `lens:` envelope (`lens: { content: {} }`)."""
+    if isinstance(data, dict):
+        if isinstance(data.get("content"), dict):
+            return data["content"]
+        lens = data.get("lens")
+        if isinstance(lens, dict) and isinstance(lens.get("content"), dict):
+            return lens["content"]
+    return data if isinstance(data, dict) else {}
 
 
 def section(md_text, heading):
@@ -54,13 +64,13 @@ def main():
     ap = argparse.ArgumentParser(description="/launch eligibility gate (spine).")
     ap.add_argument("--product-base", required=True)
     ap.add_argument("--epic", required=True, help="epic id")
-    ap.add_argument("--run-lens", required=True, help="the slice's lens/run.md grounding doc")
+    ap.add_argument("--run-lens", required=True, help="the slice's structured lens/run.yaml")
     ap.add_argument("--issue", default=None)
     args = ap.parse_args()
 
     errors = []
     out = {"ok": False, "epic_id": None, "slice_ref": None, "issue_ref": None,
-           "epic_doc": None, "user_check": None, "acceptance": [], "tier": None,
+           "epic_doc": None, "user_check": None, "acceptance": [], "environment": None,
            "errors": errors}
 
     # --- epic entry from the spine (C1) ---------------------------------------
@@ -113,21 +123,20 @@ def main():
         if not acceptance:
             errors.append("epic.md '## Acceptance criteria' is empty (C1)")
 
-    # --- run lens declares an early tier (C2) ---------------------------------
+    # --- run lens declares a LOCAL environment (C2) ---------------------------
     try:
-        run_md = open(args.run_lens, encoding="utf-8").read()
-        envs_text = "\n".join(section(run_md, "Environments")).lower()
-        if not envs_text.strip():
-            errors.append("run lens has no '## Environments' content (C2)")
-        words = set(w.strip(".,:;()/").lower() for w in envs_text.split())
-        tier = next((t for t in DEV_QA_TIERS if t in words or t in envs_text), None)
-        if tier is None:
-            errors.append("run lens '## Environments' names no dev/QA tier "
-                          "(local/dev/qa/test/preview) — launch stands up only the early "
-                          "tiers (C2/F5)")
-        out["tier"] = tier
+        content = content_of(load(args.run_lens))
+        envs = content.get("environments") or []
+        local = next((e for e in envs if isinstance(e, dict)
+                      and ((e.get("type") == "local") or e.get("tier") == 0)), None)
+        if local is None:
+            errors.append("run lens run.yaml declares no local environment (type "
+                          "local / tier 0) — /launch brings the increment up on the "
+                          "local environment (C2/F5)")
+        else:
+            out["environment"] = local.get("name") or "local"
     except Exception as exc:
-        errors.append(f"run lens unreadable: {exc} (C2)")
+        errors.append(f"run lens run.yaml unreadable: {exc} (C2)")
 
     out["ok"] = not errors
     print(json.dumps(out, indent=2))
