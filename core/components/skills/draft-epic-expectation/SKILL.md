@@ -12,7 +12,7 @@ deprecated_note: '#434 ProductOS realignment — superseded by the command model
 
 Generates the Expectations block for a **product-layer intent epic** from its intent triple (`intent.goal`, `intent.constraints`, `intent.failure_scenario`). The companion to `generate-intent-epics` on the Expectation side of ICE at the product layer.
 
-This skill is the **epic case** — distinct from `draft-play-expectation` (play layer) and `generate-feature-expectation` (runtime feature layer). It reads an epic YAML file that already has the intent block and stub `expectations:` block written by `generate-intent-epics`, populates `success_scenario` and `recovery`, and writes back atomically.
+This skill is the **epic case** — the product-layer intent epic's Expectation side. It reads an epic YAML file that already has the intent block and stub `expectations:` block written by `generate-intent-epics`, populates `success_scenario` and `recovery`, and writes back atomically.
 
 ## Purpose
 

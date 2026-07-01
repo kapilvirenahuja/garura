@@ -45,8 +45,7 @@ Per-play `hitl` configuration in `.garura/core/config.yaml` decides whether a hu
 approves the generated Expectation or the system auto-approves and records it. There is
 no global "human must approve" rule — the decision is per-play.
 
-The two current concrete instances are `craft-ice.hitl` and `play-creator.hitl`. Each
-play sets its own policy. When `hitl` is on, the generated Expectation lands in a
+The current concrete instance is `play-creator.hitl`. Each play sets its own policy. When `hitl` is on, the generated Expectation lands in a
 `pending` state and nothing downstream consumes it until a human sets it to `approved`.
 When `hitl` is off, the play auto-approves per its configured policy and records the
 decision. Nothing downstream consumes a `pending` expectation in either mode.
