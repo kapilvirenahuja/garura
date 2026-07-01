@@ -197,7 +197,7 @@ scrubbed logs; the resolved target env; step + scenario evals SE-1…SE-9 / SCE-
 proof) and write to `$evidence_dest`. Do NOT hand-author the body. This persists the deploy evidence
 record (C7, verified by SE-9) to the evidence file, or explicitly skips on `record=false`.
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots: `## deploy Delivered —
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots: `## deploy Delivered —
 ${slug}`, the Run Summary table (target env, address, health), the Pipeline Steps table, the Artifacts
 Produced table (the deploy record + logs), Next Steps (promote to a higher cloud tier by re-running
 `/deploy --env <tier>`; production follows from main via CD), and a pointer to `$evidence_dest`. Always

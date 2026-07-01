@@ -283,7 +283,7 @@ plan, the apply manifest, the slices planned; step and scenario eval results SE-
 SCE-1…SCE-6; checkpoint decision from Step 4 including the order and any anomalies) and
 write to `$evidence_dest`. Do NOT hand-author the body.
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output the
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
 report: `## roadmap Delivered — ${product_slug}`, the Run Summary table, the Pipeline
 Steps table from the task DAG, the Artifacts Produced table (the ordered slices with
 effort + dependencies, any anomalies), Next Steps (run /grill on the top-ordered slice's

@@ -291,7 +291,7 @@ profile, any decision records, the apply manifest; the content-eval verdicts; st
 scenario eval results SE-1…SE-11 / SCE-1…SCE-5; checkpoint decision from Step 4 including
 each approved box-move) and write to `$evidence_dest`. Do NOT hand-author the body.
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output the
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
 report: `## understand Delivered — ${product_slug}`, the Run Summary table, the Pipeline
 Steps table from the task DAG, the Artifacts Produced table (the detailed capability, its
 functionalities, the firmed profile, any decisions), Next Steps (run /shape to prioritize

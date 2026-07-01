@@ -31,9 +31,11 @@ Consumers: `ship`, `fix-it`, `implement`, every play that closes with a delivery
 |----------|------|-------|
 | {artifact name} | {path} | {description or status} |
 
-### Next Steps
+### Next
 
-{Optional free-form section. Include only when there are follow-on actions for the user or downstream plays. Omit if play is fully self-contained.}
+{Required unless the play is meta_exempt. Resolve this play in standards/rules/pipeline-next.md and render: **Next:** `/<command>` — <why>. Or run `/next` to see all recommended actions. If the mapped command is null, render only the /next pointer, or omit where that reads better.}
+
+{Optional: any other real follow-ons beyond the mapped next command — open defects, uncommitted artifacts. Omit if none.}
 ```
 
 ## Field Rules

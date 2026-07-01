@@ -196,7 +196,7 @@ artifacts produced: `issue.json`, `branch.json`, the STM workspace; step/scenari
 results; checkpoint decisions from Step 2; commit reference `N/A — no commit step`) and
 write to `$evidence_dest`. Do NOT hand-author the body.
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output the
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
 report to the user: `## start-change Delivered — #${issue}`, the Run Summary table, the
 Pipeline Steps table built from the task DAG, the Artifacts Produced table, Next Steps
 (the change is ready — run the build/implement play next), and a pointer to

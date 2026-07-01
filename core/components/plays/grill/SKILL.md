@@ -497,7 +497,7 @@ round reports with dispositions, any lens-defect records, the apply manifest, th
 scenario eval results SE-1…SE-14 / SCE-1…SCE-8; checkpoint decision from Step 4) and write
 to `$evidence_dest`. Do NOT hand-author the body.
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output the
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
 report: `## grill Delivered — ${product_slug}`, the Run Summary table, the Pipeline Steps
 table from the task DAG, the Artifacts Produced table (the epics with their user_checks
 and order, the deferrals, the accepted tensions, any lens defects routed), Next Steps (the cut is merged by the end sequence — run /start on the first epic in the

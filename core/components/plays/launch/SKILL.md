@@ -370,7 +370,7 @@ evidence; step + scenario eval results SE-1…SE-8 / SCE-1…SCE-5; the HITL wal
 C9) and write to `$evidence_dest`. Do NOT hand-author the body. Then dispatch
 `repo-orchestrator` for the evidence self-commit when evidence was recorded.
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output it:
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output it:
 `## launch — #${issue}` (the outcome plainly: delivered → "the epic landed on your
 sign-off; production follows from main"; fix_required → "you rejected N scenarios — the
 defect report is on the issue; run /implement to fix exactly what it names"), the Run

@@ -227,7 +227,7 @@ checkpoint decision from Step 3; commit reference = the created commit SHAs) and
 `$evidence_dest`. `analysis.yaml` and `issue-mappings.yaml` are written unconditionally in
 Steps 1–2. Do NOT hand-author the body.
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output the
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
 report: `## commit-change Delivered — #${issue}`, the Run Summary table, the Pipeline Steps
 table from the task DAG, the Artifacts Produced table (the commits created), Next Steps
 (run propose-change to push and open the PR), and a pointer to `$evidence_dest`. Always

@@ -311,7 +311,7 @@ artifacts: the slice's `run.md`, `run.yaml`, the manifest, any decision; the con
 + scenario evals SE-1…SE-13 / SCE-1…SCE-8; checkpoint decision; the end-sequence results) and write to
 `$evidence_dest`. Do NOT hand-author the body.
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots: `## run Delivered —
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots: `## run Delivered —
 ${slug}`, the Run Summary table (name the target environment built), the Pipeline Steps table, the
 Artifacts Produced table (the run lens `run.md` + `run.yaml` + any decision), Next Steps (add the next
 environment by re-running /run, or close the non-functional pipe and run the deliver pipe: /measure,

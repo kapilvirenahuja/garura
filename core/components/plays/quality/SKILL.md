@@ -218,7 +218,7 @@ run_id `quality-${ts}`, slice slug, started/completed, status; artifacts: the sl
 the manifest, any decision; the content-eval verdict; step + scenario evals SE-1…SE-9 / SCE-1…SCE-6;
 checkpoint decision) and write to `$evidence_dest`. Do NOT hand-author the body.
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots: `## quality Delivered —
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots: `## quality Delivered —
 ${slug}`, the Run Summary table, the Pipeline Steps table, the Artifacts Produced table (the quality
 lens + any decision), Next Steps (run /run to close the non-functional pipe), and a pointer to
 `$evidence_dest`. Always emitted.

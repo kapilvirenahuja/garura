@@ -383,7 +383,7 @@ SE-1…SE-13 / SCE-1…SCE-5; the Step 4 checkpoint decision or skip) and write 
 evidence self-commit when evidence was recorded (the WORK is never committed by this
 play — the branch is /launch's to close).
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output the
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
 report: `## validate Round <round> — #${issue}` (the verdict, plainly: validated → "/launch
 is next"; fix_required → "the fix report is on the issue — run /implement to fix exactly
 what it names"; escalation → the three-round history), the Run Summary table, the Pipeline

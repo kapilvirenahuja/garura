@@ -179,7 +179,7 @@ Otherwise fill the `evidence-file.md` slots (play `propose-change`, run_id
 checkpoint decision from Step 2; commit reference `N/A — no commit step`) and write to
 `$evidence_dest`. Do NOT hand-author the body.
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output the
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
 report: `## propose-change Delivered — #${issue}`, the Run Summary table, the Pipeline
 Steps table from the task DAG, the Artifacts Produced table (incl. the PR URL), Next Steps
 (run review-change on the PR), and a pointer to `$evidence_dest`. Always emitted; never

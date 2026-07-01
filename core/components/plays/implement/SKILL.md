@@ -590,7 +590,7 @@ to self-commit only the listed evidence files with message
 `chore(stm): record implement evidence for #{issue}` (non-blocking — a commit failure
 logs a warning, never halts; the WORK stays uncommitted, C4).
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output it:
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output it:
 `## implement Built — #{issue}` (built, not delivered — full done is /validate's), the
 Run Summary table, the Pipeline Steps table from the task DAG (T1–T13, including the
 injected start member), the Artifacts Produced table, Next Steps (run /validate on this

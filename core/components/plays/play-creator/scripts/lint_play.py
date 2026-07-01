@@ -234,6 +234,36 @@ def main(argv):
                     "present" if not bad
                     else "missing or placeholder — compute a real one with shasum -a 256"))
 
+    # --- next-command recommendation (pipeline-next.md) ---------------------
+    # A compiled play with a valid position must resolve in the successor map and
+    # render a Next line at close — unless it is meta_exempt. Non-breaking: only
+    # runs when the play has a valid position AND pipeline-next.md is found.
+    if fm and pos_ok:
+        nm = re.search(r"(?m)^name:\s*(\S+)", fm.group(1))
+        play_name = (nm.group(1).strip().strip("\"'") if nm
+                     else os.path.basename(os.path.dirname(os.path.abspath(argv[1]))))
+        play_dir = os.path.dirname(os.path.abspath(argv[1]))
+        map_path = os.path.normpath(os.path.join(
+            play_dir, "..", "..", "memory", "standards", "rules", "pipeline-next.md"))
+        if os.path.isfile(map_path):
+            with open(map_path, encoding="utf-8") as fh:
+                mp = fh.read()
+            after_exempt = re.split(r"meta_exempt:", mp)[1] if "meta_exempt:" in mp else ""
+            exempt = set(re.findall(r"(?m)^\s*-\s*([a-z0-9-]+)\s*$", after_exempt))
+            mapped = set(re.findall(r"(?m)^\s{2,}([a-z0-9-]+):\s*\{", mp))
+            if play_name in exempt:
+                results.append((True, "next-command (pipeline-next)",
+                                f"{play_name} is meta_exempt — no Next required"))
+            else:
+                in_map = play_name in mapped
+                renders = "pipeline-next.md" in text
+                ok = in_map and renders
+                detail = ("resolves in pipeline-next.md and the close renders Next" if ok
+                          else f"{play_name} has no entry in pipeline-next.md (add one, or meta_exempt it)"
+                          if not in_map
+                          else "the close does not render the Next line from pipeline-next.md")
+                results.append((ok, "next-command (pipeline-next)", detail))
+
     # --- report -------------------------------------------------------------
     gaps = [r for r in results if not r[0]]
     print(f"PLAY LINT: {argv[1]}")

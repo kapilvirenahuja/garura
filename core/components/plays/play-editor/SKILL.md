@@ -157,3 +157,8 @@ coverage and the no-orphans check pass. The blast radius should be visible at a 
   a contract handoff into inline data.
 - Re-run the linter (`scripts/lint_play.py`), clear every gap, and update the fingerprint
   (`shasum -a 256`) before declaring the edit done.
+- Keep the **Next** command wired. The play must have an entry in
+  `standards/rules/pipeline-next.md` (or be `meta_exempt` there), and the recompiled
+  Standard Play Close must render its Next line from that map — the linter's
+  `next-command (pipeline-next)` check enforces it. If an edit changes what a play hands
+  off to, update its entry in the successor map too.

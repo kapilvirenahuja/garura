@@ -114,8 +114,13 @@ Otherwise fill the `evidence-file.md` slots; write the filled result to
 - Run Summary table: Play, Issue/Slug, Status, Started, Completed.
 - Pipeline Steps table: built from the task DAG per the mapping above.
 - Artifacts Produced table: the named artifacts + SHAs from C1.
-- Next Steps: only if there are real follow-ons (downstream play, open
-  defects, uncommitted artifacts). Omit if self-contained.
+- **Next** (always render, unless the play is `meta_exempt`): resolve this play in
+  `standards/rules/pipeline-next.md` and render its Next line —
+  `**Next:** /<command> — <why>. Or run /next to see all recommended actions.`
+  When the play's mapped `command` is `null` (e.g. `/next`, `start-change`), render
+  only the `/next` pointer, or omit the Next line where that reads better.
+- Next Steps (optional): any other real follow-ons beyond the mapped next command
+  (open defects, uncommitted artifacts). Omit if none.
 - End with a pointer to the full evidence file at `$evidence_dest`.
 
 ```bash

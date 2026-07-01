@@ -276,7 +276,7 @@ and scenario eval results SE-1…SE-13 / SCE-1…SCE-8; checkpoint decision from
 including kept/pruned capabilities and the slices) and write to `$evidence_dest`. Do NOT
 hand-author the body.
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output the
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
 report: `## shape Delivered — ${product_slug}`, the Run Summary table, the Pipeline
 Steps table from the task DAG, the Artifacts Produced table (status flips, selected
 functionalities, personas, journeys, decisions, the vertical slices + deferred bucket),

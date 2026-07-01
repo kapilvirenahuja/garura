@@ -341,6 +341,12 @@ the user wants the gaps fixed, they correct the intent and re-run the skill (or 
   (`standards/rules/pipeline-position.md`).
 - Always classify constraints before generating evals; always run the linter
   (`scripts/lint_play.py`) and clear every gap before declaring the play done.
+- Always wire the **Next** command. Every user-invocable compiled play must have an entry
+  in `standards/rules/pipeline-next.md` (the successor map) — add one if the play is new —
+  or be listed there under `meta_exempt`. The emitted Standard Play Close (step C2) renders
+  the play's Next line from that map (`**Next:** /<command> — <why>. Or run /next…`); the
+  linter's `next-command (pipeline-next)` check fails a positioned play that resolves to
+  neither the map nor the exempt list.
 
 ## Direct-edit deviation note (#434)
 

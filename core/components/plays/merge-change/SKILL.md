@@ -155,7 +155,7 @@ Otherwise fill the `evidence-file.md` slots (play `merge-change`, run_id
 from Step 2; commit reference = the merge commit SHA) and write to `$evidence_dest`. Do
 NOT hand-author the body.
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots and output the
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
 report: `## merge-change Delivered — #${issue}`, the Run Summary table, the Pipeline Steps
 table from the task DAG, the Artifacts Produced table (incl. the merge commit), Next Steps
 (the change has landed on main), and a pointer to `$evidence_dest`. Always emitted; never

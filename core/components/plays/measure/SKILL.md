@@ -287,7 +287,7 @@ manifest, any decision, the lines-up result, the realized stamp; the content-eva
 scenario evals SE-1…SE-11 / SCE-1…SCE-6; checkpoint decision; the end-sequence results) and write to
 `$evidence_dest`. Do NOT hand-author the body.
 
-**Step C2 — Render delivery report.** Fill the `delivery-report.md` slots: `## measure Delivered —
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots: `## measure Delivered —
 ${slug}`, the Run Summary table, the Pipeline Steps table, the Artifacts Produced table (the measure
 lens + any decision + whether the slice was stamped realized), Next Steps (if realized: run /grill to
 cut this slice into epics; else: run the missing lens pipe), and a pointer to `$evidence_dest`. Always
