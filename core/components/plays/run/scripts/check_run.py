@@ -7,8 +7,8 @@ just before apply (the snapshots are gated to the apply step, so a resume can ne
 compare post-apply against post-apply).
 
   - non-destructive: every file in the slice folder is byte-identical to its pre-apply
-    snapshot EXCEPT `lens/run.md` (the re-derive); the spine (where the profile lives)
-    is byte-identical; an accepted decision present before apply is unchanged.
+    snapshot EXCEPT `lens/run.md` and `lens/run.yaml` (the re-derive); the spine (where the
+    profile lives) is byte-identical; an accepted decision present before apply is unchanged.
   - scope: nothing was added under the slice except the run lens and new decisions; the
     other lenses (run/ux/architecture/measure/run) are untouched.
 
@@ -47,7 +47,7 @@ def census(root):
 
 def is_lens(rel):
     parts = rel.split(os.sep)
-    return len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == "run.md"
+    return len(parts) >= 2 and parts[-2] == "lens" and parts[-1] in ("run.md", "run.yaml")
 
 
 def is_decision(rel):

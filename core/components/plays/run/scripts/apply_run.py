@@ -2,16 +2,19 @@
 """
 apply_run.py — persist /run's run lens, on a fixed allowlist.
 
-Run only AFTER the human approves the checkpoint. It writes exactly two kinds of thing
+Run only AFTER the human approves the checkpoint. It writes exactly three kinds of thing
 and NOTHING else:
 
-  1. The run lens — `lens/run.md` (a grounding doc) for the slice, written from
+  1. The run lens narrative — `lens/run.md` (a grounding doc) for the slice, written from
      the draft. This is the re-derive, so it overwrites a prior run lens.
-  2. Decisions — `decisions/*.yaml`, copied skip-if-exists, so an accepted decision is
+  2. The run lens structured facts — `lens/run.yaml` (the machine-readable per-environment
+     definition the delivery plays execute against), written from the draft. Overwrites, so a
+     re-run for a new/edited environment re-derives the full env set (#434).
+  3. Decisions — `decisions/*.yaml`, copied skip-if-exists, so an accepted decision is
      never edited in place; a re-run adds only new ones.
 
-The script is handed only the draft, which holds only the run lens + decisions, so it
-physically cannot touch the hub (functionality grounding), the spine, another lens, the
+The script is handed only the draft, which holds only the run lens (md + yaml) + decisions, so
+it physically cannot touch the hub (functionality grounding), the spine, another lens, the
 slice record, or the profile.
 
 Layer rule: pure file writes from disk inputs; no git/gh/network.
@@ -49,7 +52,7 @@ def main(argv=None):
         for fn in files:
             rel = os.path.normpath(os.path.join(rel_dir, fn))
             parts = rel.split(os.sep)
-            is_lens = (len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == "run.md")
+            is_lens = (len(parts) >= 2 and parts[-2] == "lens" and parts[-1] in ("run.md", "run.yaml"))
             is_decision = ("decisions" in parts and fn.endswith(".yaml"))
             if not (is_lens or is_decision):
                 refused.append(rel)            # defensive: draft should hold only these
