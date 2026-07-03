@@ -1,0 +1,8 @@
+{
+  "number": 459,
+  "url": "https://github.com/kapilvirenahuja/garura/pull/459",
+  "state": "OPEN",
+  "title": "docs: documentation content pass over the #434 realignment (#455)",
+  "base": "main",
+  "head": "feature/455-docs-content-pass-434"
+}
