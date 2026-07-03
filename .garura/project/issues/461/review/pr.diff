@@ -1,0 +1,287 @@
+diff --git a/.garura/project/issues/461/context/analysis.yaml b/.garura/project/issues/461/context/analysis.yaml
+new file mode 100644
+index 00000000..b47bb6b0
+--- /dev/null
++++ b/.garura/project/issues/461/context/analysis.yaml
+@@ -0,0 +1,33 @@
++---
++# analyze_changeset.py output (C8 fast path)
++# issue: 461
++needs_judgment: true
++
++change_groups:
++  - type: docs
++    scope: adr
++    subject: "redefine maturity Level 3 as skeleton-and-loop, cross-reference in ADR 013"
++    files:
++      - docs/adr/025-level-3-redefined-skeleton-and-loop.md
++      - docs/adr/013-play-maturity-model.md
++      - core/grounding/glossary.md
++  - type: chore
++    scope: stm
++    subject: "record start-change workspace context"
++    files:
++      - .garura/project/issues/461/context/branch.json
++      - .garura/project/issues/461/context/issue.json
++      - .garura/project/issues/461/context/porcelain.txt
++      - .garura/project/issues/461/context/work-description.txt
++
++exclusions:
++  - file: .garura/project/issues/461/context/analysis.yaml
++    reason: "play run-state artifact — never included in a commit group"
++
++risks:
++  sensitive_files:
++    []
++
++eval_gates:
++  SE-1: {status: PASS, evidence: "2 single-concern groups formed: docs(adr) for the ADR 025/013 + glossary change, chore(stm) for start-change workspace context; analysis.yaml excluded as run-state"}
++  SE-5: {status: PASS, evidence: "no sensitive patterns matched"}
+diff --git a/.garura/project/issues/461/context/branch.json b/.garura/project/issues/461/context/branch.json
+new file mode 100644
+index 00000000..bbcf9501
+--- /dev/null
++++ b/.garura/project/issues/461/context/branch.json
+@@ -0,0 +1,6 @@
++{
++  "branch_name": "feature/461-adr013-level3-determinism",
++  "base_sha": "269bb6782e08c280e28a4bb247f75653cbb21ca6",
++  "on_default_branch": false,
++  "worktree_path": null
++}
+diff --git a/.garura/project/issues/461/context/commits.yaml b/.garura/project/issues/461/context/commits.yaml
+new file mode 100644
+index 00000000..968ad76a
+--- /dev/null
++++ b/.garura/project/issues/461/context/commits.yaml
+@@ -0,0 +1,21 @@
++commits:
++  - sha: b2ccdd5
++    message: "docs(adr): redefine maturity Level 3 as skeleton-and-loop, cross-reference in ADR 013 (#461)"
++    files:
++      - docs/adr/025-level-3-redefined-skeleton-and-loop.md
++      - docs/adr/013-play-maturity-model.md
++      - core/grounding/glossary.md
++    branch: feature/461-adr013-level3-determinism
++  - sha: b85ca51
++    message: "chore(stm): record start-change workspace context (#461)"
++    files:
++      - .garura/project/issues/461/context/branch.json
++      - .garura/project/issues/461/context/issue.json
++      - .garura/project/issues/461/context/porcelain.txt
++      - .garura/project/issues/461/context/work-description.txt
++    branch: feature/461-adr013-level3-determinism
++excluded_files:
++  - path: ""
++    reason: "play run-state artifact — never included in a commit group"
++clean_after: true
++push: false
+diff --git a/.garura/project/issues/461/context/issue.json b/.garura/project/issues/461/context/issue.json
+new file mode 100644
+index 00000000..648f2203
+--- /dev/null
++++ b/.garura/project/issues/461/context/issue.json
+@@ -0,0 +1,7 @@
++{
++  "resolved": true,
++  "issue_number": 461,
++  "title": "[DOCS] Stage 0: Amend ADR 013 — redefine Level 3, record the determinism rule",
++  "state": "OPEN",
++  "created": false
++}
+diff --git a/.garura/project/issues/461/context/porcelain.txt b/.garura/project/issues/461/context/porcelain.txt
+new file mode 100644
+index 00000000..f8553e23
+--- /dev/null
++++ b/.garura/project/issues/461/context/porcelain.txt
+@@ -0,0 +1,4 @@
++ M core/grounding/glossary.md
++ M docs/adr/013-play-maturity-model.md
++?? .garura/project/issues/461/
++?? docs/adr/025-level-3-redefined-skeleton-and-loop.md
+diff --git a/.garura/project/issues/461/context/work-description.txt b/.garura/project/issues/461/context/work-description.txt
+new file mode 100644
+index 00000000..65142b6a
+--- /dev/null
++++ b/.garura/project/issues/461/context/work-description.txt
+@@ -0,0 +1 @@
++Stage 0 of the IDSD Level 3 epic (#460): Amend ADR 013 — redefine Level 3 as fixed command skeleton with a goal-driven loop inside each box, record the determinism rule (determinism lives at the skeleton, never inside the boxes), retire the old L3 wording, keep L4 as north star. Docs-only: ADR amendment + glossary alignment. Tracked issue: #461.
+diff --git a/core/grounding/glossary.md b/core/grounding/glossary.md
+index f5a4094d..39031f3a 100644
+--- a/core/grounding/glossary.md
++++ b/core/grounding/glossary.md
+@@ -130,8 +130,9 @@ Plays are produced by the `reference/ice.md → /play-creator → SKILL.md` pipe
+ 
+ | Concept | Definition | Examples | Relationships | Anti-definition |
+ |---------|------------|----------|---------------|-----------------|
+-| **Play maturity levels (L1–L5)** | Historical five-level classification of play sophistication from L1 ("structured non-deterministic") to L5 ("dark factory"). Defined in ADR 013. The numeric levels are no longer assigned — play coherence is enforced by the ICE source, the compiler's gates, and evals. | L1: human-run, non-deterministic. L2: compiled, intent-driven (current). L3: eval-driven. L4: self-improving. L5: autonomous. | Historical only; see: Level 2 (Compiled, Intent-Driven) for current state | NOT: the current design criterion. Modern plays are not assigned a level — coherence is enforced by the ICE source and evals. |
+-| **Level 2 (Compiled, Intent-Driven)** | The current operating level of all Garura plays. SKILL.md is compiled from the ICE source by `/play-creator`. The same intent input always produces the same execution path. Intent changes require recompilation; only non-intent surface edits are made directly, with a deviation note. | All plays in `core/components/plays/` are Level 2 — they have `reference/ice.md` and a compiled `SKILL.md` (`play-creator` itself excepted: it is the compiler bootstrap and has no ICE source) | Produced by `/play-creator`; references the ICE source; the current operational target | NOT: a target to be reached. Level 2 is where all current plays already are. NOT: a permanent ceiling — the maturity model extends to L5. |
++| **Play maturity levels (L1–L5)** | Five-level classification of framework maturity from L1 ("structured non-deterministic") to L5 ("dark factory"). Defined in ADR 013; Level 3 redefined by ADR 025. Numeric levels are never assigned to individual plays (ADR 017) — they name the framework's operating model. | L1: human-run, non-deterministic. L2: compiled, intent-driven (current). L3: deterministic skeleton, goal-loop interior (target — ADR 025). L4: runtime resolution (north star). L5: autonomous. | Framework-level only; see: Level 2 for current state, Level 3 for the target | NOT: a per-play badge. Play coherence is enforced by the ICE source, the compiler's gates, and evals — not by a level number. |
++| **Level 2 (Compiled, Intent-Driven)** | The current operating level of all Garura plays. SKILL.md is compiled from the ICE source by `/play-creator`. The same intent input always produces the same execution path — including the interior steps of every box. Intent changes require recompilation; only non-intent surface edits are made directly, with a deviation note. | All plays in `core/components/plays/` are Level 2 — they have `reference/ice.md` and a compiled `SKILL.md` (`play-creator` itself excepted: it is the compiler bootstrap and has no ICE source) | Produced by `/play-creator`; references the ICE source; the current operational state | NOT: a target to be reached. Level 2 is where all current plays already are. NOT: a permanent ceiling — Level 3 (ADR 025) is the active target. |
++| **Level 3 (Skeleton + Goal-Loop)** | The active target operating model (ADR 025). The compiled skeleton — command sequence, gates, evidence contract — stays deterministic and guaranteed; inside each box the agent runs a free loop until the intent is met, fenced by four walls: a machine-checkable stop condition, a checker executing the lens's deterministic gates, a turn/token budget, and an evidence schema. Governing rule: determinism lives at the skeleton, never inside the boxes. | A ship is always commit-change → propose-change → review-change → merge-change (skeleton); how commit-change groups and commits internally is the loop's call, closed by its stop condition | Defined in ADR 025; reached via epic #460; keeps the ICE → `/play-creator` pipeline; the loop self-checks only deterministic quality — design/UX/security judgment stays human or fresh-context reviewer | NOT: runtime intent resolution — that is Level 4, a north star deliberately not being built (ADR 013's rollback stands). NOT: self-judging subjective quality. |
+ | **ICE source (`reference/ice.md`)** | The per-play source of truth: the clean Intent triple (goal, constraints C-N, failure conditions F-N) plus the generated-and-vetted Expectation (success scenarios, recovery). Authored by the framework author; compiled by `/play-creator`; changed via `/play-editor`; never modified at runtime. | `core/components/plays/vision/reference/ice.md` — defines `/vision`'s goal, constraints, and expectation | Input to `/play-creator`; produces Compiled play; referenced at runtime via `intent_path` in JSON contract | NOT: a task description or runtime prompt. The ICE source is a design-time contract defining what success means, compiled before the play ever runs. |
+ | **Compiled play** | The `SKILL.md` produced by `/play-creator` from `reference/ice.md`. The artifact that agents execute at runtime. Intent changes require editing the ICE source and recompiling (via `/play-editor`); non-intent surface edits are allowed directly, recorded with a `Direct-edit deviation note`. | `core/components/plays/vision/SKILL.md` | Produced by `/play-creator` from the ICE source; deployed via `/install-garura` | NOT: the ICE source. The ICE source is the design-time contract; SKILL.md is the compiled artifact that agents execute. NOT: the place to make intent changes. |
+ | **/play-creator** | The play compiler. Interviews for the intent triple, generates the Expectation, identifies the skills, scripts, and agents the play needs, selects a workflow structure, generates evals, and emits the compiled `SKILL.md` plus bundled scripts for the play's mechanical work. It is the compiler bootstrap — it has no ICE source of its own, so changes to it are direct SKILL.md edits by definition. | `/play-creator` run to compile a new play; `/play-editor` to change an existing one | Compiles the ICE source into SKILL.md; companion `/play-editor` edits existing plays by editing their ICE source and recompiling | NOT: `/play-editor`, which modifies existing plays. NOT: a hand-editing pass — the compiled play is generated. |
+diff --git a/docs/adr/013-play-maturity-model.md b/docs/adr/013-play-maturity-model.md
+index d8fb084d..8f153ec6 100644
+--- a/docs/adr/013-play-maturity-model.md
++++ b/docs/adr/013-play-maturity-model.md
+@@ -1,9 +1,9 @@
+ # ADR 013: Play Maturity Model — From Compiled Intents to Dark Factories
+ 
+-**Status:** Accepted
++**Status:** Accepted — Level 3 definition amended by ADR 025; L1/L2 per-play assignment superseded by ADR 017
+ **Date:** 2026-03-06
+ **Supersedes:** None
+-**Related:** ADR 001 (Three-Layer Hierarchy), ADR 012 (Evidence Self-Commit)
++**Related:** ADR 001 (Three-Layer Hierarchy), ADR 012 (Evidence Self-Commit), ADR 025 (Level 3 redefined — deterministic skeleton, goal-loop interior)
+ 
+ ## Context
+ 
+diff --git a/docs/adr/025-level-3-redefined-skeleton-and-loop.md b/docs/adr/025-level-3-redefined-skeleton-and-loop.md
+new file mode 100644
+index 00000000..3520071b
+--- /dev/null
++++ b/docs/adr/025-level-3-redefined-skeleton-and-loop.md
+@@ -0,0 +1,141 @@
++# ADR 025: Level 3 Redefined — Deterministic Skeleton, Goal-Loop Interior
++
++**Status:** Accepted
++**Date:** 2026-07-04
++**Amends:** ADR 013 (Play Maturity Model — the Level 3 definition)
++**Related:** ADR 013 (maturity framework), ADR 017 (no per-play level assignment), ADR 023 (three execution trinities), epic #460, issue #461
++
++## Context
++
++### Where we are
++
++Garura operates at Level 2 of the ADR 013 maturity ladder: every play is compiled
++from its ICE source into a fixed internal step sequence, and the same input always
++produces the same execution path. That determinism was the right response to the
++failed Level 4 jump ADR 013 records — runtime DAG resolution created three competing
++sources of truth and drowned the value in overhead.
++
++But Level 2 has a cost we now measure. The compiled play prescribes not only *what
++must be true* at close (the evidence contract, the evals) but *how the interior of
++every step must run* (the baked choreography). The choreography half buys us little:
++the guarantees live in the constraints, failure conditions, scenarios, and evidence
++schema — not in the prescribed internal step order. Meanwhile the industry converged
++on a different execution shape for the interior: an agent looping freely against a
++verifiable goal — do, check, decide to stop or continue — with the loop closed by a
++machine-checkable finish line rather than by a step list running out. Anthropic's
++formulation: give the model something that produces a pass or fail, and the loop
++closes on its own; without it, "looks done" is the only signal available.
++
++### Why ADR 013's Level 3 is the wrong next rung
++
++ADR 013 defines Level 3 as "the workflow structure itself moves into intent" — the
++user authors both domain knowledge and workflow shape in the intent, but the compiled
++play still runs the same fixed steps. That definition relocates the recipe text; it
++does not change how a step executes. The leverage is not in where the recipe is
++written. It is in what the interior of each step is allowed to do, and what proves
++the step done.
++
++### What was verified before this decision
++
++Three premises were checked against the codebase, not assumed:
++
++1. **The oracle exists but nothing executes it.** The quality lens writes what
++   "good" means as a prose gates table (`| Dimension | Bar | How checked |`); no
++   skill runs the "How checked" column. Verification today is either LLM inference,
++   file-shape linting, or a human walk.
++2. **No token budget exists anywhere.** Every "budget" in the framework is an
++   agent-count cap (≤5 domain agents). No turn cap, no token cap, no spend recorded
++   in evidence.
++3. **Execution is strictly sequential.** One sub-agent per step, questions one at a
++   time; the parent/child evidence model (`parent_run_id`) supports concurrent child
++   runs structurally, but no play fans out.
++
++And one precedent inside our own walls: the /implement ICE already states "no fixed
++loop" within a build piece — when to test and when to judge stays the agent's call.
++The interior loop exists at the smallest grain. This ADR generalizes it.
++
++## Decision
++
++**Level 3 is redefined: a play is a deterministic skeleton whose boxes each run a
++free, goal-driven loop.** The old Level 3 wording ("workflow structure moves into
++intent") is retired.
++
++### The determinism rule
++
++> **Determinism lives at the skeleton, never inside the boxes.**
++
++The skeleton — the sequence of commands, the gates between them, the evidence that
++must exist at close — is the compiled, guaranteed, hash-locked part. A ship is
++always commit-change → propose-change → review-change → merge-change: all four, in
++order, every time. That guarantee is non-negotiable and survives this change intact.
++
++The interior of each box is the loop's business. The compiler stops baking internal
++step choreography and instead hands each box four things:
++
++| Wall | What it is | What it replaces |
++|------|-----------|------------------|
++| **Stop condition** | A "done means" statement the loop can evaluate itself — machine-checkable, not prose | Ending because the step list ran out |
++| **Checker** | The deterministic gates the quality lens defines (linters, tests, types, architecture rules, coverage), executed by a runner that emits pass/fail | The prose "How checked" column nobody executes |
++| **Budget** | A turn cap and a token/cost cap the loop cannot cross — enforcement that halts, not a dashboard that reports | Nothing (no budget exists today) |
++| **Evidence schema** | What the loop must write as it works, so the close contract and crash recovery hold | Evidence assembled only at close |
++
++Inside those walls the agent decides its own steps: what to read, when to test,
++when to retry, when it is finished. The loop exits when the stop condition holds or
++a wall is hit — never silently.
++
++### The boundary of self-checking
++
++The loop self-verifies only the deterministic slice. Visual design, UX judgment,
++and security assessment are explicitly outside the runner: they stay with a human
++gate or a fresh-context reviewer at the edges. This is not a temporary compromise —
++rules-based checks are strong feedback and model-self-judgment is weak feedback, so
++the architecture assigns each kind of verification to the party that can actually
++perform it.
++
++### What does not change
++
++- **The evidence contract.** Standard Play Close, evidence files, checkpoint audit
++  records, STM/LTM, `parent_run_id` — the proof shell is untouched. The DAG survives
++  as the contract of what evidence must exist at close; it stops being interior
++  choreography.
++- **The ICE pipeline.** Plays are still compiled from `reference/ice.md` by
++  play-creator; intent changes still recompile. What the compiler *emits* per box
++  changes (goal + walls instead of steps); how plays are authored does not.
++- **Level 4's status.** Runtime intent resolution remains a north star, not a
++  target. It was attempted once and rolled back (ADR 013); nothing here re-opens it.
++  Level 3 deliberately keeps compilation — it reaches for Level 4's interior freedom
++  without Level 4's runtime resolution.
++- **ADR 017's ruling.** Plays are still not individually assigned numeric levels.
++  Level 3 names the framework's operating model, not a per-play badge.
++
++## Consequences
++
++- **play-creator changes shape.** The compiler's per-box output becomes goal +
++  four walls + evidence schema. Compilation gates that assert baked interior steps
++  are replaced by gates that assert the walls are present and machine-checkable.
++- **The quality lens becomes executable.** The deterministic slice of the gates
++  table gains a runnable form; a runner executes it and writes verdicts into
++  evidence (epic #460, Stage 1a).
++- **Evidence gains spend and identity.** Every run stamps token spend, caps, and
++  run identity at close, making cost attribution exact and the budget wall
++  enforceable (Stage 1b).
++- **Human gates become configuration.** Checkpoints stay defaulted on; each becomes
++  a per-risk-class switch, retired one class at a time only on recorded evidence
++  that the runner catches what the human was catching (Stages 3–4).
++- **Parallelism becomes possible last.** Independent boxes and checks may run
++  concurrently under one parent only after the budget wall is proven — parallel
++  execution multiplies whatever one loop does, including a runaway (Stage 5).
++- **The word "deterministic" narrows honestly.** Garura stops promising "step 4
++  ran the same way" and starts promising "the same four commands ran, the same
++  gates held, the same evidence exists, and the loop's verdict is recorded." Path
++  determinism is traded for outcome determinism; the proof shell is what makes
++  that trade safe.
++
++## Migration
++
++Staged under epic #460: the ADR amendment (this record, #461), the three walls that
++do not exist yet (#462 checker, #463 budget, #464 stop condition), a pilot recompile
++of commit-change (#465 — most-used play, so a bad recompile surfaces immediately),
++rollout with gates-as-config (#466), evidence-based gate reduction (#467), and
++parallelism (#468). Each stage merges to main through the full change pipeline
++before dependent stages begin.

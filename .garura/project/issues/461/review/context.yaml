@@ -1,0 +1,26 @@
+pr:
+  number: 469
+  head: feature/461-adr013-level3-determinism
+  base: main
+
+standards_order:
+  # from .garura/core/config.yaml review-pr.standards_order: [kb, ltm, stm]
+  - name: kb
+    path: ~/.garura/core/memory/        # ltm.global-target — machine-global KB
+  - name: ltm
+    path: ./.garura/core/memory/        # ltm.project-target — project LTM
+  - name: stm
+    path: .garura/project/issues/       # stm.base-path — issue-scoped STM
+
+changed_paths:
+  - .garura/project/issues/461/context/analysis.yaml
+  - .garura/project/issues/461/context/branch.json
+  - .garura/project/issues/461/context/commits.yaml
+  - .garura/project/issues/461/context/issue.json
+  - .garura/project/issues/461/context/porcelain.txt
+  - .garura/project/issues/461/context/work-description.txt
+  - core/grounding/glossary.md
+  - docs/adr/013-play-maturity-model.md
+  - docs/adr/025-level-3-redefined-skeleton-and-loop.md
+
+diff_path: .garura/project/issues/461/review/pr.diff

@@ -1,0 +1,126 @@
+meta:
+  generated_at: "2026-07-04T00:00:00Z"
+  diff_path: ".garura/project/issues/461/review/pr.diff"
+  changed_paths_count: 9
+  scan_coverage: 1.0
+  taxonomy_path: ".garura/core/memory/standards/rules/pr.md"
+  standards_relevant: 4
+  standards_order_resolved:
+    - name: kb
+      path: "~/.garura/core/memory/"
+    - name: ltm
+      path: "./.garura/core/memory/"
+    - name: stm
+      path: ".garura/project/issues/"
+  evaluated_paths:
+    - .garura/project/issues/461/context/analysis.yaml
+    - .garura/project/issues/461/context/branch.json
+    - .garura/project/issues/461/context/commits.yaml
+    - .garura/project/issues/461/context/issue.json
+    - .garura/project/issues/461/context/porcelain.txt
+    - .garura/project/issues/461/context/work-description.txt
+    - core/grounding/glossary.md
+    - docs/adr/013-play-maturity-model.md
+    - docs/adr/025-level-3-redefined-skeleton-and-loop.md
+  notes:
+    - "All 41 grep-based standard rows (SEC-*, ARCH-07, BE-*, CODE-21..30, OPS-09/15, DATA-17/18, DEBT-*, etc.) were evaluated against added lines (`^\\+` excluding `^\\+\\+\\+`) in pr.diff. Zero matches — this changeset is prose-only (two ADR files, one glossary table row, five STM run-state files); it contains no code, no secrets-shaped strings, no route/migration/query syntax."
+    - "The taxonomy copy resolved via standards_order (kb: ~/.garura/core/memory/standards/rules/pr.md) is missing the Artifact-Type Scoping addendum (#438) present in core/components/memory/standards/rules/pr.md (the un-deployed source). That addendum would have made grep rules ineligible on docs-planning/garura-prose/stm-evidence paths. It made no difference to this run's output because zero grep patterns matched regardless — but the deployed kb/ltm copies are stale relative to source and should be re-synced via install-garura."
+  confidence: high
+
+findings:
+  - standard_id: DOC-04
+    severity: P3
+    file: docs/adr/013-play-maturity-model.md
+    line: 1
+    evidence: "path match docs/adr/**"
+    taxonomy_rule_id: DOC-04
+  - standard_id: DOC-04
+    severity: P3
+    file: docs/adr/025-level-3-redefined-skeleton-and-loop.md
+    line: 1
+    evidence: "path match docs/adr/**"
+    taxonomy_rule_id: DOC-04
+  - standard_id: CODE-20
+    severity: P4
+    file: .garura/project/issues/461/context/analysis.yaml
+    line: 1
+    evidence: "path match **/* (catch-all)"
+    taxonomy_rule_id: CODE-20
+  - standard_id: CODE-20
+    severity: P4
+    file: .garura/project/issues/461/context/branch.json
+    line: 1
+    evidence: "path match **/* (catch-all)"
+    taxonomy_rule_id: CODE-20
+  - standard_id: CODE-20
+    severity: P4
+    file: .garura/project/issues/461/context/commits.yaml
+    line: 1
+    evidence: "path match **/* (catch-all)"
+    taxonomy_rule_id: CODE-20
+  - standard_id: CODE-20
+    severity: P4
+    file: .garura/project/issues/461/context/issue.json
+    line: 1
+    evidence: "path match **/* (catch-all)"
+    taxonomy_rule_id: CODE-20
+  - standard_id: CODE-20
+    severity: P4
+    file: .garura/project/issues/461/context/porcelain.txt
+    line: 1
+    evidence: "path match **/* (catch-all)"
+    taxonomy_rule_id: CODE-20
+  - standard_id: CODE-20
+    severity: P4
+    file: .garura/project/issues/461/context/work-description.txt
+    line: 1
+    evidence: "path match **/* (catch-all)"
+    taxonomy_rule_id: CODE-20
+  - standard_id: CODE-20
+    severity: P4
+    file: core/grounding/glossary.md
+    line: 1
+    evidence: "path match **/* (catch-all)"
+    taxonomy_rule_id: CODE-20
+  - standard_id: ARCH-23
+    severity: P4
+    file: docs/adr/013-play-maturity-model.md
+    line: 1
+    evidence: "path match docs/adr/**"
+    taxonomy_rule_id: ARCH-23
+  - standard_id: CODE-20
+    severity: P4
+    file: docs/adr/013-play-maturity-model.md
+    line: 1
+    evidence: "path match **/* (catch-all)"
+    taxonomy_rule_id: CODE-20
+  - standard_id: DOC-05
+    severity: P4
+    file: docs/adr/013-play-maturity-model.md
+    line: 1
+    evidence: "path match docs/adr/**"
+    taxonomy_rule_id: DOC-05
+  - standard_id: ARCH-23
+    severity: P4
+    file: docs/adr/025-level-3-redefined-skeleton-and-loop.md
+    line: 1
+    evidence: "path match docs/adr/**"
+    taxonomy_rule_id: ARCH-23
+  - standard_id: CODE-20
+    severity: P4
+    file: docs/adr/025-level-3-redefined-skeleton-and-loop.md
+    line: 1
+    evidence: "path match **/* (catch-all)"
+    taxonomy_rule_id: CODE-20
+  - standard_id: DOC-05
+    severity: P4
+    file: docs/adr/025-level-3-redefined-skeleton-and-loop.md
+    line: 1
+    evidence: "path match docs/adr/**"
+    taxonomy_rule_id: DOC-05
+
+counts:
+  P1: 0
+  P2: 0
+  P3: 2
+  P4: 13
