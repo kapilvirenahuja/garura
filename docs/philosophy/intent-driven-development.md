@@ -1179,9 +1179,8 @@ IDD rests on three testable hypotheses. These are not proven — they are the be
 
 ## Related Documentation
 
-- [Philosophy](./philosophy.md) — Intent-Driven Software Development, Three Tenets of AI-Native SDLC
-- [Design Principles](./principles.md) — Separation of Concerns, Explicit via Abstraction, Error Context Standard
-- [Naming Conventions](./naming-conventions.md) — Play, Agent, and Skill naming patterns
+- [IDSD Methodology](./idsd.md) — How IDD principles are operationalized in Garura
+- [Garura Architecture](./architecture.md) — Three-layer hierarchy, Four Crafts, and memory architecture
 
 ---
 

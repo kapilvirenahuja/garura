@@ -39,7 +39,7 @@ Allow skills to read from LTM at runtime for **organizational knowledge** — st
 
 3. **LTM paths are stable conventions** — Skills reference LTM via well-known paths under `~/.garura/core/memory/` (global) or `.garura/core/memory/` (project). These paths are treated as API contracts.
 
-4. **Failure is loud** — If an LTM reference file is missing, the skill fails visibly (file not found), not silently. This is acceptable because LTM is deployed via `/sud:install`.
+4. **Failure is loud** — If an LTM reference file is missing, the skill fails visibly (file not found), not silently. This is acceptable because LTM is deployed via `install-garura`.
 
 5. **No duplication** — When organizational knowledge is shared by multiple skills, it exists once in LTM. Skills reference the single source.
 
@@ -123,7 +123,7 @@ core/components/skills/{skill-name}/
 ### Mitigations
 
 - LTM paths are stable conventions, treated as API contracts
-- `/sud:install` deploys LTM content to well-known paths
+- `install-garura` deploys LTM content to well-known paths
 - Failure is loud (file not found), not silent
 - Only organizational knowledge moves to LTM; skill behavior stays embedded
 

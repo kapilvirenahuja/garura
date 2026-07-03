@@ -1,0 +1,93 @@
+---
+# analyze_changeset.py output (C8 fast path) — grouped by analyze agent
+needs_judgment: false
+branch: feature/455-docs-content-pass-434
+issue: 455
+
+change_groups:
+  - id: docs-content-accuracy-pass
+    issue: 455
+    commit_type: docs
+    scope: docs
+    subject: "correct documentation to match shipped state"
+    confidence: high
+    files:
+      - CLAUDE.md
+      - README.md
+      - core/grounding/glossary.md
+      - core/grounding/rules/evidence.md
+      - docs/adr/009-skill-ltm-organizational-knowledge.md
+      - docs/adr/017-folder-whitelist.md
+      - docs/adr/SUPERSEDED-007-skill-local-references.md
+      - docs/command-chain.html
+      - docs/components/agents.md
+      - docs/components/memory.md
+      - docs/components/plays.md
+      - docs/components/skills.md
+      - docs/philosophy/architecture.md
+      - docs/philosophy/intent-driven-development.md
+    risks:
+      sensitive_files: []
+      breaking_changes: []
+    notes: "Documentation accuracy sweep — CLAUDE.md/README/glossary/evidence rule/ADRs/docs.components/docs.philosophy/command-chain corrected to match shipped #434 state. No behavior change."
+
+  - id: standards-truth-fixes
+    issue: 455
+    commit_type: fix
+    scope: standards
+    subject: "correct lens schema index and write-evidence whitelist status"
+    confidence: high
+    files:
+      - core/components/memory/standards/schemas/product-os/lens/_index.md
+      - core/components/skills/write-evidence/SKILL.md
+    risks:
+      sensitive_files: []
+      breaking_changes: []
+    notes: "Lens schema index corrected to list all seven lenses with marketing as grounding-only; write-evidence whitelist status field corrected to match actual folder whitelist."
+
+  - id: remove-dead-epic-skills
+    issue: 455
+    commit_type: chore
+    scope: skills
+    subject: "remove dead epic-generation skills"
+    confidence: high
+    files:
+      - core/components/skills/derive-quality-profile-from-epics/SKILL.md
+      - core/components/skills/draft-epic-expectation/SKILL.md
+      - core/components/skills/draft-epic-expectation/reference/.gitkeep
+      - core/components/skills/generate-intent-epics/SKILL.md
+      - core/components/skills/generate-intent-epics/reference/intent.yaml
+      - core/components/skills/validate-intent-epics/SKILL.md
+    risks:
+      sensitive_files: []
+      breaking_changes:
+        - "Removes four skills (generate-intent-epics, validate-intent-epics, draft-epic-expectation, derive-quality-profile-from-epics) — confirm no play still references them before merge."
+    notes: "Deletes four dead skills superseded by the #434 realignment to the ProductOS command model; no live play invokes them."
+
+  - id: stm-workspace-455
+    issue: 455
+    commit_type: chore
+    scope: stm
+    subject: "record issue #455 STM workspace"
+    confidence: high
+    files:
+      - .garura/project/issues/455/porcelain.txt
+      - .garura/project/issues/455/issue.json
+      - .garura/project/issues/455/branch.json
+      - .garura/project/issues/455/work-description.txt
+      - .garura/project/issues/455/analysis.yaml
+    risks:
+      sensitive_files: []
+      breaking_changes: []
+    notes: "Play run records (scan snapshot, issue/branch metadata, work description, this analysis) for the #455 commit-change run — operational, not part of the feature itself."
+
+exclusions:
+  []
+
+risks:
+  sensitive_files:
+    []
+
+eval_gates:
+  SE-1: {status: PASS, evidence: "grouped into 4 single-concern groups by analyze agent judgment: docs sweep, standards/schema truth fixes, dead-skill deletion, STM workspace"}
+  SE-5: {status: PASS, evidence: "no sensitive patterns matched; one breaking-change flag noted on dead-skill deletion for reviewer awareness"}

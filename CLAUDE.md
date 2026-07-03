@@ -15,16 +15,16 @@ core/components/           # Source of truth (edit here)
 ├── plays/                 # plays
 └── memory/                # LTM: standards, formats, knowledge
 
-~/.claude/                 # Global deployment (via /sud:install)
+{target}/.claude/          # Deployment into a target project (via install-garura)
 ├── agents/                # Deployed agents
 └── skills/                # Deployed skills + plays
 
-~/.garura/core/memory/     # Global KB (via /sud:install)
+~/.garura/core/memory/     # Machine-global KB (via install-garura)
 ```
 
 **Note:** `.claude/` and `.garura/core/memory/` are NO LONGER tracked in the repository. They are gitignored.
-- Components deploy to `~/.claude/` (global mode, default) or `.claude/` (project mode, ephemeral)
-- Memory deploys to `~/.garura/core/memory/` (global mode, default) or `.garura/core/memory/` (project mode, ephemeral)
+- Components deploy into the target's `.claude/` (Claude Code) or `.agents/skills/` (Codex CLI) via the `install-garura` play
+- Memory deploys to the machine-global `~/.garura/core/memory/` (default; overridable via `--memory-dest`)
 
 **Data Flow:** Play → invokes agents via Task tool → agents invoke skills → skills produce artifacts to STM (`{stm_base}/{issue}/` — resolved from `stm.base-path` in `.garura/core/config.yaml`)
 
@@ -32,8 +32,8 @@ core/components/           # Source of truth (edit here)
 
 ### 1. Source of Truth
 
-Author all components in `core/components/`. The canonical deployment is `~/.claude/` (global).
-After editing source, run the sudarshan `/sud:install` meta-play to deploy components into a target's `.claude/` (skills + agents). Deployment tooling lives in sudarshan, not in garura itself.
+Author all components in `core/components/`. Deployed copies under a target's `.claude/` are never edited by hand.
+After editing source, run the garura-native `install-garura` play to deploy components into a target's `.claude/` (skills + agents + plays). Deployment tooling lives in `core/components/plays/install-garura/`; the reverse is `uninstall-garura`.
 
 ### 2. Execution Model
 
@@ -91,9 +91,9 @@ A play change is one of two kinds, and the kind decides the path:
 
 - **Intent change** — anything touching what the play *decides or guarantees*:
   the intent statement, constraints (C-), failure conditions (F-), scenarios
-  (S-), the agent/skill flow, or evals. This MUST go through
-  `reference/intent.yaml` → `/play-creator --build {play}`. Never hand-edit a
-  compiled `SKILL.md` for an intent change.
+  (S-), the agent/skill flow, or evals. This MUST go through the play's ICE
+  source (`reference/ice.md`) → recompile with `/play-editor`. Never hand-edit
+  a compiled `SKILL.md` for an intent change.
 
 - **Non-intent change** — output format, close/report scaffolding, template
   wiring, surface prose: nothing that alters a guarantee, decision, or eval.
@@ -101,7 +101,7 @@ A play change is one of two kinds, and the kind decides the path:
   `/play-creator`; rebuilding when intent is unchanged wastes the pipeline.
   Record the edit with a `**Direct-edit deviation note ({issue}):**` footer.
 
-`play-creator` itself has no `intent.yaml` (it is the compiler bootstrap) — all
+`play-creator` itself has no ICE source (it is the compiler bootstrap) — all
 changes to it are direct edits to its `SKILL.md` by definition.
 
 **Durability rule for non-intent edits:** a hand edit to a generated file is
@@ -118,6 +118,6 @@ same converge-and-lint pattern, not just a one-off hand edit.
 
 - `core/grounding/glossary.md` — Canonical definitions of every Garura concept
 - `.garura/core/config.yaml` — Paths and settings
-- `docs/adr/` — Architecture Decision Records (8 ADRs)
+- `docs/adr/` — Architecture Decision Records (23 ADRs, plus one superseded)
 - `docs/philosophy/` — Core architecture philosophy
 - `docs/components/` — Agent, skill, play, memory documentation

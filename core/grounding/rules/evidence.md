@@ -1,87 +1,40 @@
 # Evidence Recording Rule
 
-**Self-development reference only — not deployed via /sud:install.**
+**Self-development reference only — not deployed via /install-garura.**
 
 ---
 
-## Overview
+## Superseded — see the canonical standard
 
-The `evidence.record` flag controls whether non-essential STM artifact writes occur during
-play execution. It is a global boolean flag in `.garura/core/config.yaml` under the
-`evidence:` top-level section.
+The canonical evidence-recording rule now lives at
+`core/components/memory/standards/rules/evidence-recording.md` (the D1
+auto-build rule, #434). That file is the single source of truth for **who**
+records run evidence, **when**, and **how it is switched on or off**. Defer to
+it; this grounding note only records what changed since the original prototype.
 
-## Config Key
+## What survives
 
-```yaml
-# Location: .garura/core/config.yaml
-evidence:
-  record: true   # Default: true (backward compatible — existing behavior unchanged)
-```
+- The **`evidence.record`** config key survives: a boolean under the
+  `evidence:` section of `.garura/core/config.yaml`, default `true` when
+  absent. Plays resolve it in pre-flight (e.g. `commit-change`'s pre-flight
+  returns `evidence_record` among its facts) and gate the machine-readable
+  evidence write (the `C1` slot of the Standard Play Close) on it.
+- The user-facing delivery report (`C2` of the Standard Play Close) is a UX
+  surface and is **never** gated by the flag — see
+  `standards/rules/play-close.md`.
 
-- **Config key:** `evidence.record`
-- **Default value:** `true`
-- **Allowed values:** `true` or `false`
+## What changed from the original prototype
 
-When the key is absent from config, all plays default to `true` (existing behavior unchanged).
+This note originally documented the `commit-code` play as the prototype:
+`create-commit` read the flag and returned `skip_commits_yaml`,
+`repo-orchestrator` skipped the `commits.yaml` write, and the play skipped its
+delivery record and status file in Step 8. That design is retired along with
+the `commit-code` play (#434):
 
-## What It Controls
-
-When `evidence.record` is `false`, non-essential artifact writes in the `commit-code` play
-and `create-commit` skill are skipped. The flag does NOT affect play correctness — all
-artifacts required for the play to function are always written regardless of this flag.
-
-## Artifacts Skipped When `evidence.record: false`
-
-These three artifacts are considered non-essential (audit/observability artifacts):
-
-| Artifact | Path | Written by |
-|----------|------|------------|
-| `commits.yaml` | `{stm_base}/{issue}/evidence/commit-code/commits.yaml` | repo-orchestrator (accumulating create-commit responses) |
-| Delivery record `.md` | `{stm_base}/{issue}/evidence/commit-code/{YYYYMMDD-HHMMSS}.md` | commit-code play Step 8 |
-| Status file `.json` | `{stm_base}/{issue}/status/commit-code.json` | commit-code play (throughout, final write in Step 8) |
-
-## Artifacts Never Skipped
-
-These artifacts are required for the play to function correctly and are written
-unconditionally regardless of the `evidence.record` flag:
-
-| Artifact | Path | Written by | Why never skipped |
-|----------|------|------------|-------------------|
-| `analysis.yaml` | `{stm_base}/{issue}/evidence/commit-code/analysis.yaml` | repo-orchestrator (Step 1) | Required for change analysis — play correctness depends on it |
-| `issue-mappings.yaml` | `{stm_base}/{issue}/evidence/commit-code/issue-mappings.yaml` | project-orchestrator (Step 2) | Required for issue-to-commit mapping — play correctness depends on it |
-
-## How Plays Read the Flag
-
-Plays read the flag using a bash pattern with a default-true fallback:
-
-```bash
-evidence_record=$(grep -A1 '^evidence:' .garura/core/config.yaml | grep 'record:' | awk '{print $2}')
-evidence_record=${evidence_record:-true}
-```
-
-This pattern:
-- Reads the `evidence.record` value from config
-- Defaults to `true` when the key is absent (backward compatible)
-- Is placed in the pre-flight section of the play, before Evidence & Close artifacts are written
-
-## Pause/Resume Interaction
-
-When `evidence.record` is `false`, the status file (`commit-code.json`) is not written.
-Pause/Resume is implicitly disabled for that run — a subsequent invocation of the play
-on the same branch starts fresh (no status file = fresh start per current play logic).
-This is intentional behavior for speed/development use cases, not an error condition.
-
-## Scope
-
-`commit-code` is the prototype play for this flag. The flag is read in:
-
-- **`create-commit` skill** (Step 4): reads `evidence.record`; when false, returns
-  `skip_commits_yaml: true` in the output template response to signal its caller
-  (repo-orchestrator) to omit the write-evidence call for `commits.yaml`
-- **`commit-code` play** (Step 8): reads `evidence.record`; when false, skips the
-  delivery record write, status file write, and repo-orchestrator self-commit invocation;
-  user summary is always presented regardless of flag value
-
-Other plays will be addressed in separate issues per the discovery scoping constraint.
-The `evidence.record` key and behavioral pattern established here are the canonical
-reference for those future implementations.
+- **Evidence recording is play-only.** Only a play writes a run-evidence
+  file, as the final step of its run via the Standard Play Close. Agents and
+  skills never write evidence and never read the flag — a skill-level
+  `skip_*` handshake like the old `create-commit` pattern no longer exists.
+- The rule is compiled into **every** play by `/play-creator` (the D1
+  auto-build rule), rather than being rolled out play by play from a
+  prototype.

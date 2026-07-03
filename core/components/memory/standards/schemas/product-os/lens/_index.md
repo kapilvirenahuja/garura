@@ -1,16 +1,22 @@
-# Lens schemas — the six realize lenses
+# Lens schemas — the seven realize lenses (six schema'd here)
 
-The six faces of a **slice's** realization — one per realize lens:
-**quality · ux · agentic · architecture · measure · run**. These are realization,
-NOT intent — the intent is the ICE of the functionalities the slice bundles.
+The seven faces of a **slice's** realization — one per realize lens:
+**quality · ux · agentic · marketing · architecture · measure · run**. These are
+realization, NOT intent — the intent is the ICE of the functionalities the slice
+bundles. Six lenses carry a YAML schema in this directory; **marketing** is a
+grounding-doc-only lens (`lens/marketing.md`, written by the /marketing play from
+its grounding template — no YAML record). The /measure gate counts all seven lens
+docs before stamping a slice realized.
 Two trinities (decision 23): the **lens trinity** (quality, ux, agentic — what the
 slice should be) and the **foundation trinity** (architecture, measure, run — what
-makes it real); foundation lenses read the trinity, the trinity reads only the hub.
+makes it real); foundation lenses read the trinity, the trinity reads only the hub;
+marketing closes the functional pipe after agentic.
 
 **The slice is the unit of realization (#434).** A slice (from `/shape`) is a
 vertical product increment — the thing you actually deliver. You pick a slice and
-run quality → ux → agentic → arch → measure → run on it, then ship it. The lenses
-are therefore stored ON the slice, not on a capability:
+run ux → agentic → marketing (functional) and arch → quality → run (non-functional),
+then measure stamps it realized. The lenses are therefore stored ON the slice, not
+on a capability:
 
     {domain}/slices/{slice-id}.yaml          # the slice record (shape/roadmap own it)
     {domain}/slices/{slice-id}/lens/{type}.yaml   # the slice's lenses (realize owns these)

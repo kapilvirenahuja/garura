@@ -1,0 +1,23 @@
+ M CLAUDE.md
+ M README.md
+ M core/components/memory/standards/schemas/product-os/lens/_index.md
+ D core/components/skills/derive-quality-profile-from-epics/SKILL.md
+ D core/components/skills/draft-epic-expectation/SKILL.md
+ D core/components/skills/draft-epic-expectation/reference/.gitkeep
+ D core/components/skills/generate-intent-epics/SKILL.md
+ D core/components/skills/generate-intent-epics/reference/intent.yaml
+ D core/components/skills/validate-intent-epics/SKILL.md
+ M core/components/skills/write-evidence/SKILL.md
+ M core/grounding/glossary.md
+ M core/grounding/rules/evidence.md
+ M docs/adr/009-skill-ltm-organizational-knowledge.md
+ M docs/adr/017-folder-whitelist.md
+ M docs/adr/SUPERSEDED-007-skill-local-references.md
+ M docs/command-chain.html
+ M docs/components/agents.md
+ M docs/components/memory.md
+ M docs/components/plays.md
+ M docs/components/skills.md
+ M docs/philosophy/architecture.md
+ M docs/philosophy/intent-driven-development.md
+?? .garura/project/issues/455/

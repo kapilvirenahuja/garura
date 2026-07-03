@@ -1,0 +1,1 @@
+Documentation content pass over the #434 realignment — read every doc the realignment shipped or touched (ADRs 019-024, command-chain diagram, KB/grounding docs, glossary, components docs, CLAUDE.md entry docs) end-to-end against the shipped repo state; fix drift in place, file structural gaps as issues. Tracked as issue 455.

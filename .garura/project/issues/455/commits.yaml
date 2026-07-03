@@ -1,0 +1,48 @@
+commits:
+  - sha: a1bc7aa
+    message: "docs(docs): correct documentation to match shipped state (#455)"
+    files:
+      - CLAUDE.md
+      - README.md
+      - core/grounding/glossary.md
+      - core/grounding/rules/evidence.md
+      - docs/adr/009-skill-ltm-organizational-knowledge.md
+      - docs/adr/017-folder-whitelist.md
+      - docs/adr/SUPERSEDED-007-skill-local-references.md
+      - docs/command-chain.html
+      - docs/components/agents.md
+      - docs/components/memory.md
+      - docs/components/plays.md
+      - docs/components/skills.md
+      - docs/philosophy/architecture.md
+      - docs/philosophy/intent-driven-development.md
+    branch: feature/455-docs-content-pass-434
+  - sha: 58287f5
+    message: "fix(standards): correct lens schema index and write-evidence whitelist status (#455)"
+    files:
+      - core/components/memory/standards/schemas/product-os/lens/_index.md
+      - core/components/skills/write-evidence/SKILL.md
+    branch: feature/455-docs-content-pass-434
+  - sha: 09211cf
+    message: "chore(skills): remove dead epic-generation skills (#455)"
+    files:
+      - core/components/skills/derive-quality-profile-from-epics/SKILL.md
+      - core/components/skills/draft-epic-expectation/SKILL.md
+      - core/components/skills/draft-epic-expectation/reference/.gitkeep
+      - core/components/skills/generate-intent-epics/SKILL.md
+      - core/components/skills/generate-intent-epics/reference/intent.yaml
+      - core/components/skills/validate-intent-epics/SKILL.md
+    branch: feature/455-docs-content-pass-434
+  - sha: da53167
+    message: "chore(stm): record issue #455 STM workspace (#455)"
+    files:
+      - .garura/project/issues/455/porcelain.txt
+      - .garura/project/issues/455/issue.json
+      - .garura/project/issues/455/branch.json
+      - .garura/project/issues/455/work-description.txt
+      - .garura/project/issues/455/analysis.yaml
+    branch: feature/455-docs-content-pass-434
+excluded_files:
+  []
+clean_after: true
+push: false

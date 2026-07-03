@@ -30,7 +30,7 @@ Receive from the scriber agent:
 
 ### 1. Validate the target path
 
-Check `target_path` matches one of the 9 whitelist patterns (list below). If it does not, return immediately with:
+Check `target_path` matches one of the whitelist patterns (list below). If it does not, return immediately with:
 
 ```yaml
 status: failed
@@ -44,10 +44,12 @@ Whitelist patterns (regex-friendly):
 ```
 ^\.garura/core/(?!memory/).*$
 ^\.garura/product/(product|ux|arch)/.*$
-^\.garura/project/issues/[^/]+/(specs|evidence|checkpoint|context|review)/.*$
+^\.garura/project/issues/[^/]+/(specs|evidence|checkpoint|context|review|status)/.*$
 ```
 
 `.garura/core/memory/` is gitignored and managed elsewhere — scriber does not touch it.
+`status/` is the machine-local sixth key (ADR 021): a permitted write target for resume
+markers, but gitignored (`**/status/`) — it never rides a commit.
 
 ### 2. Compute final path (handle collisions)
 

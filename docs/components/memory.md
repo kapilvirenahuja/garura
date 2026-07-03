@@ -47,13 +47,13 @@ Per ADR 017 (2026-04-14), `.garura/` is a strict folder whitelist:
             └── review/              # review artifacts
 ```
 
-Operational artifacts for product-scoped plays (checkpoints, status, resume state) live INSIDE the three `product/` buckets using underscore-prefixed subfolders (e.g., `.garura/product/_checkpoints/specify/20260414.md`). No siblings are permitted.
+Operational artifacts for product-scoped plays (checkpoints, status, resume state) live INSIDE the three `product/` buckets using underscore-prefixed subfolders (e.g., `.garura/product/_checkpoints/vision/20260414.md`). No siblings are permitted.
 
-The `write-evidence` skill (invoked by the `scriber` agent) is the single chokepoint that enforces whitelist compliance at the write boundary.
+The `write-evidence` skill (historically dispatched via the now-deprecated `scriber` agent) is the single chokepoint that enforces whitelist compliance at the write boundary.
 
 ### KB Capability Catalog (domain-taxonomy + cross-tree constraints)
 
-> **Transitional (#434).** The `knowledge/domain-taxonomy/` KB described in this section has been **deleted** as part of the ProductOS realignment. It is replaced by the ProductOS v1 schemas at `core/components/memory/standards/schemas/product-os/` (product-os, ice, decision, epic, capability-intent). This section is retained for the legacy plays (`specify`/`design`/`arch`) until #434 Phase E retires them.
+> **Transitional (#434).** The `knowledge/domain-taxonomy/` KB described in this section has been **deleted** as part of the ProductOS realignment. It is replaced by the ProductOS v1 schemas at `core/components/memory/standards/schemas/product-os/` (product-os, ice, decision, epic, capability-intent). The legacy plays that consumed it (`specify`/`design`) have since been retired under #434; this section is retained for historical reference.
 
 Per ADR 017 and 214.4, the `knowledge/domain-taxonomy/*.md` files are Garura's **capability catalog** — a human-readable feature catalog that the product-planning pipeline (`specify` / `design` / `arch`) reads programmatically.
 
@@ -98,9 +98,9 @@ Skills read from LTM only when agents explicitly pass them LTM paths — skills 
 Agent invoked
     │
     └── Context Crafting — reads LTM from ~/.garura/core/memory/:
-          ├── standards/{domain}/      # Cross-cutting rules and quality criteria
-          ├── formats/{type}/          # User-facing message formats
-          └── knowledge/{domain}/      # Design decisions and patterns
+          ├── standards/{rules|schemas|templates}/  # Cross-cutting rules, schemas, templates
+          ├── knowledge/{shelf}/                    # Design decisions and patterns
+          └── tools/{platform}/                     # Platform-specific patterns
     │
     └── (Skill/play-specific templates are bundled with the owning component, NOT in LTM)
     │
@@ -125,20 +125,25 @@ core/components/memory/
 │                   #   checkpoint, commit-message, delivery-report,
 │                   #   evidence-file, knowledge-file, pr-body,
 │                   #   pr-review-comment, issue-comment-rca-approved)
-└── knowledge/           # Searchable reference material
-    ├── _index.md
-    └── arch/
+├── knowledge/           # Searchable reference material
+│   ├── _index.md
+│   ├── architecture/
+│   ├── domains/
+│   ├── review/
+│   ├── technology/
+│   └── work-intelligence/
+└── tools/               # Platform-specific patterns (github, gitlab)
 
-# Skill/play-specific schemas and templates live with the owning component:
+# Skill/play-specific schemas and references live with the owning component:
 #   core/components/skills/{skill-name}/reference/{schema-or-spec}.md
-#   core/components/plays/briefs/templates/{*-brief.html, brief-common.css, brief-render.js, hub.html, fixtures/}
+#   core/components/plays/{play-name}/scripts/ (bundled mechanical scripts)
 # Foundational architecture rules live in docs/adr/, not standards/.
 ```
 
 **Deployment:**
 - Source: `core/components/memory/`
-- Global mode (default): `~/.garura/core/memory/` (shared across all projects, deployed via `/sud:install`)
-- Project mode (ephemeral): `.garura/core/memory/` (project-specific, deployed via `/sud:install` in project mode, gitignored)
+- Global mode (default): `~/.garura/core/memory/` (shared across all projects, deployed via the `install-garura` play)
+- Project mode (ephemeral): `.garura/core/memory/` (project-specific, deployed via `install-garura` in project mode, gitignored)
 
 **Runtime (where agents read from):**
 ```
@@ -189,11 +194,11 @@ Play starts
     │
     └── STM folder created: .garura/project/issues/{issue}/
               │
-              ├── L1 step 1 → Creates artifact
+              ├── step 1 → Creates artifact
               │
-              ├── L1 step 2 → Creates artifact
+              ├── step 2 → Creates artifact
               │
-              └── L1 step N → Creates artifact
+              └── step N → Creates artifact
     │
 Play ends
     │
@@ -226,7 +231,7 @@ Play ends
 └─────────────────────────────────────────────────────────────┘
                               ▲
                               │
-                    capture-learning play
+                    learn play
                     (promotes learnings to LTM)
                               │
 ┌─────────────────────────────────────────────────────────────┐
@@ -251,11 +256,11 @@ When a play completes, critical STM content can be persisted to LTM:
 ```
 Play completes
     │
-    └── Skill: persist
+    └── Play: learn
           │
-          ├── Analyze STM for reusable knowledge
+          ├── Read what actually happened (lenses, verdicts, decisions)
           ├── Extract patterns, learnings
-          └── Update LTM with critical parts
+          └── Promote durable learnings to the KB
 ```
 
 ## Memory in Play Execution
@@ -267,8 +272,8 @@ Play
     │
     ├── Agent reads LTM:
     │     ├── standards/
-    │     ├── formats/
-    │     └── knowledge/
+    │     ├── knowledge/
+    │     └── tools/
     │
     ├── Agent does work
     │
@@ -281,15 +286,15 @@ Play
 Plays chain other plays, with each reading from previous STM:
 
 ```
-High-Order Play
+Chaining Play
     │
     ├── step 1 → STM: artifact A
     │
-    ├── L1: step 2
+    ├── step 2
     │       ├── Reads STM: artifact A
     │       └── STM: artifact B
     │
-    └── L1: step 3
+    └── step 3
             ├── Reads STM: artifact B
             └── STM: artifact C
 ```
@@ -299,9 +304,9 @@ High-Order Play
 **Authoring:** Memory is authored in:
 ```
 core/components/memory/
-├── standards/       # Rules, conventions, quality criteria
-├── formats/         # Templates and output shapes
-└── knowledge/       # Searchable reference material
+├── standards/       # Rules, schemas, and templates
+├── knowledge/       # Searchable reference material
+└── tools/           # Platform-specific patterns (github, gitlab)
 ```
 
 **Runtime:** Agents read memory from:
