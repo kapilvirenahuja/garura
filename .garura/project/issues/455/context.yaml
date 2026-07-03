@@ -1,0 +1,42 @@
+pr: 459
+issue: 455
+branch: feature/455-docs-content-pass-434
+base: main
+diff_path: .garura/project/issues/455/pr.diff
+standards_order: [kb, ltm, stm]
+standards_set:
+  kb: ~/.garura/core/memory/knowledge/quality/
+  ltm: ./.garura/core/memory/knowledge/quality/
+  stm: .garura/project/issues/455/specs/quality/
+changed_paths:
+  - .garura/project/issues/455/analysis.yaml
+  - .garura/project/issues/455/branch.json
+  - .garura/project/issues/455/commits.yaml
+  - .garura/project/issues/455/issue.json
+  - .garura/project/issues/455/porcelain.txt
+  - .garura/project/issues/455/pr.json
+  - .garura/project/issues/455/resolved-rules.json
+  - .garura/project/issues/455/self-review.md
+  - .garura/project/issues/455/work-description.txt
+  - CLAUDE.md
+  - README.md
+  - core/components/memory/standards/schemas/product-os/lens/_index.md
+  - core/components/skills/derive-quality-profile-from-epics/SKILL.md
+  - core/components/skills/draft-epic-expectation/SKILL.md
+  - core/components/skills/draft-epic-expectation/reference/.gitkeep
+  - core/components/skills/generate-intent-epics/SKILL.md
+  - core/components/skills/generate-intent-epics/reference/intent.yaml
+  - core/components/skills/validate-intent-epics/SKILL.md
+  - core/components/skills/write-evidence/SKILL.md
+  - core/grounding/glossary.md
+  - core/grounding/rules/evidence.md
+  - docs/adr/009-skill-ltm-organizational-knowledge.md
+  - docs/adr/017-folder-whitelist.md
+  - docs/adr/SUPERSEDED-007-skill-local-references.md
+  - docs/command-chain.html
+  - docs/components/agents.md
+  - docs/components/memory.md
+  - docs/components/plays.md
+  - docs/components/skills.md
+  - docs/philosophy/architecture.md
+  - docs/philosophy/intent-driven-development.md
