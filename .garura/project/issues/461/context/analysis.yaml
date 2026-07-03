@@ -1,0 +1,33 @@
+---
+# analyze_changeset.py output (C8 fast path)
+# issue: 461
+needs_judgment: true
+
+change_groups:
+  - type: docs
+    scope: adr
+    subject: "redefine maturity Level 3 as skeleton-and-loop, cross-reference in ADR 013"
+    files:
+      - docs/adr/025-level-3-redefined-skeleton-and-loop.md
+      - docs/adr/013-play-maturity-model.md
+      - core/grounding/glossary.md
+  - type: chore
+    scope: stm
+    subject: "record start-change workspace context"
+    files:
+      - .garura/project/issues/461/context/branch.json
+      - .garura/project/issues/461/context/issue.json
+      - .garura/project/issues/461/context/porcelain.txt
+      - .garura/project/issues/461/context/work-description.txt
+
+exclusions:
+  - file: .garura/project/issues/461/context/analysis.yaml
+    reason: "play run-state artifact — never included in a commit group"
+
+risks:
+  sensitive_files:
+    []
+
+eval_gates:
+  SE-1: {status: PASS, evidence: "2 single-concern groups formed: docs(adr) for the ADR 025/013 + glossary change, chore(stm) for start-change workspace context; analysis.yaml excluded as run-state"}
+  SE-5: {status: PASS, evidence: "no sensitive patterns matched"}

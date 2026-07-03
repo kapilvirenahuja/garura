@@ -1,0 +1,21 @@
+commits:
+  - sha: b2ccdd5
+    message: "docs(adr): redefine maturity Level 3 as skeleton-and-loop, cross-reference in ADR 013 (#461)"
+    files:
+      - docs/adr/025-level-3-redefined-skeleton-and-loop.md
+      - docs/adr/013-play-maturity-model.md
+      - core/grounding/glossary.md
+    branch: feature/461-adr013-level3-determinism
+  - sha: b85ca51
+    message: "chore(stm): record start-change workspace context (#461)"
+    files:
+      - .garura/project/issues/461/context/branch.json
+      - .garura/project/issues/461/context/issue.json
+      - .garura/project/issues/461/context/porcelain.txt
+      - .garura/project/issues/461/context/work-description.txt
+    branch: feature/461-adr013-level3-determinism
+excluded_files:
+  - path: ""
+    reason: "play run-state artifact — never included in a commit group"
+clean_after: true
+push: false
