@@ -1,0 +1,16 @@
+{
+  "verdict": "reject",
+  "reason": "2 P1 (blocker) finding(s)",
+  "blocking": [
+    "DATA-02",
+    "DATA-02"
+  ],
+  "counts": {
+    "P1": 2,
+    "P2": 6,
+    "P3": 8,
+    "P4": 871
+  },
+  "confidence": null,
+  "threshold": 0.5
+}

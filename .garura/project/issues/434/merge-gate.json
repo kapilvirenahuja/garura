@@ -1,0 +1,9 @@
+{
+  "approved": false,
+  "verdict": "reject",
+  "bypass": true,
+  "human_approved": true,
+  "human_approval_context": "typed approval post-verdict; blockers are false positives per #454",
+  "mergeable": true,
+  "already_merged": false
+}
