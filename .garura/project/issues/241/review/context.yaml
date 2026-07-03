@@ -1,0 +1,65 @@
+pr_number: 271
+pr_url: https://github.com/kapilvirenahuja/garura/pull/271
+standards_order:
+- kb
+- ltm
+- stm
+standards_set:
+- tier: kb
+  path: ./core/components/memory/standards/
+- tier: ltm
+  path: ./.garura/core/memory/standards/
+- tier: stm
+  path: ./.garura/project/issues/241/review/
+changed_paths:
+- .garura/product/_checkpoints/specify-product/stage-1-market-20260418-000000.md
+- .garura/product/_checkpoints/specify-product/stage-2-domains-20260418-000100.md
+- .garura/product/_evidence/specify-product/20260419-100000-close.md
+- .garura/product/_status/specify-product.json
+- .garura/product/research/agentic-methodology.md
+- .garura/product/research/ai-governance.md
+- .garura/product/research/engineering-experience.md
+- .garura/product/research/engineering-observability.md
+- .garura/product/research/work-intelligence.md
+- .garura/product/scope/decision-manifest-configure-capabilities.yaml
+- .garura/product/scope/decision-manifest-enrich-capabilities.yaml
+- .garura/product/scope/decision-manifest-generate-intent-epics.yaml
+- .garura/product/scope/enriched-capabilities.yaml
+- .garura/product/scope/epics/epic-agentic-methodology-component-arch-001.yaml
+- .garura/product/scope/epics/epic-agentic-methodology-l2-spec-driven-001.yaml
+- .garura/product/scope/epics/epic-agentic-methodology-l3-intent-driven-001.yaml
+- .garura/product/scope/epics/epic-ai-governance-audit-attribution-001.yaml
+- .garura/product/scope/epics/epic-engineering-experience-cli-slash-commands-001.yaml
+- .garura/product/scope/epics/epic-engineering-experience-first-run-onboarding-001.yaml
+- .garura/product/scope/epics/epic-engineering-experience-ide-integrations-001.yaml
+- .garura/product/scope/epics/epic-engineering-observability-quality-signals-001.yaml
+- .garura/product/scope/epics/epic-work-intelligence-intent-driven-verification-001.yaml
+- .garura/product/scope/features.yaml
+- .garura/product/scope/mvp-recommendation.md
+- .garura/product/scope/scope.yaml
+- .garura/product/scope/validation-intent-epics.yaml
+- .garura/product/specification/decision-manifest-derive-quality-profile.yaml
+- .garura/product/specification/domain-selection.yaml
+- .garura/product/specification/market-brief.md
+- .garura/product/specification/project-profile.yaml
+- .garura/product/specification/quality-profile.yaml
+- .garura/project/issues/241/evidence/enhance/issue-read.yaml
+- .garura/project/issues/261/evidence/commit-code/commits.yaml
+- .garura/project/issues/261/evidence/create-pr/analysis.yaml
+- .garura/project/issues/261/evidence/create-pr/issue-linkage.yaml
+- .garura/project/issues/261/evidence/create-pr/pr-record.yaml
+- .garura/project/issues/261/evidence/distill/proposals.yaml
+- .garura/project/issues/261/evidence/fix-it/20260418-202038.md
+- .garura/project/issues/261/evidence/fix-it/branch-result.yaml
+- .garura/project/issues/261/evidence/fix-it/briefs/hub.html
+- .garura/project/issues/261/evidence/fix-it/briefs/rca-design-brief.html
+- .garura/project/issues/261/evidence/fix-it/design.yaml
+- .garura/project/issues/261/evidence/fix-it/implementation-report.yaml
+- .garura/project/issues/261/evidence/fix-it/issue-read.yaml
+- .garura/project/issues/261/evidence/fix-it/rca.yaml
+- .garura/project/issues/261/evidence/fix-it/resolution-trace.yaml
+- .garura/project/issues/261/evidence/merge-pr/merge-result.yaml
+- .garura/project/issues/261/evidence/merge-pr/readiness.yaml
+- .garura/project/issues/261/status/create-pr.json
+- .garura/project/issues/261/status/merge-pr.json
+confidence_threshold: 0.5

@@ -1,0 +1,95 @@
+meta:
+  generated_at: "2026-07-03T00:00:00Z"
+  diff_path: ".garura/project/issues/241/review/pr.diff"
+  changed_paths_count: 50
+  scan_coverage: 1.0
+  taxonomy_path: "core/components/memory/standards/rules/pr.md"
+  standards_relevant: 0
+  domain_scope_note: >
+    All 50 changed_paths are .garura/ data artifacts (evidence/STM yaml,
+    product-scope yaml, research markdown, status json, two html briefs).
+    No product source code, test code, or build config is present in this
+    diff. Standards rows scoped to source code (SEC-*, ARCH-*, BE-*, most
+    CODE-*, TEST-*, FE-* excl. FE-06, OPS-*, PERF-*, DATA-*) fired only via
+    lexical word-coincidence in prose text (e.g. "selection" matching
+    SELECT, "consumer" matching message-queue consumer patterns, "lock-gate"
+    matching mutex/lock) when run mechanically over the diff; these were
+    excluded as domain-inapplicable per explicit scope instruction, not
+    reported as findings.
+  evaluated_and_cleared:
+    - standard_id: CODE-20
+      reason: >
+        path:**/* fired (naming convention applies to any file), but manual
+        verification (grep for [A-Z] across all 50 changed_paths) found zero
+        uppercase-letter filenames — no actual kebab/snake-case violation.
+        No finding emitted.
+    - standard_id: FE-06
+      reason: >
+        path glob matched the 2 changed .html files (fix-it/briefs/hub.html,
+        fix-it/briefs/rca-design-brief.html), but required evidence
+        (lcp-metric) cannot be produced without running a Lighthouse audit,
+        which is out of scope for a diff-bounded review. Dropped per FS-3
+        (missing required evidence — never fabricate).
+findings: []
+counts:
+  P1: 0
+  P2: 0
+  P3: 0
+  P4: 0
+paths_read:
+  standards:
+    - core/components/memory/standards/rules/pr.md
+  diff_and_context:
+    - .garura/project/issues/241/review/context.yaml
+    - .garura/project/issues/241/review/pr.diff
+  changed_paths_referenced_only_via_diff_not_read_directly:
+    - .garura/product/_checkpoints/specify-product/stage-1-market-20260418-000000.md
+    - .garura/product/_checkpoints/specify-product/stage-2-domains-20260418-000100.md
+    - .garura/product/_evidence/specify-product/20260419-100000-close.md
+    - .garura/product/_status/specify-product.json
+    - .garura/product/research/agentic-methodology.md
+    - .garura/product/research/ai-governance.md
+    - .garura/product/research/engineering-experience.md
+    - .garura/product/research/engineering-observability.md
+    - .garura/product/research/work-intelligence.md
+    - .garura/product/scope/decision-manifest-configure-capabilities.yaml
+    - .garura/product/scope/decision-manifest-enrich-capabilities.yaml
+    - .garura/product/scope/decision-manifest-generate-intent-epics.yaml
+    - .garura/product/scope/enriched-capabilities.yaml
+    - .garura/product/scope/epics/epic-agentic-methodology-component-arch-001.yaml
+    - .garura/product/scope/epics/epic-agentic-methodology-l2-spec-driven-001.yaml
+    - .garura/product/scope/epics/epic-agentic-methodology-l3-intent-driven-001.yaml
+    - .garura/product/scope/epics/epic-ai-governance-audit-attribution-001.yaml
+    - .garura/product/scope/epics/epic-engineering-experience-cli-slash-commands-001.yaml
+    - .garura/product/scope/epics/epic-engineering-experience-first-run-onboarding-001.yaml
+    - .garura/product/scope/epics/epic-engineering-experience-ide-integrations-001.yaml
+    - .garura/product/scope/epics/epic-engineering-observability-quality-signals-001.yaml
+    - .garura/product/scope/epics/epic-work-intelligence-intent-driven-verification-001.yaml
+    - .garura/product/scope/features.yaml
+    - .garura/product/scope/mvp-recommendation.md
+    - .garura/product/scope/scope.yaml
+    - .garura/product/scope/validation-intent-epics.yaml
+    - .garura/product/specification/decision-manifest-derive-quality-profile.yaml
+    - .garura/product/specification/domain-selection.yaml
+    - .garura/product/specification/market-brief.md
+    - .garura/product/specification/project-profile.yaml
+    - .garura/product/specification/quality-profile.yaml
+    - .garura/project/issues/241/evidence/enhance/issue-read.yaml
+    - .garura/project/issues/261/evidence/commit-code/commits.yaml
+    - .garura/project/issues/261/evidence/create-pr/analysis.yaml
+    - .garura/project/issues/261/evidence/create-pr/issue-linkage.yaml
+    - .garura/project/issues/261/evidence/create-pr/pr-record.yaml
+    - .garura/project/issues/261/evidence/distill/proposals.yaml
+    - .garura/project/issues/261/evidence/fix-it/20260418-202038.md
+    - .garura/project/issues/261/evidence/fix-it/branch-result.yaml
+    - .garura/project/issues/261/evidence/fix-it/briefs/hub.html
+    - .garura/project/issues/261/evidence/fix-it/briefs/rca-design-brief.html
+    - .garura/project/issues/261/evidence/fix-it/design.yaml
+    - .garura/project/issues/261/evidence/fix-it/implementation-report.yaml
+    - .garura/project/issues/261/evidence/fix-it/issue-read.yaml
+    - .garura/project/issues/261/evidence/fix-it/rca.yaml
+    - .garura/project/issues/261/evidence/fix-it/resolution-trace.yaml
+    - .garura/project/issues/261/evidence/merge-pr/merge-result.yaml
+    - .garura/project/issues/261/evidence/merge-pr/readiness.yaml
+    - .garura/project/issues/261/status/create-pr.json
+    - .garura/project/issues/261/status/merge-pr.json

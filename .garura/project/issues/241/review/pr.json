@@ -1,0 +1,9 @@
+{
+  "number": 271,
+  "title": "chore(stm): record enhance evidence for #241 bootstrap-product",
+  "body": "## Summary\n\n- Records enhance-skill issue-read evidence for #241 (bootstrap-product / capture-learning Mode 3).\n\n## Context\n\nReplaces closed PR #270 which had `Closes #241` in the commit body. A single evidence file does not close the full bootstrap-product feature \u2014 message corrected to `Refs #241`.\n\n## Test plan\n\n- [x] Single file added under `.garura/project/issues/241/evidence/enhance/`\n- [x] No auto-close keyword \u2014 #241 stays open\n\nRefs #241\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+  "headRefName": "feat/241-bootstrap-evidence",
+  "baseRefName": "main",
+  "url": "https://github.com/kapilvirenahuja/garura/pull/271",
+  "state": "OPEN"
+}
