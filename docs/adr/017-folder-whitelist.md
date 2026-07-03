@@ -1,6 +1,6 @@
 # ADR 017 — `.garura/` Folder Whitelist and Play Terminology Cleanup
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-04-14
 **Supersedes:** none (partial overlap with ADR 008 issue-centric STM, ADR 013 play maturity model)
 **Related:** ADR 001 (three-layer hierarchy), ADR 008 (issue-centric STM), ADR 013 (play maturity model — superseded by this ADR's "no levels" decision), ADR 016 (agent JSON contract)

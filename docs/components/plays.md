@@ -22,7 +22,7 @@ Per ADR 017 (2026-04-14), play levels (L1/L2) and agent-count budgets are retire
 Plays still distinguish themselves along two axes:
 
 - **Invocability**: some plays are human-only (they stop at checkpoints waiting for Tether/Vanish); others can be model-invoked for automated sequencing.
-- **Chaining**: some plays chain other plays (e.g., `ship` chains `commit-code` → `create-pr` → `review-pr` → `merge-pr`); most are standalone.
+- **Chaining**: some plays chain other plays — the pipeline end sequence chains `commit-change` → `propose-change` → `review-change` → `merge-change` (injected per `standards/rules/pipeline-position.md`); most are standalone.
 
 Neither of these requires a level label.
 
@@ -32,7 +32,7 @@ Two patterns coexist in the codebase. The pattern used depends on the play's exe
 
 ### Pattern A — Linear Step Plays
 
-Used by plays (commit-code, create-pr) and plays that chain other plays (ship). Steps execute in sequence with a fixed phase structure.
+Used by plays whose steps execute in sequence with a fixed phase structure.
 
 ```
 PRE-FLIGHT → [PRE-EXECUTION] → CHECKPOINT → EXECUTE → REPORT
@@ -49,13 +49,13 @@ Play context:
   behavioral_constraints: {constraints from reference/intent.yaml}
 ```
 
-**Conditional step skipping** is valid in plays. `ship` skips the commit step when the working tree is already clean, and skips PR creation when a PR already exists.
+**Conditional step skipping** is valid in plays — a play may skip a step when its outcome already holds (e.g., skipping the commit step on a clean tree).
 
-**Plays can delegate to other plays.** `ship` invokes `commit-code` and `create-pr` as sub-plays via the Skill tool, passing `ship_context.auto_approve: true` to suppress their interactive checkpoints.
+**Plays can delegate to other plays** via the Skill tool (e.g., the pipeline-position rule prepends `start-change` to plays that open work).
 
 ### Pattern B — Task-Driven DAG Plays
 
-Used by plays like `prepare`. The play creates the full task graph upfront using TaskCreate with `blockedBy` dependencies, then executes capabilities in dependency order. Agents communicate via a **JSON contract** rather than per-step YAML context blocks.
+Used by task-driven plays. The play creates the full task graph upfront using TaskCreate with `blockedBy` dependencies, then executes capabilities in dependency order. Agents communicate via a **JSON contract** rather than per-step YAML context blocks.
 
 ```
 Pre-flight → Create Task Graph → Execute Capabilities (in dependency order) → Checkpoint → Execute Post-Checkpoint Capabilities → Report
@@ -156,20 +156,19 @@ Every play is a self-contained directory:
 
 ```
 {play-name}/
-├── SKILL.md              # Play execution blueprint
+├── SKILL.md              # Compiled play execution blueprint (emitted by play-creator)
 ├── reference/
-│   └── intent.yaml       # User-facing intent contract
-└── templates/
-    ├── checkpoint.md      # Checkpoint artifact template
-    ├── approval-prompt.md # User-facing Tether/Vanish approval prompt
-    └── {play-specific}.md
+│   └── ice.md            # The play's ICE source (intent / context / expectation)
+└── scripts/              # Bundled scripts for the play's mechanical steps
 ```
+
+Plays are compiled artifacts: `play-creator` compiles `reference/ice.md` into `SKILL.md` plus the bundled scripts, and `play-editor` recompiles after the ICE changes. Compiled `SKILL.md` files are not hand-edited for intent changes.
 
 ## Intent and System Constraints: Where They Live
 
 **System constraints** (framework guardrails, agent boundaries, forbidden tools, path rules) live in `SKILL.md` — they are not user-facing.
 
-**User-facing intent** (goal, constraints with template refs, failure conditions, validation scenarios) lives in `reference/intent.yaml`.
+**User-facing intent** (goal, constraints, failure conditions, validation scenarios) lives in the play's ICE source at `reference/ice.md`.
 
 This separation means agents can read the user contract independently without parsing orchestration logic.
 
@@ -233,7 +232,7 @@ Garura plays embody four crafts that work together:
 
 | Craft | What | Where |
 |-------|------|-------|
-| **Intent Crafting** | Define the goal, constraints, and failure conditions | `reference/intent.yaml` |
+| **Intent Crafting** | Define the goal, constraints, and failure conditions | `reference/ice.md` |
 | **Prompt Crafting** | Pass the JSON contract (task-driven) or play context block (linear) as the agent prompt | `SKILL.md` workflow steps |
 | **Context Crafting** | Agents collect LTM templates and STM artifact paths to ground their work | Inside agent definitions |
 | **Spec Crafting** | Skills fill templates with structured content to produce artifacts | Inside skill definitions |
@@ -321,30 +320,37 @@ Recovery reasoning is loaded from LTM: `docs/framework/intent-driven-recovery.md
 
 ## Complete Play Roster
 
-| Play | Pattern | Purpose |
-|--------|---------|---------|
-| `briefs` | Linear | Regenerate HTML briefs from product YAML artifacts |
-| `arch` | Task-Driven | Build architecture artifacts (logical, physical, NFR, quality) |
-| `capture` | Linear | Capture any issue type (feature / bug / defect / epic / enhancement) as a labeled GitHub Issue with background dispatch |
-| `capture-learning` | Linear | Capture learnings to LTM (archival) |
-| `check-drift` | Linear | Check for drift between docs and codebase |
-| `commit-code` | Linear | Commit changes grouped by concern with conventional messages |
-| `create-play` | Task-Driven | Compile a new play from an intent.yaml |
-| `create-pr` | Linear | Create a pull request with review checklist |
-| `design` | Task-Driven | Design experience artifacts — personas, screens, flows, wireframes |
-| `distill` | Task-Driven | Distill knowledge into LTM |
-| `enhance` | Task-Driven | RCA-driven enhancement — traces root cause, designs fix, ships |
-| `fix-it` | Task-Driven | RCA-driven defect resolution — root-cause trace, design fix, ship |
-| `implement` | Task-Driven | Implement a feature through an eval-driven TDD loop |
-| `merge-pr` | Linear | Merge a pull request and clean up the branch |
-| `prepare` | Task-Driven | Produce implementation-ready design artifacts (features, tech, scenarios, plan) |
-| `report-issue` | Linear | DEPRECATED — alias for `garura:capture`. Available until next major release. Use `/capture` instead. |
-| `review-pr` | Linear | Diff-scoped quality review for a pull request |
-| `ship` | Linear (chains atomic plays) | Deliver branch work — commit, PR, review, merge, return |
-| `specify` | Task-Driven | Specify product from brief through scope |
-| `start-feature` | Linear | Start a new feature branch from an issue |
-| `start-feature-planning` | Linear | Plan a feature before implementation |
-| `validate` | Task-Driven | Cross-validate epic design artifacts |
+| Play | Purpose |
+|--------|---------|
+| `vision` | Turn a business goal into the seed of the product model — domain grounding, directional capability grounding, spine entries |
+| `understand` | Detail one capability that `/vision` seeded — promote its grounding to detailed, create its functionalities |
+| `shape` | Select what to build in one domain and compose it into deliverable vertical slices |
+| `roadmap` | Order the shaped slices into a build sequence with dependencies and effort |
+| `quality` | Write a slice's quality lens grounding doc — checkable pass/fail gates |
+| `ux` | Write a slice's UX lens grounding doc — screens, states, visual core |
+| `agentic` | Write a slice's agentic lens grounding doc — the is-it-an-agent gate, load weights, controls |
+| `marketing` | Write a slice's marketing lens grounding doc — SEO/AEO/GEO, accessibility, reach |
+| `arch` | Write a slice's architecture lens grounding doc — components, contracts, stack |
+| `measure` | Write a slice's measure lens grounding doc — delivery-measurement claims (baseline / target / proof) |
+| `run` | Write a slice's run lens — narrative run.md plus machine-readable run.yaml environments |
+| `grill` | Cut one realized slice into user-testable delivery epics |
+| `next` | Recommend what to do next on the product from the model's current state |
+| `implement` | Build one ready epic to done via a test-first plan with spec separation |
+| `validate` | Independently verify one built epic — the deep gate of the execute pipeline |
+| `launch` | Land one validated epic on a human's evidenced acceptance (HITL gate) |
+| `deploy` | Deploy a delivered increment to a cloud environment the run lens defined |
+| `fix-bug` | RCA-driven defect resolution — trace root cause, design fix, single checkpoint, implement |
+| `refactor` | Behavior-preserving improvement of a named code target |
+| `learn` | Close the loop after work ships — harvest what happened into durable learnings |
+| `start-change` | Open a unit of work — issue, branch off main, optional worktree, STM init |
+| `commit-change` | Commit work grouped by concern with conventional messages (end sequence step 1) |
+| `propose-change` | Self-review, push, and open the pull request (end sequence step 2) |
+| `review-change` | Review an open change against standards; explicit approve/reject verdict (end sequence gate) |
+| `merge-change` | Merge the approved PR, return to main, delete the branch (end sequence final step) |
+| `play-creator` | Compile a play from an ICE — interview, expectation, evals, emitted SKILL.md + scripts |
+| `play-editor` | Modify an existing play by editing its ICE source and recompiling |
+| `install-garura` | Install Garura components into a target project for a host tool (Claude Code or Codex) |
+| `uninstall-garura` | Remove Garura from a target using its install manifest |
 
 ## Artifact Locations (per ADR 017 whitelist)
 
@@ -355,9 +361,9 @@ Recovery reasoning is loaded from LTM: `docs/framework/intent-driven-recovery.md
 | Checkpoints | `.garura/project/issues/{N}/checkpoint/{play-name}/{timestamp}.md` |
 | Context (prepare, arch) | `.garura/project/issues/{N}/context/` |
 | Review artifacts | `.garura/project/issues/{N}/review/` |
-| Product planning (specify output) | `.garura/product/` |
-| UX (design output) | `.garura/product/ux/` |
-| Architecture (arch output) | `.garura/product/arch/` |
+| Product planning (strategic play output) | `.garura/product/` |
+| UX (ux lens output) | `.garura/product/ux/` |
+| Architecture (arch lens output) | `.garura/product/arch/` |
 | External | Returned directly (URLs, IDs) |
 
 ## Task Framework Integration

@@ -11,9 +11,7 @@ Garura implements Intent-Driven Software Development through a **three-layer hie
 │                        PLAYS                              │
 │  Defined workflows, human invocable                         │
 │  NEVER FORKED — steps/order to follow                       │
-├─────────────────────────────────────────────────────────────┤
-│  L1: ≤2 agent calls, human OR model invocable               │
-│  L2: ≤5 agent calls (ideal 3), human only, with gates       │
+│  Checkpoint-gated; levels/agent budgets retired (ADR 017)   │
 └─────────────────────────────────────────────────────────────┘
                               │
                               │ invoke
@@ -38,7 +36,7 @@ Garura implements Intent-Driven Software Development through a **three-layer hie
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                        MEMORY                               │
-│  LTM: Practices, config (core/memory/, .garura/core/config.yaml)    │
+│  LTM: Practices, config (core/components/memory/, .garura/core/config.yaml) │
 │  STM: Artifacts per issue (.garura/project/issues/{N}/)     │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -46,6 +44,8 @@ Garura implements Intent-Driven Software Development through a **three-layer hie
 **Flow:** `Plays → Agents → Skills → Artifacts`
 
 ## Three-Layer Hierarchy
+
+> **Note:** Play levels (L1/L2) and agent-count budgets were retired by ADR 017 — a play is just a play, and coherence is enforced by the intent schema and evals. The high-order/atomic distinction below survives only as chaining vs. standalone behavior; the level labels, agent-count ceilings, and the guardian mechanism no longer apply.
 
 ### High-Order Plays
 
@@ -332,7 +332,7 @@ Agents are **autonomous decision-makers** with domain expertise.
 | `project-orchestrator` | project | orchestrator | Issues, tracking, project coordination |
 | `repo-orchestrator` | repo | orchestrator | Git operations, commits, branches |
 
-For the complete agent roster (19 agents), see [Agents Component Guide](../components/agents.md).
+For the complete agent roster, see [Agents Component Guide](../components/agents.md).
 
 ### Agent Principles
 
@@ -345,9 +345,9 @@ For the complete agent roster (19 agents), see [Agents Component Guide](../compo
 
 Plays are orchestrators. They coordinate workflow by delegating to agents — they never execute domain work directly.
 
-**Forbidden in plays:** `Bash`, `Grep`, `Glob`, direct git commands, direct gh commands, or any tool that executes domain operations.
+**Forbidden in plays:** ad-hoc git commands, ad-hoc gh commands, or inline execution of any domain operation an agent owns.
 
-**What plays own directly:** checkpoint writes, approval logic, STM initialization, artifact writes, evidence reports, and final user-facing output.
+**What plays own directly:** checkpoint writes, approval logic, STM initialization, artifact writes, evidence reports, final user-facing output, and their own bundled `scripts/` for mechanical steps (play-creator compiles a play as a SKILL.md plus scripts for its mechanical work).
 
 **What plays delegate to agents:**
 - Git operations (branch, commit, push, status) → `repo-orchestrator`
@@ -381,7 +381,7 @@ Garura uses a **dual memory system**:
 
 ### Long-Term Memory (LTM)
 
-**Location:** `core/memory/`
+**Location:** `core/components/memory/`
 
 **Contains:**
 - Practices and standards
@@ -402,7 +402,7 @@ Garura uses a **dual memory system**:
 
 **Lifecycle:** Persists forever (version controlled audit trail)
 
-**Principle:** NWWI (No Work Without an Issue) — all checkpoint-producing work must be associated with an issue. Enforcement point is `commit-code`: no commit without an issue ID.
+**Principle:** NWWI (No Work Without an Issue) — all checkpoint-producing work must be associated with an issue. Enforcement point is `commit-change`: commit messages must reference the issue.
 
 ### STM Folder Structure
 
@@ -429,12 +429,12 @@ Garura uses a **dual memory system**:
 │                    LTM (Long-Term Memory)                   │
 │  Created: At project setup                                  │
 │  Contains: Practices, standards, templates                  │
-│  Location: core/memory/                                     │
+│  Location: core/components/memory/                          │
 │  Role: Source of truth for organizational customizations    │
 └─────────────────────────────────────────────────────────────┘
               │                               ▲
               │ Agents read via               │
-              │ Context Crafting              │ capture-learning play
+              │ Context Crafting              │ learn play
               ▼                               │ (promotes learnings to LTM)
 ┌─────────────────────────────────────────────────────────────┐
 │                    STM (Short-Term Memory)                  │
@@ -462,8 +462,6 @@ retry:
   attempt: {N}
 ```
 
-**Recovery calls are exempt from the agent limit.** A play that normally invokes ≤2 agents may invoke additional recovery calls beyond that limit without violating the agent count rule. Recovery calls are not counted as new agent invocations for the purpose of the constraint.
-
 Recovery reasoning is loaded from: `docs/framework/intent-driven-recovery.md`. This file defines the recovery reasoning loop. The structured-failure-protocol that agents use to format their failure responses is at `docs/framework/structured-failure-protocol.md`.
 
 ### Checkpoint Artifact Status Lifecycle
@@ -489,7 +487,7 @@ Plays update the artifact status before proceeding to the next step. This create
 | **Agent produces** | Artifacts | Agent does work, play orchestrates |
 | **Learned capabilities** | Skills | Technology/methodology specific knowledge |
 | **Never forked** | Plays & Skills | Plays are steps; skills share context |
-| **NWWI** | Plays | No Work Without an Issue — commit-code is the hard gate |
+| **NWWI** | Plays | No Work Without an Issue — commit-change is the hard gate |
 
 ## Why This Architecture?
 
@@ -569,13 +567,13 @@ The migration from structural to declarative depends on three capabilities matur
 
 2. **Agent maturity** — Agents must reliably produce the same quality of output when given intent + constraints as when given prescribed steps. The current play structure is training data for this capability — every successful play execution demonstrates what "good" looks like for a given intent.
 
-3. **Constraint expressiveness** — The intent schema must be expressive enough to capture properties like "halt for human approval before externally visible actions" as first-class constraints. The `reference/intent.yaml` externalization (see `create-pr` golden standard) is a step toward this — making constraints a first-class, extensible schema that can grow to encompass workflow-level properties.
+3. **Constraint expressiveness** — The intent schema must be expressive enough to capture properties like "halt for human approval before externally visible actions" as first-class constraints. The `reference/ice.md` externalization (every compiled play carries its ICE source) is a step toward this — making constraints a first-class, extensible schema that can grow to encompass workflow-level properties.
 
 ### Why This Matters Now
 
-The architectural decisions being made today — externalizing intent to `reference/intent.yaml`, making constraint references dynamic, keeping play structure declarative — are not just cleanup. They are **preparing the system for the point where plays become optional**. An intent file that fully describes the objective, constraints, and failure conditions is already 80% of what a system needs to derive its own execution plan. The remaining 20% is trust — and that is built through the deterministic play executions happening now.
+The architectural decisions being made today — externalizing intent to the play's ICE source, making constraint references dynamic, keeping play structure declarative — are not just cleanup. They are **preparing the system for the point where plays become optional**. An intent file that fully describes the objective, constraints, and failure conditions is already 80% of what a system needs to derive its own execution plan. The remaining 20% is trust — and that is built through the deterministic play executions happening now.
 
-The lighter plays can be tested first on mechanical operations (`commit-code`, `create-pr`) where the workflow is predictable and the failure modes are well-understood. Success there builds confidence for creative operations (`build-feature`, `design-feature`) where the workflow is more variable.
+The lighter plays can be tested first on mechanical operations (`commit-change`, `propose-change`) where the workflow is predictable and the failure modes are well-understood. Success there builds confidence for creative operations (`build-feature`, `design-feature`) where the workflow is more variable.
 
 ## Related Documentation
 

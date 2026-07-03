@@ -33,7 +33,7 @@ Both deploy to `.claude/skills/` but serve fundamentally different roles. This d
 
 Some skills exist to manage the Garura framework itself. These are classified as **meta-utility skills** and may be `user-invocable: true` despite the general rule that skills are model-invocable only.
 
-Example: deployment of Garura components to Claude Code directories runs via the sudarshan `/sud:install` meta-play. Deployment is invoked directly by the user because it manages the deployment pipeline, not a domain task.
+Example: deployment of Garura components into a target project runs via the `install-garura` play (reverse: `uninstall-garura`). Deployment is invoked directly by the user because it manages the deployment pipeline, not a domain task.
 
 Meta-utility skills:
 - Are user-invocable
@@ -42,100 +42,20 @@ Meta-utility skills:
 
 ## Available Skills
 
-### Repository Operations Skills
+Roughly 100 skills are authored in `core/components/skills/` (each with `user-invocable: false`). The roster, grouped by family — see each skill's `SKILL.md` frontmatter for its full description and model:
 
-| Skill | User-Invocable | Model | Description |
-|-------|----------------|-------|-------------|
-| `analyze-changes` | false | sonnet | Analyze uncommitted changes for categorization and risk assessment |
-| `analyze-pr` | false | sonnet | Analyze branch and generate context-aware quality checklist |
-| `create-commit` | false | haiku | Stage files and create a commit |
-| `setup-branch` | false | haiku | Create branch, push to origin, optionally use worktree for dirty trees |
-| `submit-pr` | false | haiku | Push branch and create pull request with formatted checklist |
-
-### Project Management Skills
-
-| Skill | User-Invocable | Model | Description |
-|-------|----------------|-------|-------------|
-| `archive-issue-stm` | false | haiku | Archive a closed issue's STM directory into year-month buckets |
-| `capture-issue` | false | sonnet | Capture an issue (feature, bug, defect, epic, enhancement) as a labeled GitHub Issue |
-| `manage-issue` | false | sonnet | Read, create, close, or resolve GitHub issues with optional sub-issue attachment |
-| `read-issue` | false | sonnet | Read a GitHub issue and extract structured context |
-| `write-evidence` | false | haiku | Write evidence, checkpoint, and status artifacts to the `.garura/` folder whitelist |
-
-### Architecture Skills
-
-| Skill | User-Invocable | Model | Description |
-|-------|----------------|-------|-------------|
-| `derive-nfr-spec` | false | sonnet | Derive NFR spec from quality profile and architecture inputs |
-| `derive-quality-vision` | false | sonnet | Derive quality vision from product and NFR inputs |
-| `draft-architecture` | false | sonnet | Draft architecture artifacts (logical, physical, NFR, quality) |
-| `draft-technical-approach` | false | sonnet | Draft technical approach document from features specification |
-
-### Feature / Implementation Design Skills
-
-| Skill | User-Invocable | Model | Description |
-|-------|----------------|-------|-------------|
-| `draft-implementation-plan` | false | sonnet | Produce execution plan with scope items, file paths, and exit gates |
-| `draft-lld` | false | sonnet | Draft low-level design from features and technical approach |
-| `draft-product-spec` | false | sonnet | Create `features.yaml` defining product behaviors, invariants, scope boundaries, and acceptance criteria (implementation-agnostic) |
-| `draft-verification-scenarios` | false | sonnet | Create verification scenarios with pass/fail criteria and automation classification |
-| `research-domain-context` | false | sonnet | Research vertical domain knowledge via web when LTM is insufficient |
-| `validate-implementation-design` | false | sonnet | Cross-validate prepare artifacts for coverage, compartmentalization, and audience separation |
-
-### Product / Strategy Skills
-
-| Skill | User-Invocable | Model | Description |
-|-------|----------------|-------|-------------|
-| `assess-market-opportunity` | false | sonnet | Assess the strategic opportunity for a product or feature |
-| `check-brief-quality` | false | sonnet | Check the quality and completeness of a product brief |
-| `configure-capabilities` | false | sonnet | Configure selected capabilities with feature flags and constraints |
-| `derive-epics` | false | sonnet | Derive epics from a product brief and scope |
-| `evaluate-scope` | false | sonnet | Evaluate scope fit against strategic goals |
-| `generate-brief` | false | sonnet | Generate a product brief from strategic inputs |
-| `generate-market-brief` | false | sonnet | Generate a market brief artifact |
-| `generate-project-profile` | false | sonnet | Generate a project profile artifact |
-| `generate-quality-profile` | false | sonnet | Generate a Quality Profile for a product feature |
-| `plan-mvp` | false | sonnet | Plan MVP feature set from epics and scope |
-| `refine-scope` | false | sonnet | Refine product scope based on constraints and priorities |
-| `research-market` | false | sonnet | Research market landscape, competitors, and positioning |
-| `resolve-domain` | false | sonnet | Resolve domain and capability context for a product intent |
-| `scope-capabilities` | false | sonnet | Select capabilities from the domain taxonomy for a product |
-| `validate-scope` | false | sonnet | Validate scope artifact against the canonical schema |
-
-### UX / Design Skills
-
-| Skill | User-Invocable | Model | Description |
-|-------|----------------|-------|-------------|
-| `plan-experience` | false | sonnet | Plan user experience artifacts — personas, screens, flows, wireframes |
-
-### Quality Skills
-
-| Skill | User-Invocable | Model | Description |
-|-------|----------------|-------|-------------|
-| `build-quality-gate` | false | sonnet | Evaluate implementation against the Quality Profile's acceptance criteria |
-| `validate-epic-design` | false | sonnet | Cross-validate epic design artifacts for standards compliance |
-
-### Testing Skills
-
-| Skill | User-Invocable | Model | Description |
-|-------|----------------|-------|-------------|
-| `execute-test-suite` | false | sonnet | Execute a test suite and record results |
-| `write-tests` | false | sonnet | Write test suites for feature verification |
-
-### Knowledge Skills
-
-| Skill | User-Invocable | Model | Description |
-|-------|----------------|-------|-------------|
-| `distill` | false | sonnet | Distill structured knowledge from artifacts into LTM |
-| `resolve-ltm-context` | false | sonnet | Resolve the relevant LTM context for a given task |
-| `validate-kb-extension` | false | sonnet | Validate a KB extension against the canonical nine-section schema |
-| `wire-ltm-context` | false | sonnet | Wire LTM context paths for downstream agent consumption |
-
-### Coding Skills
-
-| Skill | User-Invocable | Model | Description |
-|-------|----------------|-------|-------------|
-| `write-implementation` | false | sonnet | Write implementation code per an execution plan scope item |
+| Family | Skills |
+|--------|--------|
+| **Repository / project operations** | `analyze-changes`, `analyze-pr`, `create-commit`, `setup-branch`, `submit-pr`, `merge-pr`, `platform-adapter`, `manage-issue`, `resolve-issues`, `write-evidence` |
+| **ProductOS model & KB** | `author-vision-seed`, `enrich-capability-ice`, `author-shape-bundle`, `author-roadmap`, `author-quality-lens`, `author-ux-lens`, `author-agentic-lens`, `author-architecture-lens`, `author-marketing-lens`, `author-run-lens`, `author-measure-lens`, `author-epics`, `check-cut-tensions`, `author-hitl-scenarios`, `rank-recommendations`, `search-kb`, `kb-search`, `propose-kb-node` |
+| **Specification / design drafting** | `draft-product-spec`, `draft-technical-approach`, `draft-lld`, `draft-tech-spec`, `draft-implementation-plan`, `draft-reference-algorithms`, `draft-epic-expectation`, `draft-verification-scenarios`, `author-build-plan`, `author-intent-yaml`, `validate-implementation-design`, `validate-abstraction-layer` |
+| **Defect resolution** | `draft-rca`, `draft-fix-design`, `author-regression-test` |
+| **Architecture & quality derivation** | `derive-systems-inventory`, `derive-logical-architecture`, `derive-physical-architecture`, `derive-tech-stack`, `derive-design-patterns`, `derive-nfr-spec`, `derive-quality-vision`, `derive-quality-profile-from-epics`, `refine-quality-profile`, `validate-architecture-spec`, `infer-architecture`, `build-dependency-graph` |
+| **Product capability planning & research** | `configure-capabilities`, `enrich-capabilities`, `manage-features`, `generate-intent-epics`, `validate-intent-epics`, `recommend-mvp`, `research-market-opportunity`, `research-domain-context` |
+| **Brownfield inference (codify family)** | `scan-codebase`, `aggregate-codify-proposals`, and the `infer-*-from-code` set: project-profile, domain-selection, market-brief, mvp-recommendation, scope, enriched-capabilities, features, epics, research, design-patterns, logical-architecture, physical-architecture, nfr-spec, quality-profile, quality-vision |
+| **Testing & verification** | `map-test-surface`, `compute-blast-radius`, `specify-baseline-tests`, `detect-test-harness`, `run-generated-tests-isolated`, `author-steelman-evals`, `generate-encrypted-evals`, `plan-validation-checks`, `judge-validation-results`, `quality-check`, `quality-check-scoped` |
+| **Environments / delivery** | `stand-up-launch-env`, `deploy-to-cloud-env` |
+| **Framework & knowledge** | `lint-components`, `validate-kb-extension`, `author-learnings` |
 
 For the complete play roster, see [Plays Component Guide](./plays.md).
 
@@ -228,7 +148,6 @@ Forking a skill would:
 | **Analysis** | `analyze-{object}`, `assess-{object}` | Analyze and assess for structured output |
 | **Product** | `{action}-product-{object}`, `{action}-{product-artifact}` | Product strategy and vision artifacts |
 | **Strategy** | `{action}-roadmap-{object}`, `generate-{object}` | Roadmap and engineering planning artifacts |
-| **Meta** | `sync-{object}` | Framework management |
 
 ## Naming Convention
 
@@ -305,7 +224,7 @@ Frontmatter contains only fields that Claude Code and tooling systems consume:
 name: {skill-name}
 description: {what this skill does}
 user-invocable: false
-model: {sonnet|haiku}
+model: {haiku|sonnet|opus}
 allowed-tools: {Tool1, Tool2}
 ---
 ```
@@ -362,10 +281,11 @@ allowed-tools: {Tool1, Tool2}
 
 | Model | When To Use | Examples |
 |-------|-------------|----------|
-| `haiku` | Execution-only skills — no analysis, no decision-making, fast operations | `create-commit`, `setup-branch`, `submit-pr`, `archive-issue-stm` |
+| `haiku` | Execution-only skills — no analysis, no decision-making, fast operations | `create-commit`, `setup-branch` |
 | `sonnet` | Analysis skills — reasoning, categorization, pattern matching, complex logic | `analyze-changes`, `analyze-pr`, `manage-issue`, `draft-product-spec`, `draft-technical-approach` |
+| `opus` | Judgment-heavy authoring — generative model work where quality dominates cost | `author-epics`, `author-build-plan` |
 
-**Rule of thumb:** If the skill just runs commands and formats output, use `haiku`. If the skill needs to read, reason, and categorize, use `sonnet`.
+**Rule of thumb:** If the skill just runs commands and formats output, use `haiku`. If the skill needs to read, reason, and categorize, use `sonnet`. If it authors judgment-heavy artifacts, use `opus`.
 
 ## Skill References
 

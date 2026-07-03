@@ -65,64 +65,62 @@ Garura uses a **three-layer hierarchy** for deterministic workflows:
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      PLAYS                                │
-│  High-order: Complex workflows, human only, chains plays    │
-│  Atomic: Atomic activities, human OR model, artifact+chkpt  │
+│  Compiled, intent-driven workflows (built via play-creator) │
+│  A play is just a play — no levels or agent-count budgets   │
 └─────────────────────────────────────────────────────────────┘
                               │
-                    Atomic → invokes agents (≤2 calls)
-                    High-order → chains plays (with guardian checkpoints)
+                    Plays invoke agents via the Task tool
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      AGENTS                                 │
 │  Autonomous decision-makers with domain expertise           │
 │  Discover skills on the fly based on intent                 │
-│  2 agents: project-orchestrator, repo-orchestrator          │
+│  18 agents: project-orchestrator, repo-orchestrator, …      │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      SKILLS                                 │
 │  Learned capabilities (model invocable only)                │
-│  Self-contained with local references                       │
+│  Behavior embedded locally; org standards read from LTM     │
 │  Technology/methodology specific knowledge                  │
 └─────────────────────────────────────────────────────────────┘
-        ▲ deployment sync
-        │ (overrides)
+        ▲ runtime reads
+        │ (organizational standards)
 ┌─────────────────────────────────────────────────────────────┐
 │                      MEMORY                                 │
 │  LTM (authoring): core/components/memory/                   │
 │  LTM (runtime): ~/.garura/core/memory/ (global default) │
-│  STM: Artifacts per issue (.garura/{issue}/)            │
+│  STM: Artifacts per issue (.garura/project/issues/{issue}/) │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 **Key Components:**
 
-- **High-Order Plays**: High-order workflows (human only), chain plays with guardian checkpoints
-- **Atomic Plays**: Atomic activities (human OR model), always produce artifact + checkpoint
+- **Plays**: Compiled, intent-driven workflows that produce artifacts and stop at checkpoints — a play is just a play, with no level classification or agent-count budgets (see ADR 017)
 - **Agents**: Domain experts that make decisions, discover skills on the fly
-- **Skills**: Self-contained capabilities with local references (model invocable only)
-- **Memory**: LTM (skill overrides, synced at deployment) + STM (per-issue artifacts)
+- **Skills**: Capabilities with behavior embedded locally (model invocable only); organizational standards are read from LTM at runtime
+- **Memory**: LTM (organizational standards, read at runtime) + STM (per-issue artifacts)
 
 ### Agent Roles
 
-Garura agents follow the `{domain}-{role}` naming pattern:
+Garura agents follow the `{domain}-{role}` naming pattern. Examples:
 
 | Agent | Domain | Role | Responsibility |
 |-------|--------|------|----------------|
 | `project-orchestrator` | project | orchestrator | Issues, tracking, project coordination |
 | `repo-orchestrator` | repo | orchestrator | Git operations, commits, branches |
 
-**Total: 2 agents**
+**Total: 18 agents** — see `core/components/agents/` for the full set
 
 ### Memory System
 
 Garura uses a dual memory architecture:
 
-- **Short-Term Memory (STM)**: Issue-specific artifacts stored in `.garura/{issue}/` with subdirectories for `docs/`, `evidence/`, and `checkpoint/` (see ADR 008)
+- **Short-Term Memory (STM)**: Issue-specific artifacts stored in `.garura/project/issues/{issue}/` with subdirectories for `specs/`, `evidence/`, `checkpoint/`, `context/`, and `review/` (see ADR 008 and ADR 017)
 - **Long-Term Memory (LTM)**: Organizational knowledge — authored in `core/components/memory/`, synced to `~/.garura/core/memory/` (global) or `.garura/core/memory/` (project). Contains skill overrides, standards, templates, practices.
 
-**Skill-Memory Pattern**: Skills embed their own references locally. LTM contains overrides that are synced to skills at deployment time. Skills never read from LTM at runtime — they are self-contained.
+**Skill-Memory Pattern**: Skill behavior (process steps, output format, constraints) stays embedded in the skill. Organizational standards (commit categories, templates, quality rules) live in LTM and are read by skills at runtime via stable paths (see ADR 009).
 
 
 ## Supported AI Agents
@@ -130,7 +128,7 @@ Garura uses a dual memory architecture:
 Garura is designed to work with multiple AI agent platforms:
 
 - **Claude Code**: Anthropic's official CLI for Claude
-- **Factory Droids**: Factory.AI Droid platform
+- **OpenAI Codex CLI**: via `install-garura --tool codex`
 
 ## Installation
 
@@ -159,17 +157,19 @@ This scaffolds the following structure in your project:
 
 ```
 your-project/
+├── .claude/
+│   ├── agents/            # Deployed agent definitions
+│   └── skills/            # Deployed skills + plays
 ├── .garura/
 │   ├── core/
-│   │   ├── config.yaml    # Project configuration (customizable)
-│   │   └── memory/        # LTM: practices, templates, standards (gitignored ephemeral copy)
+│   │   └── config.yaml    # Project configuration (customizable)
 │   └── project/
 │       └── specs/         # Project artifacts (STM)
 ├── src/                   # Source code directory
 └── CLAUDE.md              # AI instructions (customizable)
 ```
 
-**Note:** Skills, agents, and plays deploy to `~/.claude/` (global, shared across all projects) by default. The `.claude/` directory is no longer tracked in git.
+**Note:** Memory (LTM) deploys to the machine-global `~/.garura/core/memory/`, shared across all projects. The `.claude/` directory is a deployed copy, not tracked source.
 
 **After installation:**
 
@@ -186,9 +186,9 @@ curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/garura/main/install
 ```
 
 **What gets upgraded (overwritten):**
-- `~/.claude/agents/` — Agent definitions (global deployment)
-- `~/.claude/skills/` — Skills and plays (global deployment)
-- `~/.garura/core/memory/` — Memory (practices, templates, global)
+- `.claude/agents/` — Agent definitions
+- `.claude/skills/` — Skills and plays
+- `~/.garura/core/memory/` — Memory (standards, knowledge — machine-global)
 
 **What gets preserved:**
 - `.garura/project/` — Your project artifacts
@@ -207,8 +207,8 @@ If you want to develop Garura itself:
 git clone https://github.com/kapilvirenahuja/garura.git
 cd garura
 
-# Deploy components to .claude/ via the sudarshan meta-play
-claude /sud:install
+# Deploy components into a target project via the install-garura play
+claude "/install-garura --target /path/to/your-project"
 ```
 
 ## Repository Structure
@@ -231,21 +231,20 @@ garura/
 │   │   │   ├── manage-issue/
 │   │   │   ├── setup-branch/
 │   │   │   └── submit-pr/
-│   │   ├── plays/           # plays (atomic activities)
-│   │   │   ├── commit-code/
-│   │   │   ├── create-pr/
-│   │   │   ├── start-feature/
-│   │   │   └── start-planned-feature/
+│   │   ├── plays/           # Plays (compiled workflows)
+│   │   │   ├── commit-change/
+│   │   │   ├── play-creator/
+│   │   │   ├── propose-change/
+│   │   │   └── start-change/
 │   │   └── memory/            # Long-Term Memory (LTM)
-│   │       ├── practices/     # Workflows, quality gates, standards
-│   │       ├── quality-gates/
-│   │       ├── references/
-│   │       └── templates/     # Output templates
-│   └── config.yaml            # Configuration
-├── .claude/                   # NO LONGER IN REPO (gitignored, use ~/.claude/ global deployment)
-│   ├── agents/                # Use ~/.claude/agents/ (via /sud:install)
-│   ├── skills/                # Use ~/.claude/skills/ (via /sud:install)
-│   └── plans/                 # Planning artifacts
+│   │       ├── knowledge/     # Searchable reference material (KB)
+│   │       ├── standards/     # Rules, schemas, formats, templates
+│   │       └── tools/         # Shared tooling
+│   └── grounding/             # Canonical glossary and concepts
+├── .garura/
+│   └── core/
+│       └── config.yaml        # Configuration (tracked)
+├── .claude/                   # NO LONGER IN REPO (gitignored; deployed into targets via install-garura)
 ├── docs/
 │   ├── adr/                   # Architecture Decision Records
 │   ├── philosophy/            # Core architecture philosophy
