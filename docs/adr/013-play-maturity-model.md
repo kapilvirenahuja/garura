@@ -1,9 +1,9 @@
 # ADR 013: Play Maturity Model — From Compiled Intents to Dark Factories
 
-**Status:** Accepted
+**Status:** Accepted — Level 3 definition amended by ADR 025; L1/L2 per-play assignment superseded by ADR 017
 **Date:** 2026-03-06
 **Supersedes:** None
-**Related:** ADR 001 (Three-Layer Hierarchy), ADR 012 (Evidence Self-Commit)
+**Related:** ADR 001 (Three-Layer Hierarchy), ADR 012 (Evidence Self-Commit), ADR 025 (Level 3 redefined — deterministic skeleton, goal-loop interior)
 
 ## Context
 
