@@ -1,0 +1,1 @@
+Stage 0 of the IDSD Level 3 epic (#460): Amend ADR 013 — redefine Level 3 as fixed command skeleton with a goal-driven loop inside each box, record the determinism rule (determinism lives at the skeleton, never inside the boxes), retire the old L3 wording, keep L4 as north star. Docs-only: ADR amendment + glossary alignment. Tracked issue: #461.
