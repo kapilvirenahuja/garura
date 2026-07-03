@@ -4,6 +4,8 @@ description: Blocking validator for the intent epics directory. Walks every epic
 user-invocable: false
 model: haiku
 allowed-tools: Read, Write, Glob, Grep, Bash
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # validate-intent-epics

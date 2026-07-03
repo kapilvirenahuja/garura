@@ -1,8 +1,8 @@
 # Expectation Schema — Canonical Contract (ICE)
 # The generated, human-vetted spec layer that pairs with intent.yaml.
 # Produced by draft-play-expectation (via the expectation-crafter agent) inside
-# /create-play, then approved by a human at the create-play checkpoint.
-# Consumed by /create-play (evals from success_scenarios; Recovery section from
+# /play-creator, then approved by a human at the play-creator checkpoint.
+# Consumed by /play-creator (evals from success_scenarios; Recovery section from
 # recovery) and validated by lint-components.
 #
 # Expectation has TWO zones: metadata and content. Both are required.
@@ -20,7 +20,7 @@ generated_from:
 vetted:
   status: pending | approved   # NEVER governs anything while `pending`.
                                # Only a human sets `approved`, at the
-                               # create-play checkpoint.
+                               # play-creator checkpoint.
   approved_by: <string>        # Optional — who approved.
   approved_at: <ISO-8601>      # Optional.
 

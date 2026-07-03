@@ -1,0 +1,37 @@
+# Lens: measure  (#434, decisions 19/23/24) — envelope in lens/_index.md
+#
+# The DELIVERY measurement lens — the benefits the TEAM gets while delivering this
+# slice: which delivery metrics we are improving or want to improve. Each metric is
+# a CLAIM: baseline (where we stand), target (where delivery takes us), and the
+# proof source /capture later harvests (alignment pipeline) to settle the claim.
+# Delivery-pipe ONLY (DORA, Flow, SPACE, DX) — product outcomes are strategy's to
+# measure.
+# A FOUNDATION lens: sits after arch, before run; reads the slice hub + the three
+# lens-trinity files (quality, ux, agentic).
+
+schema:
+  name: lens
+  type: measure
+
+content:
+  focus: string             # one line — the team benefit this slice's delivery drives
+  metrics:                  # >=1 — each entry is a provable claim
+    - framework: string     # triangle | dora | flow | space | dx
+                            #   triangle = Kapil's PRIMARY frame — the three axes
+                            #   speed / tokens / cognition: min token + cognition
+                            #   spend for max speed. dora/flow/space/dx are the
+                            #   industry frames, kept alongside ("do both").
+      metric: string        # e.g. lead-time, deployment-frequency, wip-age, interruption-rate
+      why: string           # why THIS slice moves this metric (ties to hub/lens content)
+      direction: string     # improve | hold (hold = don't regress while delivering)
+      baseline:
+        value: string       # today's number — a real number, or "unmeasured" stated honestly
+        as_of: string       # when the baseline was taken
+        source: string      # where it came from
+      target:
+        value: string       # the number we claim delivery reaches
+        horizon: string     # when the claim is checkable (e.g. delivery + 2 weeks)
+      proof:                # the seam to /capture — declared here, harvested in alignment
+        source: string      # where the number will be read (git/CI, agent logs, survey)
+        signal: string      # the exact signal capture collects
+  out_of_scope: [string]    # metrics consciously NOT claimed, one line of why each — grill fodder

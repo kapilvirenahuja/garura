@@ -1,0 +1,57 @@
+# Lens: agentic  (LOCKED #434, redefined) — shared envelope in lens/_index.md
+#
+# HOW GARURA THINKS ABOUT AGENTIC (the crux). Two-fold decision, per capability
+# (and possibly per functionality):
+#
+#   1. IS it agentic, and HOW MUCH — judged by how much load it is OK to lift off
+#      the user. This is the three WEIGHTS: cognitive (analysis + decisions),
+#      creative (visualization + media), logistical (operations + workflow). Each
+#      weight's level is the DEGREE OF OFFLOAD — how much of that load the agent
+#      takes from the user. e.g. max cognitive = lift as much thinking off the
+#      user as possible; that capability fires as much agentic behaviour as it can.
+#   2. Once agentic, the FRAME — the CONTROLS: how tight the guardrails are and how
+#      readily it hands off to a human.
+#
+# Five axes (cognitive, creative, logistical, guardrails, handoff), one five-level
+# scale (low | medium | high | xhigh | ultra). There is no "none" — "not agentic"
+# is the is_agent gate up front.
+#
+# The lens captures INTENT (how much to offload, within what frame), NOT how the
+# agent is built.
+
+schema:
+  name: lens
+  type: agentic
+
+content:
+  is_agent: bool            # is this capability agentic at all? judged by how much
+                            # load it is OK to lift off the user. false → weights +
+                            # controls are empty; `note` says why no agent.
+  note: string              # one line — the load judgment behind is_agent (esp. when false)
+
+  # ---- present only when is_agent: true ----
+  # Scale on every axis: low | medium | high | xhigh | ultra.
+  weights:                  # HOW MUCH load to OFFLOAD from the user, per kind.
+                            #   low   — offload a little; mostly the user
+                            #   medium— offload some; shared with the user
+                            #   high  — offload a lot; the user oversees
+                            #   xhigh — offload nearly all; the user spot-checks
+                            #   ultra — offload as much as possible; maximally agentic
+    cognitive:  { level: string, note: string }   # analysis + decision-making
+    creative:   { level: string, note: string }   # visualization + media creation
+    logistical: { level: string, note: string }   # operational + workflow
+  controls:                 # the FRAME around the offload, same five-level scale.
+    guardrails: { level: string, note: string }   # how TIGHT the hard limits:
+                            #   low — loose, few hard limits … ultra — maximal, every
+                            #   action fenced to an allowlist
+    handoff:    { level: string, note: string }   # how READILY it returns to a human:
+                            #   low — rarely, only on hard limits … ultra — constantly,
+                            #   a human in the loop each step
+  data:                     # the DATA SUBSTRATE (#434 decision: data is NOT a lens —
+                            # "data fits into ai" — it folds in here)
+    entities:
+      - name: string
+        ownership: string   # owns | reads | references — is this slice the source of truth?
+    grounding: [string]     # what agents/models MAY ground on
+    privacy: string         # privacy obligations on this data
+    retention: string       # retention obligations

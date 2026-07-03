@@ -80,7 +80,7 @@ When you receive a JSON contract from the play orchestrator:
 **Example return** (after technical-approach drafting):
 ```json
 {
-  "intent_path": "core/components/plays/prepare/reference/intent.yaml",
+  "intent_path": "core/components/plays/implement/reference/ice.md",
   "stm_base": ".garura/project/issues/",
   "slug": "chronos",
   "stm": {
@@ -273,10 +273,11 @@ When invoked via JSON contract, delegate artifact production to skills:
 | `research-domain-context` | LTM insufficient for technology selection or architecture decisions | `domain`, `knowledge_gaps`, `problem_statement`, `output_base` | `domain-context.md` at `{output_base}/domain-context.md` |
 | `draft-implementation-plan` | Create execution plan with scope items, file paths, exit gates | `features_yaml_path`, `architecture_yaml_path`, `tech_yaml_path`, `scenarios_yaml_path`, `output_base` | `plan.yaml` at `{output_base}/plan.yaml` |
 | `refine-quality-profile` | arch Stage 2 — refine the /specify quality profile against architectural reality (inventory ceilings, project-profile pins, epic constraints, regulatory floors); write delta_log for every adjustment; security characteristic ratchets up only | `specify_qp_path`, `scope_path`, `epics_dir`, `inventory_dir`, `project_profile_path`, `kb_quality_dir`, `output_path`, `decision_manifest_path` | `architecture/quality-profile.yaml` (refined, with delta_log) + `decision-manifest-refine-quality-profile.yaml` |
-| `derive-technical-risks` | arch Stage 6 (LAST) — run only after every other arch artifact exists; walk eight discovery scans (logical cycles, physical single-region / SaaS lock-in, tech EOL / bleeding-edge, inventory stm_research, QP unmet target, epic failure scenario, compliance pattern, agent pattern match) to produce a risk register with business_cost, mitigation, residual_risk per entry | `refined_qp_path`, `inventory_dir`, `logical_path`, `physical_path`, `tech_stack_path`, `epics_dir`, `project_profile_path`, `kb_quality_dir`, `prior_decision_manifests_dir` (optional), `output_path`, `decision_manifest_path` | `technical-risks.yaml` + `decision-manifest-derive-technical-risks.yaml` |
 | `draft-rca` | fix-it Step 3 — trace symptom to specific root cause (file + logic + why-wrong) and write resolution-trace.yaml when `ltm_context` is provided | `issue_read_path`, `project_root`, `ltm_context` (optional), `output_base` | `rca.yaml` + `resolution-trace.yaml` (when ltm_context present) |
 | `draft-fix-design` | fix-it Step 3 — after RCA, design the fix with at least one alternative considered and rejection reason | `rca_path`, `project_root`, `ltm_context` (optional), `output_base` | `design.yaml` |
 | `author-regression-test` | fix-it Step 3 — write a failing YAML eval-spec regression test and verify red state against current codebase before returning | `rca_path`, `design_path`, `project_root`, `test_style` (optional), `output_base` | `regression-test.yaml` (red-verified) |
+| `author-build-plan` | implement Step 4 — break ONE ready epic into the test-first build plan (stories/tasks/tests/docs as a grounded DAG, STM-only); also revision mode (re-plan directives, steelman refutations) | `epic_file`, `functionality_ices`, `lens_dir`, `box_context`, `harness`, `plan_path`, `directives` (optional) | `plan.yaml` (draft) |
+| `detect-test-harness` | implement Step 3 — capture the project's runnable test/lint/build commands for the harness file | `project_root`, `output_base` | harness detection result |
 
 **Invocation:** Use the Skill tool. The skill reads from STM, writes the artifact, and returns a YAML output contract with the path. Extract the artifact path from the skill output — do NOT forward the skill's YAML as your response.
 

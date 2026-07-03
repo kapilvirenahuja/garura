@@ -13,6 +13,8 @@ tools:
   - Skill
   - WebSearch
   - WebFetch
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # product-keeper

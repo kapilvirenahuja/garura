@@ -1,1189 +1,703 @@
 ---
-name: garura:implement
-description: "Implement a feature from a locked plan.yaml DAG through a spec-driven development loop with strict context isolation. /implement is agentic and self-locating: it reads the plan DAG plus the current branch state, determines the next runnable node itself, and runs nodes continuously following DAG edges. It halts ONLY at two boundary types — a gate node (readiness/tooling stop, auto-resumes when its exit condition clears) or a milestone node (human-acceptance stop: evals + scenario gates run and validate must confirm ACCEPTED before resuming). No milestone_id is required at invocation. Test-writer and code-builder work independently from the SPEC — builder NEVER sees test files. Judge-as-arbiter resolves stuck loops after 2 consecutive failures on the same contract."
+name: implement
+position: start
+description: 'Build one ready epic to done — every spec passing — strictly inside the epic''s box. Breaks the epic into a test-first plan (stories, tasks, tests, docs as a DAG), publishes that plan to the epic''s tracked issue and keeps it current as the working spine, builds with spec separation (the implementer never sees tests or evals), and accepts done only from adversarial steelman verification. Opens the work; never closes it — the close belongs after /validate. Also the FIX ROUND: when /validate stamps an epic fix_required, implement re-enters lightweight — the fix report is the exact work list, revision pieces on the existing plan, no fresh breakdown — and the epic flips back to in_delivery. The /implement command in the ProductOS command model. Use when a grilled epic is ready to build, or a validated-rejected epic needs its fix.'
 user-invocable: true
-model: opus
 ---
 
 # implement
 
-Given a locked `plan.yaml` — a directed acyclic graph (DAG) of task nodes joined by `depends_on` edges, produced by `/prepare` — `/implement` is an agentic, self-locating, continuous executor. It reads the plan DAG and the current branch state to determine where execution stands and which node can run next: the topologically-earliest node whose `depends_on` edges are all satisfied and that is not yet executed. It runs that node and continues through the DAG, node after node, following edges. It halts ONLY at two boundary types — a **gate node** (a `.GATE`-suffixed entry or `kind: gate`: a readiness/tooling stop — pause, recheck the exit condition, auto-resume when it clears) or a **milestone node** (an entry carrying a `milestone_id`: a human-acceptance stop — generate evals, run scenario gates, invoke validate, resume only after validate confirms ACCEPTED). Tasks drive execution; gates and milestones only bound it. **No `milestone_id` is supplied at invocation** — the play self-locates from the plan DAG plus branch state.
+Given one **ready epic** on a realized slice, build it to done — every spec passing —
+strictly inside the epic's box: break it into stories, tasks, and tests test-first in
+working memory, publish that plan to the epic's tracked issue and keep it current as the
+working spine, build with verification walled off from the implementer, and accept "done"
+only from adversarial steelman verification that tried to refute it. The play opens the
+work; it never closes it — closing belongs after /validate accepts.
 
-Test authorship is isolated and spec-driven: the test-writer writes behavioral tests from TEST-CONTEXT.md, the code-builder implements from CONTEXT.md (derived from tech.yaml contracts), and the two NEVER see each other's work product. The orchestrator runs tests mechanically and produces spec-referenced status reports mapping failures to contract IDs from tech.yaml. When the same contract fails twice, the judge-as-arbiter attributes fault. Quality-auditor handles both quality gates and QP certification in a single gate. System-level verification is handled by validate.
+The play has a second entry: the **fix round** (C14). When /validate rejects the build it
+stamps the epic `fix_required` and posts a fix report naming each failure by check and
+location. Implement re-enters LIGHTWEIGHT: the report is the exact work list — its
+findings become plan revision pieces on the existing plan, no fresh breakdown, no fresh
+workspace — the epic flips back to `in_delivery`, and the same done bar applies.
+Implement ↔ validate is expected to loop a few rounds; agents fix, validate finds.
+
+**Pipeline position: start.** The D2 pipeline-position rule
+(`standards/rules/pipeline-position.md`) prepends `start-change` (resolve/create the
+epic's issue, cut the branch off fresh main, optional worktree, init STM). **No end
+sequence is injected**: an epic may only merge — and be stamped `delivered` — after /validate accepts;
+the close chain belongs to the validation side of the pipeline, never to this play. This
+source never hand-rolls issue/branch steps — they come only via injection.
 
 ## Compiled From
 
-This play was compiled from `reference/intent.yaml` (the clean triple) and
-`reference/expectation.yaml` (success_scenarios + recovery) by `/create-play`.
-Intent defines constraints (C1-C34) and failure conditions (F1-F26); the expectation
-defines success scenarios (S1-S19) and recovery (REC1-REC26).
-To modify this play, update `reference/intent.yaml` or `reference/expectation.yaml`
-and re-run `/create-play --build implement`.
+This play was compiled from the implement ICE (`reference/ice.md`) by play-creator
+(edited via play-editor: crisp-spec approval gate + per-piece context scope). Intent
+defines constraints (C1–C19) and failure conditions (F1–F15); the expectation defines
+success scenarios (S1–S8) and one recovery entry per failure condition.
+To modify this play, update `reference/ice.md` and recompile with play-creator.
 Do NOT edit this file manually — it is a compiled artifact.
 
-**Hash guard:** If `sha256(reference/intent.yaml)` ≠
-`0aa90cd2271f6ccbe6af32ac5b090d1eaf99c8302d577bc9530ce74dd2f5f4ed` OR
-`sha256(reference/expectation.yaml)` ≠
-`5cb19634110d6bbcef12a54b8d50344d1926d11036d95c8c6ac7374b493bbcb2`, rebuild is
-required before running.
+**Supersedes** the old `garura:implement` (the plan.yaml DAG executor) and absorbs the
+breakdown work of the old `garura:prepare` — the stories/tasks/tests cut is now this
+play's Plan phase, STM-only and regenerated on demand, per realignment decisions 9/10.
 
 ## Role
 
-You are the orchestrator. You own the DAG walk. You delegate domain tasks to agents via JSON contracts — never execute domain work directly.
+You are the orchestrator. You own the workflow and the step order. You delegate domain
+work to agents via JSON contracts over files on disk — never execute domain work directly.
+The act is scripted: deterministic resolution, validation, gate-running, rendering, and
+verdict assembly are bundled scripts the steps call; inference is spent only on planning,
+authoring, building, and the steelman judgment.
 
-You are **self-locating**: nothing hands you a node. You read the plan DAG and the current branch state, compute the set of nodes whose `depends_on` edges are all satisfied and that are not yet executed, pick the topologically-earliest such node as the **next runnable** node, run it, then repeat — walking the DAG continuously. You pause only when the walk reaches a **gate** or a **milestone** boundary (C34).
-
-**Forbidden:** Direct code implementation. Direct test writing. Direct eval generation. Direct quality checks. All domain work goes through agents. The orchestrator's only direct operations are: reading the plan DAG and branch state, self-locating the next runnable node, resolving `depends_on` edges by type, reading/writing status files, writing checkpoints/evidence, updating CLAUDE.md pointers, building TEST-CONTEXT.md, building CONTEXT.md, running tests mechanically, producing spec-referenced status reports, recording test file checksums, setting up mock infrastructure, running integration test suites, auditing eval counts, triggering judge-as-arbiter when warranted, invoking validate at a milestone boundary, and mediating information flow between agents (with filtering per C5/C6/C10/C17/C29/C32).
+**Forbidden:** direct `git`/`gh` commands in play prose (the two live reads pre-flight
+needs — current branch, porcelain — are captured once and passed into scripts); any
+closing action (commit/raise/review/merge of the work — C4); hand-rolled issue/branch
+steps (those come via the injected `start-change` and `project-orchestrator`).
 
 **Agent boundaries:**
 
-| Agent | Role | Domain | Receives | Does NOT Receive | Phases |
-|-------|------|--------|----------|-----------------|--------|
-| `tech-designer` | Context assembly | Synthesize CONTEXT.md from tech.yaml contracts | plan.yaml node entry, tech.yaml, architecture-context.yaml | TEST-CONTEXT.md, test files, evals, features.yaml behaviors | Node preparation |
-| `evals-engineer` | Eval authorship | Generate encrypted unit test coverage evals | epic-spec.yaml behaviors, scenarios.yaml, node exit gate | Implementation code, builder prompts, prior evals, tech.yaml, plan.yaml | Milestone-boundary eval generation |
-| `test-writer` (code-builder sub-role) | Test authorship | Author behavioral tests from specs | TEST-CONTEXT.md ONLY (scope descriptions + acceptance criteria + test framework name) | CONTEXT.md "Files You Own", file paths, architecture decisions, tech choices, evals, builder output | Node execution (per scope item) + Fix Loop (conditional) |
-| `code-builder` | Builder | Implement scope items from spec contracts | CONTEXT.md + architecture-context.yaml ONLY | Test files, test code, test assertions, evals, eval IDs, judge reports, pass criteria, scenarios, TEST-CONTEXT.md, mock data patterns | Node execution (per scope item) + Fix Loop |
-| `judge` (EVAL-REVIEW) | Developer self-review | Verify unit test quality | Encrypted evals + implementation artifacts | Builder prompts, evals-engineer prompts, quality results | Milestone-boundary judge eval-review + Fresh Judge |
-| `judge` (ARBITER) | Fault attribution | Determine if impl or test is wrong when same contract fails twice | SPEC contracts from tech.yaml + spec-referenced status report | Implementation code, test code, eval content, builder prompts | Node execution (conditional) |
-| `quality-auditor` | Quality gate + QP certification | Verify quality vision gates + QP thresholds | Implemented code, quality-gates.yaml | Evals, builder prompts, judge reports, evals-engineer prompts | Milestone-boundary quality gate |
-| `repo-orchestrator` | Git | Evidence self-commit | Evidence files | Everything else | Evidence |
+| Agent | Type | Domain | Phases |
+|-------|------|--------|--------|
+| `project-orchestrator` | utility | Issue plan tracking: publish the rendered plan; keep piece states current; post the done summary (`manage-issue` over the platform CLI) | Plan; Build; Verify |
+| `tech-designer` | domain | Box context + harness capture; the build plan via `author-build-plan`; plan revisions (retry exhaustion, refutations) | Plan; Build (re-plan) |
+| `test-engineer` | domain | Author test pieces from the specs — never sees implementation output | Build |
+| `code-builder` | domain | Implement story/task/docs pieces from the piece's cut context slice (piece + deps + spec) — never the whole plan, tests, evals, or pass criteria | Build |
+| `evals-engineer` | domain | Steelman evals via `author-steelman-evals` — compartmentalized from the implementer | Plan |
+| `quality-auditor` | domain | The steelman verdict: judge captured gate results + evals against the build; try to refute "done" | Verify |
+| `repo-orchestrator` | utility | Self-commit the evidence files (evidence only — never the work) | Evidence & Close |
 
-**Critical isolation invariants:**
-- **test-writer receives:** TEST-CONTEXT.md ONLY — scope descriptions (no file paths), acceptance criteria, test framework name. Never CONTEXT.md, file paths, architecture or tech decisions (C17).
-- **code-builder receives:** CONTEXT.md + architecture-context.yaml ONLY. NEVER test source code, test assertion text, mock data patterns, evals, eval IDs, eval text, judge reports, pass criteria (C5, C29). **Exception (C5, C29, F5):** the Verification Steps section of the dispatch MAY include a bare test scope-directory path (e.g., `tests/unit/{scope_item}/`) as a procedural run directive — it is NOT test content and the pre-invocation check distinguishes it from content-bearing paths.
-- **judge (EVAL-REVIEW) receives:** Encrypted evals + project code. Never builder prompts, evals-engineer prompts, quality results (C6).
-- **judge (ARBITER) receives:** SPEC contracts from tech.yaml + status report. Never impl code, test code, eval content (C6, C30).
-- **evals-engineer receives:** epic-spec.yaml behaviors, scenarios.yaml, exit gate. Never implementation code, builder prompts, prior evals (C4).
-- **quality-auditor receives:** Implemented code, quality-gates.yaml. Never evals, builder prompts, judge reports (C14).
-- **Both derive from the same SPEC (C31):** test-writer derives behavioral expectations from epic-spec.yaml + scenarios.yaml; code-builder derives implementation contracts from tech.yaml. Neither agent's product is input to the other; alignment emerges from shared fidelity to the spec.
-- **Communication between agents (C32):** ONLY through spec references and status reports. No agent sees another agent's source code, test code, prompts, or reasoning.
+Domain agents: 5 (tech-designer, test-engineer, code-builder, evals-engineer,
+quality-auditor) — at the ≤5 budget. Utility agents: 2 (project-orchestrator,
+repo-orchestrator) — exempt. The injected `start-change` carries its own agents; not
+counted here.
 
-**Gate logic (C20):** quality-auditor PASS with CERTIFIED → judge EVAL-REVIEW. One gate, not two.
+**Isolation invariants (C6/C7/C17 — checked before every dispatch):**
+- `code-builder` contracts carry the piece's CUT CONTEXT SLICE (the piece, its
+  transitive dependencies, and the approved spec — from `cut_piece_context.py`) plus box
+  paths only — NEVER the whole `plan.yaml`, a sibling piece, a free-repo directive, a test
+  piece's files, test content, the evals path, eval content, or pass criteria (C17/F13).
+- `test-engineer` contracts carry the piece's cut context slice + spec-side paths only
+  (epic, ICE, the spec) — NEVER the whole plan, a sibling piece, implementation piece
+  reports, or builder output.
+- `evals-engineer` contracts carry spec-side paths only; the `evals_path` it writes
+  appears in NO builder or test-author contract — only the play and `quality-auditor`
+  ever receive it.
 
-**Two halt-boundary types (C34) — the core execution model:**
-- A **gate node** (`.GATE` suffix or `kind: gate`) is a **readiness/tooling stop**: execution pauses, the gate's `exit_gate` condition is rechecked, and execution AUTO-RESUMES at the next runnable node once the condition clears. No evals, no validate, no human acceptance.
-- A **milestone node** (`milestone_id` field) is a **human-acceptance stop**: execution pauses, evals are generated, scenario gates run, and the validate play is invoked; execution resumes only after validate confirms ACCEPTED.
-- All **task nodes** between two boundaries execute continuously without pausing. The orchestrator MUST NOT pause mid-stream at a task node that is neither a gate nor a milestone.
-
-**Dispatch prompt contract (C33, F26):** Every dispatch to code-builder and test-writer MUST include four labeled sections in this order:
-
-1. **Description** — 1-2 sentences from plan.yaml `scope_item_description`.
-2. **Preconditions** — prior completed scope items from plan.yaml, tech.yaml interfaces consumed by this scope item, architecture constraints from architecture-context.yaml that must hold.
-3. **Expected Behavior** — tech.yaml contracts (api_contracts / internal_interfaces / service_contracts) owned by this scope item.
-4. **Verification Steps** — PROCEDURAL only: the test scope directory to run (e.g., `tests/unit/{scope_item_path}/`), the exit criterion (all tests in scope PASS), and the red-path action (abort and enter fix loop). This section conveys WHERE and HOW to verify — never test content, assertion text, or eval criteria.
-
-Omitting any section, providing it unlabeled, or reordering is a structured halt per F26. The orchestrator runs a 4-section gate before every dispatch.
-
-**FORBIDDEN DATA SOURCES (C27, F23):**
-- `~/.garura/core/memory/` (KB) — NEVER read by any agent
-- `{product_base}` (LTM) — NEVER read by any agent
-- All context from STM at `{stm_base}/{issue}/context/`
+**Context discipline (C17/C18):** no builder or test-author is ever handed the whole
+plan — each works from its cut context slice (piece + transitive deps + spec), which is
+what holds a long autonomous build faithful and bounded. The play may stand up a
+temporary, single-use implementation skill at runtime to author a per-language build
+prompt and removes it at run end (C18) — a context device, never a durable component.
 
 ## Arguments
 
 ```
-/implement [--issue <issue-number>]
+/implement [--epic <[domain/][slice-id/]epic-id>] [--slice <[domain/]slice-id>]
 
 Examples:
-  /implement --issue 42
-  /implement
+  /implement --epic e-1-login-lockout
+  /implement --slice checkout          # auto-picks the earliest eligible ready epic
 ```
 
-`/implement` takes an **optional** issue reference and **no milestone_id** (C28). On startup it reads `plan.yaml` from STM and inspects the current branch state to self-locate the next runnable node. If the issue is omitted, it is resolved from the branch or STM.
+With `--slice` and no `--epic`, the readiness gate auto-picks the lowest-`order` ready
+epic whose dependencies are all delivered. With neither, halt and ask for one.
 
 ## Pre-flight
 
-**Self-Location & DAG-Edge Resolution.** The pre-flight does NOT take a milestone. It self-locates the next runnable node from the plan DAG plus the branch state (C28), then resolves that candidate node's `depends_on` edges by type before dispatching it (C3). It halts only on a genuine blocker.
-
-| Check | Constraint | Action on Failure |
-|-------|-----------|-------------------|
-| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt |
-| Resolve issue from arg, branch, or STM (no milestone_id) | C28 | Hard halt |
-| plan.yaml (the DAG) exists at STM | C23 | Hard halt |
-| Design artifacts sourced from issue STM `context/design/`; arch artifacts from `{product_base}architecture/` | C23 | Hard halt |
-| Self-locate: compute the next-runnable node from DAG topology + branch state | C28 | Graceful exit if every node is already executed |
-| DAG-edge resolution: every `depends_on` edge of the candidate node resolves by type (task=done in branch state, gate=exit_gate met, milestone=ACCEPTED) | C3, F24 | Structured F24 halt — surface the unresolved edge, execute nothing |
-| If the candidate is a milestone node: its plan.yaml entry status is LOCKED | C1, F8 | Hold for the milestone boundary (no acceptance gate against a DRAFT entry) |
-| If the candidate is a milestone node: backing feature has success scenarios + failure conditions + exit gate | C2, F9 | Hold — upstream spec incomplete |
-| quality-gates.yaml captured in STM before any quality agent runs | C15 | Hard halt |
-| Mock infrastructure exists before test-writer runs | C24, F20 | Hard halt |
-
-```bash
-stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | awk '{print $2}')
-issue="{--issue or resolved from branch/STM}"   # NO milestone_id
-
-stm_dir="{stm_base}/{issue}"
-artifact_base="{stm_dir}/context/design"          # C23: derive artifact_base from issue STM path
-plan_yaml_path="{artifact_base}/plan.yaml"        # the DAG
-epic_spec_path="{artifact_base}/epic-spec.yaml"
-scenarios_yaml_path="{artifact_base}/scenarios.yaml"
-tech_yaml_path="{artifact_base}/tech.yaml"
-architecture_context_path="{artifact_base}/architecture-context.yaml"
-quality_gates_path="{artifact_base}/quality-gates.yaml"
-
-# --- SELF-LOCATE (C28): pick the next runnable node ---
-# 1. Read plan.yaml — the full task DAG (nodes + depends_on edges).
-# 2. Read branch state — committed evidence + node/milestone status files on this branch.
-# 3. Compute the set of nodes whose depends_on edges are ALL satisfied and that are
-#    NOT yet executed (not marked done in branch state).
-# 4. Pick the TOPOLOGICALLY-EARLIEST such node = the next-runnable node. Record it in
-#    the pre-flight self-location record. If the set is empty AND all nodes executed →
-#    graceful exit (nothing to run).
-
-# --- RESOLVE DAG EDGES BY TYPE (C3, F24) for the candidate node ---
-# For each edge in candidate.depends_on:
-#   - target matches a milestone_id in plan.yaml  -> require status ACCEPTED (via validate)
-#   - target matches a gate task ID (e.g. T-000-GATE / kind: gate) -> require exit_gate met
-#   - target matches a task ID                    -> require that task done in branch state
-#   - target ID not found in plan.yaml            -> F24 (upstream plan error)
-# If ANY edge is unresolved or its condition unmet -> structured F24 halt, execute nothing.
-
-# Node classification (C34):
-#   .GATE suffix or kind: gate  -> GATE boundary (readiness stop, auto-resume)
-#   milestone_id present        -> MILESTONE boundary (human-acceptance stop, validate)
-#   otherwise                   -> TASK node (runs without pausing)
-
-# Eval storage outside repo (C8) — keyed by the current node
-eval_dir="/tmp/{slug}-implement-evals-{node_id}"
-
-# Evidence
-evidence_dir="{stm_dir}/evidence/implement/{node_id}"
-```
-
-**Pre-flight Evals** (embedded verbatim from `reference/evals.yaml`):
-- **SE-24 (F24):** For the next candidate node, verify every depends_on edge resolves: the target node ID exists in plan.yaml, a gate target's exit_gate condition is satisfied, and a milestone target has status ACCEPTED. The DAG-walk pre-flight ran and passed before dispatch.
-- **SE-23 (F23):** Inspect every agent contract invoked by implement. Verify none contains an ltm_context field, a product_base reference, or a path outside `{stm_base}/{issue}/`.
-- **SE-8 (F8):** When the DAG walk reaches a milestone node and its acceptance gate is about to run, verify the milestone node's plan.yaml entry has status LOCKED.
-- **SE-9 (F9):** For the reached milestone node, verify its plan.yaml entry defines an exit_gate and the feature in features.yaml backing it has at least one success scenario and at least one failure condition.
-
-**Resume:** If `{stm_dir}/status/implement.json` exists → reload the DAG-walk position (last executed node, current boundary), skip completed nodes, reset any `in_progress` node to pending, and re-self-locate from the recorded position.
-
----
-
-## Workflow — The DAG Walk
-
-The play is a continuous walk over the plan DAG. The orchestrator repeats the **node loop** below: self-locate the next runnable node, resolve its edges, classify it, and act by node type. It pauses only at a gate or milestone boundary (C34); task nodes run back-to-back.
+The play captures the two live reads once (`git branch --show-current`;
+`git status --porcelain` into `{stm_base}/_preflight/implement-porcelain.txt`), then calls
+the resolvers — facts from scripts, policy here:
 
 ```
-loop:
-  candidate = next-runnable node (topologically-earliest unexecuted node with all edges satisfiable)   # C28
-  if no candidate and all nodes executed: graceful exit
-  resolve candidate.depends_on edges by type                                                            # C3 / F24 — halt F24 if any unresolved
-  classify candidate:
-    GATE node      -> run the Gate-Boundary procedure (readiness stop, auto-resume)                     # C34
-    MILESTONE node -> run the Milestone-Boundary procedure (evals + scenario gates + validate ACCEPTED) # C34
-    TASK node      -> run the Task-Node procedure (no pause), then continue the loop                     # C34
+python3 scripts/preflight.py --play implement --branch "<current branch>" \
+        --porcelain-file <captured porcelain>
+python3 scripts/check_ready_epic.py --product-base <product_base from preflight> \
+        --config .garura/core/config.yaml (--epic <ref> | --slice <ref>) \
+        [--fix-report {stm_base}/{issue}/validate/report.yaml]
 ```
 
-### Task-Node Procedure (runs continuously — no pause)
-
-A task node carries one or more scope items. The orchestrator executes each scope item's write-test / write-code / run-tests cycle, one scope item at a time (C16), then moves on. When the node's scope items are all green it marks the node done in branch state and the loop continues to the next runnable node WITHOUT pausing (C34).
-
-**Step N1 — Build CONTEXT.md**
-Owner: `tech-designer`
-Depends on: pre-flight (edges resolved)
-
-Synthesize CONTEXT.md from tech.yaml contracts for this node's scope items.
-
-**CONTEXT.md contains:** API surface (api_contracts), interface contracts (internal_interfaces), service contracts (service_contracts), scope items (from plan.yaml node entry), Files You Own (file paths + change types), architecture decisions (from architecture-context.yaml).
-
-**CONTEXT.md does NOT contain:** behavioral descriptions from features.yaml/epic-spec.yaml (those go to TEST-CONTEXT.md), test files/code/assertions, eval content, judge reports, pass criteria.
-
-```json
-{
-  "intent_path": "core/components/plays/implement/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "plan_yaml_path": "{plan_yaml_path}",
-      "tech_yaml_path": "{tech_yaml_path}",
-      "architecture_context_path": "{architecture_context_path}",
-      "node_id": "{node_id}"
-    },
-    "output": {
-      "context_path": "{stm_dir}/CONTEXT-{node_id}.md"
-    }
-  },
-  "task_id": "build-context",
-  "config": {
-    "instructions": [
-      "Read plan.yaml node entry for {node_id}",
-      "Read tech.yaml — extract api_contracts, internal_interfaces, service_contracts for this node's spec_ref IDs",
-      "Read architecture-context.yaml — extract relevant patterns and conventions",
-      "Synthesize CONTEXT.md with API surface, interface contracts, service contracts, scope, files, architecture",
-      "Do NOT include behavioral descriptions, test content, eval content, or features.yaml content"
-    ]
-  }
-}
-```
-
-**Step N1 Evals:**
-- **SE-29 (C13):** Verify CONTEXT.md is generated before implementation and describes the API surface, interface contracts, service contracts, scope items, file ownership, and conventions for the scope under implementation only, and does NOT include behavioral descriptions from features.yaml.
-
----
-
-**Step N2 — Update CLAUDE.md**
-Owner: orchestrator (metadata, not domain work)
-
-Add `## Active Implementation` section pointing to CONTEXT.md and the current `node_id`.
-
----
-
-**Step N3 — Read Quality Vision Gates from STM**
-Owner: orchestrator
-Depends on: pre-flight
-
-Read `{quality_gates_path}` from STM. Verify it has build, typecheck, lint, unit_tests entries. When `{product_base}architecture/quality-vision.yaml` exists, thresholds derive from it via the QP translation table (QP-1→coverage, QP-2→complexity, QP-7→security).
-
-**Step N3 Eval:**
-- **SE-16 (F16/C19):** When quality-vision.yaml exists, verify the quality vision gate thresholds contain no null entries for dimensions with QP levels >= 2 — the QP translation step ran.
-
----
-
-**Step N3b — Build TEST-CONTEXT.md**
-Owner: orchestrator (extraction, not domain work)
-Depends on: Step N1
-
-Extract TEST-CONTEXT.md from epic-spec.yaml and scenarios for this node. Behavioral descriptions ONLY — scope item behavioral descriptions, acceptance criteria (given/when/then), failure conditions and expected error behaviors, pass criteria from scenarios.yaml for this node's scenario_gate.ids, test framework name. NO file paths, directory references, architecture decisions, technology choices, or implementation details from CONTEXT.md.
-
-Write to `{stm_dir}/TEST-CONTEXT-{node_id}.md`.
-
-**Step N3b Eval:**
-- **SE-14 (F14):** Inspect the test-writer's input context. Verify it contains no file paths from CONTEXT.md "Files You Own", no arch artifact references, no tech.yaml references, and no implementation-specific information; TEST-CONTEXT.md contains no file paths or technology decisions.
-
----
-
-**Step N3c — Set Up Mock Infrastructure**
-Owner: orchestrator
-Depends on: pre-flight
-
-Read tech.yaml `mock_strategy`. Ensure mock infrastructure exists (C24, F20): mock service stubs from LLD interface definitions, test database configuration, in-memory event buses. Hard halt if mock setup fails — test-writer cannot proceed (F20).
-
-**Step N3c Eval:**
-- **SE-20 (F20):** Verify every external_service and test_double in tech.yaml mock_strategy was instantiated; if any could not be, the process halted before the test-writer ran.
-
----
-
-**For each scope item in the node's task list (C16):** Steps N4a, N4b, N4c execute sequentially per scope item. One scope item's full cycle completes before the next begins (no batching).
-
-**Step N4a — Write Tests (test-writer)**
-Owner: `code-builder` (invoked as "test-writer" sub-role) — **CONTEXT-ISOLATED**
-Depends on: Step N3b (TEST-CONTEXT.md), Step N3c (mock infrastructure)
-
-**Critical isolation (C17):** test-writer receives ONLY TEST-CONTEXT.md. Never CONTEXT.md, file paths, architecture, tech decisions, evals, builder output.
-
-```json
-{
-  "intent_path": "core/components/plays/implement/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "test_context_path": "{stm_dir}/TEST-CONTEXT-{node_id}.md"
-    },
-    "output": {
-      "test_files_manifest": "{evidence_dir}/test-files-manifest.yaml"
-    }
-  },
-  "task_id": "write-tests-{scope_item_id}",
-  "config": {
-    "role": "test-writer",
-    "instructions": [
-      "Read TEST-CONTEXT.md as your ONLY source of truth",
-      "Use the test framework specified in TEST-CONTEXT.md",
-      "Write test-files-manifest.yaml listing all test file paths",
-      "",
-      "Description:",
-      "{scope_item_description from plan.yaml — 1-2 sentences stating what this scope item accomplishes}",
-      "",
-      "Preconditions:",
-      "- Prior completed scope items (behavioral summary only, no file paths): {list from plan.yaml dependency order}",
-      "- Acceptance criteria already established in TEST-CONTEXT.md for those prior items",
-      "- Behavioral context (from TEST-CONTEXT.md only — no architecture, no tech choices, no file paths)",
-      "",
-      "Expected Behavior:",
-      "- The observable outcomes defined in TEST-CONTEXT.md for this scope item",
-      "- Success scenarios from epic-spec.yaml (given / when / then)",
-      "- Failure conditions and expected error behavior",
-      "- Pass criteria from scenarios.yaml for this node's scenario_gate.ids",
-      "",
-      "Verification Steps:",
-      "- Author tests using the framework named in TEST-CONTEXT.md",
-      "- Each test asserts observable outcomes — NOT internal structure",
-      "- Emit test-files-manifest.yaml listing every test file authored",
-      "- Exit criterion: manifest written, every acceptance criterion has at least one test"
-    ]
-  }
-}
-```
-
-**Orchestrator action after Step N4a:** Record checksums of all test files in `test-checksums-pre-build.yaml`.
-
-**Orchestrator pre-dispatch gate (C33, F26):** Before invoking the test-writer, verify the `config.instructions` array contains the four labeled sections — Description, Preconditions, Expected Behavior, Verification Steps — in order, each with non-empty content. If any section is missing, unlabeled, or out of order, halt with F26 before invocation.
-
-**Step N4a Evals:**
-- **SE-11 (F11):** For each implemented scope item, verify a corresponding unit test exists that exercises its behavior and that the unit tests pass.
-- **SE-26 (F26):** For each test-writer dispatch, verify all four labeled sections (Description, Preconditions, Expected Behavior, Verification Steps) are present, in order, and labeled.
-
----
-
-**Step N4b — Write Code (code-builder)**
-Owner: `code-builder` — **CONTEXT-ISOLATED**
-Depends on: Step N4a (tests exist, but builder does NOT see them)
-
-**Critical isolation (C5, C29):** The code-builder receives CONTEXT.md and architecture-context.yaml ONLY. It does NOT receive test files, test code, test assertions, mock data patterns, TEST-CONTEXT.md, eval content, judge reports, or pass criteria.
-
-**Pre-invocation check (C29, F5):** Before invoking the builder, the orchestrator verifies the builder's context contains ZERO prohibited content — test source code, test assertion text, mock data patterns derived from test files, eval IDs, eval text, eval pass criteria, or raw judge report content. A bare test scope-directory path (e.g., `tests/unit/{scope_item}/`) in the Verification Steps section is PERMITTED — it is a procedural run directive, not test content. The check distinguishes content-bearing paths from bare scope-directory paths. If prohibited content is detected, abort and trigger F5.
-
-```json
-{
-  "intent_path": "core/components/plays/implement/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "context_path": "{stm_dir}/CONTEXT-{node_id}.md",
-      "architecture_context_path": "{architecture_context_path}"
-    },
-    "output": {
-      "build_report": "{evidence_dir}/build-report-{scope_item_id}.yaml"
-    }
-  },
-  "task_id": "implement-{scope_item_id}",
-  "config": {
-    "instructions": [
-      "Read CONTEXT.md and architecture-context.yaml as your ONLY sources",
-      "Do NOT read any test files, TEST-CONTEXT.md, or eval files",
-      "Do NOT attempt to run tests — the orchestrator handles that",
-      "Declare DONE when the contracts are satisfied per CONTEXT.md",
-      "Run build to verify compilation: build MUST pass",
-      "",
-      "Description:",
-      "{scope_item_description from plan.yaml — 1-2 sentences stating what this scope item accomplishes}",
-      "",
-      "Preconditions:",
-      "- Prior completed scope items from plan.yaml (in dependency order): {list}",
-      "- tech.yaml interfaces CONSUMED by this scope item (api_contracts / internal_interfaces / service_contracts depended upon): {list contract IDs from CONTEXT.md consumed section}",
-      "- Architecture constraints from architecture-context.yaml that must hold: {list relevant patterns / conventions / tech-stack decisions}",
-      "",
-      "Expected Behavior:",
-      "- tech.yaml contracts OWNED by this scope item (to implement / satisfy): {list api_contracts / internal_interfaces / service_contracts owned by this scope item with their contract IDs from CONTEXT.md}",
-      "- Each contract includes its request/response schema, signature, or payload schema from CONTEXT.md",
-      "",
-      "Verification Steps:",
-      "- Run the build after implementation; build MUST pass (C12)",
-      "- Test scope directory for this scope item: {scope_item_test_dir} (e.g., tests/unit/{scope_item_path}/) — this is a PROCEDURAL run directive, not test content",
-      "- Exit criterion: all tests in the scope directory PASS when the orchestrator runs them",
-      "- Red-path action: if the orchestrator's test run surfaces a failing contract for this scope item, abort the current cycle and enter the fix loop (Step N4d)"
-    ]
-  }
-}
-```
-
-**Orchestrator pre-dispatch gate (C33, F26):** Before invoking the builder, verify `config.instructions` contains the four labeled sections in order with non-empty content. If any section missing or unlabeled, halt with F26 before invocation.
-
-**Step N4b Evals:**
-- **SE-5 (F5):** Inspect the builder's input context. Verify it contains no test source code, test assertion text, mock data patterns derived from test files, evaluation ID, evaluation text, evaluation pass criteria, or raw judge report content. A bare scope-directory path in Verification Steps is NOT a violation. Contract `stm.input` contains only `context_path` and `architecture_context_path`.
-- **SE-28 (F1/C12):** Verify the project builds successfully after implementation and type checking and the production build both pass without errors.
-- **SE-26 (F26):** For each code-builder dispatch, verify all four labeled sections are present, in order, and labeled.
-
----
-
-**Step N4c — Run Tests & Produce Spec-Referenced Status Report**
-Owner: orchestrator (mechanical test execution + status report generation)
-Depends on: Steps N4a and N4b
-
-The orchestrator runs the test suite mechanically (just executes the test command). It then maps results to contract IDs from tech.yaml and produces a spec-referenced status report.
-
-```bash
-# Run tests for this scope item
-# npm test -- --scope {scope_item_test_pattern}
-# or: pytest tests/{scope_item_path} -v --json-report
-```
-
-**Status report format (C18, F15):**
-
-```yaml
-status_report:
-  node_id: "{node_id}"
-  scope_item: "{scope_item_id}"
-  cycle: 1
-  results:
-    - contract_ref: "API-001"
-      contract_type: "api_contract"
-      status: "PASS"
-    - contract_ref: "INT-001"
-      contract_type: "internal_interface"
-      status: "FAIL"
-      expected_per_spec: "createUser(name, email) returns {id, name, email} per tech.yaml INT-001"
-      actual: "function returns null — DB write succeeds but return value not propagated"
-      spec_source: "tech.yaml → internal_interfaces → INT-001 → return_schema"
-  overall: "FAIL"
-  failing_contracts: ["INT-001"]
-```
-
-**Status report MUST NOT contain (C18, F15):** test source code, assertion text, test file paths, mock data patterns, implementation code.
-
-**If all PASS:** Move to the next scope item (Step N4a for next item). When this was the last scope item → Step N5.
-**If FAIL:** Enter per-scope-item fix loop (Step N4d).
-
-**Step N4c Eval:**
-- **SE-15 (F15/C18):** Inspect the spec-referenced status report. Verify it maps each failure to a tech.yaml contract ID with expected behavior per spec and observed deviation, and contains no test source code, assertion text, test file paths, mock data patterns, or implementation code.
-
----
-
-**Step N4d — Per-Scope-Item Fix Loop (max 3 cycles)**
-Owner: orchestrator
-Depends on: Step N4c (failures exist)
-
-Track consecutive failures per contract_ref. For each failing contract:
-
-**Cycle 1-2 (standard):** Pass the spec-referenced status report to code-builder for fix.
-
-**Pre-invocation check (C29, F5):** Verify builder context contains ZERO prohibited content (test source, assertion text, mock data patterns, eval IDs, eval text, pass criteria, raw judge content) before each invocation. Bare scope-directory paths in Verification Steps are permitted.
-
-```json
-{
-  "intent_path": "core/components/plays/implement/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "context_path": "{stm_dir}/CONTEXT-{node_id}.md",
-      "architecture_context_path": "{architecture_context_path}",
-      "status_report": "{evidence_dir}/status-report-{scope_item_id}-cycle-{N}.yaml"
-    },
-    "output": {
-      "fix_report": "{evidence_dir}/fix-report-{scope_item_id}-cycle-{N}.yaml"
-    }
-  },
-  "task_id": "fix-{scope_item_id}-cycle-{N}",
-  "config": {
-    "instructions": [
-      "Read CONTEXT.md and architecture-context.yaml for contract definitions and patterns",
-      "Read the status report — it maps failures to contract IDs from tech.yaml (expected-per-spec vs actual)",
-      "Do NOT read test files, TEST-CONTEXT.md, or eval files",
-      "Run build after fixes",
-      "",
-      "Description:",
-      "Fix the failing contracts for scope item {scope_item_id} (cycle {N}). {scope_item_description from plan.yaml}",
-      "",
-      "Preconditions:",
-      "- Prior completed scope items (in dependency order): {list}",
-      "- tech.yaml interfaces consumed by this scope item: {list CONSUMED contract IDs}",
-      "- Architecture constraints from architecture-context.yaml: {list relevant patterns / conventions}",
-      "- Failing contracts from status-report cycle {N}: {list failing contract_ref IDs}",
-      "",
-      "Expected Behavior:",
-      "- tech.yaml contracts owned by this scope item (must satisfy): {list OWNED contract IDs with expected-per-spec text from the status report}",
-      "- For each failing contract, re-read its definition in CONTEXT.md and align the implementation to it",
-      "",
-      "Verification Steps:",
-      "- Run the build after fixes; build MUST pass",
-      "- Test scope directory: {scope_item_test_dir} — procedural run directive, not test content",
-      "- Exit criterion: all tests in the scope directory PASS when the orchestrator re-runs them",
-      "- Red-path action: if the same contract fails on the next cycle, the orchestrator escalates to judge-as-arbiter (Step N4e)"
-    ]
-  }
-}
-```
-
-**Orchestrator pre-dispatch gate (C33, F26):** 4-section gate before invocation — halt with F26 if any section missing or unlabeled.
-
-After builder fixes → orchestrator re-runs tests → produces new status report.
-
-**If same contract_ref fails in two consecutive cycles (C30):** Escalate to judge-as-arbiter (Step N4e). MUST NOT escalate on a first failure (F25).
-
-**Step N4d Evals:**
-- **SE-5 (F5):** Builder context (each fix cycle) carries zero prohibited content; only context_path + architecture_context_path + status_report (and a bare scope-dir path).
-- **SE-26 (F26):** Four labeled sections present in order on each fix dispatch.
-
----
-
-**Step N4e — Judge-as-Arbiter (conditional)**
-Owner: `judge` (ARBITER mode) — **CONTEXT-ISOLATED**
-Depends on: Step N4d (same contract failed 2 consecutive cycles)
-**Trigger:** Same contract_ref appears in status reports for cycles N and N+1. MUST NOT trigger on first failure (F25).
-
-The judge reads ONLY the SPEC contract from tech.yaml and the two consecutive status reports — never implementation code, test code, or eval content (C6, C30).
-
-```json
-{
-  "intent_path": "core/components/plays/implement/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "contract_definition": "{extracted contract from tech.yaml for the failing contract_ref}",
-      "status_report_cycle_1": "{evidence_dir}/status-report-{scope_item_id}-cycle-{N}.yaml",
-      "status_report_cycle_2": "{evidence_dir}/status-report-{scope_item_id}-cycle-{N+1}.yaml"
-    },
-    "output": {
-      "arbiter_verdict": "{evidence_dir}/arbiter-verdict-{scope_item_id}-{contract_ref}.yaml"
-    }
-  },
-  "task_id": "arbiter-{scope_item_id}-{contract_ref}",
-  "config": {
-    "mode": "ARBITER",
-    "instructions": [
-      "Read the contract definition from the SPEC (tech.yaml)",
-      "Read both status reports showing the same contract failing",
-      "Independently verify: does the contract definition in the spec clearly specify what should happen?",
-      "Do NOT read implementation code, test code, builder prompts, or eval content",
-      "Render ONE verdict:",
-      "  implementation_wrong: the spec is clear and the implementation doesn't satisfy it",
-      "  implementation_correct_per_spec: the implementation matches the spec; the test may be wrong",
-      "  spec_ambiguous: the spec doesn't clearly specify this behavior — human input needed"
-    ]
-  }
-}
-```
-
-**Verdict handling:**
-- `implementation_wrong` → Builder gets cycle 3 with the judge's diagnostic appended to the status report. If cycle 3 still fails → halt with structured failure (per-scope-item).
-- `implementation_correct_per_spec` → Re-invoke test-writer (Step F2b) to fix the failing test for that contract. Re-run tests after.
-- `spec_ambiguous` → Human checkpoint (Orbit). Present the contract, status reports, and judge finding. Wait for user resolution before proceeding.
-
-**Step N4e Eval:**
-- **SE-25 (F25):** Verify judge-as-arbiter was invoked only after the same contract ID appeared in the status report for two consecutive implementation cycles — never on a first failure. The arbiter verdict is one of: implementation_wrong, implementation_correct_per_spec, spec_ambiguous, and its input carries zero implementation/test/eval content.
-
----
-
-**Step N5 — Integration Test Pass (after all scope items in the node complete)**
-Owner: orchestrator
-Depends on: All scope items complete their N4a-N4e cycles
-
-Run the full test suite: unit + integration with mocks for this node's segment + regression from prior completed segments (C25).
-
-```bash
-# npm test -- --node {node_id} --include-regression
-```
-
-If integration fails → enter the node fix loop (treated like Step N4d at node scope; on exhaustion → structured failure).
-
-**Step N5 Eval:**
-- **SE-21 (F21):** After individual scope items passed, verify the full test suite (unit + integration with mocks + regression) passes; an integration failure enters the fix loop.
-
-When the node's scope items are all green and integration passes → mark the node **done** in branch state. The DAG walk continues to the next runnable node **without pausing** (C34). No quality gate, no judge, no validate at a task node — those run only at a milestone boundary.
-
----
-
-### Gate-Boundary Procedure (readiness stop — auto-resume, C34)
-
-When the next runnable node is a **gate node** (`.GATE` suffix or `kind: gate`):
-
-1. **Pause** the walk — this is a readiness/tooling stop, not a human-acceptance stop.
-2. **Recheck** the gate's `exit_gate` condition (e.g., prerequisites done, environment ready, tooling installed).
-3. If the condition **is met** → mark the gate satisfied and **AUTO-RESUME** at the next runnable node.
-4. If the condition **is not met** → hold at the gate and surface the unmet `exit_gate` (this is the F24 path when a downstream node depends on this gate). No validate invocation, no eval generation, no human-acceptance entry for a gate boundary.
-
-**Gate-Boundary Evals:**
-- **SCE-3 (S3 — Engineer):** At a gate node, the run log records a pause, a recheck of the gate's exit_gate condition, then automatic resumption at the next unsatisfied node once the condition is met, with no validate invocation and no human-acceptance entry.
-
----
-
-### Milestone-Boundary Procedure (human-acceptance stop, C34)
-
-When the next runnable node is a **milestone node** (carries a `milestone_id`): the walk pauses for acceptance. Eligibility was already checked at pre-flight (SE-8: entry LOCKED; SE-9: backing feature has scenarios + failure conditions + exit gate). Now the acceptance gate runs.
-
-**Step M1 — Generate Evals**
-Owner: `evals-engineer` — **CONTEXT-ISOLATED**
-Depends on: milestone boundary reached, eligibility confirmed
-
-Scoped to unit test coverage completeness for this milestone (C4). Receives ONLY: epic-spec.yaml behaviors, scenarios.yaml, feature success/failure conditions, plan.yaml exit gate. Stored OUTSIDE the repo, encrypted, plaintext deleted (C7, C8).
-
-```json
-{
-  "intent_path": "core/components/plays/implement/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "epic_spec_path": "{epic_spec_path}",
-      "scenarios_yaml_path": "{scenarios_yaml_path}",
-      "node_id": "{node_id}",
-      "plan_exit_gate": "{exit gate from plan.yaml}"
-    },
-    "output": {
-      "eval_path": "{eval_dir}/implement-{node_id}.yaml",
-      "manifest_path": "{eval_dir}/manifest.json"
-    }
-  },
-  "task_id": "generate-evals",
-  "config": {
-    "scope": "unit-test-coverage-completeness",
-    "instructions": [
-      "Read ONLY the listed input files",
-      "Do NOT read implementation code, builder output, tech.yaml, plan.yaml, architecture files",
-      "Generate evals: does every behavior have a unit test? Are success + failure conditions tested?",
-      "Write to {eval_dir} OUTSIDE repo tree. Encrypt at rest. Delete plaintext."
-    ]
-  }
-}
-```
-
-**Step M1 Evals:**
-- **SE-7 (F7):** Inspect the evaluation generator's input context. Verify it contains no implementation code, builder output, or prior evaluation results.
-- **SE-27 (C7):** Verify evaluations are encrypted at rest, plaintext evaluation content is deleted after encryption, and only the judge possesses the decryption capability.
-- **SE-4 (F4/C8):** After the encryption step, verify no plaintext evaluation files exist on disk and no evaluation content (encrypted or plaintext) exists inside the project repository tree.
-
----
-
-**Step M2 — Quality-Auditor (single gate + QP certification)**
-Owner: `quality-auditor` — **CONTEXT-ISOLATED**
-Depends on: the node's integration pass
-
-**Isolation (C14):** Receives implemented code + quality-gates.yaml. Never evals, builder prompts, judge reports.
-
-```json
-{
-  "intent_path": "core/components/plays/implement/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "quality_gates_path": "{quality_gates_path}",
-      "project_root": "{project_root}"
-    },
-    "output": {
-      "quality_report": "{evidence_dir}/quality-report-{node_id}.yaml"
-    }
-  },
-  "task_id": "quality-audit",
-  "config": {
-    "instructions": [
-      "Read quality-gates.yaml — execute each gate command",
-      "Compare actual measurements against QP thresholds",
-      "Produce qp_certification section: per-dimension PASS/FAIL, overall CERTIFIED|BLOCKED",
-      "Do NOT read eval files, builder prompts, judge reports, or evals-engineer content"
-    ]
-  }
-}
-```
-
-**Gate (C20, F17):** If overall FAIL or qp_certification BLOCKED → do NOT proceed to judge. Enter the outer fix loop (Step F1).
-
-**Step M2 Evals:**
-- **SE-30 (C14):** Verify the quality-auditor report independently covers linting, unit tests, type checking, build, and coverage against the quality vision gates, and includes a qp_certification section with per-dimension PASS/FAIL, overall CERTIFIED|BLOCKED, and a blockers list; and that it did not receive evaluations, builder prompts/reasoning, evals-engineer prompts, or judge reports.
-- **SE-22 (F22/C26):** When quality-vision.yaml exists, verify the quality-auditor report includes a qp_certification section with overall (CERTIFIED|BLOCKED), per-dimension checks (level, threshold, actual_value, status PASS|FAIL), and a blockers list.
-- **SE-1 (F1):** After implementation completes, verify the project build and type check produce no errors.
-- **SE-12 (F12):** Verify there are no linting violations in the implemented code.
-- **SE-13 (F13):** Verify every code-quality metric meets the threshold specified in the quality vision gates.
-
----
-
-**Step M3 — Judge (EVAL-REVIEW mode)**
-Owner: `judge` (EVAL-REVIEW mode) — **CONTEXT-ISOLATED**
-Depends on: Step M2 quality-auditor PASS with CERTIFIED
-
-**Isolation (C6):** Receives encrypted evals + project code. Never builder prompts, evals-engineer prompts, quality results.
-
-```json
-{
-  "intent_path": "core/components/plays/implement/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "eval_path": "{eval_dir}/implement-{node_id}.yaml",
-      "manifest_path": "{eval_dir}/manifest.json",
-      "project_root": "{project_root}"
-    },
-    "output": {
-      "judge_report": "{evidence_dir}/judge-report-{node_id}.yaml"
-    }
-  },
-  "task_id": "judge-eval-review",
-  "config": {
-    "mode": "EVAL-REVIEW",
-    "instructions": [
-      "Decrypt eval file",
-      "For each eval: verify unit test quality — are tests genuinely exercising behavior?",
-      "Check for trivially passing tests",
-      "Verify coverage aligns with spec, not just line count",
-      "Do NOT read builder prompts, evals-engineer prompts, quality-auditor results",
-      "Do NOT exercise deployed environment or run browser automation"
-    ]
-  }
-}
-```
-
-**Step M3 Evals:**
-- **SE-6 (F6):** Inspect the judge's input context. Verify it contains no builder prompt, builder reasoning, or implementation rationale.
-- **SE-17 (F17):** Verify the judge did not execute while quality-report.yaml showed overall FAIL.
-- **SE-2 (F2):** On the first judge run, verify the evaluation failure rate does not exceed 50%.
-
-**Gate:** If 100% pass → proceed to Step M4 (validate). Else → outer fix loop (Step F1).
-
----
-
-**Step M4 — Invoke validate (human-acceptance)**
-Owner: orchestrator → `validate` play
-Depends on: Step M3 judge pass
-
-At the milestone boundary, run the scenario gates and invoke the `validate` play for this milestone. Execution resumes (the DAG walk continues to the next runnable node) **only after validate confirms ACCEPTED** (C34). A milestone with no ACCEPTED verdict halts the walk — no subsequent node is dispatched.
-
-**Step M4 Evals:**
-- **SCE-4 (S4 — Engineer):** At a milestone node, the run log records eval generation, scenario-gate execution, and a validate invocation, and the next node is dispatched only after a validate verdict of ACCEPTED.
-
----
-
-### Outer Fix Loop (conditional — max 3 iterations per C11)
-
-Entered from a milestone boundary when quality-auditor BLOCKED/FAIL (Step M2) or judge found failures (Step M3).
-
-**Step F1 — Derive Unified Remediation**
-Owner: orchestrator
-Depends on: Step M3 (judge failures) or Step M2 (quality failures)
-
-Read two sources (C21, F18):
-1. **Spec-referenced status reports** from the integration pass (behavioral failures mapped to contract IDs)
-2. **quality-report.yaml** (gate failures, QP threshold failures, qp_certification)
-
-Translate judge EVAL-REVIEW findings into behavioral remediation. Categorize entries as behavioral, tooling, or quality. No failing source may be omitted.
-
-```markdown
-# Remediation — Node {node_id} — Iteration {iteration}
-
-## Behavioral Failures (from status reports)
-- Contract API-001: expected per spec: X. Actual: Y.
-
-## Tooling Failures (from quality-report)
-- Build: {command} — {error output}
-
-## Quality Threshold Failures (from qp_certification)
-- Coverage: target {threshold}%, actual {actual}%
-
-## Test Quality Failures (from judge EVAL-REVIEW)
-- Behavior X not adequately tested per spec
-```
-
-Write to `{evidence_dir}/remediation-{node_id}-{iteration}.md`.
-
-**Step F1 Eval:**
-- **SE-18 (F18):** When quality-report.yaml or spec-referenced status reports contain failures, verify remediation instructions include at least one entry from each failing source.
-
----
-
-**Step F2 — Builder Fix**
-Owner: `code-builder` — **CONTEXT-ISOLATED**
-Depends on: Step F1
-
-**Isolation (C5, C10, C29):** Builder receives CONTEXT.md + architecture-context.yaml + remediation. NEVER test files, eval IDs, pass criteria, raw judge content.
-
-**Pre-invocation check (C29, F5):** Verify clean context before each invocation. Bare scope-directory paths in Verification Steps permitted.
-
-```json
-{
-  "stm": {
-    "input": {
-      "context_path": "{stm_dir}/CONTEXT-{node_id}.md",
-      "architecture_context_path": "{architecture_context_path}",
-      "remediation_path": "{evidence_dir}/remediation-{node_id}-{iteration}.md"
-    },
-    "output": {
-      "fix_report": "{evidence_dir}/fix-report-{node_id}-{iteration}.yaml"
-    }
-  },
-  "task_id": "fix-iteration-{iteration}",
-  "config": {
-    "instructions": [
-      "Read CONTEXT.md and architecture-context.yaml",
-      "Read remediation — address behavioral, tooling, and quality failures",
-      "Do NOT read test files, TEST-CONTEXT.md, or eval files",
-      "Run build after fixes",
-      "",
-      "Description:",
-      "Outer fix-loop iteration {iteration} for node {node_id}. Address behavioral, tooling, and quality failures surfaced by the integration pass, quality-auditor, and judge EVAL-REVIEW.",
-      "",
-      "Preconditions:",
-      "- All scope items for this node completed their per-scope-item cycles",
-      "- Integration test pass ran (Step N5)",
-      "- Quality-auditor report exists at {evidence_dir}/quality-report-{node_id}.yaml",
-      "- Remediation instructions at {evidence_dir}/remediation-{node_id}-{iteration}.md categorize failures as behavioral / tooling / quality",
-      "- tech.yaml interfaces consumed across this node's scope items (unchanged)",
-      "- Architecture constraints from architecture-context.yaml (unchanged)",
-      "",
-      "Expected Behavior:",
-      "- tech.yaml contracts owned by this node's scope items (must continue to satisfy after fix): {list OWNED contract IDs}",
-      "- Address every behavioral failure entry in the remediation (mapped to tech.yaml contract IDs)",
-      "- Address every tooling failure entry in the remediation (build / typecheck / lint)",
-      "- Address every quality-threshold failure entry in the remediation (QP dimensions)",
-      "",
-      "Verification Steps:",
-      "- Run the build after fixes; build MUST pass",
-      "- Test scope directory: {node_test_dir} — procedural run directive",
-      "- Exit criterion: quality-auditor re-run passes with CERTIFIED and judge re-run passes",
-      "- Red-path action: if failures persist and iteration < 3, return to remediation (Step F1); if iteration == 3, structured failure report (Step F5)"
-    ]
-  }
-}
-```
-
-**Orchestrator pre-dispatch gate (C33, F26):** 4-section gate before invocation.
-
-**Step F2 Evals:**
-- **SE-5 (F5):** Builder dispatch carries zero test source, test code, test assertions, mock data patterns, eval IDs, eval text, pass criteria, raw judge content. Bare scope-directory path in Verification Steps permitted.
-- **SE-26 (F26):** Four labeled sections present in order.
-
----
-
-**Step F2b — Conditional Test-Writer Update (rare)**
-Owner: `code-builder` (test-writer sub-role) — **CONTEXT-ISOLATED**
-Depends on: Step F1 (only if judge found spec misrepresentation in tests, or arbiter returned `implementation_correct_per_spec`)
-
-Re-invoked ONLY when judge EVAL-REVIEW identified tests that don't accurately reflect the spec, or arbiter returned `implementation_correct_per_spec`.
-
-```json
-{
-  "stm": {
-    "input": {
-      "test_context_path": "{stm_dir}/TEST-CONTEXT-{node_id}.md"
-    },
-    "output": {
-      "test_files_manifest": "{evidence_dir}/test-files-manifest.yaml"
-    }
-  },
-  "task_id": "fix-tests-{iteration}",
-  "config": {
-    "role": "test-writer",
-    "instructions": [
-      "Read TEST-CONTEXT.md and the behavioral remediation section only",
-      "Do NOT change tests to accommodate broken implementation",
-      "",
-      "Description:",
-      "Update tests that misrepresent the spec for node {node_id}, iteration {iteration}. Invoked when judge EVAL-REVIEW found tests do not accurately reflect the spec, or arbiter returned implementation_correct_per_spec.",
-      "",
-      "Preconditions:",
-      "- Behavioral remediation section identifies tests that misrepresent the spec (by acceptance-criterion reference, not by test source)",
-      "- TEST-CONTEXT.md contents (behavioral specs only — no file paths, no architecture)",
-      "- Test framework named in TEST-CONTEXT.md",
-      "",
-      "Expected Behavior:",
-      "- Tests accurately reflect the acceptance criteria and failure conditions in TEST-CONTEXT.md",
-      "- Tests assert observable outcomes, not internal structure",
-      "- No test is modified solely to make a broken implementation pass",
-      "",
-      "Verification Steps:",
-      "- Update test-files-manifest.yaml to reflect any added/removed test files",
-      "- Exit criterion: manifest written; every acceptance criterion in the behavioral remediation has at least one covering test",
-      "- Red-path action: if the rewrite cannot faithfully express an acceptance criterion, surface the gap rather than compromising the test"
-    ]
-  }
-}
-```
-
-**Orchestrator pre-dispatch gate (C33, F26):** 4-section gate before invocation.
-
-**Step F2b Evals:**
-- **SE-14 (F14):** Test-writer context carries only behavioral TEST-CONTEXT.md — zero file paths, arch references, tech.yaml references, or implementation specifics.
-- **SE-26 (F26):** Four labeled sections present in order.
-
----
-
-**Step F3 — Re-run Quality-Auditor**
-Owner: `quality-auditor`
-Same contract as Step M2. Must PASS + CERTIFIED before Step F4.
-
----
-
-**Step F4 — Generate Fresh Evals**
-Owner: `evals-engineer` (fresh instance)
-Same contract as Step M1. Old evals discarded entirely (C9); a fresh agent with no knowledge of prior evals regenerates from the original specs.
-
-**Step F4 Eval:**
-- **SE-10 (F10):** After a fix iteration, verify the judge ran against freshly generated evaluations, not the same evaluations used in the previous iteration (manifest checksum differs across iterations).
-
----
-
-**Step F4b — Audit Eval Count**
-Owner: orchestrator
-Compare fresh count against the original manifest (C22, F19). Require a consolidation_rationale per removed eval ID if the count decreased.
-
-**Step F4b Eval:**
-- **SE-19 (F19/C22):** When fresh eval count is less than the original count, verify a consolidation_rationale artifact exists explaining which eval IDs were removed and why.
-
----
-
-**Step F5 — Fresh Judge (EVAL-REVIEW mode)**
-Owner: `judge` (fresh instance)
-Same contract as Step M3.
-
-If all pass → proceed to Step M4 (validate).
-If failures and iteration < 3 → return to Step F1.
-If failures and iteration == 3 → structured failure report:
-
-```markdown
-# Implementation Failure Report — Node {node_id}
-
-**Iterations exhausted:** 3
-**Persistent failures:** {list of failing evals with behavioral descriptions}
-
-| Iteration | Remediation | Quality Status | Judge Result |
-|-----------|-------------|----------------|-------------|
-| 1 | {summary} | {PASS/FAIL} | {pass rate} |
-| 2 | {summary} | {PASS/FAIL} | {pass rate} |
-| 3 | {summary} | {PASS/FAIL} | {pass rate} |
-```
-
-**Step F5 Eval:**
-- **SE-3 (F3):** After the fix loop, verify that if three iterations were used the judge report contains no failing evaluation; otherwise a structured failure report exists.
-
----
-
-### Phase: Finalize (per milestone, after validate ACCEPTED)
-
-**Step Z1 — Write Status Report for validate / record node done**
-Owner: orchestrator
-Depends on: Step M3 / Step F5 (all pass) and Step M4 (validate ACCEPTED)
-
-Write the milestone completion status to `{stm_dir}/milestones/{node_id}/status-report.yaml`:
-
-```yaml
-status_report:
-  node_id: "{node_id}"
-  issue: "{issue}"
-  status: "COMPLETE"
-  completed_at: "{timestamp}"
-  test_results:
-    unit_tests: "PASS"
-    integration_tests: "PASS"
-    total_tests: "{count}"
-    passed: "{count}"
-  quality_certification:
-    overall: "CERTIFIED"
-    qp_dimensions: [...]
-  judge_eval_review:
-    pass_rate: "{rate}"
-    iterations: "{count}"
-  validate_verdict: "ACCEPTED"
-  scope_items_completed: ["{list}"]
-  artifacts:
-    context_md: "{stm_dir}/CONTEXT-{node_id}.md"
-    test_context_md: "{stm_dir}/TEST-CONTEXT-{node_id}.md"
-    quality_report: "{evidence_dir}/quality-report-{node_id}.yaml"
-    judge_report: "{evidence_dir}/judge-report-{node_id}.yaml"
-```
-
-Mark the milestone node **done** in branch state and **resume the DAG walk** at the next runnable node.
-
----
-
-**Step Z2 — Clean Up**
-Owner: orchestrator
-
-Remove `## Active Implementation` from CLAUDE.md. Archive CONTEXT.md and TEST-CONTEXT.md to evidence.
-
----
-
-## Scenario Validation
-
-Embedded verbatim from `reference/expectation.yaml` `success_scenarios` (S1-S19) via `reference/evals.yaml` — one SCE per scenario, each derived from that scenario's binary, observable `measure`. SCE-3 and SCE-4 also appear inline at the gate/milestone boundary steps above.
-
-- **SCE-1 (S1 — Engineer):** With no milestone_id supplied, the pre-flight record names the starting node as the topologically-earliest node whose depends_on edges are all satisfied and that is not yet marked done in branch state, and no run input carries a milestone_id.
-
-- **SCE-2 (S2 — Engineer):** For a segment of consecutive task nodes (none a gate, none a milestone), each node executed and the next dispatched with no intervening pause or human prompt; a pause appears only at a gate node or a milestone node.
-
-- **SCE-3 (S3 — Engineer):** At a gate node, the run log records a pause, a recheck of the gate's exit_gate condition, then automatic resumption at the next unsatisfied node once the condition is met, with no validate invocation and no human-acceptance entry for the gate boundary.
-
-- **SCE-4 (S4 — Engineer):** At a milestone node, the run log records eval generation, scenario-gate execution, and a validate invocation, and the next node is dispatched only after a validate verdict of ACCEPTED; a milestone with no ACCEPTED verdict shows no subsequent node dispatched.
-
-- **SCE-5 (S5 — Engineer):** The pre-flight classifies each depends_on edge of the candidate node by target type and records the satisfied condition per type (milestone=ACCEPTED, gate=exit_gate met, task=done in branch state); the node is dispatched only when every edge resolves, else a structured F24 halt is recorded with no node executed.
-
-- **SCE-6 (S6 — Engineer):** For the executed node, status-report.yaml shows status COMPLETE with judge_eval_review.iterations == 0 (no fix loop), judge pass rate 100%, and build/type-check pass.
-
-- **SCE-7 (S7 — Engineer):** When the first judge run failed, each fix iteration (<= 3) has a distinct fresh eval manifest (checksum differs from the prior iteration) and a fresh judge-report; the final judge run shows 100% pass or a structured failure report exists after iteration 3.
-
-- **SCE-8 (S8 — QA Engineer):** Every verification scenario in scenarios.yaml for this milestone is executable against the deployed environment and its observed behavior matches the expected outcome, with no codebase read and no encrypted-eval reference required.
-
-- **SCE-9 (S9 — Security Auditor):** The builder contract carries only context_path + architecture_context_path (zero eval/test content), the judge contract carries zero builder prompts, the evals-engineer contract carries zero implementation code, the quality-auditor contract carries zero eval content, the test-writer contract carries zero implementation paths, and the quality-report security dimension shows PASS against the quality vision gates.
-
-- **SCE-10 (S10 — Engineering Lead):** The failure report names each persistently failing evaluation, carries a per-iteration remediation table (iterations 1-3 with quality status and judge result), and surfaces a restructure-or-escalate decision point — all without inspecting source.
-
-- **SCE-11 (S11 — Performance Auditor):** The quality-report.yaml records measured bundle size, lighthouse score, and runtime metrics, and each measured value meets or exceeds its threshold from quality-vision.yaml.
-
-- **SCE-12 (S12 — Evals Engineer):** The judge-report shows every eval in the manifest executed (executed count == manifest count), every features.yaml behavior maps to at least one eval, and the overall pass rate meets or exceeds the defined threshold.
-
-- **SCE-13 (S13 — Quality Lead):** For every QP dimension with level >= 2, the quality gates carry a non-null threshold and the quality-report.yaml qp_certification section shows that dimension with PASS/FAIL and an actual_value; no dimension with level >= 2 is absent.
-
-- **SCE-14 (S14 — Build Engineer):** Whenever a quality-report.yaml shows overall FAIL or qp_certification.overall BLOCKED, no judge-report.yaml carries a later timestamp for that iteration; a judge-report exists only after a quality-report showing PASS with CERTIFIED.
-
-- **SCE-15 (S15 — Testing Architect):** The test-writer contract input is only test_context_path, the code-builder contract input is only context_path + architecture_context_path (zero test files/code/assertions), and every status report routed to the builder references only tech.yaml contract IDs (zero test source or assertion text).
-
-- **SCE-16 (S16 — Engineering Lead):** The arbiter invocation record shows the same contract ID in two consecutive status reports before invocation (none on a first failure), the arbiter contract input carries only tech.yaml contracts + the status report (zero implementation/test/eval content), and the arbiter verdict is one of implementation_wrong, implementation_correct_per_spec, or spec_ambiguous with the matching downstream action recorded.
-
-- **SCE-17 (S17 — Eval Auditor):** An eval-audit artifact records the per-iteration count delta, every removed eval ID carries a consolidation_rationale when the delta is negative, no plaintext eval exists on disk after encryption, and no eval content (encrypted or plaintext) exists inside the repository tree.
-
-- **SCE-18 (S18 — Developer):** A mock-setup report exists and is dated before the test-writer dispatch, every external_service and test_double in tech.yaml mock_strategy has a functioning mock, and no status report or builder context contains mock data patterns.
-
-- **SCE-19 (S19 — Developer):** Each code-builder and test-writer dispatch contains all four labeled sections in the prescribed order (Description, Preconditions, Expected Behavior, Verification Steps), and the Verification Steps section contains only a scope-directory path plus exit/red-path directives with zero test source, assertion text, or eval content.
-
-Conditional skips: SCE-3 skip if no gate node on the walk. SCE-4/SCE-8 skip if no milestone boundary reached. SCE-7/SCE-10 skip if no fix loop. SCE-11 skip if no performance gates. SCE-13 skip if no quality-vision.yaml. SCE-14 skip if quality passed first run. SCE-16 skip if no arbiter escalation. SCE-17 skip if no fix loop / no eval-count delta.
-
----
+| Fact | Constraint | Action on Failure |
+|------|-----------|-------------------|
+| config readable (preflight.py exit 0) | — | Hard halt — config is required |
+| `stm_base`, `product_base` resolved | — | Hard halt |
+| epic/slice argument present | C1 | Hard halt — "Name an epic or a slice." |
+| `check_ready_epic.py` exit 0 (slice realized; epic ready, resuming in_delivery, or fix_required WITH its /validate fix report — the fix round; deps delivered; hub resolves; seven lens .md present) | C1, C14 | Hard halt (F1) — surface every error it printed |
+| `mode` (build \| resume \| fix, from check_ready_epic) | C14 | — recorded; fix → Step 4 runs in revision mode off the report |
+| `--slice` auto-pick found no eligible epic | C1 | Graceful exit — "No eligible ready epic; deliver dependencies or cut epics with /grill." |
+| `plan_tracking` (from check_ready_epic, `implement.plan-tracking`, default true) | C12 | — recorded; gates the publish/sync steps |
+| `evidence_record` (per-play → global → true) | — | — recorded; gates the evidence write |
+
+**Resume check:** if `{stm_base}/{issue}/status/implement.json` exists (issue from the
+epic's `issue_ref` or the branch), resume — skip completed steps, reset any in-progress
+step or plan piece to pending, re-anchor to the tracked plan (S5), and continue from the
+first incomplete step. A fresh start creates the marker at Step 1.
+
+**Pre-flight Evals:**
+- **SE-1 (F1/C1):** `check_ready_epic.py` exited 0 before any build step: the slice is
+  `realized`, the epic is `ready` (or `in_delivery` with a matching issue on resume, or
+  `fix_required` with its /validate fix report on a fix round), every `depends_on` epic
+  is `delivered`, every functionality `ice_ref` resolves, and all six lens files exist.
+  No build step ran when it exited non-zero.
 
 ## Task DAG
 
-`/implement` does not build a fixed linear task list — its execution order is the **plan DAG** itself, walked node by node (C28, C34). The orchestrator still records its own progress via the status file below so a run is resumable. The compiled steps above (N*, Gate-Boundary, M*, F*, Z*) are the procedure applied **per node** as the walk visits it; they are not a fixed top-to-bottom sequence across the whole run.
+Create ALL tasks via `TaskCreate` immediately after pre-flight resolves — before any
+domain work. The play owns this DAG; agents must not edit its top-level tasks (they may
+`TaskCreate` discovered sub-work with `addBlockedBy`).
 
-For the **Standard Play Close** Pipeline Steps table, derive rows from the nodes actually visited this run plus the per-node procedure stages exercised (Build CONTEXT.md, Write Tests, Write Code, Run Tests, Integration, Gate recheck (SKIP if none), Generate Evals (milestone only), Quality-Audit (milestone only), Judge EVAL-REVIEW (milestone only), Validate (milestone only), Outer Fix Loop (SKIP when not run), Write Status Report, Write Evidence). Status PASS/SKIP/FAIL per stage state.
-
----
-
-## Pause and Resume
-
-**Status file:** `{stm_dir}/status/implement.json`
-
-```json
-{
-  "play": "implement",
-  "issue": "{issue_number}",
-  "started_at": "{timestamp}",
-  "eval_dir": "{eval storage outside repo}",
-  "dag_position": {
-    "last_executed_node": "{node_id or null}",
-    "current_node": "{node_id}",
-    "current_boundary": "task | gate | milestone | none",
-    "outer_fix_iteration": 0
-  },
-  "nodes": {
-    "{node_1}": { "status": "done" },
-    "{node_2}": { "status": "in_progress", "scope_items": { "{si_1}": { "status": "completed", "cycles": 1 } } }
-  }
-}
+```
+[T1]  start-change  (injected — position: start, head)    blockedBy: []
+[T2]  Anchor the Epic (in_delivery + issue_ref)            blockedBy: [T1]
+[T3]  Box Context + Harness                                blockedBy: [T2]
+[T4]  Build Plan + Spec (breakdown + crisp ICE spec)       blockedBy: [T3]
+[T5]  Publish Plan to Issue                                blockedBy: [T4]
+[T6]  Steelman Evals (compartmentalized)                   blockedBy: [T4]
+[T7]  Plan Checkpoint (MANDATORY — initial build)          blockedBy: [T5, T6]
+[T8]  Build Loop (pieces along the DAG)                    blockedBy: [T7]
+[T9]  Run Gates (scripted)                                 blockedBy: [T8]
+[T10] Steelman Verdict                                     blockedBy: [T9]
+[T11] Done Assembly + Final Sync                           blockedBy: [T10]
+[T12] Scenario Validation                                  blockedBy: [T11]
+[T13] Evidence & Close                                     blockedBy: [T12]
 ```
 
-**Resume:** Reload the DAG-walk position. Re-self-locate the next runnable node from the plan DAG + branch state (the branch state is authoritative; the status file is a hint). Skip nodes already `done`, reset any `in_progress` node to pending, and continue the walk.
+The piece retry loop lives inside T8 (cap 2 per piece, then tech-designer re-plan). The
+refutation loop wraps T8–T10 (a refuted verdict feeds new plan pieces and re-enters the
+build loop; cap 2 refuted rounds, then human). Mark each task in-progress before its step
+and completed right after its eval passes. No runtime reordering.
 
----
+## Workflow
 
-## Recovery
+### Phase: Start (injected — D2 position: start)
 
-Sourced from `reference/expectation.yaml` `recovery` — one entry per failure condition (REC1-REC26). When the validator detects a tripped failure, it builds a recovery handoff plan from the matching entry and routes it per `handoff`: `autonomous` loops the fix back to the builder; `human` escalates for a manual call.
+**Step 1 — start-change** · Owner: `start-change` (sub-play) · Depends on: pre-flight
+Run the start-of-pipeline member as a sub-play, dispatched with `parent_run_id`. When the
+epic carries an `issue_ref` (resume), pass it so start-change resolves the existing issue;
+otherwise pass the epic's title/outcome so it creates the issue this epic is delivered
+under (decision 12: one issue per epic). start-change cuts the branch off fresh main, sets
+up a worktree iff config calls for it, and initializes the STM workspace:
 
-| ID | For | Symptom (trigger) | Direction | Handoff |
-|----|-----|-------------------|-----------|---------|
-| REC1 | F1 | build or type check produces errors after implementation | route the compile/type errors back to the builder until both build and type check pass | autonomous |
-| REC2 | F2 | first judge run reports >50% evaluation failure | a majority first-run failure signals a feature-scope/spec rethink the builder cannot make | human |
-| REC3 | F3 | 3 fix iterations exhausted and the judge still has a failing eval | escalate with the structured failure report — restructure-vs-escalate is a judgment the builder lacks | human |
-| REC4 | F4 | plaintext evals on disk after encryption, or eval content inside the repo tree | re-encrypt and relocate eval content outside the tree and delete the plaintext | autonomous |
-| REC5 | F5 | builder context carries test source/assertions/mock patterns/eval IDs-text-criteria/judge content | rebuild the builder contract to carry only the spec (CONTEXT.md + architecture-context.yaml + bare scope path) | autonomous |
-| REC6 | F6 | judge context carries a builder prompt, builder reasoning, or implementation rationale | rebuild the judge contract to carry only encrypted evals plus implementation artifacts | autonomous |
-| REC7 | F7 | eval-generator context carries implementation code, builder output, or prior evals | rebuild the eval-generator contract stripping all implementation code, builder output, and prior evals | autonomous |
-| REC8 | F8 | a milestone node's plan.yaml entry is not LOCKED when its acceptance gate is about to run | hold until the milestone node is moved out of DRAFT and locked upstream — a state the builder cannot grant | human |
-| REC9 | F9 | a milestone node has no exit gate, or its backing feature has no success scenarios / failure conditions | hold until the upstream spec supplies the exit gate, scenarios, and failure conditions | human |
-| REC10 | F10 | a fix iteration ran the judge against the prior iteration's reused evals | discard the prior set and regenerate fresh evals from the original specs before the judge runs | autonomous |
-| REC11 | F11 | unit tests fail or are absent for an implemented scope item | author/fix the tests via the test-writer and re-run until each scope item is covered and green | autonomous |
-| REC12 | F12 | lint violations exist in the implemented code | route the lint findings back to the builder until the linter passes | autonomous |
-| REC13 | F13 | a code-quality metric falls below a quality-vision gate threshold | enter the fix loop to raise the failing metric to its threshold via builder fixes | autonomous |
-| REC14 | F14 | test-writer context carries file paths, arch/tech references, or implementation specifics | rebuild the test-writer contract to carry only behavioral TEST-CONTEXT.md | autonomous |
-| REC15 | F15 | status report carries test source, assertion text, file paths, mock patterns, or impl code | regenerate the status report using only tech.yaml contract IDs and expected behavior | autonomous |
-| REC16 | F16 | QP gate thresholds are null for dimensions with QP level >= 2 | re-run the QP translation table to derive the missing thresholds from quality-vision.yaml | autonomous |
-| REC17 | F17 | the judge executed while quality-report showed overall FAIL | enforce the single gate so the judge runs only after a quality PASS with CERTIFIED | autonomous |
-| REC18 | F18 | a failing source has zero entries in remediation | rebuild remediation to include entries from every source that reported a failure | autonomous |
-| REC19 | F19 | fresh eval count dropped with no consolidation_rationale | require a consolidation_rationale per removed eval ID, or re-invoke the evals-engineer | autonomous |
-| REC20 | F20 | mock infrastructure setup failed against tech.yaml mock_strategy | the failing mock_strategy needs an upstream tech.yaml correction the builder cannot author | human |
-| REC21 | F21 | full unit + integration suite fails after scope items passed individually | enter the fix loop to correct the broken cross-scope-item behavior via builder fixes | autonomous |
-| REC22 | F22 | quality-auditor report missing qp_certification while quality-vision.yaml exists | re-invoke the quality-auditor to emit the qp_certification section | autonomous |
-| REC23 | F23 | an agent contract carries an ltm_context field, product_base ref, or a path outside STM | strip all ltm_context fields, product_base refs, and core/memory paths from agent contracts | autonomous |
-| REC24 | F24 | a depends_on edge of the next candidate node cannot be resolved (missing node ID, unmet gate exit, or un-ACCEPTED milestone) | hold the walk and surface the unresolved edge — a missing node ID is an upstream plan error a human must fix; an unmet gate holds until it clears; an un-ACCEPTED milestone holds until validate confirms ACCEPTED | human |
-| REC25 | F25 | judge-as-arbiter invoked after only one failed cycle for a contract | enforce the two-cycle gate so the arbiter runs only after the same contract fails twice | autonomous |
-| REC26 | F26 | a code-builder/test-writer dispatch is missing one of the four labeled sections | rebuild the dispatch with the missing or unlabeled section restored before invocation | autonomous |
+    {
+      "play":          "start-change",
+      "parent_run_id": "<this run id>",
+      "inputs":  { "issue_number": "<epic.issue_ref if set, else omit>",
+                   "title": "<epic title>", "body_hint": "<epic outcome + user_check>" },
+      "outputs": { "issue":  "{stm_base}/{issue}/evidence/implement/start/issue.json",
+                   "branch": "{stm_base}/{issue}/evidence/implement/start/branch.json" }
+    }
 
-At Level 4, `intent-resolver` executes the autonomous entries (REC1, REC4, REC5, REC6, REC7, REC10, REC11, REC12, REC13, REC14, REC15, REC16, REC17, REC18, REC19, REC21, REC22, REC23, REC25, REC26) without a human; the human entries (REC2, REC3, REC8, REC9, REC20, REC24) always escalate. Operational retry budgets layer on top of these handoffs before a failure is declared: eval generation retries once (halt after 2), a corrupted judge encrypted file is verified and regenerated before retry, and a test-writer failure retries once before halting; a status-report violation (F15) and a contaminated builder context (C29 pre-invocation check) are hard halts, and an arbiter verdict of `spec_ambiguous` is a human checkpoint (Orbit) presenting the contract and status reports.
+start-change owns its own evals (issue anchored, branch off latest main, worktree per
+config, STM initialized); they are not re-checked here.
 
----
+**Step 2 — Anchor the Epic** · Owner: play (script) · Depends on: Step 1
+Execute the epic schema's /start fill rule (wiring decision #434 — start-change predates
+epics): read the issue number from `start/issue.json`, then
 
-## Evidence & Close
+```
+python3 scripts/update_epic_status.py --product-base <product_base> --epic <epic_id> --issue <issue>
+```
 
-This run closes with the canonical **Standard Play Close** — the user-facing
-report is the three-table shape (Run Summary / Pipeline Steps / Artifacts), not
-prose. See `standards/rules/play-close.md`.
+**SE-2 (F1/C1, F11/C14):** `update_epic_status.py` exited 0 — it refuses a delivered
+epic or a foreign `issue_ref`, so an ineligible epic cannot slip past pre-flight into
+the build (no build step ran after a refusal): the epic file now reads
+`status: in_delivery` with `issue_ref` equal to the Step 1 issue (or was already exactly
+that — idempotent resume). On a fix round this is the fix_required → in_delivery
+re-admission (same issue only) — the epic never builds while still stamped
+fix_required. A refusal (delivered epic, foreign issue_ref) is a hard halt.
+
+### Phase: Plan
+
+**Step 3 — Box Context + Harness** · Owner: `tech-designer` · Depends on: Step 2
+Dispatch a JSON contract. The agent reads the box only — the epic, its functionality ICE,
+the six lenses, the repository — captures the repo context the plan needs, and invokes
+`detect-test-harness` for the project's runnable commands. It invents nothing: every
+entry in `box-context.yaml` cites its source (epic | ice | lens | repo path).
+
+    {
+      "task":   "capture the epic's box context and the project's test harness",
+      "inputs": { "epic_file": "<epic_file>", "functionality_ices": ["<ice paths>"],
+                  "lens_dir": "<lens_dir>", "repo_root": "." },
+      "outputs": { "box_context": "{stm_base}/{issue}/evidence/implement/box-context.yaml",
+                   "harness":     "{stm_base}/{issue}/evidence/implement/harness.yaml" }
+    }
+
+**SE-3 (C3):** `box-context.yaml` and `harness.yaml` exist; `harness.commands` is
+non-empty; every box-context entry carries a `source` that is an epic field, a resolved
+ICE path, a lens file, or a repository path — nothing sourceless.
+
+**Step 4 — Build Plan** · Owner: `tech-designer` → `author-build-plan` · Depends on: Step 3
+Dispatch a JSON contract; the agent invokes the `author-build-plan` skill — it does NOT
+author the plan inline. The skill cuts the epic test-first into grounded pieces (stories,
+tasks, tests, docs) with dependency edges; anything ungroundable becomes an
+`open_questions` entry, never invented work. Then the play validates mechanically:
+
+    {
+      "task":   "break the epic into the test-first build plan",
+      "skill":  "author-build-plan",
+      "inputs": { "epic_file": "<epic_file>", "functionality_ices": ["<ice paths>"],
+                  "lens_dir": "<lens_dir>",
+                  "box_context": ".../implement/box-context.yaml",
+                  "harness":     ".../implement/harness.yaml" },
+      "outputs": { "plan": "{stm_base}/{issue}/specs/implement/plan.yaml" }
+    }
+
+**Fix round (mode = fix, C14):** Step 3 reuses the existing `box-context.yaml` +
+`harness.yaml` (refresh only if missing), and this step runs `author-build-plan` in
+**revision mode**: the inputs gain `fix_report: {stm_base}/{issue}/validate/report.yaml`,
+and the directive is to derive revision pieces FROM THE REPORT'S FINDINGS ONLY — one or
+more pieces per finding, each citing the finding's id as its grounding, onto the existing
+plan (version bump). No second breakdown is cut; unfixed plan pieces keep their state.
+**SE-15 (F11/C14):** on a fix round, every new plan piece's grounding cites a fix-report
+finding id; the plan's piece count grew only by revision pieces (no second plan file, no
+new STM workspace); the epic file read `in_delivery` before the first build dispatch.
+
+```
+python3 scripts/validate_plan.py --plan <plan.yaml> --product-base <product_base> --epic <epic_id>
+```
+
+**SE-4 (F3/C3/C5/C11/C13):** `validate_plan.py` exited 0: every piece carries a grounding
+citation into the box; the pieces form an acyclic DAG with a dependency-free start; at
+least one test piece exists and every epic acceptance criterion is covered by a test
+piece authored from the spec (no test depends on the implementation it verifies); a docs
+piece exists or a waiver reason is recorded.
+**SE-5 (F5/C5):** the plan and every breakdown artifact live under `{stm_base}/{issue}/`;
+zero breakdown files exist under `{product_base}product-os/` (re-asserted by every
+`check_box.py` run via its product-model guard).
+
+Then author the **spec** — the crisp, human-readable, ICE-shaped boundary document the
+human approves and the build treats as its north star (C16). Dispatch `tech-designer` to
+distill it from the box context and the validated plan — Intent (what the build delivers),
+Context (the rules, patterns, design decisions, and configuration — ports and the like —
+the build must hold to, plus the existing-code map it touches), Expectation (acceptance +
+the done bar) — stating boundaries and **referencing** the epic/ICE/lenses, never copying
+code:
+
+    {
+      "task":   "distill the approved-bound spec: a crisp ICE boundary doc (~1-2 pages) — rules, patterns, designs, config, existing-code map — referencing the epic/ICE/lenses, never copying code. STATE the spec's user-facing surface as a 'Surface: <type>' line carrying the epic's declared surface.type (surface-contract.md taxonomy) — the build holds that surface and never downgrades it",
+      "inputs": { "epic_file": "<epic_file>", "functionality_ices": ["<ice paths>"],
+                  "lens_dir": "<lens_dir>", "plan": "<plan.yaml>",
+                  "box_context": ".../implement/box-context.yaml" },
+      "outputs": { "spec": "{stm_base}/{issue}/specs/implement/spec.md" }
+    }
+
+Gate it mechanically — the boundary doc must stay crisp and code-free, and its declared
+surface must not downgrade the epic's (the epic's `surface.type` is read and compared by
+the same script — C19/F15, `surface-contract.md`):
+
+```
+python3 scripts/check_spec.py --spec {stm_base}/{issue}/specs/implement/spec.md \
+        --product-base <product_base> --epic <epic_id>
+```
+
+**SE-16 (F14/C16):** `check_spec.py` exited 0 — the spec exists, is ICE-shaped
+(Intent/Context/Expectation), carries a non-empty Context (the boundaries), holds no fenced
+code block (it references code, never copies it), and is within the readable bound (~1-2
+pages); a spec that copies code, balloons, or omits a needed boundary is re-authored before
+the checkpoint (REC14).
+**SE-20 (F15/C19):** `check_spec.py --product-base --epic` exited 0 on the surface gate — the epic
+carries a declared `surface_type` on its spine entry (a legacy epic with none fails until it is declared,
+REC15), the spec states a `Surface:` line, and the spec's surface is NOT below the epic's
+declared surface by the `surface-contract.md` ordering (user-facing web_dashboard/server_api/cli
+> non-user-facing service_read_model/library). A downgrade fails the gate and halts the build
+at the spec-approval checkpoint for explicit human approval of a recut (REC15); building the
+same or a higher surface passes.
+
+**Step 5 — Publish Plan to Issue** · Owner: play (script) + `project-orchestrator` ·
+Depends on: Step 4 · Gated by `plan_tracking` (C12; when false, record
+`plan-publish skipped (plan-tracking=false)` and continue)
+The script composes; the agent fires the CLI verb — it writes no prose:
+
+```
+python3 scripts/render_plan.py --plan <plan.yaml> \
+        --output {stm_base}/{issue}/evidence/implement/plan-issue.md
+```
+
+    {
+      "task":   "post (or edit in place) the build-plan comment on the epic's issue",
+      "inputs": { "issue_number": "<issue>", "body_file": ".../implement/plan-issue.md" },
+      "outputs": { "publish_record": "{stm_base}/{issue}/evidence/implement/plan-publish.yaml" }
+    }
+
+`plan-publish.yaml` records `{plan_publish: {comment_ref, fingerprint, posted_at}}` with
+the fingerprint from `render_plan.py`. Every later state sync re-renders and edits the
+SAME comment, then refreshes this record.
+
+**SE-6 (F9/C12):** when `plan_tracking` is true, `plan-publish.yaml` exists with a
+non-empty `comment_ref` and a `fingerprint` equal to the latest `render_plan.py` output
+for the current plan state.
+
+**Step 6 — Steelman Evals** · Owner: `evals-engineer` → `author-steelman-evals` ·
+Depends on: Step 4 · **CONTEXT-ISOLATED (C7)**
+Dispatch a JSON contract carrying spec-side paths only. The evals path lives under the
+play's eval area and is never placed in any builder or test-author contract:
+
+    {
+      "task":   "author the steelman refutation evals for this epic",
+      "skill":  "author-steelman-evals",
+      "inputs": { "epic_file": "<epic_file>", "functionality_ices": ["<ice paths>"],
+                  "quality_lens": "<lens_dir>/quality.md",
+                  "plan_path": "<plan.yaml>" },
+      "outputs": { "evals": "{stm_base}/{issue}/evidence/implement/evals/steelman-evals.yaml" }
+    }
+
+**SE-7 (F6/C6/C7):** the evals-engineer contract carries no implementer output and no
+piece report; the evals path appears in no `code-builder` or `test-engineer` contract
+this run; every `code-builder` contract carries zero test-piece file paths, test content,
+eval content, or pass criteria; every `test-engineer` contract carries zero
+implementation piece reports or builder output. Checked before each dispatch; a dirty
+contract is rebuilt clean (REC6), never dispatched.
+
+### Phase: Checkpoint (MANDATORY on the initial build — Structure A)
+
+**Step 7 — Spec Approval** · Owner: play · Depends on: Steps 5 and 6
+This is the **last human checkpoint before the autonomous build** — the human approves the
+spec, hands off, and the agent carries the epic to done alone. It is **mandatory on the
+initial build and never skipped** (C15): no build piece is dispatched until a typed human
+approval is recorded.
+
+**Skip rule — fix round only:** when `mode == fix`, skip the gate — the round is
+report-bounded (C14), its revision pieces trace to /validate's findings and cannot widen
+the already-approved box, so it re-enters without a fresh approval. Record `checkpoint
+skipped (fix round — report-bounded)` and proceed. On `build` and on a `resume` that has
+not yet recorded an approval, the gate is presented.
+
+Present the **spec** inline for approval, plus the plan shape and any open questions asked
+one at a time, plainly, no option menus:
+
+```markdown
+**Build spec: epic {epic_id} — {title}** — {n} pieces, {t} tests, published to #{issue}.
+
+{the crisp ICE spec — Intent / Context (rules, patterns, designs, config, code map) /
+Expectation — read it; this is what the autonomous build will hold to}
+
+**Open question {i} of {q}** (if any)
+{question — with its cited context from the plan}
+```
+
+**Surface gate (C19/F15) — checked here, before any build dispatch.** `check_spec.py`
+(Step 4) already compared the spec's declared surface against the epic's `surface.type`.
+If it flagged a DOWNGRADE (the spec promises a lower surface than the epic declared) or a
+MISSING epic surface (a legacy epic), the build does not proceed silently: present the
+downgrade — the spec's surface beside the epic's promised surface per `surface-contract.md`
+— and either regenerate the spec preserving the declared surface, or build the lower
+surface ONLY on explicit human approval of a recut. A missing surface is declared with the
+human before building, never defaulted to `service_read_model` or any other value (REC15).
+
+Wait for a typed response. Approve → record the approval in the status marker and start the
+build. A typed answer to an open question, or any change asked for, becomes a revision
+directive to `tech-designer` → `author-build-plan` (revision mode); the plan re-validates
+(Step 4 gate), the spec is re-authored and re-gated (`check_spec.py`, including the surface
+gate), and it is re-presented — the build never starts on an unapproved or surface-downgraded
+spec. The box only widens where the human draws the wall (REC3).
+
+**SE-17 (F12/C15):** on the initial build (`mode != fix`) the status marker records a typed
+human approval of the spec, and no build-loop dispatch occurred before it; a fix round
+records the report-bounded skip and carries no approval (REC12).
+
+### Phase: Build (the loop — pieces along the DAG)
+
+**Step 8 — Build Loop** · Owner: `test-engineer` / `code-builder` per piece ·
+Depends on: Step 7
+Walk the plan DAG (C13): repeatedly take the earliest piece whose `depends_on` are all
+`done`. The plan is the spine — there is no other source of what to do next. Within a
+piece, when to run tests and how to iterate is the executing agent's call (C8 —
+structural: this play prescribes setup and the done bar, not the inner loop). For each
+piece:
+
+1. Flip the piece `in_progress` in `plan.yaml` (and sync the issue per Step 5's
+   render-and-edit when `plan_tracking` — batched per piece).
+2. **Cut the piece's context slice** — the builder gets its piece, that piece's transitive
+   dependencies, and the spec, NEVER the whole plan or a sibling piece (C17/F13):
+
+```
+python3 scripts/cut_piece_context.py --plan <plan.yaml> --piece-id <piece_id> \
+        --spec {stm_base}/{issue}/specs/implement/spec.md \
+        --out {stm_base}/{issue}/evidence/implement/pieces/<piece_id>.context.yaml
+```
+
+3. Optionally stand up a temporary, single-use implementation skill for the piece's
+   language to author its build prompt (C18) — registered for this run, removed at close;
+   it never widens the box beyond the spec.
+4. Dispatch by kind — `test` → `test-engineer`; `story`/`task`/`docs` → `code-builder` —
+   carrying the **cut slice + spec**, not the plan:
+
+    {
+      "task":    "deliver plan piece <piece_id> inside the epic's box",
+      "inputs":  { "piece_context": ".../implement/pieces/<piece_id>.context.yaml",
+                   "spec": "{stm_base}/{issue}/specs/implement/spec.md",
+                   "box_context": ".../implement/box-context.yaml",
+                   "harness": ".../implement/harness.yaml" },
+      "outputs": { "piece_report":
+                   "{stm_base}/{issue}/evidence/implement/pieces/<piece_id>.yaml" }
+    }
+
+   The piece report records `{piece_report: {piece_id, files_modified, summary}}`. The
+   builder's pass/fail self-report is never a verdict (C9) — it is bookkeeping only.
+3. Capture the changeset (`git status --porcelain` → file) and run the box gate:
+
+```
+python3 scripts/check_box.py --plan <plan.yaml> --porcelain-file <captured> \
+        --reports-dir .../implement/pieces/ --product-base <product_base> \
+        --stm-base <stm_base>
+```
+
+4. Green → flip the piece `done`, sync, continue the walk. Red → retry the piece (cap 2);
+   on exhaustion dispatch `tech-designer` with a revision directive (re-plan, plan
+   version bump), re-validate + re-publish, and continue — never halt blindly (REC7
+   direction at piece scale).
+
+**SE-8 (F10/C13):** for every piece report, the piece exists in the plan and was
+`in_progress`/`done` when its work ran — `check_box.py`'s piece guard exited 0 every
+loop; any plan deviation entered via a recorded revision (plan version bump), never
+silently.
+**SE-9 (F2/C2):** every `check_box.py` run exited 0 on mapping: zero changed files
+unclaimed by a piece report, zero product-model writes beyond the anchored epic file.
+**SE-18 (F13/C17):** every `code-builder` and `test-engineer` contract this run carried
+its piece's cut context slice (`cut_piece_context.py` output: piece + transitive deps +
+spec) — never the whole `plan.yaml`, a sibling piece, or a free-repo directive; a contract
+carrying wider context is rebuilt to the slice and re-dispatched (REC13).
+**SE-19 (C18):** any temporary implementation skill stood up for a piece this run is
+removed by run end — none persists as a durable component, and none was used to build
+outside the spec.
+
+### Phase: Verify
+
+**Step 9 — Run Gates** · Owner: play (script) · Depends on: Step 8 (all pieces done)
+
+```
+python3 scripts/run_gates.py --harness .../implement/harness.yaml \
+        --quality-lens <lens_dir>/quality.md \
+        --output {stm_base}/{issue}/evidence/implement/gates-results.yaml
+```
+
+**SE-10 (F7/C10):** the final `run_gates.py` exited 0 and `gates_results.pass` is true —
+every harness command (tests, lint, typecheck, build) green; lens gates mapped runnable
+are covered by those results, the rest are handed to Step 10 as `needs-judgment`.
+
+**Step 10 — Steelman Verdict** · Owner: `quality-auditor` · Depends on: Step 9
+Dispatch a JSON contract. The verifier judges captured artifacts — it re-runs no
+mechanics. Its posture is adversarial: execute every steelman eval's probe, hunt vacuous
+tests, judge the `needs-judgment` lens gates, and try to refute "done":
+
+    {
+      "task":   "attempt to refute that this build is done; record the verdict",
+      "inputs": { "evals": ".../implement/evals/steelman-evals.yaml",
+                  "gates_results": ".../implement/gates-results.yaml",
+                  "plan": "<plan.yaml>",
+                  "piece_reports": ".../implement/pieces/",
+                  "epic_file": "<epic_file>" },
+      "outputs": { "verdict": "{stm_base}/{issue}/evidence/implement/verdict.yaml" }
+    }
+
+`verdict.yaml`: `{verdict: {authored_by: quality-auditor, verdict: pass|refuted,
+refutations: [{claim, probe, finding, resolved}]}}`. **Refuted** → the refutations go to
+`tech-designer` as revision directives (new grounded pieces), the plan re-validates and
+re-publishes, and the flow re-enters Step 8. Cap 2 refuted rounds; a third refutation
+escalates to the human with the full record.
+
+**SE-11 (F8/C9):** the verdict gating done is authored by `quality-auditor` (never the
+implementer — a builder self-report is discarded, REC8); on the final round `verdict` is
+`pass` and every refutation entry from earlier rounds carries `resolved: true` with the
+fix recorded.
+
+**Step 11 — Done Assembly + Final Sync** · Owner: play (scripts) + `project-orchestrator`
+· Depends on: Step 10
+
+```
+python3 scripts/check_plan_sync.py --plan <plan.yaml> \
+        --publish-record .../implement/plan-publish.yaml [--tracking-off]
+python3 scripts/check_done.py --plan <plan.yaml> --gates .../gates-results.yaml \
+        --verdict .../verdict.yaml --evidence-dir .../implement/ \
+        --output {stm_base}/{issue}/evidence/implement/done.yaml
+```
+
+Then (gated by `plan_tracking`) dispatch `project-orchestrator` to edit the plan comment
+one last time (all pieces done) and post the done summary: built, specs passing, awaiting
+/validate — the work is intentionally uncommitted.
+
+**SE-12 (F4/C4):** `check_done.py` exited 0: `done.yaml` reads
+`specs-passing-awaiting-validation`; zero end-sequence evidence (`end/*.json`) exists
+under the play's evidence dir; the play recorded no commit/raise/review/merge of the
+work. Full done is /validate's to declare, never this play's.
+**SE-13 (F9):** `check_plan_sync.py` exited 0 at this step (and at any pause): the live
+plan fingerprint equals the published one and no piece state violates its dependencies.
+**SE-14 (C11):** the plan's docs piece(s) are `done` (or the recorded waiver stands) —
+the deliverable included the documentation the change requires.
+
+### Phase: Scenario Validation
+
+**Step 12 — Scenario Evals** · Owner: play · Depends on: Step 11
+- **SCE-1 (S1 — developer, end to end):** the breakdown exists in STM; every epic
+  acceptance criterion maps to a passing test piece (validate_plan coverage + final
+  gates green); `verdict.yaml` is authored by quality-auditor and reads `pass`;
+  the evidence records zero commit/raise/review/merge actions of the work.
+- **SCE-2 (S2 — project manager, the plan survives):** `plan-publish.yaml` carries the
+  issue comment ref; the final `check_plan_sync.py` exited 0 — every piece state on the
+  issue equals the STM record, zero divergence (or tracking was off by config and the
+  skip is recorded).
+- **SCE-3 (S3 — tech lead, box discipline):** every `check_box.py` run exited 0 — each
+  changed file claimed by a piece report, each piece grounded (validate_plan), zero
+  product-model writes beyond the anchored epic file.
+- **SCE-4 (S4 — QA engineer, honest verification):** the evals-engineer contract carried
+  no implementer output; no builder/test-author contract carried the evals path; every
+  refutation in `verdict.yaml` is recorded with its resolving fix; the verdict author is
+  `quality-auditor`.
+- **SCE-5 (S5 — developer, resumability):** on any resume this run, no second plan was
+  cut (plan.yaml version history shows revisions only); the first post-resume action
+  targeted the earliest non-done piece; in-flight pieces were reset to pending and
+  re-run, not double-counted.
+- **SCE-6 (S6 — developer, the fix round):** on a fix round, every revision piece's
+  grounding cites a fix-report finding id; no second plan file and no second workspace
+  exist; the epic file read `in_delivery` from re-admission until done assembly; the
+  done bar re-ran unchanged (final gates green + a fresh quality-auditor verdict).
+- **SCE-7 (S7 — developer, the approval gate):** on the initial build, no build-loop
+  dispatch occurred before a recorded typed human approval of the spec; `check_spec.py`
+  exited 0 (the spec is ICE-shaped and within the readable bound); a fix round recorded
+  the report-bounded skip and carried no approval gate.
+- **SCE-8 (S8 — developer, tight autonomous build):** every `code-builder` and
+  `test-engineer` contract carried its piece's cut context slice (piece + transitive deps
+  + spec) — zero carried the whole `plan.yaml`, a sibling piece, or a free-repo directive;
+  the run carried from approval to done with no further human input; every temporary
+  implementation skill created was removed by run end.
+
+### Phase: Evidence & Close
+
+Closes with the **Standard Play Close** — the canonical three-table delivery report (Run
+Summary / Pipeline Steps / Artifacts), not prose. See `standards/rules/play-close.md`.
 
 ```bash
 # --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
-# implement is PROJECT-scoped:
-#   evidence_base="{stm_base}/{issue}/evidence/implement/{node_id}/"   ;   slug="#{issue}"
-# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+# Path tokens resolved at pre-flight (resolve here if not already):
+#   ltm_project_target  = yq '.ltm.project-target' .garura/core/config.yaml
+#   implement is project-scoped:
+#     evidence_base="${stm_base}${issue}/evidence/implement/"   ; slug="#${issue}"
 evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
 delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
 ts=$(date -u +%Y%m%d-%H%M%S)
-evidence_dest="{stm_base}/{issue}/evidence/implement/{node_id}/${ts}.md"
+evidence_dest="${evidence_base}${ts}.md"
 mkdir -p "$(dirname "$evidence_dest")"
 ```
 
-**Step C2 — Delivery report (ALWAYS — skip only when running as a sub-play,
-i.e. `parent_run_id` present).** Fill `delivery-report.md` and output it to the
-user. Do NOT hand-author prose:
-- `## Implement Delivered — #{issue} (Node {node_id})`
-- Run Summary: Play `implement`, Issue `#{issue}`, Status (COMPLETE | PARTIAL |
-  FAILED), Started (per the started_at precedence in play-close.md), Completed
-  (now). Add the nodes walked, milestone boundaries reached, Scope Items count,
-  Quality status, Judge pass rate, validate verdict.
-- Pipeline Steps: derived from the nodes visited and per-node stages (Build
-  CONTEXT.md, Write Tests, Write Code, Run Tests, Integration, Gate recheck
-  (SKIP if none), Generate Evals, Quality-Audit, Judge EVAL-REVIEW, Validate,
-  Outer Fix Loop (SKIP when not run), Write Status Report, Write Evidence).
-  Status PASS/SKIP/FAIL per stage state; Key Output best-effort.
-- Artifacts Produced: status-report.yaml, quality-report-{node_id}.yaml,
-  judge-report-{node_id}.yaml, test-files-manifest.yaml, self-commit SHA
-  (if any), and the evidence file pointer.
-- Next Steps: only real follow-ons (e.g., "Walk continues to node {next_node_id}"
-  or "Run validate for milestone {node_id}"). Omit if none.
-- End with a pointer to the evidence file at `${evidence_dest}`.
+**Step C1 — Write evidence file.** Gated by the resolved `evidence_record` flag (per-play
+`evidence.plays.implement` first, else global `evidence.record`, else record). When
+false, skip the write and record `evidence skipped (record=false)` in the report's
+pointer line. Otherwise fill the `evidence-file.md` slots (play `implement`, run_id
+`implement-${ts}`, issue, started_at/completed_at, status, artifacts:
+plan/plan-publish/box-context/harness/evals/gates-results/verdict/done + piece reports;
+step + scenario eval results; checkpoint decision or skip reason; epic anchor record) and
+write to `$evidence_dest`. Do NOT hand-author the body. Then dispatch `repo-orchestrator`
+to self-commit only the listed evidence files with message
+`chore(stm): record implement evidence for #{issue}` (non-blocking — a commit failure
+logs a warning, never halts; the WORK stays uncommitted, C4).
 
-**Step C1 — Write evidence file (gated by `evidence.record`).** When true (or
-absent), fill `evidence-file.md` slots — frontmatter (play, run_id, issue,
-started_at/completed_at, status, exit_reason); Artifacts Produced; Step Eval
-Results (SE-1..SE-30, PASS/FAIL/N-A); Scenario Eval Results (SCE-1..SCE-19);
-Checkpoint Decisions (Orbit on spec_ambiguous, if any); Commit Reference;
-terminal status — and write to `${evidence_dest}`; then invoke
-`repo-orchestrator` to self-commit evidence (non-blocking). When false, skip the
-write and record `evidence skipped (record=false)` in the C2 pointer line.
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output it:
+`## implement Built — #{issue}` (built, not delivered — full done is /validate's), the
+Run Summary table, the Pipeline Steps table from the task DAG (T1–T13, including the
+injected start member), the Artifacts Produced table, Next Steps (run /validate on this
+epic; the close chain follows acceptance), and a pointer to `$evidence_dest`. Always
+emitted; never gated. When this play itself runs as a sub-play (`parent_run_id`
+present), skip C2.
 
 ```bash
 # --- end Standard Play Close ---
 ```
 
----
+## Scenario Validation
+
+The success scenarios and their evals (run in Step 12):
+
+| Scenario | Persona | Eval |
+|----------|---------|------|
+| S1 — end to end | developer | SCE-1 |
+| S2 — the plan survives | project manager | SCE-2 |
+| S3 — box discipline | tech lead | SCE-3 |
+| S4 — honest verification | QA engineer | SCE-4 |
+| S5 — resumability | developer | SCE-5 |
+| S6 — the fix round | developer | SCE-6 |
+| S7 — the approval gate | developer | SCE-7 |
+| S8 — tight autonomous build | developer | SCE-8 |
+
+## Recovery
+
+One entry per failure condition. The injected `start-change` owns its own recovery; the
+entries below cover this play's build core.
+
+| For | Trigger | Direction | Handoff |
+|-----|---------|-----------|---------|
+| F1 | no epic resolvable, the epic isn't ready, or a dependency epic isn't delivered, yet build steps are starting | halt and name the failed precondition; a human supplies a valid ready epic or first delivers the dependency | human |
+| F2 | a change or artifact maps to nothing in the epic's box (`check_box.py` mapping failure) | strip the out-of-box work from the change; if the work seems genuinely needed, surface it as a question for routing back to the owning play — never widen the box from inside implement | autonomous |
+| F3 | a built behavior has no grounding in the epic, its ICE, a lens, or the repository (`validate_plan.py` grounding failure, or an open question) | halt that piece and present the ungrounded requirement to the human — where the box has no wall, only the human draws one | human |
+| F4 | a closing action is attempted or recorded, or full done is declared without validation | stop the action, leave the change open, and end at "specs passing, awaiting validation" | autonomous |
+| F5 | breakdown artifacts found under the product model | move them to STM and restore the product model to its prior state | autonomous |
+| F6 | the implementer's input carries test or eval content, or the test author received implementation | rebuild the input clean — spec artifact paths only — and re-dispatch the piece | autonomous |
+| F7 | done is about to be declared while a spec or quality gate fails | feed the failure back as work on the plan and re-verify; done only when everything passes | autonomous |
+| F8 | the accepting verdict traces back to the implementer | discard the self-report and obtain the verdict from the independent steelman verifier | autonomous |
+| F9 | the plan was never published to the issue, or issue states diverge from actual progress | publish or refresh the plan on the issue through the tracking role before any further build work | autonomous |
+| F10 | work is detected that isn't a plan piece, or dependency order is violated | pause the work, update the plan first through the tracking role, then continue along the updated DAG | autonomous |
+| F11 | fix-round work maps to no fix-report finding, a fresh breakdown or workspace appears, or the epic still reads fix_required after re-entry | drop the unreported work (or route it as a question per REC2), derive revision pieces only from the report, re-anchor to the existing plan and workspace, and flip the epic to in_delivery before building | autonomous |
+| F12 | a build piece is about to dispatch on the initial build with no recorded human approval of the spec | hold all build work, present the spec, and dispatch nothing until the human approves; record the approval as the gate the run passed | human |
+| F13 | a builder or test-author contract carries context beyond its piece — the whole plan, a sibling piece, or a free-repo directive | rebuild the contract to carry only the piece's cut context slice (piece + transitive deps + spec) and re-dispatch | autonomous |
+| F14 | the spec copies code, exceeds the readable bound, or omits a boundary the build needs (`check_spec.py` non-zero) | re-author it as a crisp ICE boundary doc — trim code to references, cut to the bound, add the missing rule/pattern/design/config — then return it to the human for approval | human |
+| F15 | the generated spec's surface is below the epic's declared `surface_type` (a downgrade), or the epic has no declared surface (`check_spec.py --product-base --epic` non-zero) | halt at the spec-approval gate and present the downgrade — the spec's surface beside the epic's promised surface per `surface-contract.md`; build the lower surface only on explicit human approval of a recut, else regenerate the spec preserving the declared surface; a missing surface is declared before building, never defaulted | human |
+
+The piece retry loop (cap 2, then tech-designer re-plan) and the refutation loop (cap 2
+rounds, then human escalation with the full record) are governed in Steps 8 and 10.
+
+## Pause and Resume
+
+Steps run top to bottom. Resolve the epic and issue on entry (epic `issue_ref`, branch
+name, or arguments), check the status marker at
+`{stm_base}/{issue}/status/implement.json`, skip completed steps, reset any in-progress
+step to pending, and continue from the first incomplete one. The plan is the spine on
+resume too (S5): re-anchor to `plan.yaml` + the published issue state, reset in-flight
+pieces to `planned`, never cut a second plan, and re-run `check_plan_sync.py` before the
+first new piece. The injected `start-change` is itself resumable and never duplicates an
+issue or branch on a re-run.
 
 ## Compilation Metadata
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:0aa90cd2271f6ccbe6af32ac5b090d1eaf99c8302d577bc9530ce74dd2f5f4ed |
-| expectation_hash | sha256:5cb19634110d6bbcef12a54b8d50344d1926d11036d95c8c6ac7374b493bbcb2 |
-| compiled_by | /create-play --build implement |
-| compiled_at | 2026-05-29 |
-| workflow_structure | DAG-walk (self-locating, continuous, two-boundary halt) |
-| domain_agents | 6 (tech-designer, evals-engineer, test-writer, code-builder, quality-auditor, judge) |
-| utility_agents | 1 (repo-orchestrator) |
-| checkpoints | 0 automated boundaries; milestone boundary invokes validate; Orbit escalation for spec_ambiguous |
-| step_evals | 30 (SE-1 through SE-30) |
-| scenario_evals | 19 (SCE-1 through SCE-19, sourced from expectation.success_scenarios S1-S19) |
-| recovery_entries | 26 (REC1–REC26, one per failure condition; 20 autonomous / 6 human) |
-| constraints_covered | C1-C34 (all 34) |
-| failure_conditions_covered | F1-F26 (all 26) |
-| fix_loop_max | 3 per-scope-item cycles + 3 outer iterations |
-| output_artifacts | status-report.yaml, quality-report.yaml, judge-report.yaml |
+| fingerprint | sha256:13b24d9a87c858d3071396fddea29315593cdc4f516bae126a070f5c457f01ec (of `reference/ice.md`) |
+| compiled_by | play-creator (edited via play-editor: crisp-spec approval gate + per-piece context scope; surface-downgrade gate added #442 — C19/F15/REC15/SE-20, ADR 022); epic-lifecycle prose corrected #439 — "deleted" → "stamped delivered" (ADR 019; descriptive, no constraint/eval/scenario changed) |
+| pipeline_position | start (start-change head; NO end sequence — the close belongs after /validate) |
+| workflow_structure | A (MANDATORY spec-approval checkpoint on the initial build — skipped only on a report-bounded fix round; build loop + steelman verify) |
+| domain_agents | 5 (tech-designer, test-engineer, code-builder, evals-engineer, quality-auditor) |
+| utility_agents | 2 (project-orchestrator, repo-orchestrator) |
+| skills_reused | manage-issue, detect-test-harness |
+| skills_created | author-build-plan, author-steelman-evals |
+| member_subplays | start-change |
+| scripts | 11 (preflight.py, check_ready_epic.py, update_epic_status.py, validate_plan.py, check_spec.py, cut_piece_context.py, render_plan.py, run_gates.py, check_box.py, check_plan_sync.py, check_done.py) |
+| step_evals | 20 (SE-1…SE-20; SE-20 covers the surface-downgrade gate C19/F15) |
+| scenario_evals | 8 (SCE-1…SCE-8) |
+| recovery_entries | 15 (one per failure condition; 10 autonomous / 5 human) |
+| structural_constraints | C8 (no fixed inner loop — enforced by the play's shape; the DAG orders pieces, the agent orders within a piece) |
+| supersedes | garura:implement (+ absorbs garura:prepare's breakdown) |
 
-**Compile note (#411 DAG-runner redesign):** Recompiled via `/create-play
---build implement` after the intent + expectation were redesigned to the
-agentic, self-locating, continuous DAG-walk execution model. The milestone-first
-invocation (the old milestone argument, the old hard-halt pre-flight that
-demanded a milestone identifier, and milestone-by-milestone execution) is
-removed. `/implement` now
-self-locates the next runnable node from the plan DAG + current branch state
-(C28), resolves each `depends_on` edge by target type — milestone=ACCEPTED,
-gate=exit_gate met, task=done in branch state (C3/F24) — and walks the DAG
-continuously, halting only at a **gate** boundary (readiness stop, auto-resume)
-or a **milestone** boundary (human-acceptance stop: evals + scenario gates +
-validate ACCEPTED) per the two-boundary model (C34). Constraints grew to C1-C34
-(added C27-C34), failure conditions to F1-F26 (added F23-F26), scenarios to
-S1-S19, recovery to REC1-REC26. Evals fully regenerated by `evals-creator` from
-the new intent + expectation: 30 step evals (SE-1..SE-30, one per F1-F26 plus
-artifact-verifiable constraints C7/C8/C12/C13/C14/C18/C19/C22/C26) and 19
-scenario evals (SCE-1..SCE-19). The preserved structure — test-writer/code-builder
-isolation, judge-as-arbiter after two consecutive same-contract failures,
-single-gate quality-auditor + QP certification, the 3-cycle fix loop, and the
-four-section dispatch contract — is unchanged in substance; only the
-execution-model framing and node/milestone wording were updated. intent_hash and
-expectation_hash recomputed; both appear in the top Hash guard and here.
+## Direct-edit deviation note (#434, six-lens ripple)
 
-**Direct-edit deviation note (play-close standardization, #371):** Evidence &
-Close uses the canonical Standard Play Close block per
-standards/rules/play-close.md (C2 always; C1 gated by `evidence.record`).
-/create-play is converged (G12) to reproduce this block.
+Non-intent edit: lens-count prose (three mentions) updated five → six when the measure
+lens landed (decision 19/23/24); mirrors the already-patched `check_ready_epic.py`
+LENS_TYPES constant. No constraint/failure/scenario/eval text changed; `reference/ice.md`
+and the fingerprint are unchanged.
+
+## Direct-edit deviation note (#434, spine + grounding model)
+
+Non-intent edit: the epic moved from a per-epic `epic.yaml` file to an entry in the spine
+`epics` index (`product-os/_spine.yaml`) plus an `epic.md` grounding doc, and lens files
+moved from `.yaml` to `.md`. The mechanism scripts were retargeted accordingly —
+`check_ready_epic.py` (resolves the epic + slice + seven lens `.md` + functionality
+groundings from the spine), `update_epic_status.py` (the ready → in_delivery status flip is
+now a surgical write to the spine epics entry, `--product-base --epic`), `check_spec.py` and
+`validate_plan.py` (read `surface_type` / acceptance from the spine entry + epic.md instead
+of `epic.yaml`), and `check_box.py` (the one allowlisted product-model write is now the
+spine, not a per-epic file). Prose invocations updated to match. No constraint/failure/
+scenario/eval text changed — the lifecycle, the box discipline, and the surface gate are
+identical; only the storage the scripts read/write moved. `reference/ice.md` and the
+fingerprint are unchanged.
+
+Follow-on (validate-readers-spine-migration): `run_gates.py` now reads the quality gate
+list from `quality.md`'s "## Gates" table (each gate = its dimension + how it is checked)
+instead of a `quality.yaml` `content.gates` list; the harness-family mapping is unchanged.
+The `quality_lens` input to `author-steelman-evals` and the `run_gates.py` invocation point
+at `quality.md`. Mechanism only — `reference/ice.md` and the fingerprint are unchanged.

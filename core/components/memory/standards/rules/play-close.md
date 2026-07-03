@@ -5,7 +5,7 @@ play-agnostic. It produces the machine-readable evidence file and the
 user-facing delivery report from LTM templates — never hand-authored prose.
 
 This rule is the single source of truth for both the manual editor (direct
-SKILL.md edit, allowed for this non-intent scaffolding) and the `/create-play`
+SKILL.md edit, allowed for this non-intent scaffolding) and the `/play-creator`
 compiler (which emits the same block so a rebuild converges, never clobbers).
 
 ## Why this is a non-intent change
@@ -14,7 +14,7 @@ The close block changes nothing a play *decides* or *guarantees* — no
 constraint, failure condition, scenario, eval, agent, or skill. It only
 standardizes how a completed run is reported. Per the play-pipeline boundary
 rule it is therefore a direct edit, not an `intent.yaml` → rebuild cycle.
-`/create-play` is updated to emit it so direct-edit and rebuild produce the
+`/play-creator` is updated to emit it so direct-edit and rebuild produce the
 identical block (convergence — see `feedback_recipe_changes_via_rebake`).
 
 ## Pipeline Steps source — the generic mechanism
@@ -45,13 +45,19 @@ intent-level change *for that one play only* — it does not block the standard.
 
 **`evidence.record` gate.** `.garura/core/config.yaml` may set
 `evidence: record: false` (it does today; the comment says it skips STM
-evidence writes across `ship` and all sub-plays). The split is fixed:
-- **C1 (evidence file)** honors the flag — if `evidence.record` is false,
+evidence writes across `ship` and all sub-plays). Per the D1 evidence rule
+(`evidence-recording.md`) the play resolves the flag at pre-flight with a
+per-play override taking precedence over the global default — first match wins:
+(1) `evidence.plays.<this-play-name>` if present; (2) else `evidence.record`;
+(3) else `true`. The split is fixed:
+- **C1 (evidence file)** honors the resolved flag — if it resolves false,
   skip the evidence-file write and record `evidence skipped (record=false)`
   in the delivery report's pointer line instead of a path.
 - **C2 (delivery report)** is **always emitted**. It is a UX surface for the
-  user, not audit evidence; it is never gated by `evidence.record`.
+  user, not audit evidence; it is never gated.
 This is what lets a pilot tell the block worked even when evidence is off.
+Policy (who may record — plays only, never agents or skills) lives in
+`evidence-recording.md`; this block is the mechanism it switches.
 
 **`started_at` source (defined precedence, never fabricate).** In order:
 (1) the timestamp the play recorded at its own pre-flight, if it records one;
@@ -108,8 +114,13 @@ Otherwise fill the `evidence-file.md` slots; write the filled result to
 - Run Summary table: Play, Issue/Slug, Status, Started, Completed.
 - Pipeline Steps table: built from the task DAG per the mapping above.
 - Artifacts Produced table: the named artifacts + SHAs from C1.
-- Next Steps: only if there are real follow-ons (downstream play, open
-  defects, uncommitted artifacts). Omit if self-contained.
+- **Next** (always render, unless the play is `meta_exempt`): resolve this play in
+  `standards/rules/pipeline-next.md` and render its Next line —
+  `**Next:** /<command> — <why>. Or run /next to see all recommended actions.`
+  When the play's mapped `command` is `null` (e.g. `/next`, `start-change`), render
+  only the `/next` pointer, or omit the Next line where that reads better.
+- Next Steps (optional): any other real follow-ons beyond the mapped next command
+  (open defects, uncommitted artifacts). Omit if none.
 - End with a pointer to the full evidence file at `$evidence_dest`.
 
 ```bash

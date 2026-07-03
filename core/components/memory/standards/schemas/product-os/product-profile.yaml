@@ -1,0 +1,75 @@
+# Product Profile Schema — v1
+#
+# The profile is THE BOX — the product's committed boundaries. Per NFR dimension
+# it holds a LEVEL and a GATE (the standard / how it's measured). ICE holds the
+# concrete specifics that must sit UNDER the box. A specific that falls outside
+# the box halts for human approval; approval moves the boundary and writes a
+# decision (ADR). Capabilities shape the box; they never silently redraw it.
+#
+# This is the canonical vocabulary the KB matches conditions against.
+
+schema:
+  name: product-profile
+  version: 1
+
+profile:
+  product_ref: string
+  state: string              # directional | set | locked
+                             #   directional — rough, from /vision
+                             #   set         — levels + gates firmed by /understand
+                             #   locked      — selection (/shape) runs against it
+
+  shape:                     # situational dimensions (directional from /vision)
+    stage: string            # prototype | internal | public | monetized
+    users: string            # one | small-team | public
+    monetization: string     # none | lead-capture | paywall
+    surfaces: [string]       # web | mobile | cli | api | desktop | embedded
+
+  nfr:                       # THE BOX — per dimension: a level AND a gate.
+                             # level scale: none < low < medium < high < xhigh
+    performance:    { level: string, gate: string }  # speed/latency, e.g. high, "p99 page load"
+    security:       { level: string, gate: string }  # e.g. high, "OWASP ASVS L2; no P1/P2"
+    accessibility:  { level: string, gate: string }  # e.g. high, "WCAG 2.1 AA"
+    scalability:    { level: string, gate: string }  # e.g. medium, "handles 10x load"
+    reliability:    { level: string, gate: string }  # availability, e.g. high, "99.9% (three-nines)"
+    privacy:        { level: string, gate: string }  # e.g. high, "PII encrypted at rest + transit"
+    observability:  { level: string, gate: string }  # e.g. medium, "tracing + error rates"
+    maintainability:{ level: string, gate: string }  # e.g. medium, "no module > 500 lines"
+
+  compliance: [string]       # regimes the box admits, e.g. [GDPR, PCI-DSS]
+
+  quality_vision:
+    statement: string        # one line: what "good" means for this product
+    gates: [string]          # the assembled per-dimension gates quality-auditor verifies
+
+  metadata:
+    created_by: string       # /vision (directional) then /understand (firmed)
+    version: integer
+
+# ---- Governance ------------------------------------------------------------
+# The box moves ONLY by an approved decision. /understand fills each capability's
+# concrete nfr_needs (ICE); if a need exceeds the box on any dimension, it is an
+# out-of-box event — it halts for human approval; approval raises (or lowers) the
+# boundary and records a decision (level: product). Inside the box, no friction.
+
+# ---- Example: a payments product, box after two boundary moves -------------
+# profile:
+#   product_ref: acme-saas
+#   state: set
+#   shape: { stage: monetized, users: public, monetization: paywall, surfaces: [web, api] }
+#   nfr:
+#     performance:   { level: high,   gate: "p99 page load" }
+#     security:      { level: xhigh,  gate: "OWASP ASVS L2; no P1/P2; MFA; breach detection" }  # moved up for payments
+#     accessibility: { level: high,   gate: "WCAG 2.1 AA" }
+#     scalability:   { level: medium, gate: "handles 10x current load" }
+#     reliability:   { level: high,   gate: "99.99% uptime (four-nines)" }  # moved up for auth
+#     privacy:       { level: high,   gate: "PII encrypted at rest + in transit" }
+#     observability: { level: medium, gate: "request tracing + error rates" }
+#     maintainability:{ level: medium, gate: "no module > 500 lines; lint clean" }
+#   compliance: [PCI-DSS, GDPR]
+#   quality_vision:
+#     statement: "Trustworthy checkout — fast, accessible, provably secure."
+#     gates: ["no P1/P2 security findings", "WCAG 2.1 AA", "p99 page load tracked",
+#             "99.99% uptime", "PII encrypted at rest + in transit"]
+
+# Supersedes the old three-axis project profile (ADR 014: scale/complexity/risk).

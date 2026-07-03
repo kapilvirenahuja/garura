@@ -1,0 +1,25 @@
+# Lens: architecture  (LOCKED #434) — shared envelope in lens/_index.md
+#
+# A component is a HORIZONTAL platform/tier; a capability is a VERTICAL threading
+# top-to-down through components. (vocabulary locked in plan C3)
+
+schema:
+  name: lens
+  type: architecture
+
+content:
+  components:           # the horizontals this capability threads
+    - name: string
+      layer: string     # experience | process | domain | cross-cutting
+      kind: string      # internal | external
+      part: string      # what this capability occupies inside this component
+  contracts:            # the seams crossed between components (incl. owned data model)
+    - between: string   # "A <-> B"
+      interface: string
+      data: string      # the data shapes that cross (the data model lives here)
+  stack:                # locked, WITH versions
+    - component: string
+      tech: string
+      version: string
+  # principle (not a field): the build is a vertical, end-to-end slice through
+  # these components — end-to-end or the story failed.

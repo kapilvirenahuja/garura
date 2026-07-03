@@ -4,6 +4,8 @@ description: Author the canonical 3-tier domain → capability → feature catal
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write, Grep, Glob
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # manage-features

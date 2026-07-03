@@ -155,3 +155,7 @@ test-project/
 .github/actions/artifacts/
 contributor-stats.json
 badge-cache/
+
+# Play run-state markers (status / resume) are machine-local and never committed.
+# The rule now lives in .garura/.gitignore (**/status/, **/_status/), covering the
+# whole tree — issue, realize, shaping, and product _status (#434, ADR 021).

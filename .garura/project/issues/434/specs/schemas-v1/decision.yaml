@@ -1,0 +1,46 @@
+# Decision Schema (ADR) — v1
+#
+# A decision record IS an ADR — usable at product, capability, functionality, or
+# framework level. The third thing ProductOS keeps forever: DECISIONS.
+# Accepted decisions are never edited — a new decision supersedes them, so the
+# history stays intact.
+
+schema:
+  name: decision
+  version: 1
+  is_adr: true            # these records are ADRs, at any level
+
+decision:
+  id: string
+  node_ref: string        # node this affects; null = framework-wide ADR
+  level: string           # product | capability | functionality | framework
+  title: string
+  reason: string
+  alternatives:           # what else was considered, and why it lost
+    - name: string
+      why_not: string
+  status: string          # one of: proposed | accepted | superseded | rejected
+  superseded_by: string   # id of the decision that replaced this one; else null
+  metadata:
+    decided_by: string    # play that recorded the decision
+    date: string          # passed in by the play; not auto-generated
+    version: integer
+
+immutability: "accepted decisions are not edited — supersede with a new record"
+
+# ---- Fill rules -------------------------------------------------------------
+fill_rules:
+  - play: "/understand"
+    writes: "decisions made while clarifying intent"
+  - play: "/shape"
+    writes: "decisions about functionalities, personas, journeys"
+  - play: "/realize"
+    writes: "architecture, run, quality, and agentic decisions"
+  # /implement does NOT write decisions — it executes them, not decides them.
+  # Boundary moves: when an ICE specific falls outside the profile box, the
+  # approved boundary change is recorded HERE as a decision (level: product),
+  # proposed during /understand and accepted by a human.
+
+# ---- Enhance rules ----------------------------------------------------------
+enhance_rules:
+  governed_by: "PARKED — see product-os.yaml (future schema-evolution play)"

@@ -44,7 +44,6 @@ The play passes five things:
   "workflow_path": "<path to LTM workflow template>",
   "config_path": "<path to .garura/core/config.yaml>",
   "agents": [
-    { "name": "feature-steward", "domain": "product" },
     { "name": "tech-designer", "domain": "design" }
   ]
 }

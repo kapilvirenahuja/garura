@@ -1,5 +1,5 @@
 # Intent Schema — Canonical Contract
-# This is the schema that intent-crafter produces and /create-play consumes.
+# This is the schema that intent-crafter produces and /play-creator consumes.
 # Any play can serve an intent. Intent says nothing about execution.
 #
 # Intent YAML has TWO zones: metadata and content. Both are required.
@@ -26,7 +26,7 @@ version: <string>                      # Semver (e.g. "0.1.0")
 
 checksum: <string>                     # sha256 hash of the normalized content zone
                                        # (see Checksum rule below).
-                                       # Maintained by the `/create-play --build` step.
+                                       # Maintained by the `/play-creator --build` step.
                                        # Drift detection: if the on-disk checksum does
                                        # NOT equal the computed checksum of the current
                                        # content zone, the play's compiled artifact is
@@ -52,7 +52,7 @@ failure_conditions:                    # Observable states in the output that
 
 # Scenarios, success, and recovery are NOT here. They live in the generated
 # Expectation layer — see standards/schemas/expectation.yaml. Intent is the clean
-# triple; Expectation is generated from it and human-vetted at the create-play
+# triple; Expectation is generated from it and human-vetted at the play-creator
 # checkpoint.
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -82,7 +82,7 @@ failure_conditions:                    # Observable states in the output that
 #
 # Scenarios / Success / Recovery:
 #   - NOT authored in intent. Generated into the Expectation layer
-#     (standards/schemas/expectation.yaml) and human-vetted at the create-play
+#     (standards/schemas/expectation.yaml) and human-vetted at the play-creator
 #     checkpoint. Success scenarios carry a measure; recovery has one entry per
 #     failure condition with an autonomous|human handoff.
 #
@@ -92,7 +92,7 @@ failure_conditions:                    # Observable states in the output that
 #
 # Algorithm: sha256 over the normalized content zone.
 #
-# Normalization steps (the `/create-play --build` step performs these):
+# Normalization steps (the `/play-creator --build` step performs these):
 #   1. Load the intent.yaml into an ordered mapping.
 #   2. Extract ONLY the content-zone keys: intent, constraints, failure_conditions.
 #      The metadata keys (name, description, version, checksum) are
@@ -112,7 +112,7 @@ failure_conditions:                    # Observable states in the output that
 #   - The compiled play artifact records the intent_hash in its Compilation Metadata.
 #   - On play run, the orchestrator recomputes the checksum from the current
 #     intent.yaml and compares. Mismatch means the compiled artifact is stale.
-#   - On intent.yaml edit, `/create-play --build` recomputes and overwrites.
+#   - On intent.yaml edit, `/play-creator --build` recomputes and overwrites.
 #
 # Related:
 #   - docs/adr/016-agent-json-contract.md (intent path in every contract)

@@ -3,6 +3,8 @@ name: derive-tech-stack
 description: Stage 5 skill of /arch. Picks languages, runtimes, frameworks, libraries, tools, and design patterns per box (component, group of components in a layer, or product-wide). Patterns referenced MUST be industry-documented with literature citations — invented patterns are rejected. System-level decisions (monolith / microservice / serverless / modular monolith) are patterns and live here, not in a separate artifact. Every entry carries source_type, scope, and rationale citing a QP target, a project-profile pin, or a user answer.
 version: 0.1.0
 user-invocable: false
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # derive-tech-stack

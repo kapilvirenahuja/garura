@@ -1,0 +1,20 @@
+# Lens: agentic  (LOCKED #434) — shared envelope in lens/_index.md
+#
+# The KIND of weight the agent pulls (intent) — not how it's built. The 7
+# principles (reason/plan/orchestrate/act/remember/govern/verify) are build
+# mechanics, not the lens. Empty (all none) when the capability has no agent.
+
+schema:
+  name: lens
+  type: agentic
+
+content:
+  weights:
+    cognitive:  { level: string, note: string }   # analysis + decision-making
+    creative:   { level: string, note: string }   # visualization + media creation
+    logistical: { level: string, note: string }   # operational + workflow
+  bounds: string    # the hard limits — what the agent may NOT do alone, e.g.
+                    # "read-only on identity; acts only via lockout/MFA; never
+                    #  bypasses auth; no permanent ban without a human"
+  # level scale: none | low | medium | high. Stated per capability — not
+  # box-governed in v1 (the bounds line carries the safety).

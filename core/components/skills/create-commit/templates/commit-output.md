@@ -3,24 +3,22 @@
 ## Result
 
 - **Success**: {true/false}
-- **Hash**: `{short_hash}`
-- **Full Hash**: `{full_hash}`
+- **Commits created**: {n}
+- **Tree clean after**: {true/false}
+- **Pushed**: false
 
-## Commit Details
+## Commits
 
-- **Type**: {type}
-- **Scope**: {scope}
-- **Subject**: {subject}
-- **Issue**: #{issue} or "none"
+One row per commit, in order:
 
-## Files Committed
+| # | Hash | Type(scope) | Subject | Issue | Files |
+|---|------|-------------|---------|-------|-------|
+| 1 | `{short_hash}` | {type}({scope}) | {subject} | #{issue} | {file count} |
 
-- `{file1}`
-- `{file2}`
+## Per-commit detail (optional)
 
-## Full Message
-
-```
-{full commit message}
-```
-
+### Commit {n} — `{short_hash}`
+- **Message**: `{type}({scope}): {subject} (#{issue})`
+- **Files**:
+  - `{file1}`
+  - `{file2}`

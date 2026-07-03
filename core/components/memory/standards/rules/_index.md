@@ -29,8 +29,18 @@ Agents and skills query this category when they need to know: **"What rules must
 | Path | Description | Consumers |
 |------|-------------|-----------|
 | `commits.md` | Commit categorization (feat / fix / refactor / etc.), conventional-format quality rules, subject / body rules, scope validation, large-file thresholds, secret detection | `analyze-changes`, `analyze-pr`, `create-commit`, `commit-code`, `repo-orchestrator` |
-| `git.md` | Branch naming conventions (feature/, fix/, hotfix/, etc.) and how branch patterns map to quality-gate priorities | `repo-orchestrator`, `setup-branch`, `start-feature-planning` |
+| `git.md` | Branch naming conventions (feature/, fix/, hotfix/, etc.) and how branch patterns map to quality-gate priorities | `repo-orchestrator`, `setup-branch`, `start-change` |
 | `pr.md` | PR severity taxonomy — deterministic mapping from quality standard IDs (SEC, ARCH, BE, CODE, FE, TEST, DOC, OPS, PERF, DATA, DEBT) to P1–P4 severity buckets with grep / path match rules. No LLM judgment. | `review-pr`, `quality-check-scoped`, `analyze-pr` |
+| `self-review.md` | Base scope-and-quality self-review checklist a change runs before it is raised. Resolved via `standards_order` (most-specific wins); overrideable per project. Informational (rides in the PR), not the approve/reject gate. | `propose-change`, `analyze-pr` |
+
+### Play lifecycle rules (auto-emitted by the play compiler)
+
+| Path | Description | Consumers |
+|------|-------------|-----------|
+| `play-close.md` | The canonical Standard Play Close block — the C1 evidence file + C2 delivery report every play emits as its final step, with lint anchors. | `play-creator`, `lint-components`, every play |
+| `evidence-recording.md` | D1 evidence rule (#434) — evidence recording is play-only (never agents, never skills); fires on `evidence.record`, tunable per play via `evidence.plays.<name>`. | `play-creator`, `lint-components`, every play |
+| `pipeline-position.md` | D2 pipeline rule (#434) — a play declares `position: start\|end\|both\|none`; play-creator injects start-change (start) and the commit → propose → review → merge end sequence (end). Members: start-change + the four end plays. | `play-creator`, `lint-components`, every play |
+| `surface-contract.md` | Surface contract (ADR 022, #442) — an epic's user-facing surface (`web_dashboard\|server_api\|cli\|library\|service_read_model`) is DECLARED at the `/grill` cut and checked downstream, never re-derived; per-type required runnable evidence, valid deploy targets, downgrade ordering, and surface-debt blocking. | `/grill`, `/implement`, `/validate`, `/launch`, `/next`, `lint-components` |
 
 ## Deferred follow-ups
 

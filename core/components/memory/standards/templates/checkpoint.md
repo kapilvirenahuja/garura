@@ -2,7 +2,7 @@
 
 Canonical format for checkpoint files written by plays at each human-approval gate. Every checkpoint-gated play writes one of these per gate, written in the background by the scriber agent.
 
-Consumers: `specify`, `design`, `arch`, `start-feature-planning`, `review-pr`, every checkpoint-gated play.
+Consumers: `specify`, `design`, `arch`, every checkpoint-gated play.
 
 ## File path convention
 

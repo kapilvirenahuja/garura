@@ -1,0 +1,3 @@
+# Generated pageindex index — rebuildable from the shelves via pageindex.py.
+# Derived artifact, not source. Re-run: python3 pageindex.py
+*.json

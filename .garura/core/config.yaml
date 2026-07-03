@@ -67,9 +67,26 @@ stm:
     context: "{issue-number}/context/"
     review: "{issue-number}/review/"
 
+# Product model (ProductOS) — the persistent product structure, ICE, profile, and
+# decisions. The product-os tree lives at {product.base-path}product-os/; the
+# product profile at {product.base-path}product-os/profile.yaml.
+product:
+  base-path: .garura/product/
+
 # Standards resolution — first play-specific section; pattern for future plays
 standards:
   pr-severity-taxonomy: ./core/components/memory/standards/rules/pr.md
+
+# start-change play configuration
+start-change:
+  worktree: false   # set up a git worktree on start only when true (C3)
+
+# implement play configuration
+# plan-tracking — publish the epic's build plan to its tracked issue and keep
+#   piece states current there as the build moves (C12). The plan survives a
+#   lost session. Default true when absent or unreadable.
+implement:
+  plan-tracking: true
 
 # review-pr play configuration
 review-pr:
@@ -79,18 +96,6 @@ review-pr:
   standards_order: [kb, ltm, stm]
   fallback_reviewers: []
   activity_window_days: 90
-
-# prepare play configuration
-# max-milestones-per-epic — the hard cap on how many milestones /prepare may
-#   author into a single epic's plan. A milestone is a human-validation
-#   checkpoint (a human-acceptance stop in implement/validate), NOT a unit of
-#   work breakdown. prepare cuts a milestone only where a human must genuinely
-#   sign off; for a straightforward epic that is one milestone covering the
-#   whole epic. This value caps the count — prepare never authors more
-#   milestones than this. Default 2 when absent or unreadable. Set to 1 to
-#   force a single end-to-end epic milestone.
-prepare:
-  max-milestones-per-epic: 2
 
 # craft-ice play configuration
 # hitl — human-in-the-loop for the ICE-spec approval checkpoint (C6).
@@ -104,6 +109,20 @@ craft-ice:
 # Evidence recording — when false, STM evidence writes are skipped across ship and all sub-plays
 evidence:
   record: false
+
+# Grounding eval — the content-quality judge over product-model grounding docs
+# (domain/capability/functionality/epic). The linter (lint_grounding.py) checks shape;
+# this judge checks whether each section is actually understandable, scored against
+# standards/schemas/product-os/grounding/_content-standard.md. Spec + rubric + judge
+# prompt + verdict shape live at standards/rules/grounding-eval.md.
+grounding-eval:
+  # The content-quality judge ALWAYS runs as an isolated, clean-context sub-agent — it
+  # sees only the doc + rubric + per-section guidance, never the brief or the author's
+  # reasoning, so it cannot reward-hack. Optionally pin a different model for stronger
+  # isolation; omit (inherit) to use the session model.
+  judge:
+    model: inherit          # inherit | a claude model id (e.g. claude-haiku-4-5-20251001)
+  gate: all-pass            # every judged criterion must be pass|na to proceed
 
 # Product artifacts — parallel to project, not nested (ADR 017 whitelist)
 # Stage-centric sub-folders, one per SDLC stage. Operational artifacts

@@ -3,6 +3,8 @@ name: derive-systems-inventory
 description: Stage 1 skill of /arch. Walks selected capabilities, identifies the system (and any sub-systems) that serves each one, and populates the product's systems-inventory by pulling KB-grounded systems with provenance or authoring novel systems as stm_research with the required KB-extension shape. Output is the inventory every later /arch stage reads.
 version: 0.1.0
 user-invocable: false
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # derive-systems-inventory

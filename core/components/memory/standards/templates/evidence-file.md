@@ -2,7 +2,7 @@
 
 Canonical format for evidence files emitted at play close. Every play writes one of these at its final step, and the file is self-committed as part of the STM audit trail. Written in the background by the scriber agent.
 
-Consumers: `specify`, `design`, `arch`, `start-feature-planning`, `implement`, every play that closes with an evidence step.
+Consumers: `specify`, `design`, `arch`, `implement`, every play that closes with an evidence step.
 
 ## File path convention
 
@@ -99,8 +99,8 @@ Self-commit SHA: `{short sha}` ({subject line})
 {1-3 lines naming the downstream plays / consumers that will read these
 artifacts. For specify: "design reads enriched-capabilities.yaml
 and epics/; arch reads quality-profile.yaml and epics/". For
-start-feature-planning: "implement reads planning/spec.md,
-verify.md, tasks.md".}
+implement: "/validate checks the built epic against expectations;
+the close chain follows acceptance".}
 ```
 
 ## Field rules

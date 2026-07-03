@@ -3,6 +3,8 @@ name: derive-logical-architecture
 description: Stage 3 skill of /arch. Builds the layered logical architecture for a product by selecting components from the systems inventory, placing each in a layer of the product-locked layer model, wiring edges with sync/async intent, detecting cycles, and validating end-to-end traceability of every selected capability from the user-facing entry layer to a serving component. Logical names systems by their inventory ID and role — never by product, runtime, language, protocol, or schema.
 version: 1.0.0
 user-invocable: false
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # derive-logical-architecture

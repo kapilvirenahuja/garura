@@ -92,23 +92,23 @@ A play change is one of two kinds, and the kind decides the path:
 - **Intent change** — anything touching what the play *decides or guarantees*:
   the intent statement, constraints (C-), failure conditions (F-), scenarios
   (S-), the agent/skill flow, or evals. This MUST go through
-  `reference/intent.yaml` → `/create-play --build {play}`. Never hand-edit a
+  `reference/intent.yaml` → `/play-creator --build {play}`. Never hand-edit a
   compiled `SKILL.md` for an intent change.
 
 - **Non-intent change** — output format, close/report scaffolding, template
   wiring, surface prose: nothing that alters a guarantee, decision, or eval.
   This is a **direct edit** to the compiled `SKILL.md`. Do NOT run
-  `/create-play`; rebuilding when intent is unchanged wastes the pipeline.
+  `/play-creator`; rebuilding when intent is unchanged wastes the pipeline.
   Record the edit with a `**Direct-edit deviation note ({issue}):**` footer.
 
-`create-play` itself has no `intent.yaml` (it is the compiler bootstrap) — all
+`play-creator` itself has no `intent.yaml` (it is the compiler bootstrap) — all
 changes to it are direct edits to its `SKILL.md` by definition.
 
 **Durability rule for non-intent edits:** a hand edit to a generated file is
 clobbered by the next intent-driven rebuild unless the compiler reproduces it.
 The canonical example is the **Standard Play Close** block — every play's
 Evidence & Close section. Its single source of truth is
-`core/components/memory/standards/rules/play-close.md`; `/create-play` emits it
+`core/components/memory/standards/rules/play-close.md`; `/play-creator` emits it
 (gate G12) so direct-edit and rebuild converge; `lint-components` fails any
 play missing its exact anchor pair. Any new shared scaffolding must follow the
 same converge-and-lint pattern, not just a one-off hand edit.

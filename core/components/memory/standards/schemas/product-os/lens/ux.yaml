@@ -1,0 +1,27 @@
+# Lens: ux  (LOCKED #434) — shared envelope in lens/_index.md
+#
+# Scope (#434): the ux lens drives INTENT, not a full spec. It anchors the experience
+# with just enough that the build can figure the rest on the fly:
+#   - screens (each with a low-fidelity layout) that make the shaped slices visible,
+#   - the states each screen can hold,
+#   - the product's visual core (color + typography).
+# Accessibility is NOT restated here — it lives in the product profile, and the build
+# connects it. Flows are NOT specified here — the build derives them from the screens +
+# the capability's journeys.
+
+schema:
+  name: lens
+  type: ux
+
+content:
+  screens:              # the surfaces this capability needs, made visible to validate the shape
+    - name: string
+      purpose: string
+      layout: string    # low-fidelity layout — the blocks/regions on the screen and what
+                        # each holds (where the slice's functionality sits). NOT pixel design.
+  states:               # per screen
+    - screen: string
+      states: [string]  # idle | submitting | error | locked | success | empty | loading
+  design_system:        # the product's visual core (set once, referenced by every capability)
+    palette: string     # the core colors + mood (e.g. "ink #11181C on paper #FCFCFD, brand teal #0E7C86")
+    typography: string  # the type character (e.g. "Inter for UI, Spectral for long-form")

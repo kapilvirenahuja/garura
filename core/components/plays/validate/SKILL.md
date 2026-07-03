@@ -1,801 +1,478 @@
 ---
-name: garura:validate
-description: "System-level verification of a deployed product against acceptance criteria, per-milestone. E2E testing via Playwright/Cypress, system-level judge evaluation, manual test scenario generation. Consumes committed code from implement for a specific milestone and locked scenarios from prepare. Produces per-milestone QA verdict: ACCEPT or REJECT. Epic-level ACCEPT requires all milestones ACCEPTED."
+name: validate
+position: none
+description: 'Independently verify one built EPIC agent-side — the deep gate of the execute pipeline (implement → validate → launch). Re-runs everything mechanically through a per-tool runner family (java, .net, node, frontend, sql, lint, sonar): the epic''s tests, blast-radius-scoped regression, code-level security and quality scans — then compares results against the slice''s quality-lens gates AND the product profile''s benchmarks (green is the entry, the floor is the bar). Ends in a binary stamped verdict: `validated` (the precondition /launch requires) or `fix_required` (blocks /launch; the fix report names each failure by check and location so /implement fixes exactly that, nothing more). Implement ↔ validate is expected to loop — scope narrows per round, 3 rejections halt to a human. Finds, never fixes; every finding mechanically cited. The /validate command in the ProductOS command model. Use when an implemented epic awaits validation.'
 user-invocable: true
-model: opus
 ---
 
 # validate
 
-Given committed code from implement for a specific milestone (feature phase from plan.yaml, e.g. T-001) and locked verification scenarios for that milestone from prepare, deploy to a preview/staging environment and execute system-level verification against that milestone's acceptance criteria. E2E tests run all 3 scenario tiers in order: baseline (cumulative regression from all prior milestones), new (this milestone's scenarios), regression (nothing outside change surface broke). A judge exercises the running product independently via the deployed environment — this is QA acceptance, not developer self-check. When judge failures occur, remediation routes back to implement for code changes for this specific milestone — validate does not invoke code-builder directly. After implement fixes and re-commits, validate re-deploys and re-runs. Max 3 fix iterations. A feature-steward generates manual test scenarios scoped to this milestone. The output is a per-milestone QA verdict: ACCEPT or REJECT. Epic-level ACCEPT requires all milestones individually ACCEPTED.
+Take one epic /implement built to "specs passing, awaiting validation" and verify it
+**independently, agent-side** — the deep gate of the execute pipeline. Agents are good at
+fixing things; this play's whole value is **finding what is not working with total
+clarity**. Implement ↔ validate is expected to run a few rounds; the loop is affordable
+because every finding is mechanically cited (the failing check, the rule that fired,
+where) and the re-verification scope narrows per round
+(`architecture/regression-by-blast-radius`).
+
+**Green is the entry, never the verdict** (`technology/validation-floor-profile-benchmarks`):
+captured results are compared against the slice's quality-lens gates and the **product
+profile's benchmarks** — all tests passing with coverage below the profile's floor is a
+reject. An unmeasured bar is not a passed bar.
+
+The mechanics run through a **per-tool runner family** (the platform-adapter pattern):
+`run_checks.py` orchestrates; `runners/runner_{java,dotnet,node,frontend,sql,lint,sonar}.py`
+each ensure their tool, run it, and emit one normalized result record. The play may
+compile, run, or deploy the product **only to test it** — deploying for human acceptance
+is /launch's. Security is **code-level only**: static analysis, lint, dependency scans —
+never penetration-style probing.
+
+The verdict is binary and **stamped on the epic** — the one durable model write:
+`validated` unblocks /launch; `fix_required` blocks it and re-admits /implement with the
+fix report as its exact work list (lightweight re-entry: fix what's named, no re-plan).
+
+**Pipeline position: none.** /validate is the MIDDLE play of the execute pipeline
+(implement → validate → launch): it expects to run on the epic branch /implement already
+started (one issue per epic), injects no head and no close, stops after the verdict is
+stamped and reported, and leaves the branch as-is — /launch carries the close chain after
+human sign-off. (#434, decisions 20 + 24)
 
 ## Compiled From
 
-This play was compiled from `reference/intent.yaml` (the clean triple) and
-`reference/expectation.yaml` (success_scenarios + recovery) by `/create-play`.
-Intent defines constraints (C1-C19) and failure conditions (F1-F16); the expectation
-defines success scenarios (S1-S9) and recovery (REC1-REC16).
-To modify this play, update `reference/intent.yaml` or `reference/expectation.yaml`
-and re-run `/create-play --build validate`.
+This play was compiled from the validate ICE (`reference/ice.md`) by play-creator.
+Intent defines constraints (C1–C13) and failure conditions (F1–F13); the expectation
+defines success scenarios (S1–S5) and one recovery entry per failure condition.
+To modify this play, update `reference/ice.md` and recompile with play-creator.
 Do NOT edit this file manually — it is a compiled artifact.
-
-**Hash guard:** If `sha256(reference/intent.yaml)` ≠
-`709e3f92dd184fe6e9c8d85192af3cb8132056a2a348f66a5f2a6c5c9f334147` OR
-`sha256(reference/expectation.yaml)` ≠
-`874a0e2b70dac761066100fe3c5643333f26c5652cd1331d8edb76051e0dfe07`, rebuild is
-required before running.
 
 ## Role
 
-You are the orchestrator. You own the workflow. You delegate domain tasks to agents via JSON contracts — never execute domain work directly.
+You are the orchestrator. You own the workflow and the step order. You delegate the two
+pieces of judgment — planning the checks (which tools for which stacks, KB-grounded) and
+judging the captured results into cited findings — to the `quality-auditor` agent via JSON
+contracts over files on disk, and you run every mechanical part (eligibility + round
+resolution, scope resolution, check execution, gates + benchmarks, the verdict, the stamp,
+the report, the final self-check) through bundled scripts. You never edit product code,
+never run a check inline that a runner owns, never hand-stamp a verdict, and never write
+any model file except through `scripts/stamp_epic.py`.
 
-**Forbidden:** Direct code implementation. Direct test execution against source (must go through deployed environment). All domain work goes through agents. The orchestrator's only direct operations are: reading status files, writing status files, writing evidence, mediating information flow between agents (with filtering per C3/C6/C14), routing remediation to implement, and reading milestone metadata from plan-milestone-summary.yaml.
+**Forbidden:** editing or "quick-fixing" product code (validate finds, /implement fixes);
+hand-authoring a verdict or a finding without its captured citation; running tools outside
+the runner family; trusting implement's self-reported results instead of re-running;
+probing live systems for security; full-suite regression when a scope file bounds it;
+touching the epic record beyond the surgical stamp; starting a fourth round past the cap.
 
 **Agent boundaries:**
 
-| Agent | Role | Domain | Receives | Does NOT Receive | Phases |
-|-------|------|--------|----------|-----------------|--------|
-| `evals-engineer` | System eval generator | System-level evals from specs | This milestone's locked behaviors, scenarios.yaml (scoped to milestone's scenario_gate + cumulative regression), plan.yaml exit gates for this milestone, design-context.yaml screens | Unit test code, builder prompts, prior evals, implementation code, scenarios from other milestones | Preparation |
-| `test-engineer` | E2E test authorship | Playwright/Cypress scripts from scenarios + screens | This milestone's scenarios from scenarios.yaml, design-context.yaml screens, API contracts from tech.yaml, deployment URL, prior-milestone cumulative scenario IDs for regression | Unit test code, builder prompts, evals | Preparation |
-| `judge` | QA acceptance | Exercises deployed product | Encrypted system evals + deployed env URL/credentials | Builder prompts, unit tests, quality-auditor results from implement, evals-engineer prompts | Execution |
-| `feature-steward` | Manual scenario writer | Generates QA checklist | This milestone's success scenarios, plan.yaml exit gate for this milestone | Evals, builder prompts, judge reports | Finalize |
-| `repo-orchestrator` | Git | Evidence self-commit | Evidence files | Everything else | Evidence |
+| Agent | Domain | Skills it invokes | Phases |
+|-------|--------|-------------------|--------|
+| `quality-auditor` | Plan the checks (stack detection + KB-grounded tooling) and judge the captured results into mechanically cited findings | `plan-validation-checks`, `judge-validation-results` | Plan, Judge |
+| `project-orchestrator` | Post the rendered report to the epic's tracked issue | `manage-issue` | Report |
+| `repo-orchestrator` | Evidence self-commit per the close standard | `commit-change` (evidence scope) | Close |
 
-**Context isolation invariants (C3/C6/C14):** The orchestrator is the ONLY entity that touches multiple agent outputs. When passing information between agents, the orchestrator MUST filter:
-- **evals-engineer receives:** This milestone's locked behaviors, milestone-scoped scenarios.yaml, plan.yaml exit gates, design-context.yaml screens. Never implementation code, builder prompts, prior evals, quality-auditor results, judge reports, or scenarios from other milestones (C3).
-- **judge receives:** Encrypted system-level evals + deployed env URL/credentials. Never builder prompts, unit tests, quality-auditor results from implement, evals-engineer prompts, implementation source code (C6).
-- **test-engineer receives:** This milestone's scenarios from scenarios.yaml, design-context.yaml screens, API contracts from tech.yaml, deployment URL, prior-milestone cumulative scenario IDs. Never unit test code, builder prompts, evals (C4).
-- No other cross-agent information flow is permitted (C14).
-
-**FORBIDDEN DATA SOURCES (C15, F13):**
-- `~/.garura/core/memory/` (KB) — NEVER read by any agent in this play
-- `{product_base}` / `.garura/product/` (LTM) — NEVER read by any agent in this play
-- All context comes from STM at `{stm_base}/{issue}/context/` (produced by prepare) plus the deployed environment
-- No agent contract may include `ltm_context` fields
-- If something is missing from STM, the fix is in prepare, not in reading LTM/KB directly
-
-## Arguments
-
-```
-/validate --milestone <milestone_id> [--issue <issue-number>] [--deploy-url <url>]
-
-Examples:
-  /validate --milestone T-001 --issue 1 --deploy-url https://preview-t001.example.com
-  /validate --milestone T-002
-```
-
-The `milestone_id` maps directly to a feature phase in plan.yaml (e.g. T-001, T-002). The orchestrator reads plan-milestone-summary.yaml from STM to resolve milestone metadata.
+`quality-auditor` is the single **domain agent** (1 of the ≤5 budget); the other two are
+utility. The judge skill carries no Bash — it cannot run mechanics (C4).
 
 ## Pre-flight
 
-Execute these checks before any domain work. Orchestrator owns — do not delegate.
-
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt — config required |
-| Parse `--milestone` argument | C16 | Hard halt — milestone_id required |
-| Resolve issue from `--issue` arg, branch name, or STM | — | Hard halt if unresolvable |
-| Read plan-milestone-summary.yaml from STM | C16 | Hard halt — milestone must exist in plan |
-| Verify milestone_id exists in plan-milestone-summary.yaml | C16, F15 | Hard halt — unknown milestone |
-| Read implement status report for this milestone | C1, C18, F1, F14 | Hard halt — implement must have completed this milestone |
-| Verify prior milestones ACCEPTED (if milestone > T-001) | C17 | Hard halt — prior milestones must be validated first |
-| Deployment environment accessible | C2 | Hard halt — health check must succeed (F2) |
-| Read scenarios.yaml and scope to this milestone | C13, C16, F15 | Hard halt — no milestone-scoped scenarios to validate |
+| Resolve config + tokens (`.garura/core/config.yaml`) | — | Hard halt |
+| On the epic's issue branch (issue resolved from branch) | C10-position | Hard halt |
+| Epic eligible: `in_delivery` + issue_ref; implement's done verdict holds (pieces done, gates pass, steelman PASS) | C1 | Hard halt (REC1) |
+| Loop cap not reached (rejections < 3) | C10 | Hard halt → escalation record (REC10) |
 
-```bash
-stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | awk '{print $2}')
-milestone_id="{--milestone value}"    # e.g., T-001
-issue="{--issue value or extracted from branch}"
-
-# STM paths
-stm_dir="{stm_base}/{issue}"
-artifact_base="{stm_dir}/context/design"
-milestone_base="{stm_base}/{issue}/milestones/{milestone_id}"
-plan_milestone_summary_path="{artifact_base}/plan-milestone-summary.yaml"
-epic_spec_path="{artifact_base}/epic-spec.yaml"
-scenarios_yaml_path="{artifact_base}/scenarios.yaml"
-tech_yaml_path="{artifact_base}/tech.yaml"
-design_context_path="{artifact_base}/design-context.yaml"
-
-# C16: Verify milestone exists in plan-milestone-summary.yaml
-# Read plan-milestone-summary.yaml → find entry where milestone_id == {milestone_id}
-# Extract: delivers, scenario_gate.ids[], cumulative_scenarios[], depends_on[]
-
-# C1/C18/F1/F14: Verify implement completed this milestone
-# Read {milestone_base}/status-report.yaml — must exist and show COMPLETE
-# Verify: all unit tests passing, quality-auditor CERTIFIED
-
-# C17: Verify prior milestones ACCEPTED (cumulative regression)
-# For each milestone in depends_on[]:
-#   Read {stm_base}/{issue}/milestones/{dep_milestone}/milestone-verdict.yaml
-#   Verify: verdict == ACCEPT
-
-# C2: Verify deployment environment health
-deploy_url="{--deploy-url or resolved from project config}"
-# Health check: HTTP GET {deploy_url}/health — verify 2xx response
-
-# C13/F15: Scope scenarios to this milestone
-# Read scenarios.yaml → filter to milestone's scenario_gate.ids[] for NEW tier
-# Read cumulative_scenarios[] for BASELINE tier (regression from prior milestones)
-# Verify no scenarios from other milestones leak into new/regression tiers
-
-# Eval storage (OUTSIDE repo per C7)
-eval_dir="/tmp/{slug}-validate-evals-{milestone_id}"
-
-# Evidence directory
-evidence_dir="{stm_dir}/evidence/validate/{milestone_id}"
+```
+python3 scripts/preflight.py --play validate --config .garura/core/config.yaml \
+        --branch "$(git branch --show-current)" --porcelain-file <captured>
+python3 scripts/check_ready_validate.py --product-base <product_base> --epic <epic_id> \
+        --plan {stm_base}{issue}/plan.yaml \
+        --gates {stm_base}{issue}/gates-results.yaml \
+        --verdict {stm_base}{issue}/verdict.yaml \
+        --status-dir {stm_base}{issue}/validate/status --max-rounds 3
 ```
 
-**Pre-flight Evals:**
-- **SE-1 (C16, F14, F15):** milestone_id resolves to an entry in plan-milestone-summary.yaml. Milestone's scenario_gate.ids[] are loaded. No scenarios beyond milestone scope + cumulative regression are selected.
-- **SE-2 (C1, C18, F1):** implement status report exists at `{milestone_base}/status-report.yaml` showing COMPLETE with all unit tests passing and quality-auditor CERTIFIED.
+`preflight.py` returns config facts (`stm_base`, `product_base`, `evidence_record`, the
+issue from the branch). The epic resolves by id to its entry in the spine `epics` index
+(`{product_base}/product-os/_spine.yaml`); its grounding lives in the epic.md the entry
+points to. `check_ready_validate.py` is the
+eligibility gate AND round resolver: it emits `round` (prior rejections + 1) and
+`prior_report` (the last fix report, the round-N scope source). At the cap it sets
+`escalate: true` — present the round history to the human and stop; never start the round
+(C10/F10). Also capture the two live reads to files now: `git status --porcelain >
+{working}/porcelain-before.txt` (SE-12 compares after the run).
 
-**Resume check:** If `{stm_dir}/status/validate-{milestone_id}.json` exists, resume — skip completed steps, reset any `in_progress` to pending, continue from first incomplete.
+**Resume check:** if `{stm_base}{issue}/validate/status/round-<n>-progress.json` exists,
+resume — skip completed steps, reset any in-progress step to pending.
 
----
+## Task DAG
+
+Create ALL tasks immediately after pre-flight — before any domain work.
+The play owns this DAG; agents must not edit its top-level tasks.
+
+```
+[T1] Resolve blast scope                 blockedBy: []
+[T2] Plan checks (KB-grounded)           blockedBy: [T1]
+[T3] Grounding check (KB)                blockedBy: [T2]
+[T4] Checkpoint (skippable)              blockedBy: [T3]
+[T5] Run checks (runner family)          blockedBy: [T4]
+[T6] Gates + benchmarks                  blockedBy: [T5]
+[T7] Judge findings                      blockedBy: [T6]
+[T8] Compute verdict                     blockedBy: [T7]
+[T9] Stamp epic                          blockedBy: [T8]
+[T10] Render + post report               blockedBy: [T9]
+[T11] Verify the run                     blockedBy: [T10]
+[T12] Scenario Validation                blockedBy: [T11]
+[T13] Close                              blockedBy: [T12]
+```
+
+Mark each task in-progress before its step and completed right after its eval passes.
+No runtime reordering. On resume, skip completed and reset in-progress to pending.
 
 ## Workflow
 
-### Phase 0: Setup
+### Phase: Scope
 
-**Step 0a — Resolve Issue**
-Owner: orchestrator
-Depends on: —
+**Step 1 — Resolve blast scope** · Owner: play · Depends on: pre-flight
 
-Resolve issue number from `--issue` argument, branch name, or STM directory listing. Hard halt if unresolvable.
+```
+python3 scripts/resolve_blast_scope.py \
+        --reports-dir {stm_base}{issue}/piece-reports \
+        --round <round> [--prior-report <prior_report>] \
+        --out {working}/scope.json
+```
 
-**Step 0b — Verify Milestone Pre-conditions**
-Owner: orchestrator
-Depends on: Step 0a
+Round 1 scopes from implement's piece reports (`files_modified` — the build's recorded
+claims); round N+1 from the FIX's piece reports plus what the prior report's findings
+named. The script can only read claims or fail loud — it cannot invent scope.
+**SE-2 (F8/C6):** `resolve_blast_scope.py` exits 0; `scope.json.source` is
+`implement-claims` (round 1) or `fix-claims+prior-report` (later rounds); its `files` are
+non-empty and every entry traces to a piece report or the prior report.
 
-1. Read `{plan_milestone_summary_path}` — find this milestone_id entry
-2. Read `{milestone_base}/status-report.yaml` — verify COMPLETE (C1, C18, F1, F14)
-3. For each milestone in depends_on[]: read its `milestone-verdict.yaml` — verify ACCEPT (C17)
-4. Hard halt with F1 if implement incomplete, F14 if status report missing
+### Phase: Plan
 
-**Step 0c — Verify Deployment Environment**
-Owner: orchestrator
-Depends on: Step 0a
+**Step 2 — Plan checks (KB-grounded)** · Owner: `quality-auditor` · Depends on: Step 1
+The agent gathers the epic, the slice's quality + architecture lenses, the profile, the
+scope, and the repo, and invokes `plan-validation-checks`:
 
-Run health check against `{deploy_url}`. Verify HTTP 2xx response. Retry up to 3 times with exponential backoff. Hard halt with F2 if environment unreachable after retries.
-
-**Step 0d — Scope Scenarios to Milestone**
-Owner: orchestrator
-Depends on: Step 0b
-
-Read `{scenarios_yaml_path}` from prepare STM. Build the three tiers for this milestone:
-- **Baseline tier (C17):** ALL scenarios from previously ACCEPTED milestones (cumulative regression). Read cumulative_scenarios[] from prior milestone entries in plan-milestone-summary.yaml.
-- **New tier (C13):** This milestone's scenario_gate.ids[] from plan-milestone-summary.yaml.
-- **Regression tier:** Regression scenarios from scenarios.yaml that cover code outside this milestone's change surface.
-
-Verify no scenarios from other milestones leak into new tier (F15). Hard halt if scenarios.yaml is missing or incomplete.
-
-Write scoped scenario set to `{evidence_dir}/milestone-scenarios.yaml`.
-
-**Step 0d Eval:**
-- **SE-3 (C13, C16, C17, F15):** Milestone-scoped scenario set contains: baseline tier with cumulative prior-milestone scenarios, new tier with exactly this milestone's scenario_gate.ids[], regression tier. No scenarios from non-prior milestones appear in the set.
-
----
-
-### Phase 1: Preparation
-
-**Step 1 — Generate System-Level Evals**
-Owner: `evals-engineer` — **CONTEXT-ISOLATED**
-Depends on: Phase 0
-
-**Critical isolation (C3, F7):** The eval generator receives ONLY: this milestone's locked behaviors, milestone-scoped scenarios (from Step 0d), plan.yaml exit gates for this milestone, and design-context.yaml screens. It does NOT receive: unit test code, builder prompts, prior evals, implementation code, quality-auditor results from implement, judge reports from implement, or scenarios from other milestones.
-
-**Scope:** "Does the deployed product work end-to-end for THIS MILESTONE?" — NOT unit test coverage.
-
-```json
-{
-  "intent_path": "core/components/plays/validate/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "epic_spec_path": "{epic_spec_path}",
-      "milestone_scenarios": "{evidence_dir}/milestone-scenarios.yaml",
-      "milestone_id": "{milestone_id}",
-      "plan_exit_gate": "{extracted exit gate text from plan-milestone-summary.yaml}",
-      "design_context_path": "{design_context_path}"
-    },
-    "output": {
-      "eval_path": "{eval_dir}/validate-{milestone_id}.yaml",
-      "manifest_path": "{eval_dir}/manifest.json"
+    {
+      "task":    "author the check manifest for this epic: detect the stack(s) (arch lens + repo manifests), resolve each to KB-grounded tooling (build, tests, scoped regression per scope.json, lint/static analysis, dependency audit, the scanners the bars demand), map every quality-lens gate (quality.md "## Gates" table) and measure-lens metric (measure.md "## Metrics" table) to a concrete check; code-level security only; round > 1 plans only what the prior report and narrowed scope require; uncovered tool choices become KB-learning-gap proposals, never silent picks. ALSO map the epic's declared surface.type (surface-contract.md) to its ONE required runnable check and add it to the manifest tagged `surface_check: <surface.type>` — a real browser check that opens each must_open artifact (web_dashboard), an HTTP/API call to the declared endpoint (server_api), a run of human_run_target (cli), or the library/service's own tests (library/service_read_model). The plan is INCOMPLETE for a required (user-facing) surface unless it carries that surface_check entry — never omit it for lack of a browser/API probe; the absence of a probe fails the surface, it does not waive it.",
+      "inputs":  { "epic_file": "<epic_file>",
+                   "quality_lens": "<lens_dir>/quality.md",
+                   "arch_lens": "<lens_dir>/architecture.md",
+                   "measure_lens": "<lens_dir>/measure.md",
+                   "profile_path": "<product_base>/product-os/_spine.yaml",
+                   "scope_file": "{working}/scope.json",
+                   "repo_root": "<repo_root>",
+                   "round": "<round>",
+                   "kb_search": "<skills>/kb-search/scripts/kb_search.py",
+                   "kb_root": "<knowledge_dir>" },
+      "outputs": { "out_dir": "{working}/plan/",
+                   "manifest": "{working}/plan/checks.yaml",
+                   "choices": "{working}/plan/check-choices.yaml",
+                   "proposals": "{working}/plan/proposals/" }
     }
-  },
-  "task_id": "generate-system-evals",
-  "config": {
-    "storage_dir": "{eval_dir}",
-    "scope": "system-behavior",
-    "instructions": [
-      "Read ONLY the input files listed above",
-      "Evals scoped to THIS milestone's scenarios — not all epic scenarios",
-      "Do NOT read any source code, unit tests, builder prompts, or implementation files",
-      "Generate YAML evals covering system-level behaviors from all 3 scenario tiers",
-      "Evals must be verifiable against a RUNNING deployed product, not source code",
-      "Write evals to {eval_dir}/validate-{milestone_id}.yaml (OUTSIDE repo tree)",
-      "Write manifest.json with eval count and metadata",
-      "Encrypt eval files at rest — delete plaintext after encryption"
-    ]
-  }
-}
+
+**SE-4 (F9/C5):** every `checks.yaml` entry's `runner` is one of the bundled runner
+classes (java, dotnet, node, frontend, sql, lint, sonar) and no command targets a remote
+system — the plan is code-level/local by construction; a probe-class check cannot execute
+because no runner exists for it.
+**SE-14 (F13/C13):** the plan is complete against the epic's surface — `checks.yaml`
+carries exactly one entry tagged `surface_check: <epic.surface.type>` for the declared
+type (for a user-facing type web_dashboard/server_api/cli that entry is the required
+runnable check: a browser open of each `must_open`, an HTTP call to the endpoint, or a run
+of `human_run_target`; for library/service_read_model it is the own-tests entry). A
+required surface with no `surface_check` entry is an INCOMPLETE plan — the check is not
+waived for lack of a browser/API probe; loop back to Step 2 to add it before running.
+
+**Step 3 — Grounding check (KB)** · Owner: play · Depends on: Step 2
+
+```
+python3 scripts/check_kb_grounding.py --manifest {working}/plan/check-choices.yaml \
+        --proposals-dir {working}/plan/proposals --kb-root <knowledge_dir>
 ```
 
-**Step 1 Evals:**
-- **SE-4 (C3, C7, F7):** Eval file exists outside repo tree. Manifest exists with eval count > 0. Eval generator's prompt contains zero implementation code, zero builder outputs, zero quality-auditor results, zero scenarios from other milestones.
+**SE-3 (F12/C12):** exits 0 — every tool pick and scoping decision carries a KB learning
+id that resolves or a proposal file that exists; none is invented. On GAP, apply REC12.
 
----
+### Phase: Checkpoint (skippable)
 
-**Step 2 — Author E2E Test Scripts**
-Owner: `test-engineer` — **CONTEXT-ISOLATED**
-Depends on: Phase 0
+**Step 4 — Review the plan** · Owner: play · Depends on: Step 3
+Present the check plan in plain language: the stacks detected, the checks per bar, the
+regression scope and its source, any KB gaps or lens-vs-repo mismatches from `notes`.
+**Skip rule:** when `check-choices.yaml` grounded clean with zero proposals and the plan's
+`notes` are empty, skip — post the summary and continue. Otherwise wait for a typed
+response.
 
-**Isolation (C4, F5):** Test scripts must use an e2e framework (Playwright, Cypress, or equivalent). NOT a unit test framework. Tests target the deployment URL.
+### Phase: Execute
 
-```json
-{
-  "intent_path": "core/components/plays/validate/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "milestone_scenarios": "{evidence_dir}/milestone-scenarios.yaml",
-      "design_context_path": "{design_context_path}",
-      "tech_yaml_path": "{tech_yaml_path}",
-      "deploy_url": "{deploy_url}"
-    },
-    "output": {
-      "e2e_test_manifest": "{evidence_dir}/e2e-test-manifest.yaml",
-      "e2e_test_dir": "{stm_dir}/e2e-tests/{milestone_id}/"
+**Step 5 — Run checks (runner family)** · Owner: play · Depends on: Step 4
+
+```
+python3 scripts/run_checks.py --manifest {working}/plan/checks.yaml \
+        --results-dir {working}/results [--only <prior-findings' check ids, round > 1>]
+```
+
+The orchestrator dispatches each check to its runner; runners ensure their tool (install
+when the manifest says how), run it, and emit normalized records. A tool that cannot run
+is `status: error` — recorded, never skipped.
+**SE-5 (F5/C4, C7):** every result in `{working}/results/` was emitted by a runner (each
+carries `raw_log_path`; `summary.json` counts them); no check result was authored by an
+agent or inline prose; everything that ran, ran to TEST — the manifest carries no
+acceptance-deploy entry (deploying for human acceptance is /launch's, C7). **SE-12 (F4/C2):** re-capture `git status --porcelain >
+{working}/porcelain-after.txt`; the tracked-file set matches `porcelain-before.txt` —
+validate edited no product code (build outputs are untracked; any tracked diff is REC4).
+
+**Step 6 — Gates + benchmarks** · Owner: play · Depends on: Step 5
+
+```
+python3 scripts/check_gates.py --quality-lens <lens_dir>/quality.md \
+        --measure-lens <lens_dir>/measure.md \
+        --results-dir {working}/results --out {working}/gates-map.json \
+        --product-base <product_base> --epic <epic_id>
+```
+
+**SE-11 (F3-partial/C11):** every quality-lens gate (read from `quality.md`'s "## Gates"
+table, by dimension) maps to a captured result and every measure-lens metric (read from
+`measure.md`'s "## Metrics" table) is captured and, where its Target cell yields a
+comparator + number, at/above its floor (or at/below its ceiling) — or it is a FINDING in
+`gates-map.json` with citation + location (gate-unmeasured, benchmark-below-floor). The
+floor is the bar; exit 1 with findings is a valid (failing) outcome, not an error.
+**SE-14 (F13/C13) — verdict half:** `check_gates.py` (with `--product-base --epic`) requires a
+captured result tagged `surface_check: <epic.surface_type>` with status pass; a required
+surface the run did not measure, or a captured surface result whose type does not match the
+declared `surface.type`, is a finding (`surface-unmeasured` / `surface-mismatch` /
+`surface-failed`) in `gates-map.json` with citation + location — so the verdict step
+(Step 8) computes `fix_required`, never `validated`, on an unmeasured required surface. A
+browser/API/CLI promise cannot pass on code-level checks alone.
+
+### Phase: Judge
+
+**Step 7 — Judge findings** · Owner: `quality-auditor` · Depends on: Step 6
+The agent reads ONLY the captured artifacts and invokes `judge-validation-results`:
+
+    {
+      "task":    "compose the findings from the captured results: extract the exact failing assertion/rule/file:line from each failed check's raw log, deduplicate root causes across tools, flag gamed-looking patterns (collapsed test counts, fresh suppressions) — every finding cites captured output and a location; no speculation, nothing run, nothing fixed",
+      "inputs":  { "results_dir": "{working}/results",
+                   "gates_map": "{working}/gates-map.json",
+                   "scope_file": "{working}/scope.json" },
+      "outputs": { "out_findings": "{working}/findings.yaml" }
     }
-  },
-  "task_id": "author-e2e-tests",
-  "config": {
-    "instructions": [
-      "Read milestone-scenarios.yaml — author test scripts for ALL 3 tiers",
-      "Baseline tier: cumulative regression from prior milestones",
-      "New tier: this milestone's new scenarios",
-      "Regression tier: broader regression outside change surface",
-      "Read design-context.yaml for UI interaction targets, screens, expected states",
-      "Read tech.yaml for API contracts — endpoint URLs, request/response schemas",
-      "All test scripts MUST target {deploy_url} — NOT localhost",
-      "Use Playwright, Cypress, or project-appropriate e2e framework ONLY",
-      "Each test must capture screenshots, traces, and response bodies as evidence",
-      "Tag tests by tier: baseline, new, regression — for ordered execution",
-      "Write e2e-test-manifest.yaml listing all test files with tier tags"
-    ]
-  }
-}
+
+**SE-6 (F2/C3):** every entry in `findings.yaml` carries a `citation` quoting captured
+output and a `location` (file:line or the raw log path) — enforced again mechanically at
+Step 8, which refuses uncited findings.
+
+### Phase: Verdict
+
+**Step 8 — Compute verdict** · Owner: play · Depends on: Step 7
+
+```
+python3 scripts/compute_verdict.py --summary {working}/results/summary.json \
+        --gates-map {working}/gates-map.json --findings {working}/findings.yaml \
+        --round <round> --epic-id <epic_id> --out {working}/verdict.json
 ```
 
-**Step 2 Evals:**
-- **SE-5 (C4, F5):** E2E test manifest exists. All test files use an e2e framework. No unit test framework imports. All tests target `{deploy_url}`.
+**SE-7 (F3/C8):** the verdict is computed mechanically — `validated` only when every
+check passed AND zero gate/benchmark findings AND zero judge findings; the script refuses
+uncited findings (ok=false) rather than weakening the verdict. Record the round:
+copy `verdict.json` → `{stm_base}{issue}/validate/status/verdict-round-<round>.json`
+(with `report` set to the report path once rendered) — the next round's gate reads these.
 
----
+**Step 9 — Stamp epic** · Owner: play · Depends on: Step 8
+Snapshot first, then the one durable model write:
 
-### Phase 2: E2E Execution
-
-**Step 3 — Run Baseline Scenarios (Tier 1 — Cumulative Regression)**
-Owner: orchestrator (invokes test runner)
-Depends on: Steps 1, 2
-
-Execute Tier 1 baseline tests against the deployed environment. These verify behavior from ALL prior milestones still works (C17 — cumulative regression).
-
-```bash
-# Run baseline tier tests (cumulative regression from prior milestones)
-# npx playwright test --grep @baseline --reporter=json
+```
+cp <product_base>/product-os/_spine.yaml {working}/spine-before.yaml
+python3 scripts/stamp_epic.py --product-base <product_base> --epic <epic_id> --verdict-file {working}/verdict.json
 ```
 
-**HALT on baseline failure (C5, F10):** If ANY baseline scenario fails, do NOT proceed to Tier 2 or Tier 3. Baseline failure means prior milestone behavior is broken.
+On a `validated` verdict the stamp also sets `surface_verified: true` — the surface-parity
+gate (C13) passed, so the epic records that its required surface was measured and matched
+(surface-contract.md); /next reads this to distinguish a surface that shipped from surface
+debt. On `fix_required`, `surface_verified` is left untouched.
 
-Collect results, screenshots, traces for every executed test (C12).
+**SE-8 (F6/C8):** `stamp_epic.py` exits 0 and the epic's status now equals the verdict —
+`fix_required` actually blocks /launch and re-admits /implement; `validated` actually
+unblocks it. **SE-9 (F11/C8):** Step 11 proves against the snapshot that only `status`,
+`metadata.version`, and (on a pass) `surface_verified: true` changed.
 
-**Step 3 Evals:**
-- **SE-6 (C5, C17, F10):** If baseline tests FAIL, Tier 2 and Tier 3 results do NOT exist for this iteration. Baseline includes cumulative scenarios from all prior milestones.
+### Phase: Report
 
----
+**Step 10 — Render + post report** · Owner: play, then `project-orchestrator` · Depends on: Step 9
 
-**Step 4 — Run New Scenarios (Tier 2 — This Milestone)**
-Owner: orchestrator (invokes test runner)
-Depends on: Step 3 (Tier 1 must PASS)
-
-Execute Tier 2 tests — verify THIS milestone's new behavior works. Scenarios from milestone's scenario_gate.ids[].
-
-Collect results, screenshots, traces (C12).
-
----
-
-**Step 5 — Run Regression Scenarios (Tier 3)**
-Owner: orchestrator (invokes test runner)
-Depends on: Step 4 (Tiers 1+2 must PASS)
-
-Execute Tier 3 tests — verify nothing outside this milestone's change surface broke.
-
-Collect results, screenshots, traces (C12).
-
----
-
-**Step 6 — Collect and Store E2E Results**
-Owner: orchestrator
-Depends on: Steps 3-5
-
-Write `e2e-results.yaml` with per-scenario PASS/FAIL, tier breakdown, milestone metadata, and evidence references:
-
-```yaml
-e2e_results:
-  milestone_id: "{milestone_id}"
-  executed_at: "{timestamp}"
-  deploy_url: "{deploy_url}"
-  tiers:
-    baseline:
-      description: "Cumulative regression from prior milestones"
-      prior_milestones: ["{list of prior milestone IDs}"]
-      status: "PASS | FAIL"
-      scenarios:
-        - id: "{scenario_id}"
-          source_milestone: "{prior milestone}"
-          status: "PASS | FAIL"
-          evidence:
-            screenshot: "{path}"
-            trace: "{path}"
-            response_body: "{path}"
-    new:
-      description: "This milestone's new scenarios"
-      status: "PASS | FAIL | SKIPPED"
-      scenarios: [...]
-    regression:
-      description: "Broader regression outside change surface"
-      status: "PASS | FAIL | SKIPPED"
-      scenarios: [...]
-  overall: "PASS | FAIL"
-  summary:
-    total: "{count}"
-    passed: "{count}"
-    failed: "{count}"
-    skipped: "{count}"
+```
+python3 scripts/render_fix_report.py --verdict {working}/verdict.json --round <round> \
+        --out-yaml {working}/report.yaml --out-md {working}/report.md
 ```
 
-Store evidence artifacts in `{evidence_dir}/traces/` (C12, F9).
+Then dispatch `project-orchestrator` to post `report.md` to the epic's tracked issue via
+`manage-issue` (comment) — the report is implement's work list and must survive a lost
+session, like implement's published plan. Update the round record's `report` field with
+the `report.yaml` path.
+**SE-10 (F7/C9):** `render_fix_report.py` exits 0 (it refuses uncited entries); on
+`fix_required` every rendered entry names the check id, the citation, and the location;
+the issue carries the posted comment.
 
-**Step 6 Evals:**
-- **SE-7 (C12, F9):** `e2e-results.yaml` exists with milestone_id. Evidence directory contains screenshots, traces, response bodies. Every executed test has at least one evidence artifact.
-- **SE-8 (C5):** Tiers executed in order: baseline → new → regression. If baseline failed, new and regression show `SKIPPED`.
+### Phase: Verify
 
----
+**Step 11 — Verify the run** · Owner: play · Depends on: Step 10
 
-### Phase 3: Judge (QA Acceptance)
-
-**Step 7 — Judge Evaluation**
-Owner: `judge` — **CONTEXT-ISOLATED**
-Depends on: Step 6
-
-**Critical isolation (C6, F6, F8):** The judge receives ONLY encrypted system-level evals + deployed environment URL/credentials. It exercises the running product via HTTP calls and/or browser automation. It does NOT receive: builder prompts, unit tests, quality-auditor results from implement, evals-engineer prompts, implementation source code.
-
-```json
-{
-  "intent_path": "core/components/plays/validate/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "eval_path": "{eval_dir}/validate-{milestone_id}.yaml",
-      "manifest_path": "{eval_dir}/manifest.json",
-      "deploy_url": "{deploy_url}"
-    },
-    "output": {
-      "judge_report": "{evidence_dir}/judge-report.yaml"
-    }
-  },
-  "task_id": "judge-system-evals",
-  "config": {
-    "instructions": [
-      "Decrypt the eval file using provided key",
-      "Exercise the running product at {deploy_url} via HTTP calls and/or browser automation",
-      "For each eval: execute verification, record PASS/FAIL with evidence",
-      "Evidence: screenshots, response bodies, timing data",
-      "Write judge report with per-eval results, category breakdown, summary",
-      "Do NOT read builder prompts, unit tests, source code, or quality-auditor results",
-      "Runtime behavior ONLY — no static analysis or source code reading"
-    ],
-    "credentials": "{project-specific credentials}"
-  }
-}
+```
+python3 scripts/check_validate.py --verdict {working}/verdict.json \
+        --summary {working}/results/summary.json --gates-map {working}/gates-map.json \
+        --spine-before {working}/spine-before.yaml --product-base <product_base> --epic <epic_id> \
+        --report-yaml {working}/report.yaml --report-md {working}/report.md
 ```
 
-**Step 7 Evals:**
-- **SE-9 (C6, F6, F8):** Judge report exists. Evidence contains HTTP responses or screenshots from `{deploy_url}`. Judge's prompt contains zero builder prompts, zero evals-engineer prompts, zero unit tests, zero quality-auditor results, zero source code.
+**SE-1 (F1/C1):** holistic re-assert — the run only got here through the eligibility
+gate (pre-flight exit 0 recorded in the round progress record). **SE-13 (F10/C10):** the
+round number in `verdict.json` is ≤ 3 and, when this round was a third rejection, the
+close presents the escalation record (all three rounds' findings + fixes) instead of
+inviting a fourth. `check_validate.py` exits 0: the verdict matches the recomputed
+evidence (F3), the stamp matches the verdict (F6), the epic write was surgical (F11),
+and a failed run carries a complete, cited report (F7).
 
-**Gate:** If judge 100% pass → skip to Phase 5 (Finalize). Else → Phase 4 (Fix Loop).
+### Phase: Scenario Validation
 
----
+**Step 12 — Scenario evals** · Owner: play · Depends on: Step 11
+- **SCE-1 (S1 — delivery lead):** on a clean run, the epic file's status is `validated`,
+  `verdict.json` cites every captured check (counts match `summary.json`), and its
+  findings list is empty.
+- **SCE-2 (S2 — implementer):** on a failing run, the epic status is `fix_required`,
+  every `report.yaml` finding carries check id + location, and on the re-run round the
+  stamp flips to `validated` with total rounds ≤ 3.
+- **SCE-3 (S3 — security auditor):** scan results exist under `{working}/results/` with
+  rule ids in their findings' citations; no check ran outside the runner family; the
+  grounding check exits 0 with zero ungrounded tool choices.
+- **SCE-4 (S4 — product owner):** the regression checks' commands trace to `scope.json`,
+  whose `source` is recorded claims; each regression failure in the findings carries its
+  check id.
+- **SCE-5 (S5 — human):** at three rejections the next invocation's eligibility gate
+  exits with `escalate: true`, no round-4 artifacts exist, and the escalation record
+  lists each round's findings and fixes.
 
-### Phase 4: Fix Loop (conditional — max 3 iterations per C9)
+### Phase: Evidence & Close
 
-**Gate:** Enter only if judge or e2e failures exist. Exit if all pass.
-
-**Step 8 — Derive Remediation**
-Owner: orchestrator (direct — information filtering)
-Depends on: Step 7 (or Step 6 if e2e failures)
-
-Produce structured remediation for implement, scoped to THIS MILESTONE (C8).
-
-**Critical (C8, F4):** Route to implement for THIS MILESTONE — do NOT invoke code-builder directly.
-
-```markdown
-# Remediation — Milestone {milestone_id} — Iteration {iteration}
-
-## System-Level Failures (from judge-report)
-{failure: eval category + what is wrong + expected behavior}
-
-## E2E Test Failures (from e2e-results)
-{scenario: tier + scenario ID + expected vs actual}
-
-## Remediation Instructions for implement (milestone {milestone_id})
-{Affected scenarios, affected behaviors, suggested fix areas}
-{Zero eval IDs, zero eval text, zero pass criteria — behavioral descriptions only}
-```
-
-Write to `{evidence_dir}/remediation-{iteration}.md`.
-
-**Step 8 Eval:**
-- **SE-10 (C8, F4):** Remediation file exists. Zero eval IDs, zero eval text. Targets implement for this specific milestone_id.
-
----
-
-**Step 9 — Route to implement for Milestone Fix**
-Owner: orchestrator
-Depends on: Step 8
-
-Hand off remediation to implement for THIS MILESTONE. After fixes and re-commit:
-1. Re-deploy to preview/staging
-2. Verify deployment health
-3. Return to Phase 2 (Step 3) — re-run milestone's full e2e suite
-
----
-
-**Step 10 — Iteration Limit Check**
-Owner: orchestrator
-Depends on: Step 9
-
-If iteration < 3 → increment, return to Step 3.
-If iteration == 3 and failures remain → structured failure report (F3).
-
-```markdown
-# Milestone Validation Failure Report
-
-**Milestone:** {milestone_id}
-**Issue:** #{issue}
-**Fix iterations exhausted:** 3
-
-## Persistent Failures
-{E2E scenarios and judge evals that failed across iterations}
-
-## Remediation History
-| Iteration | Routed to implement | E2E result | Judge result |
-|-----------|--------------------------|-----------|--------------|
-| 1 | {summary} | {pass/fail} | {pass/fail} |
-| 2 | {summary} | {pass/fail} | {pass/fail} |
-| 3 | {summary} | {pass/fail} | {pass/fail} |
-
-## Recommendation
-{Restructure milestone scope / investigate deployment / escalate}
-```
-
-**Step 10 Eval:**
-- **SE-11 (C9, F3):** If 3 iterations exhausted: failure report exists with persistent failures, per-iteration history, recommendation. No ACCEPT verdict issued.
-
----
-
-### Phase 5: Finalize
-
-**Step 11 — Generate Manual Test Scenarios**
-Owner: `feature-steward` — scoped to this milestone (C10)
-Depends on: Phase 3 (judge pass) or Phase 4 (fix loop success)
-
-```json
-{
-  "intent_path": "core/components/plays/validate/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "epic_spec_path": "{epic_spec_path}",
-      "milestone_id": "{milestone_id}",
-      "plan_exit_gate": "{exit gate from plan-milestone-summary.yaml for this milestone}"
-    },
-    "output": {
-      "manual_test_scenarios": "{evidence_dir}/manual-test-scenarios.md"
-    }
-  },
-  "task_id": "manual-test-scenarios",
-  "config": {
-    "instructions": [
-      "Read this milestone's success scenarios and exit gate",
-      "Generate manual test scenarios scoped to THIS MILESTONE for what e2e cannot cover:",
-      "  - Visual review, UX flow validation, accessibility spot-checks",
-      "  - Complex interaction patterns requiring human judgment",
-      "Produce numbered QA checklist with pass/fail criteria per item",
-      "Do NOT read implementation code, evals, builder prompts, or judge reports"
-    ]
-  }
-}
-```
-
-**Step 11 Evals:**
-- **SE-12 (C10, F11):** Manual test scenarios exist, scoped to this milestone. At least 1 numbered scenario with pass/fail criteria.
-
----
-
-**Step 12 — Produce Per-Milestone QA Verdict**
-Owner: orchestrator
-Depends on: Steps 6, 7 (or fix loop), 11
-
-**Per-milestone ACCEPT requires (C11, C19, F12, F16):**
-- All automated e2e tests PASS (including cumulative baseline regression)
-- Judge evals meet threshold (default 100%)
-- Manual test checklist generated
-
-**CRITICAL (C19, F16):** This is a PER-MILESTONE verdict. Do NOT produce epic-level verdict.
-
-```yaml
-milestone_verdict:
-  milestone_id: "{milestone_id}"
-  epic_id: "{epic_id}"
-  issue: "{issue}"
-  verdict: "ACCEPT | REJECT"
-  decided_at: "{timestamp}"
-  e2e_results:
-    overall: "PASS | FAIL"
-    passed: "{count}"
-    failed: "{count}"
-    baseline:
-      status: "PASS | FAIL"
-      prior_milestones_regressed: ["{list}"]
-    new:
-      status: "PASS | FAIL"
-    regression:
-      status: "PASS | FAIL"
-  judge_results:
-    overall: "PASS | FAIL"
-    pass_rate: "{percentage}"
-    threshold: "{threshold}"
-  manual_scenarios:
-    generated: true
-    count: "{number}"
-  fix_iterations: "{count}"
-  rejection_details: "{null if ACCEPT, structured info if REJECT}"
-```
-
-Write to `{stm_base}/{issue}/milestones/{milestone_id}/milestone-verdict.yaml` (C19).
-
-**Step 12 Evals:**
-- **SE-13 (C11, C19, F12, F16):** `milestone-verdict.yaml` exists at milestone path. If ACCEPT: e2e PASS, judge threshold met, manual scenarios generated. ACCEPT with e2e failures → F12. File is per-milestone, not epic-level (F16).
-
----
-
-### Phase 6: Evidence & Close
-
-This phase closes with the **Standard Play Close** — the user-facing report is
-the canonical three-table shape (Run Summary / Pipeline Steps / Artifacts),
-not prose. See `standards/rules/play-close.md`. validate's existing
-orchestrator-direct evidence write, the final-report presentation, and the
-repo-orchestrator self-commit are preserved as the C1 slot fill.
+**Step 13 — Close** · Owner: play · Depends on: Step 12
+Run the Standard Play Close. /validate is **project-scoped** (the epic's issue).
 
 ```bash
 # --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
-# validate is PROJECT/milestone-scoped — evidence lives under the issue STM,
-# in a per-milestone subdirectory (matches {evidence_dir} resolved at pre-flight):
-#   evidence_base="{stm_base}/{issue}/evidence/validate/{milestone_id}/"
-#   slug="#{issue} milestone {milestone_id}"
-# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+# Path tokens resolved at pre-flight (resolve here if not already):
+#   ltm_project_target  = yq '.ltm.project-target' .garura/core/config.yaml
+#   evidence_base, slug:
+#     project-scoped play : evidence_base="${stm_base}${issue}/evidence/validate/"  ; slug="#${issue}"
+#     product-scoped play : evidence_base="${product_base}_evidence/validate/"      ; slug="${product_slug}"
 evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
 delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
 ts=$(date -u +%Y%m%d-%H%M%S)
-evidence_dest="{evidence_dir}/${ts}.md"
+evidence_dest="${evidence_base}${ts}.md"
+mkdir -p "$(dirname "$evidence_dest")"
 ```
 
-**Step 13 — Write Evidence (C1)**
-Owner: orchestrator
-Depends on: Step 12
+**Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag (global +
+per-play `evidence.plays.validate`; first match wins, absent ⇒ record). When false, skip
+the write and record `evidence skipped (record=false)` in the report's pointer line.
+Otherwise fill the `evidence-file.md` slots (play `validate`, run_id `validate-${ts}`,
+the issue, started_at/completed_at, status; artifacts produced: scope.json, checks.yaml +
+check-choices.yaml, results/ + summary.json, gates-map.json, findings.yaml, verdict.json,
+the round record, report.yaml/.md, the stamp diff; step and scenario eval results
+SE-1…SE-13 / SCE-1…SCE-5; the Step 4 checkpoint decision or skip) and write to
+`$evidence_dest`. Do NOT hand-author the body. Then dispatch `repo-orchestrator` for the
+evidence self-commit when evidence was recorded (the WORK is never committed by this
+play — the branch is /launch's to close).
 
-Write evidence to `{evidence_dir}/{YYYYMMDD-HHMMSS}.md`:
-
-```markdown
-# validate Evidence — Milestone {milestone_id}
-
-**Milestone:** {milestone_id}
-**Issue:** #{issue}
-**Completed:** {timestamp}
-
-## Artifacts
-
-| Artifact | Path | Status |
-|----------|------|--------|
-| E2E Results | {evidence_dir}/e2e-results.yaml | {PASS/FAIL} |
-| Judge Report | {evidence_dir}/judge-report.yaml | {pass_rate} |
-| Manual Scenarios | {evidence_dir}/manual-test-scenarios.md | written |
-| Milestone Verdict | {milestone_base}/milestone-verdict.yaml | {ACCEPT/REJECT} |
-| E2E Manifest | {evidence_dir}/e2e-test-manifest.yaml | written |
-| Traces | {evidence_dir}/traces/ | {count} artifacts |
-
-## Execution Summary
-
-- Milestone: {milestone_id}
-- Deploy URL: {deploy_url}
-- E2E: {passed}/{total} PASS
-- Baseline (cumulative regression): {PASS/FAIL} ({N} prior milestones)
-- New: {PASS/FAIL}
-- Regression: {PASS/FAIL}
-- Judge: {rate}
-- Fix iterations: {count}
-- Manual scenarios: {count}
-- Verdict: {ACCEPT/REJECT}
-
-## Scenario Eval Results
-
-| Eval | Persona | Result |
-|------|---------|--------|
-| SCE-1 | QA Engineer | {PASS/FAIL/SKIP} |
-| SCE-2 | QA Engineer | {PASS/FAIL/SKIP} |
-| SCE-3 | Security Auditor | {PASS/FAIL/SKIP} |
-| SCE-4 | Engineering Lead | {PASS/FAIL/SKIP} |
-| SCE-5 | Product Owner | {PASS/FAIL/SKIP} |
-| SCE-6 | Testing Architect | {PASS/FAIL/SKIP} |
-| SCE-7 | Developer | {PASS/FAIL/SKIP} |
-| SCE-8 | QA Engineer | {PASS/FAIL/SKIP} |
-| SCE-9 | Engineering Lead | {PASS/FAIL/SKIP} |
-```
-
-**Step 13 Eval:**
-- **SE-14:** Evidence file exists with all artifact references and milestone summary.
-
----
-
-**Step 13c — C2 Delivery report (ALWAYS — never gated; skip only when running
-as a sub-play, i.e. `parent_run_id` present).** Fill `delivery-report.md` and
-output it to the user (this replaces the prior free-form "validate complete"
-report with the canonical three-table shape):
-- `## Validate Delivered — #{issue} milestone {milestone_id}`
-- Run Summary: Play `validate`, Issue `#{issue} milestone {milestone_id}`,
-  Status (COMPLETE | PARTIAL | FAILED — derived from the ACCEPT/REJECT
-  verdict), Started (per the started_at precedence in play-close.md),
-  Completed (now).
-- Pipeline Steps: derived from validate's own steps (its Task DAG) — Step 0
-  Setup (resolve issue / verify milestone / verify deployment / scope
-  scenarios), Step 1 Generate system-level evals, Step 2 Author E2E tests,
-  Step 3 Run baseline (Tier 1), Step 4 Run new (Tier 2), Step 5 Run
-  regression (Tier 3), Step 6 Collect E2E results, Step 7 Judge evaluation,
-  Step 8–10 Fix loop (SKIP when no failures), Step 11 Generate manual test
-  scenarios, Step 12 Produce per-milestone verdict. Status PASS/SKIP/FAIL
-  per task state; Key Output best-effort (verdict, pass counts, or `—`).
-- Artifacts Produced: e2e-results.yaml, judge-report.yaml,
-  manual-test-scenarios.md, milestone-verdict.yaml, e2e-test-manifest.yaml,
-  traces dir, plus the self-commit SHA and the evidence file pointer.
-- Next Steps: If ACCEPT — proceed to next milestone or finalize epic when
-  all milestones ACCEPTED. If REJECT — see milestone-verdict.yaml. Omit if
-  self-contained.
-- End with a pointer to the evidence file at `${evidence_dest}` — or the
-  literal `evidence skipped (record=false)` when C1 is gated off.
-
----
-
-**Step 14 — C1 Self-Commit Evidence**
-Owner: `repo-orchestrator` (non-blocking)
-Depends on: Step 13
+**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
+report: `## validate Round <round> — #${issue}` (the verdict, plainly: validated → "/launch
+is next"; fix_required → "the fix report is on the issue — run /implement to fix exactly
+what it names"; escalation → the three-round history), the Run Summary table, the Pipeline
+Steps table from the task DAG, the Artifacts Produced table, Next Steps, and a pointer to
+`$evidence_dest`. Always emitted; never gated.
 
 ```bash
 # --- end Standard Play Close ---
 ```
 
----
+## Scenario Validation
 
-### Scenario Evals
-
-One per `success_scenario` in `reference/expectation.yaml`; each check is the scenario's `measure` (binary/observable).
-
-- **SCE-1 (S1 — QA Engineer):** `e2e-results.yaml` carries this run's milestone_id, lists every executed scenario under the baseline/new/regression tiers with a PASS or FAIL status, and `traces/` holds at least one evidence artifact (screenshot, trace, or response body) per executed scenario.
-
-- **SCE-2 (S2 — QA Engineer):** `manual-test-scenarios.md` has at least one numbered scenario, each carries an explicit pass/fail criterion, and no item requires reading source code to evaluate.
-
-- **SCE-3 (S3 — Security Auditor):** Each agent's recorded contract resolves only to its permitted inputs — evals-engineer carries no implementation-code/builder-prompt/prior-eval/other-milestone scenario path, judge carries only the encrypted eval path/manifest/deploy_url, test-engineer carries no unit-test or builder-prompt path — and no contract has an `ltm_context` field or a `{product_base}`/`~/.garura/core/memory/` path (C14).
-
-- **SCE-4 (S4 — Engineering Lead):** When the fix loop reaches 3 iterations with failures remaining, a failure report lists each persistent failure, a per-iteration remediation history (iterations 1–3, each naming the implement re-run and its e2e/judge result), and a recommendation line; no milestone-verdict.yaml records ACCEPT.
-
-- **SCE-5 (S5 — Product Owner):** `milestone-verdict.yaml` carries ACCEPT or REJECT with the e2e/judge counts backing it, and the e2e evidence it references in `traces/` is present on disk.
-
-- **SCE-6 (S6 — Testing Architect):** `e2e-results.yaml` records baseline before new before regression; when the baseline tier status is FAIL the new and regression tiers show SKIPPED; every PASS/FAIL scenario has an evidence artifact path that resolves on disk.
-
-- **SCE-7 (S7 — Developer):** `remediation-{iteration}.md` exists for the failing iteration, names this milestone_id as the implement target, lists the affected scenarios and suggested fix areas, and contains zero eval IDs and zero eval text.
-
-- **SCE-8 (S8 — QA Engineer):** `milestone-scenarios.yaml` contains exactly the milestone's scenario_gate.ids[] in the new tier plus prior-milestone cumulative scenarios in the baseline tier and no non-prior milestone scenarios, and the resulting milestone-verdict.yaml is keyed to that single milestone_id.
-
-- **SCE-9 (S9 — Engineering Lead):** One `milestone-verdict.yaml` exists per validated milestone under its `milestones/{milestone_id}/` path, each carries an ACCEPT/REJECT verdict, and a baseline-tier failure in any e2e-results.yaml records the `source_milestone` of the failed scenario.
-
-Conditional: SCE-4/SCE-7 skip if no fix loop. SCE-9 applicable with multiple milestones.
-
----
+| Scenario | Persona | Eval |
+|----------|---------|------|
+| S1 — happy path | delivery lead | SCE-1 |
+| S2 — the fix loop | implementer | SCE-2 |
+| S3 — security pass | security auditor | SCE-3 |
+| S4 — nothing shipped broke | product owner | SCE-4 |
+| S5 — escalation | human | SCE-5 |
 
 ## Recovery
 
-Sourced from `reference/expectation.yaml` `recovery` — one entry per failure condition. When the validator detects a tripped failure, it builds a recovery handoff plan from the matching entry and routes it per `handoff`: `autonomous` loops the fix back to the builder; `human` escalates for a manual call.
-
-| ID | For | Symptom (trigger) | Direction | Handoff |
-|----|-----|-------------------|-----------|---------|
-| REC1 | F1 | implement did not complete this milestone — status report missing/below threshold, or quality-report FAIL/QP BLOCKED | hold until implement reports this milestone COMPLETE and CERTIFIED — an upstream completion state the builder cannot grant | human |
-| REC2 | F2 | deployment environment health check fails — URL unreachable or services not running | escalate to stand up or restore the environment — infrastructure the play does not provision | human |
-| REC3 | F3 | 3 fix iterations completed and system-level evals still contain a failing evaluation | escalate with the structured failure report — restructure-vs-escalate is a judgment the builder lacks | human |
-| REC4 | F4 | a code-builder invocation originated from validate instead of routing through implement | re-route the remediation handoff through implement for this milestone, never a direct code-builder call | autonomous |
-| REC5 | F5 | an e2e script imports/runs a unit test framework, or targets localhost instead of the deploy URL | regenerate the test scripts on an e2e framework targeting the deploy URL | autonomous |
-| REC6 | F6 | judge report based on source reading/static analysis/unit-test results, not deployed runtime | re-run the judge against the live deploy URL so its evidence carries runtime responses/screenshots | autonomous |
-| REC7 | F7 | evals-engineer context carries implementation code, builder prompts, unit tests, prior evals/judge reports, or other-milestone scenarios | rebuild the evals-engineer contract stripping every forbidden input before dispatch | autonomous |
-| REC8 | F8 | judge context carries evals-engineer prompts, builder prompts, quality-auditor results, source code, or unit tests | rebuild the judge contract to carry only the encrypted evals plus deploy env URL/credentials | autonomous |
-| REC9 | F9 | e2e results lack evidence artifacts — only PASS/FAIL, no screenshots/traces/response bodies | re-run the suite with evidence capture so each executed test records a screenshot, trace, or response body | autonomous |
-| REC10 | F10 | baseline (Tier 1) failed yet new (Tier 2) was still executed for the same iteration | enforce the tier-ordering halt so Tier 2 and Tier 3 do not run once baseline fails | autonomous |
-| REC11 | F11 | feature-steward step skipped or produced an empty manual checklist | re-run the feature-steward to produce at least one numbered manual scenario with pass/fail criteria | autonomous |
-| REC12 | F12 | QA verdict is ACCEPT while automated e2e tests have failures | recompute the verdict from the evidence so it reads REJECT whenever any e2e test failed | autonomous |
-| REC13 | F13 | an agent contract has an ltm_context field, a product_base reference, or a path outside STM and the deploy URL | strip every ltm_context field, product_base path, and core/memory path from agent contracts before dispatch | autonomous |
-| REC14 | F14 | validate ran for a milestone whose implement status report is missing or shows INCOMPLETE | hold until implement's status report for this milestone exists and shows COMPLETE — an upstream state the builder cannot grant | human |
-| REC15 | F15 | scenario set passed to evals-engineer/test-engineer includes scenarios outside the milestone's gate plus cumulative regression | re-scope the scenario set to exclude any non-prior-milestone scenario before dispatching the agents | autonomous |
-| REC16 | F16 | an epic-level verdict was produced while only a subset of milestones is validated | withhold the epic-level verdict and emit only the per-milestone verdict until all milestone-verdict files exist | autonomous |
-
-At Level 4, `intent-resolver` executes the autonomous entries (REC4, REC5, REC6, REC7, REC8, REC9, REC10, REC11, REC12, REC13, REC15, REC16) without a human; the human entries (REC1, REC2, REC3, REC14) always escalate. Operational retry budgets layer on top of these handoffs before a failure is declared: deployment health check retries 3 times with backoff (F2/REC2), e2e infrastructure failures retry twice, eval generation retries once (halt after 2), a corrupted judge encrypted file is verified and regenerated, and a feature-steward failure retries once before a placeholder; prior-milestone-not-ACCEPTED (C17) remains a hard pre-flight halt.
+| For | Trigger | Direction | Handoff |
+|-----|---------|-----------|---------|
+| F1 | implement's done verdict missing or incomplete at pre-flight | halt; the epic must finish /implement first | human |
+| F2 | a finding has no mechanical citation | rebuild the finding from captured results; re-run its check if needed; drop what cannot be cited | autonomous |
+| F3 | the verdict contradicts captured evidence | recompute the verdict mechanically from the result files — never hand-stamp | autonomous |
+| F4 | validate edited product code | revert the edit; record it as a finding routed to implement | autonomous |
+| F5 | an agent ran mechanics or judged without captured results | re-dispatch with the script doing the work; the agent re-judges over its output | autonomous |
+| F6 | a failed run carries no `fix_required` stamp | apply the stamp via the surgical writer before close | autonomous |
+| F7 | a fix report too vague to act on | regenerate entries with check id + location from captured results | autonomous |
+| F8 | blast scope not drawn from recorded change claims | rebuild the scope from the recorded claims; re-run regression on it | autonomous |
+| F9 | probing beyond code-level | discard those results; re-run the security pass code-level only | autonomous |
+| F10 | the cap reached without escalation | stop the loop; produce the escalation record with round history | human |
+| F11 | the epic record touched beyond the stamp | restore the record and re-apply only the surgical stamp | autonomous |
+| F12 | an ungrounded scan choice with no gap recorded | run the KB search; if still uncovered, record the gap proposal, then proceed | autonomous |
+| F13 | the required surface check for the epic's `surface.type` was not run, or the captured surface result does not match the declared type | stamp `fix_required` naming the unmeasured/mismatched surface (the `surface.type` and the `must_open`/`human_run_target` it owed), and re-admit /implement to restore it so the next round can measure it | autonomous |
 
 ## Pause and Resume
 
-**Status file:** `{stm_dir}/status/validate-{milestone_id}.json`
-
-```json
-{
-  "play": "validate",
-  "issue": "{issue_number}",
-  "milestone_id": "{milestone_id}",
-  "deploy_url": "{deploy_url}",
-  "started_at": "{timestamp}",
-  "eval_dir": "{eval storage outside repo}",
-  "fix_iteration": 0,
-  "tasks": {
-    "setup":                   { "status": "completed" },
-    "verify-milestone":        { "status": "completed" },
-    "verify-deployment":       { "status": "completed" },
-    "scope-scenarios":         { "status": "completed" },
-    "generate-system-evals":   { "status": "completed" },
-    "author-e2e-tests":        { "status": "completed" },
-    "run-baseline":            { "status": "pending" },
-    "run-new":                 { "status": "pending" },
-    "run-regression":          { "status": "pending" },
-    "collect-e2e-results":     { "status": "pending" },
-    "judge-system-evals":      { "status": "pending" },
-    "fix-loop":                { "status": "pending", "iterations_completed": 0 },
-    "manual-test-scenarios":   { "status": "pending" },
-    "milestone-verdict":       { "status": "pending" },
-    "write-evidence":          { "status": "pending" },
-    "commit-evidence":         { "status": "pending" }
-  }
-}
-```
-
-**Resume:** Skip completed, reset in_progress to pending, continue from first incomplete. Fix loop restores iteration count.
-
----
+Steps run top to bottom. On entry, resolve config, capture the live reads, run the
+eligibility + round gate, check the round progress marker, skip completed steps, reset any
+in-progress step to pending, and continue. The epic snapshot is captured at Step 9 (the
+gated stamp step) and preserved on resume, so the surgical comparison always diffs against
+true pre-stamp state. A fresh start with no marker runs everything and creates the marker
+at Step 1. Each round is its own progress marker; a resumed round never re-counts itself.
 
 ## Compilation Metadata
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:709e3f92dd184fe6e9c8d85192af3cb8132056a2a348f66a5f2a6c5c9f334147 |
-| expectation_hash | sha256:874a0e2b70dac761066100fe3c5643333f26c5652cd1331d8edb76051e0dfe07 |
-| compiled_by | /create-play |
-| compiled_at | 2026-05-25 |
-| workflow_structure | A (conditional fix loop routing to implement per milestone) |
-| domain_agents | 4 (evals-engineer, test-engineer, judge, feature-steward) |
-| utility_agents | 1 (repo-orchestrator) |
-| checkpoints | 0 (automated QA) |
-| step_evals | 14 (SE-1 through SE-14) |
-| scenario_evals | 9 (SCE-1 through SCE-9, sourced from expectation.success_scenarios) |
-| recovery_entries | 16 (REC1–REC16, one per failure condition; 12 autonomous / 4 human) |
-| constraints_covered | C1-C19 (all 19) |
-| failure_conditions_covered | F1-F16 (all 16) |
-| fix_loop_max | 3 iterations per milestone |
-| output_artifacts | e2e-results.yaml, judge-report.yaml, manual-test-scenarios.md, milestone-verdict.yaml |
+| fingerprint | sha256:219599a6d268760d8c1e3dd847829c530dc6f5f2da06693413ba4fab3ab7d318 (of `reference/ice.md`) |
+| compiled_by | play-creator |
+| pipeline_position | none |
+| position_exception | middle of the execute pipeline (implement → validate → launch) — runs on the epic branch /implement started; the close chain belongs to /launch after human sign-off (#434, decisions 20 + 24) |
+| structural_constraints | C2-part (finder/fixer split — no code-edit step exists), C4 (judge skill carries no Bash; mechanics only via runners), C7 (no acceptance-deploy step — run-to-test only), C9 (remediation only via the posted report; no builder dispatch), C10-position (execute middle — no head, no close) |
+| workflow_structure | A (checkpoint skippable when the plan grounds clean) |
+| domain_agents | 1 (quality-auditor) |
+| utility_agents | 2 (project-orchestrator, repo-orchestrator) |
+| skills_used | plan-validation-checks, judge-validation-results, kb-search, manage-issue |
+| scripts | 11 + 8 runners (preflight.py, check_ready_validate.py, resolve_blast_scope.py, run_checks.py, check_gates.py, check_kb_grounding.py, compute_verdict.py, stamp_epic.py, render_fix_report.py, check_validate.py, runners/_runner_common.py + 7 runner_*.py) |
+| step_evals | 14 (SE-1…SE-14; every failure condition covered; SE-14 covers the surface contract F13/C13 at the plan and verdict halves) |
+| scenario_evals | 5 (SCE-1…SCE-5) |
+| recovery_entries | 13 (one per failure condition; 11 autonomous / 2 human) |
 
-**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence content/scriber/commit logic preserved as the C1 slot fill. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.
+## Direct-edit deviation note (#434, spine + grounding model)
 
-**ICE migration note (#376):** Migrated to the ICE model — scenarios lifted from intent.yaml into `reference/expectation.yaml` (success_scenarios + recovery), intent stripped to the clean triple. Expectation generated by `draft-play-expectation` and self-approved under the user-authorized non-stop migration (see `evidence/refactor/migrations/validate/auto-approval.md`). Recompiled via `/create-play --build`: added the `## Recovery` section (replacing the prior operational-recovery list, whose retry budgets were folded into the new section's trailing sentence) and the dual intent+expectation hash guard; the existing `### Scenario Evals` (SCE-1–SCE-9) are now sourced from `expectation.success_scenarios`. Constraints, failure conditions, agents, skills, workflow, and step evals are unchanged. Stale metadata corrected: `compiled_at` 2026-04-15 → 2026-05-25, the unfilled `intent_hash` placeholder now carries a real sha256, and `expectation_hash` + `recovery_entries` rows were added.
+Non-intent edit: the epic moved from a per-epic `epic.yaml` file to an entry in the spine
+`epics` index (`product-os/_spine.yaml`) plus an `epic.md` grounding doc. The mechanism
+scripts were retargeted: `check_ready_validate.py` reads the epic entry by id from the spine;
+`check_gates.py` reads the epic's `surface_type` from the spine entry (was `epic.yaml`
+`surface.type`); `stamp_epic.py` makes the in_delivery → validated/fix_required flip (plus
+`surface_verified` on a pass) as a surgical write to the spine epics entry (`--product-base
+--epic`); the surgical-write proof now diffs the epic entry between a pre-stamp spine snapshot
+(`--spine-before`) and the live spine (`check_validate.py`). Prose invocations updated to
+match. No constraint/failure/scenario/eval text changed — the verdict logic, the surface gate,
+and the surgical-write guarantee are identical; only the storage moved. `reference/ice.md` and
+the fingerprint are unchanged.
+
+**Direct-edit deviation note (#434, validate-readers-spine-migration):** `check_gates.py`'s
+gate + benchmark DEFINITIONS now read the lens GROUNDING DOCS, not YAML: quality gates parse
+`quality.md`'s "## Gates" table (gate id = dimension slug; captured check_id matches the slug),
+and benchmarks parse `measure.md`'s "## Metrics" table (each metric is presence-required, and
+where its Target cell yields a comparator + number it is also compared as a floor/ceiling). The
+old standalone `profile.yaml` benchmark source is retired — the structured floor/ceiling numbers
+it carried now live as prose targets in the measure lens, so a tolerant comparator parse stands
+in (prose-only targets are presence-checked). CLI: `--quality-lens` now takes `quality.md`,
+`--profile` is replaced by `--measure-lens <measure.md>`; the plan-validation-checks contract
+points at the `.md` lenses + the spine. The gate LOGIC (every declared bar maps to a captured
+result; an unmeasured bar is not a passed bar) is identical — only the definition source moved
+from YAML to the linted, eval-gated grounding docs. `reference/ice.md` and the fingerprint are
+unchanged.

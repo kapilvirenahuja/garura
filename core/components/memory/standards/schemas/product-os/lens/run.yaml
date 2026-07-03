@@ -1,0 +1,87 @@
+# Lens: run  (LOCKED #434; per-environment reshape #434) — envelope in lens/_index.md
+#
+# How the SLICE is deployed and runs. A foundation-trinity realize lens. /run reads the
+# slice's hub + the ARCHITECTURE lens (it deploys arch's parts) + the KB, and grounds every
+# operational choice in a best-fit architecture/technology learning. /run authors this lens and
+# closes the non-functional pipe; it does NOT stamp the slice `realized` — that belongs to
+# /measure (the deliver pipe). (realized-stamp ownership reconciled #434)
+#
+# PER-ENVIRONMENT MODEL (#434). The slice-level operational design (rollout, migrations,
+# CI/CD) is written ONCE. Each environment is defined INCREMENTALLY — one /run call per
+# environment, re-run to add or edit an environment — and every environment carries a full,
+# MACHINE-READABLE definition the delivery plays execute against:
+#   - /launch  reads the LOCAL environment (the lightweight bring-up for human testing).
+#   - /deploy  reads a CLOUD environment, defaulting to the lowest cloud tier (dev).
+# Higher cloud tiers (qa, stage, prod) use the same shape — added later by re-running /run.
+
+schema:
+  name: lens
+  type: run
+
+content:
+  # --- Slice-level operational design — written ONCE, shared by every environment. ---
+  rollout:
+    flags: [string]        # feature flags (e.g. SSO, MFA gated independently)
+    strategy: string       # blue/green | canary | rolling
+  migrations: string       # data-change strategy — gated, reversible
+  cicd: string             # pipeline: build -> quality gates -> deploy on green
+
+  # --- Environments — built ONE PER /run CALL, incremental; ordered by tier. Each entry is a ---
+  # --- full machine-readable definition. The delivery plays read exactly one env each. ---
+  environments:
+    - name: string         # unique — local | dev | qa | stage | prod
+      tier: integer        # order: 0 local, 1 dev, 2 qa, 3 stage, 4 prod.
+                           # the lowest CLOUD tier present (dev) is /deploy's default target.
+      type: string         # local | cloud
+      status: string       # defined  (present once /run has built this environment)
+      config_secrets: string  # per-env config; secrets via secrets-manager, NEVER in repo
+
+      # present iff type == local — the lightweight bring-up /launch stands up for HITL testing
+      local:
+        run: string        # how to bring it up locally (command / compose file)
+        seed: string       # optional — test-data seed step
+
+      # present iff type == cloud — the full infra + security /deploy executes against
+      cloud:
+        provider: string   # e.g. Google Cloud Platform | AWS | Azure
+        region: string
+        compute:           # per ARCHITECTURE component: where + how it runs (the seam to arch)
+          - component: string  # MUST match an architecture-lens component name (no dangling target)
+            service: string    # the runtime that runs it (e.g. Cloud Run, ECS, GKE)
+            deploy: string     # how it ships — container | service | function | static | managed
+            sizing: string     # optional — instances / size / scaling
+        services:          # managed backing services this env provisions
+          - component: string  # MUST match an architecture-lens component name
+            service: string    # the managed service (e.g. Cloud SQL, Memorystore)
+            cost_driver: string
+        networking:
+          ingress: string      # public | internal | load-balanced
+          firewalls: [string]  # ingress/egress rules — ports, sources, allow/deny
+        security:
+          identity: string     # service accounts / roles / workload identity
+          secrets: string      # secrets-manager binding — never in repo
+          controls: [string]   # TLS, WAF, IAM least-privilege, encryption-at-rest, ...
+        deploy_cmd: string     # how /deploy ships to THIS env — command / pipeline trigger
+
+  tco:                     # ownership-cost picture (#435) — REQUIRED; the realized stamp gates on it
+    hyperscaler:
+      selected: string     # the cloud/provider the cloud environments run on
+      default_region: string
+      rationale: string
+      alternatives:        # >=1 considered-and-rejected
+        - name: string
+          why_not: string
+    simulation:
+      scenarios:           # >=3: at least seed, pilot, expanded
+        - name: string     # seed | pilot | expanded (or richer)
+          # load assumptions: users/team_members, sources, frequencies, retention_days, ...
+    estimate:
+      currency: string
+      monthly_range: string  # per-scenario or overall range; MUST carry numbers, not prose
+      confidence: string     # low | medium | high
+      primary_drivers: [string]
+      excludes: [string]     # what the estimate does NOT cover (HA, heavy logging, ...)
+      sensitivity: [string]  # the variables that would change the estimate
+    guardrails: [string]   # budget alert, retention limits, scale-up/HA triggers, review cadence
+    # note: the concrete per-component service map now lives per cloud environment
+    # (environments[].cloud.services); tco keeps the cost picture that gates the realized stamp.

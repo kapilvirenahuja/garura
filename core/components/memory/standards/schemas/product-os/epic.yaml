@@ -1,0 +1,77 @@
+# Epic Schema — v2
+#
+# An epic is a VERTICAL SLICE of a realized slice — the unit of delivery, cut by
+# /grill at the USER-TESTABILITY grain: each epic ends at a concrete user_check
+# (open, do, verify). It is the handoff from the slice pipelines to the execute
+# pipeline (/start -> /implement -> /validate -> /launch).
+#
+# Home: {domain}/slices/{slice-id}/epics/{epic-id}.yaml — epics live ON the slice
+# they cut, beside a deferrals.yaml recording what the cut consciously left out.
+#
+# Lifecycle: PERMANENT. /grill writes the epic into product-os so the execute
+# pipeline can pick it up across the pipeline boundary. When the epic's issue
+# MERGES (at /launch's close chain), the epic is stamped `delivered` and KEPT in
+# place as the as-delivered record — what shipped, in what order, against what
+# acceptance and user_check. The slicing is part of the product model's delivery
+# history, not throwaway scaffolding. (ADR 019, #439)
+#
+# (v2 locked at the /grill build — slice-level home, functionality_refs plural,
+# user_check, order. This file was reconciled to v2 + validate statuses under
+# #434, 2026-06-12; v1 predated /grill.)
+
+schema:
+  name: epic
+  version: 2
+  persistence: permanent    # kept in product-os; `delivered` is the terminal kept state
+
+epic:
+  id: string                # filename == id
+  slice_ref: string         # the realized slice this epic was cut from
+  title: string             # e.g. "Lock account after repeated failed logins"
+  outcome: string           # one line: the end-to-end behavior this delivers
+  user_check: string        # the concrete human verification: open X, do Y, verify Z
+  functionality_refs: []    # the slice functionalities this epic delivers (>= 1)
+  context:                  # carried so the execute pipeline is self-contained
+    persona: []             # actor types in scope for this epic
+    systems: []             # systems this epic touches
+    scope: []               # the rules that bound this epic
+  surface:                  # the user-facing surface this epic delivers — DECLARED at cut, never re-derived downstream (ADR 022)
+    type: string            # one of: web_dashboard | server_api | cli | library | service_read_model
+                            #   web_dashboard / server_api / cli = user-facing (a human can open/call/run it)
+                            #   library / service_read_model     = non-user-facing (no run surface; declared explicitly, never a silent default)
+    human_run_target: string  # how a human reaches it: a URL/endpoint shape (dashboard/api), the command (cli), or "n/a" (library/service_read_model)
+    must_open: []           # the concrete user-reachable artifacts promised (e.g. "Team data coverage dashboard", "Formula reference page") — what /validate and /launch check coverage against; empty only for library/service_read_model
+  acceptance: []            # acceptance criteria — done when these pass
+  depends_on: [string]      # other epic ids that must ship first (acyclic)
+  order: integer            # delivery order within the slice (unique, positive)
+  status: string            # one of: ready | in_delivery | validated | fix_required | delivered
+  surface_verified: bool    # /validate stamps true when the required surface-parity check passed (surface-contract.md); absent/false = the required surface was never measured (legacy epic, or a downgrade). /next reads this: a delivered user-facing epic with surface_verified != true is surface debt (ADR 022)
+  issue_ref: string         # GitHub issue /start opened for this epic; null until started
+  metadata:
+    created_by: string      # /grill
+    version: integer
+
+# ---- Status chain -----------------------------------------------------------
+# ready ──/implement──> in_delivery ──/validate──> validated ──/launch──> delivered (kept)
+#                            ^                          │
+#                            └──── fix round ──── fix_required
+#
+# fix_required BLOCKS /launch and re-admits /implement (lightweight fix mode:
+# fix exactly what the validate report names). validated is /launch's hard
+# precondition. delivered is stamped by the close chain's merge and is the
+# terminal kept state — the epic stays in place as the as-delivered record.
+
+# ---- Fill rules -------------------------------------------------------------
+fill_rules:
+  - play: "/grill"
+    writes: "creates the epic (user-testable cut) with its context, surface (type + human_run_target + must_open, declared from the slice intent and user_check), acceptance, order; status ready"
+  - play: "/implement"
+    writes: "issue_ref, and status -> in_delivery when the epic is picked up (surgical; also the fix-round re-entry fix_required -> in_delivery). If surface is absent (legacy epic cut before ADR 022), /implement must have the surface DECLARED before building — never default it silently (a silent default re-creates the downgrade bug)."
+  - play: "/validate"
+    writes: "status -> validated (verdict pass) or fix_required (verdict fail) — surgical stamp, status + metadata only; on a pass, also stamps surface_verified: true (the required surface-parity check ran and matched, per surface-contract.md). A user-facing epic can only reach validated with its surface measured, so validated implies surface_verified."
+  - play: "/launch"
+    writes: "requires status == validated; its close chain (/merge) writes status -> delivered and KEEPS the epic in place (terminal kept state; never deleted)"
+
+# ---- Enhance rules ----------------------------------------------------------
+enhance_rules:
+  governed_by: "PARKED — see product-os.yaml (future schema-evolution play)"

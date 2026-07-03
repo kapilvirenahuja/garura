@@ -1,0 +1,8 @@
+{
+  "number": 453,
+  "url": "https://github.com/kapilvirenahuja/garura/pull/453",
+  "state": "OPEN",
+  "title": "refactor: realign garura to the ProductOS command model (#434)",
+  "base": "main",
+  "head": "refactor/434-realign-to-productos-command-model"
+}

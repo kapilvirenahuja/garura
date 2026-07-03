@@ -1,6 +1,6 @@
 ---
 name: quality-check-scoped
-description: Diff-bounded single-pass quality evaluation for PR review. Reads KB standards from standards_order paths resolved from config, filters to domains touched by changed_paths, evaluates standard-ID checks against the diff using mechanical match rules from pr-severity-taxonomy.md, classifies every finding deterministically, and emits findings.yaml. Reuses /quality-check KB data — NOT its 11-subagent execution model. Use only from review-pr play; never invoke standalone for full-repo audits.
+description: Diff-bounded single-pass quality evaluation for PR review. Classifies every changed path by ARTIFACT TYPE first (runtime code / deployable config / tests / docs-planning / garura prose / ProductOS model / STM evidence / wireframes — pure globs, first match wins), then evaluates standard-ID checks against the diff using mechanical match rules from the PR severity taxonomy — grep-based rules fire only on runtime-code/deployable-config/tests (a keyword in prose is not a security defect, #438); pure path rules fire as written. Every finding carries artifact_type. Reads KB standards from standards_order paths resolved from config, classifies findings deterministically, and emits findings.yaml. Reuses /quality-check KB data — NOT its 11-subagent execution model. Use only from review-change play; never invoke standalone for full-repo audits.
 user-invocable: false
 ---
 
@@ -50,20 +50,31 @@ output_path: "{stm_base}/{issue}/evidence/review-pr/findings.yaml"
 ### Step 1 — Load taxonomy
 Read `severity_taxonomy_path`. Parse the severity table into rows: `{standard_id, severity, match_rule, evidence_required}`. Build an in-memory index keyed by `standard_id`.
 
-### Step 2 — Filter taxonomy to relevant rows
+### Step 2 — Classify changed paths (artifact types)
+Classify every entry in `changed_paths[]` against the taxonomy's **Artifact-Type
+Scoping** table (first match wins, pure globs — no judgment). Hold the map
+`{path → artifact_type}` for Steps 3–6. Artifact types: `garura-prose`,
+`productos-model`, `stm-evidence`, `wireframe`, `tests`, `deployable-config`,
+`docs-planning`, `runtime-code` (default).
+
+### Step 3 — Filter taxonomy to relevant rows
 For each row, evaluate its `match_rule`:
 - `path:<glob>` — match against `changed_paths[]`.
-- `grep:<regex>` — match against added lines in `diff_path` (`^\+` excluding `^\+\+\+`).
-- `grep+path:<regex>|<glob>` — both must match.
+- `grep:<regex>` — match against added lines in `diff_path` (`^\+` excluding `^\+\+\+`),
+  **only in files whose artifact type is `runtime-code`, `deployable-config`, or
+  `tests`** — grep rules are ineligible on prose/model/evidence/wireframe/doc artifacts
+  (Artifact-Type Scoping).
+- `grep+path:<regex>|<glob>` — both must match; the grep half carries the same
+  eligibility restriction.
 
 Drop rows with no match. The surviving set is the **relevant standard set** for this diff.
 
-### Step 3 — Load KB descriptions for relevant standards
+### Step 4 — Load KB descriptions for relevant standards
 For each surviving `standard_id`, resolve its KB description file by walking `standards_order` (default `[kb, ltm, stm]`) and stopping at the first hit. Read ONLY the files needed — do NOT load the entire KB.
 
-### Step 4 — Evaluate each relevant standard against the diff
+### Step 5 — Evaluate each relevant standard against the diff
 For each surviving row:
-1. Apply the `match_rule` to the diff and collect every match site (`file`, `line`, matched substring or matched path).
+1. Apply the `match_rule` to the diff and collect every match site (`file`, `line`, matched substring or matched path) — a grep match site in a grep-ineligible file (Step 2's map) is discarded, never emitted.
 2. For each match site, emit a finding object:
    ```yaml
    - standard_id: SEC-19
@@ -71,14 +82,16 @@ For each surviving row:
      file: src/config/secrets.ts
      line: 14
      evidence: 'const apiKey = "sk_live_abc..."'
+     artifact_type: runtime-code
      taxonomy_rule_id: SEC-19
    ```
 3. **F3 hard rule:** every finding MUST carry a `standard_id` that exists in the taxonomy. If the rule's evidence-required fields are missing, drop the finding and emit a skill-level error to STM evidence — NEVER fabricate a finding.
+4. **Artifact-type rule:** every finding carries `artifact_type` (from Step 2's map), so the reviewer can see why the rule applied; a grep-rule finding whose `artifact_type` is not `runtime-code`/`deployable-config`/`tests` is invalid — drop it and log to evidence.
 
-### Step 5 — Compute scan_coverage
-`scan_coverage = (count of changed_paths whose extension/path is covered by at least one taxonomy row) / total changed_paths`. Persist in the output.
+### Step 6 — Compute scan_coverage
+`scan_coverage = (count of changed_paths whose extension/path is covered by at least one taxonomy row OR classified grep-ineligible) / total changed_paths`. A consciously exempted file counts as covered, not missed. Persist in the output.
 
-### Step 6 — Emit `findings.yaml`
+### Step 7 — Emit `findings.yaml`
 Write to `output_path` with stable ordering (sort by `severity` then `file` then `line`):
 
 ```yaml
@@ -95,6 +108,7 @@ findings:
     file: src/config/secrets.ts
     line: 14
     evidence: 'const apiKey = "sk_live_abc..."'
+    artifact_type: runtime-code
     taxonomy_rule_id: SEC-19
   - ...
 counts:
@@ -117,6 +131,7 @@ counts:
 | `findings[].file` | string | yes | repo-relative path from `changed_paths` |
 | `findings[].line` | int | yes | line in the diff hunk |
 | `findings[].evidence` | string | yes | matched substring or path |
+| `findings[].artifact_type` | enum | yes | from the Artifact-Type Scoping table; grep findings only on `runtime-code`/`deployable-config`/`tests` |
 | `findings[].taxonomy_rule_id` | string | yes | same as `standard_id` |
 | `counts.P1`–`P4` | int | yes | counts by severity |
 

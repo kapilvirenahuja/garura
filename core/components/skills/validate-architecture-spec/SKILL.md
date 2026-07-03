@@ -4,6 +4,8 @@ description: Blocking validator for the six-artifact arch output contract (refin
 user-invocable: false
 model: haiku
 allowed-tools: Read, Write, Glob, Grep
+deprecated: true
+deprecated_note: '#434 ProductOS realignment — superseded by the command model; retained for Phase E reference, not installed'
 ---
 
 # validate-architecture-spec
