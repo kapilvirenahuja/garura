@@ -1,81 +1,37 @@
 commits:
-  - sha: 40bec3f
-    message: "fix(play-creator): decompose functions and apply formatter for readability (#481)"
+  - sha: 70124a4
+    message: "feat(play-creator): add canonical validate-issue, self-review, and chain-check scripts (#467)"
     files:
-      - core/components/plays/play-creator/references/classify_change.py
-      - core/components/plays/play-creator/references/gate_eval.py
-      - core/components/plays/play-creator/references/distill_gate_policy.py
-      - core/components/plays/play-creator/references/test_gate_learning.py
-    branch: feature/467-batch-b-conditional-gates
-  - sha: dd65bd8
-    message: "docs(standards): document three-kind gate resolution including the learned-policy step (#467)"
+      - core/components/plays/play-creator/references/validate_issue.py
+      - core/components/plays/play-creator/references/check_self_review.py
+      - core/components/plays/play-creator/references/test_chain_checks.py
+    branch: feature/467-batch-c-chain-gates-off
+  - sha: c7d8572
+    message: "feat(plays): turn chain gates off with replacement machine checks (#467)"
     files:
-      - core/components/memory/standards/templates/approval-prompt.md
-    branch: feature/467-batch-b-conditional-gates
-  - sha: 9762937
-    message: "feat(plays): wire conditional-gate resolution into the play with stamped gate-learning scripts (#467)"
+      - core/components/plays/start-change/SKILL.md
+      - core/components/plays/start-change/reference/ice.md
+      - core/components/plays/start-change/scripts/validate_issue.py
+      - core/components/plays/commit-change/SKILL.md
+      - core/components/plays/commit-change/reference/ice.md
+      - core/components/plays/propose-change/SKILL.md
+      - core/components/plays/propose-change/reference/ice.md
+      - core/components/plays/propose-change/scripts/check_self_review.py
+      - core/components/plays/review-change/SKILL.md
+      - core/components/plays/review-change/reference/ice.md
+      - core/components/plays/merge-change/SKILL.md
+      - core/components/plays/merge-change/reference/ice.md
+    branch: feature/467-batch-c-chain-gates-off
+  - sha: e8b68ed
+    message: "chore(config): turn off chain gates for the five change-pipeline plays (#467)"
     files:
-      - core/components/plays/vision/SKILL.md
-      - core/components/plays/vision/reference/ice.md
-      - core/components/plays/vision/scripts/classify_change.py
-      - core/components/plays/vision/scripts/gate_eval.py
-      - core/components/plays/vision/scripts/distill_gate_policy.py
-      - core/components/plays/understand/SKILL.md
-      - core/components/plays/understand/reference/ice.md
-      - core/components/plays/understand/scripts/classify_change.py
-      - core/components/plays/understand/scripts/gate_eval.py
-      - core/components/plays/understand/scripts/distill_gate_policy.py
-      - core/components/plays/shape/SKILL.md
-      - core/components/plays/shape/reference/ice.md
-      - core/components/plays/shape/scripts/classify_change.py
-      - core/components/plays/shape/scripts/gate_eval.py
-      - core/components/plays/shape/scripts/distill_gate_policy.py
-      - core/components/plays/roadmap/SKILL.md
-      - core/components/plays/roadmap/reference/ice.md
-      - core/components/plays/roadmap/scripts/classify_change.py
-      - core/components/plays/roadmap/scripts/gate_eval.py
-      - core/components/plays/roadmap/scripts/distill_gate_policy.py
-      - core/components/plays/ux/SKILL.md
-      - core/components/plays/ux/reference/ice.md
-      - core/components/plays/ux/scripts/classify_change.py
-      - core/components/plays/ux/scripts/gate_eval.py
-      - core/components/plays/ux/scripts/distill_gate_policy.py
-      - core/components/plays/agentic/SKILL.md
-      - core/components/plays/agentic/reference/ice.md
-      - core/components/plays/agentic/scripts/classify_change.py
-      - core/components/plays/agentic/scripts/gate_eval.py
-      - core/components/plays/agentic/scripts/distill_gate_policy.py
-      - core/components/plays/marketing/SKILL.md
-      - core/components/plays/marketing/reference/ice.md
-      - core/components/plays/marketing/scripts/classify_change.py
-      - core/components/plays/marketing/scripts/gate_eval.py
-      - core/components/plays/marketing/scripts/distill_gate_policy.py
-      - core/components/plays/arch/SKILL.md
-      - core/components/plays/arch/reference/ice.md
-      - core/components/plays/arch/scripts/classify_change.py
-      - core/components/plays/arch/scripts/gate_eval.py
-      - core/components/plays/arch/scripts/distill_gate_policy.py
-      - core/components/plays/quality/SKILL.md
-      - core/components/plays/quality/reference/ice.md
-      - core/components/plays/quality/scripts/classify_change.py
-      - core/components/plays/quality/scripts/gate_eval.py
-      - core/components/plays/quality/scripts/distill_gate_policy.py
-      - core/components/plays/run/SKILL.md
-      - core/components/plays/run/reference/ice.md
-      - core/components/plays/run/scripts/classify_change.py
-      - core/components/plays/run/scripts/gate_eval.py
-      - core/components/plays/run/scripts/distill_gate_policy.py
-      - core/components/plays/measure/SKILL.md
-      - core/components/plays/measure/reference/ice.md
-      - core/components/plays/measure/scripts/classify_change.py
-      - core/components/plays/measure/scripts/gate_eval.py
-      - core/components/plays/measure/scripts/distill_gate_policy.py
-    branch: feature/467-batch-b-conditional-gates
+      - .garura/core/config.yaml
+    branch: feature/467-batch-c-chain-gates-off
 excluded_files:
   - path: ".garura/project/issues/467/context/analysis.yaml"
-    reason: "run-state scratch — executor records this separately"
+    reason: "STM scratch artifact (this file) — self-referential, handled by the STM evidence commit, not a change-group commit"
   - path: ".garura/project/issues/467/context/porcelain.txt"
-    reason: "run-state scratch — executor records this separately"
+    reason: "STM run-record scratch file, handled by the STM evidence commit, not a change-group commit"
 leftover_count: 0
 tree_clean: true
 pushed: false

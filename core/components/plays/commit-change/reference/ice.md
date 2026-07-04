@@ -41,7 +41,15 @@ play declared `position: end`. Positions are start and end only — there is no 
   decides its own moves (scan, group, checkpoint when policy demands, execute, re-check);
   between rounds the stop condition is evaluated. The loop is bounded by an iteration cap
   of 5 — hitting the cap without the Done means holding halts the run with the
-  stop-condition verdict recorded; the cap is a circuit breaker, never a target.
+  stop-condition verdict recorded; the cap is a circuit breaker, never a target. The
+  conditional checkpoint (it fires only on a sensitive flag, scanner warnings, or a
+  low-confidence mapping) resolves per gate-config — the per-play override
+  (`gates.plays.commit-change`) is off for this project, and a skip is recorded, never
+  silent. When the gate is off, scanner WARNINGS are never silently dropped: they are
+  carried into the delivery report's Run Summary (a visible surface). The sensitive-file
+  BLOCK is untouched by the switch — a hard halt, never a gate. A low-confidence issue
+  mapping when the gate is off proceeds with the mapping recorded as low-confidence in
+  the run record (visible), never silently upgraded.
 
 ### Failure conditions
 
@@ -57,6 +65,8 @@ play declared `position: end`. Positions are start and end only — there is no 
   already analyzed.
 - F8 — The loop exhausts its iteration cap without the Done means holding — the run must
   halt with the stop-condition verdict recorded, never silently close as completed.
+- F9 — Scanner warnings existed but appeared neither at a checkpoint nor in the delivery
+  report.
 
 ## Expectation
 
@@ -126,3 +136,7 @@ play declared `position: end`. Positions are start and end only — there is no 
   direction: halt HALTED with exit_reason loop_cap_exhausted and the stop-condition
   verdict recorded; a human inspects the unmet clauses and either fixes the underlying
   state and re-runs, or raises the cap knowingly. handoff: human.
+- REC9 (F9) — trigger: the run's scan produced warnings but no checkpoint fired and the
+  delivery report's Run Summary carries no Scanner Warnings row. direction: re-render
+  the delivery report with the warnings carried into the Run Summary before closing.
+  handoff: autonomous.

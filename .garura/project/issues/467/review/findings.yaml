@@ -1,57 +1,57 @@
-# Consolidated review findings — PR #482 (issue #467, Stage 4 Batch B), 2026-07-04
-# Sources: design-findings.yaml (change-reviewer), play-run mechanical layer (executed
-# this run), categories.yaml. quality-auditor NOT dispatched: no standards-driven
-# code/config/docs-prose category assessed (scripts judged harness by content) — layer
-# skipped as not applicable (SE-3).
+# Consolidated review findings — PR #483 (issue #467, Stage 4 Batch C), 2026-07-04
+# Gate resolved OFF (gates.plays.review-change) → harness-verdict path.
+# Sources: design-findings.yaml (change-reviewer), quality-findings.yaml (quality-auditor),
+# play-run mechanical layer (executed this run).
 
 categories:
   harness:
     playbook: review/harness
     layer1:
-      - check: "lint_play.py on all 11 recompiled plays (EXECUTED this run)"
-        result: "PASS 11/11, 0 gaps"
-        basis: "linter output captured"
-        finding: null
-      - check: "stamped-script identity 33/33 vs canonicals (EXECUTED)"
-        result: "PASS — 0 non-identical"
-        basis: "cmp per file"
+      - check: "lint_play.py on all 5 chain plays (EXECUTED this run)"
+        result: "PASS 5/5, 0 gaps"
         finding: null
     layer2:
       - source: design-findings.yaml
-        result: "6/6 conform: (1) all 11 fingerprints mechanically re-verified against
-          edited ICE sources; (2) checkpoint steps implement the committed resolution
-          order with ledger append on both paths; (3) classifier is pure counting —
-          ADR 025 determinism holds in-loop; (4) touched set == the ruled 11 exactly;
-          grill/launch/learn untouched; (5) play owns the gate step, wiring intact;
-          (6) template and rule agree"
+        result: "5/5 conform from committed sources: (1) all 5 recompiled from ICE,
+          2 fingerprints re-verified; (2) each gate turned off in the SAME change that
+          adds its replacement check, skips recorded, machinery kept (config-reversible);
+          (3) exactly the ruled five touched — grill/launch/learn and the eleven
+          conditional plays untouched; (4) review-change harness verdict still always
+          posted + decider named (C9 held); (5) merge one-way-door CLASS untouched for
+          other plays"
         finding: null
-  memory:
-    playbook: review/memory
-    layer2: "covered in design-findings check 6 — template conforms to committed rule"
-  tests:
-    playbook: review/tests
+  code:
+    playbook: review/code
     layer1:
-      - check: "test_gate_learning.py EXECUTED this run"
-        result: "PASS 15/15"
-        basis: "direct execution"
+      - check: "quality-check-scoped on the 4 script files + config (EXECUTED)"
+        result: "0 P1 / 0 P2 / 0 P3 / 0 P4 — lint clean, black clean, complexity within
+          limits (max 10/10, 38 lines, depth 2), single-responsibility"
         finding: null
-      - check: "black --check on the four in-scope canonical scripts"
-        result: "PASS (4 unchanged)"
-        basis: "formatter run"
+      - check: "runnable — test_chain_checks.py EXECUTED"
+        result: "PASS 10/10"
         finding: null
-  out-of-scope-note:
-    finding:
-      class: P4
-      summary: "three PRE-EXISTING canonical scripts (preflight.py, session_stamp.py,
-        check_stop_condition.py) fail black --check — untouched by this PR (#463/#464
-        vintage); cleanup candidate for a later chore"
-      basis: "black --check output; git log confirms no touch in this branch"
+      - check: "stamped-copy identity (EXECUTED)"
+        result: "PASS — validate_issue + check_self_review byte-identical to canonicals"
+        finding: null
+    note:
+      finding:
+        class: P4
+        summary: "scripts under core/components/** are classed 'prose' by the path
+          taxonomy, so pattern-based security rules can't fire on them — code read clean
+          regardless; a policy call (same family as #454), not a defect of this PR"
+        basis: "quality-check-scoped path classification"
+  config-map:
+    playbook: review/config-maps
+    layer1:
+      - check: "YAML validity + gates.plays five-off (EXECUTED)"
+        result: "PASS — valid; no config-map linter in-repo yet (pre-existing gap)"
+        finding: null
   stm-records:
     playbook: null
     finding:
       class: P4
-      summary: "generated run-record files unplaybooked — THIRD occurrence (#478, #480,
-        now #482); seed knowledge/review/stm-records.md as a follow-up"
+      summary: "generated run-records unplaybooked — FOURTH flag (#478/#480/#482/#483);
+        seed knowledge/review/stm-records.md as a follow-up"
       basis: "categories.yaml; shelf enumeration"
 
 summary:

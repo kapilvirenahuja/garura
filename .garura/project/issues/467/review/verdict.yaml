@@ -1,12 +1,12 @@
 {
   "verdict": "approve",
-  "reason": "human approved at the gate (typed: approved); recommendation approve \u2014 0 P1/P2/P3, suites green, 6/6 design conformance",
+  "decided_by": "harness",
+  "reason": "gate off (gates.plays.review-change); recommendation approve became the recorded decision \u2014 0 P1/P2/P3, all mechanical layers green, design 5/5 conform",
   "blocking": [],
   "counts": {
     "P4": 2
   },
   "confidence": null,
   "threshold": 0.5,
-  "decided_by": "human",
   "decision_file": "decision.yaml"
 }

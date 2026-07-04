@@ -1,6 +1,6 @@
 {
-  "branch_name": "feature/467-batch-b-conditional-gates",
-  "base_sha": "22ada33e84efbf5c56f3b258ce173e7cd6ab63e3",
+  "branch_name": "feature/467-batch-c-chain-gates-off",
+  "base_sha": "119a7e6141d8c6200933dd363e03c90fac290a32",
   "on_default_branch": false,
   "worktree_path": null
 }

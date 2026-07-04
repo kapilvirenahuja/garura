@@ -1,9 +1,11 @@
 decision: approve
-typed_input: "approved"
-decided_by: human (Kapil Viren Ahuja)
+decided_by: harness
+gate_resolution: "off (gates.plays.review-change) — Batch C config; harness-verdict path"
+recommendation_verbatim: 'approve ("no P1 findings; confidence acceptable")'
 decided_at: 2026-07-04
-recommendation_shown: approve ("no P1 findings; confidence acceptable")
+citing_findings: "0 P1 / 0 P2 / 0 P3 / 2 P4 (both non-blocking follow-ups); all mechanical layers executed green"
 notes: >
-  Zero blocking, zero P2/P3. Two P4 notes accepted: (1) three pre-existing canonical
-  scripts fail the formatter — later chore, untouched by this PR; (2) stm-records
-  review playbook still missing after three flags — seed as follow-up.
+  First live exercise of the gateless review path. Design-grounding 5/5 conform from
+  committed sources; code 0/0/0/0; test_chain_checks 10/10; 5/5 plays lint PASS. Two P4
+  follow-ups: stm-records playbook (fourth flag), core/components script path
+  classification (policy, same family as #454).

@@ -13,8 +13,10 @@ then, for design-bearing categories, a design-grounding check whose principles a
 reconstructed from committed/external sources rather than from the branch's own new
 content. Run only the layers and steps that apply to the categories present. Consolidate
 every finding — each citing its basis — into one report grouped by category and severity
-with a recommended verdict, then stop at a single mandatory human gate where the reviewer
-owns the approve-or-reject decision, which is posted to the PR.
+with a recommended verdict, then stop at a single decision gate: resolved per gate-config,
+the reviewer owns the approve-or-reject decision when the gate is on, and the computed
+recommendation becomes the decision — marked as a harness verdict — when it is off; either
+way the decision is posted to the PR.
 
 The guiding rule: the change under review is never its own standard.
 
@@ -39,9 +41,16 @@ enforced by pre-flight (an open PR must exist).
   cites its basis — a linter rule identifier or a grounded design principle.
 - C7 — Where a category in scope has a runnable check (a test suite, a language linter),
   that check is executed, not merely read.
-- C8 — The play produces a recommended verdict but never auto-decides; the approve-or-
-  reject decision is the reviewer's at one mandatory human gate, and that decision is
-  posted to the PR.
+- C8 — The play produces a recommended verdict and stops at one decision gate that
+  resolves per gate-config (`standards/rules/gate-config.md`; per-play
+  `gates.plays.review-change` is now off per the #467 ruling). Gate ON: the play never
+  auto-decides — the approve-or-reject decision is the reviewer's, and that decision is
+  posted to the PR. Gate OFF: the recommendation from `compute_verdict.py` BECOMES the
+  recorded decision — `decision.yaml` carries `decided_by: harness`, the recommendation
+  verbatim, and the citing findings; the verdict is posted to the PR clearly marked as a
+  harness verdict; a REJECT outcome stands exactly as a human reject would (fix the cited
+  findings, re-raise; `review-pr.bypass` semantics untouched). The verdict is still never
+  silent and never unposted (C9 unchanged).
 - C9 — The play ends by proving its Done means at close (gated, #464): a verdict rendered
   AND posted counts as done regardless of approve/reject; after posting, the play records
   `review/posted.json` `{posted: true, comment_url}` and commits+pushes its run artifacts
@@ -58,8 +67,11 @@ enforced by pre-flight (an open PR must exist).
 - F5 — The review expands beyond the diff into a full-repo scan.
 - F6 — A finding is reported with no cited basis.
 - F7 — A runnable check in scope is read but not executed.
-- F8 — The play auto-decides the verdict, or the human's decision is not posted to the PR.
+- F8 — The play auto-decides the verdict while the gate is on, or the decision is not
+  posted to the PR.
 - F9 — COMPLETED without the Done means held (e.g. a verdict computed but never posted).
+- F10 — With the gate off, the recorded decision differs from the computed
+  recommendation, or the posted comment does not identify the decider (harness vs human).
 
 ## Expectation
 
@@ -82,9 +94,11 @@ enforced by pre-flight (an open PR must exist).
   from committed/external sources, not the branch's new text. Measure: every grounding
   source is committed/external; none is a diff-added file.
 - S4 — (reviewer, blocking finding) Given a PR with a P1 finding, when it runs, then the
-  recommended verdict is reject citing that finding, the human gate is presented, and the
-  decision posted to the PR is the human's. Measure: recommended verdict is reject with the
-  P1 cited; the posted decision equals the human's input.
+  recommended verdict is reject citing that finding and the gate resolves per gate-config:
+  on — the human gate is presented and the decision posted is the human's; off — the
+  harness reject is recorded and posted, marked as a harness verdict, and stands exactly
+  as a human reject would. Measure: recommended verdict is reject with the P1 cited; the
+  posted decision equals the recorded decision and names its decider.
 - S5 — (reviewer, cited basis) Given any PR, when the consolidated report is produced, then
   every finding names a linter rule or a grounded principle as its basis. Measure: zero
   findings without a cited basis.
@@ -116,11 +130,16 @@ enforced by pre-flight (an open PR must exist).
   (linter rule or grounded principle) or drop the finding. handoff: autonomous.
 - REC7 (F7) — trigger: a runnable check was read but not executed. direction: execute the
   check and fold its result into the findings. handoff: autonomous.
-- REC8 (F8) — trigger: the verdict was auto-decided, or the decision was not posted.
-  direction: hold at the human gate, record the reviewer's decision verbatim, and post it to
-  the PR. handoff: human.
+- REC8 (F8) — trigger: the verdict was auto-decided while the gate was on, or the
+  decision was not posted. direction: hold at the human gate, record the reviewer's
+  decision verbatim, and post it to the PR. handoff: human.
 - REC9 (F9) — trigger: the run is about to close COMPLETED with the Done means unmet (e.g.
   a verdict computed but never posted, or posted.json / the run artifacts missing).
   direction: post the verdict / fix the run state (write posted.json, commit+push the run
   artifacts), then re-evaluate the stop condition; the close stays HALTED until the verdict
   reads held. handoff: autonomous.
+- REC10 (F10) — trigger: with the gate off, `decision.yaml` differs from the computed
+  recommendation, or the posted comment does not identify its decider. direction: rewrite
+  `decision.yaml` from `recommended_verdict.yaml` (`decided_by: harness`, recommendation
+  verbatim, citing findings) and re-post the comment with the decider named. handoff:
+  autonomous.
