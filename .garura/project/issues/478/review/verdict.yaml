@@ -1,0 +1,12 @@
+{
+  "verdict": "approve",
+  "reason": "human reviewer approved at the gate (typed: approved); recommendation was approve \u2014 no P1 findings",
+  "blocking": [],
+  "counts": {
+    "P4": 2
+  },
+  "confidence": null,
+  "threshold": 0.5,
+  "decided_by": "human",
+  "decision_file": "decision.yaml"
+}
