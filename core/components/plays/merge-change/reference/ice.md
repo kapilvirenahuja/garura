@@ -28,6 +28,13 @@ play.
   play commits its run records (merge-gate.json, the review dir if present) on main per
   the evidence self-commit rule (ADR 012) — the push of that commit is reported as owed
   to the human, never performed by the play.
+- C7 — The Confirm Merge one-way-door checkpoint resolves per gate-config
+  (`standards/rules/gate-config.md`; per-play `gates.plays.merge-change` is now off per
+  the #467 ruling — the one-way-door CLASS stays on for other plays). When off, the merge
+  proceeds ONLY when the three machine preconditions all hold: `approved: true` (the
+  review-change verdict), `mergeable: true` (no conflicts), and no failing required
+  checks — anything else HALTS exactly as pre-flight does today. The skip is recorded in
+  evidence.
 
 ### Failure conditions
 
@@ -38,6 +45,8 @@ play.
 - F5 — Re-running on an already-merged PR errors or attempts to re-merge.
 - F6 — COMPLETED without the Done means held (e.g. merged but the branch survived, or the
   gate record missing).
+- F7 — An off-gate merge proceeded without all three machine preconditions true
+  (approved, mergeable, no failing required checks).
 
 ## Expectation
 
@@ -83,3 +92,7 @@ play.
   direction: fix the state — delete the surviving branch / rewrite the gate record — and
   re-evaluate the stop condition; the close stays HALTED until the verdict reads held.
   handoff: autonomous.
+- REC7 (F7) — trigger: an off-gate merge would proceed (or proceeded) without approved,
+  mergeable, and no-failing-required-checks all true. direction: halt the merge and
+  surface which precondition failed; do not merge until it reads true. handoff:
+  autonomous.

@@ -16,7 +16,13 @@ the D2 pipeline-position rule injects into any other play declared `position: st
 ### Constraints
 
 - C1 — Every change is anchored to a tracked issue: resolve an existing one or create
-  one; never start work with no issue.
+  one; never start work with no issue. Creating a new issue is checkpointed
+  (confirm-new-issue), and the gate resolves per gate-config — the per-play override
+  (`gates.plays.start-change`) is off for this project, so a skip is recorded in
+  evidence, never silent. AND, gate on or off, the play MUST run the bundled
+  validate_issue.py (title present and tagged, description complete) on the proposed
+  issue BEFORE any create — a failed validation HALTS to a human regardless of the
+  gate state (the machine wall that replaced the human eye).
 - C2 — Work goes on a dedicated feature branch cut from an up-to-date main, never on
   main itself.
 - C3 — A git worktree is set up only when config calls for it (config-driven, not
@@ -40,6 +46,8 @@ the D2 pipeline-position rule injects into any other play declared `position: st
   resuming.
 - F6 — The close proves nothing — the play closes COMPLETED without the Done means
   held.
+- F7 — An issue was created whose record fails validate_issue.py (missing/short/untagged
+  title, or an empty work description).
 
 ## Expectation
 
@@ -92,3 +100,7 @@ the D2 pipeline-position rule injects into any other play declared `position: st
 - REC6 (F6) — trigger: the close would report COMPLETED without the Done means held.
   direction: evaluate the stop condition and surface the unmet clauses; the run closes
   HALTED until state is fixed. handoff: autonomous.
+- REC7 (F7) — trigger: validate_issue.py exits non-zero on the proposed or created
+  issue record. direction: a human fixes the title (present, ≥15 chars, tagged) and/or
+  completes the work description, then re-runs; the play never creates over a failed
+  validation. handoff: human.

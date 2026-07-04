@@ -29,6 +29,13 @@ their order is enforced by each one's pre-flight, not by welding them into one p
 - C7 — The play ends by proving its Done means at close (gated, #464), and commits its
   own run artifacts (self-review.md, resolved-rules.json, pr.json) on the feature branch
   BEFORE the push — the PR carries the play's own record and the tree stays clean.
+- C8 — The Confirm Raise checkpoint resolves per gate-config
+  (`standards/rules/gate-config.md`; per-play `gates.plays.propose-change` is now off
+  per the #467 ruling; a skip is always recorded in evidence). AND — gate on or off —
+  BEFORE any push or PR-open the play MUST run the bundled `check_self_review.py` on
+  `self-review.md`: any blocking finding (non-zero exit) HALTS to a human. The raise
+  precondition stands on three legs: this self-review blocker check, tree-clean (C3 —
+  pre-flight machine wall), and the issue reference (C4 — eval machine wall).
 
 ### Failure conditions
 
@@ -40,6 +47,7 @@ their order is enforced by each one's pre-flight, not by welding them into one p
 - F6 — The self-review runs on hardcoded rules, or ignores a project override of the
   rules file when one is present.
 - F7 — The close proves nothing — COMPLETED without the Done means held.
+- F8 — A push or PR-open happened while the self-review carried a blocking finding.
 
 ## Expectation
 
@@ -92,3 +100,7 @@ their order is enforced by each one's pre-flight, not by welding them into one p
   verdict held. direction: evaluate the stop condition, surface the unmet clauses, and
   close HALTED (`stop_condition_unmet`) until they are fixed — an unevaluable verdict is
   never a pass. handoff: autonomous.
+- REC8 (F8) — trigger: a push or PR-open happened (or would happen) while the
+  self-review carried a blocking finding. direction: halt to a human — fix the blocking
+  findings, then re-run the play so the check passes before any push or PR-open.
+  handoff: human.
