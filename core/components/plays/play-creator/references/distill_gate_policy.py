@@ -49,6 +49,18 @@ def read_ledger(path):
     return out
 
 
+def _parse_inline_never(value):
+    """never_auto given inline as `[a, b]` -> the list of shape keys."""
+    inner = value.strip("[]")
+    return [s.strip().strip("'\"") for s in inner.split(",") if s.strip()]
+
+
+def _parse_never_item(line):
+    """A `- shape` item line under never_auto:, or None."""
+    m = re.match(r"^\s*-\s*(\S+)", line)
+    return m.group(1).strip("'\"") if m else None
+
+
 def read_existing_policy(path):
     """Minimal reader: version + never_auto list. No third-party YAML dep."""
     version, never = 0, []
@@ -61,53 +73,60 @@ def read_existing_policy(path):
             if m:
                 version = int(m.group(1))
             if re.match(r"^never_auto:", line):
-                stripped = line.split(":", 1)[1].strip()
-                if stripped and stripped != "[]":
-                    inner = stripped.strip("[]")
-                    never = [s.strip().strip("'\"") for s in inner.split(",") if s.strip()]
-                    in_never = False
-                else:
-                    in_never = stripped != "[]"
+                value = line.split(":", 1)[1].strip()
+                if value and value != "[]":
+                    never = _parse_inline_never(value)
+                in_never = not value  # block form follows only on a bare key
                 continue
             if in_never:
-                m = re.match(r"^\s*-\s*(\S+)", line)
-                if m:
-                    never.append(m.group(1).strip("'\""))
+                item = _parse_never_item(line)
+                if item:
+                    never.append(item)
                 elif line.strip() and not line.startswith(" "):
                     in_never = False
     return version, never
 
 
+def _trailing_streak(recs, refuted):
+    """The shape's live trailing streak of clean lines (auto_pass may extend it)."""
+    run = []
+    for rec in recs:
+        human = rec.get("human")
+        if rec["_line"] in refuted:
+            run = []  # a refuted line breaks the streak it sat in
+        elif human == "approved_clean":
+            run.append(rec)
+        elif human == "auto_pass" and run:
+            run.append(rec)  # extends an earned streak, never starts one
+        else:
+            # rejected / approved_edited / a correction line / anything unknown
+            run = []
+    return run
+
+
+def _group_by_shape(records):
+    by_shape = {}
+    for rec in records:
+        if rec.get("shape"):
+            by_shape.setdefault(rec["shape"], []).append(rec)
+    return by_shape
+
+
 def distill(records, streak, never_auto):
     """Return {shape: {earned_by: [...], since: ts}} for shapes that earn auto."""
     refuted = {r["refutes"] for r in records if r.get("refutes")}
-    by_shape = {}
-    for r in records:
-        if not r.get("shape"):
-            continue
-        by_shape.setdefault(r["shape"], []).append(r)
-
     auto = {}
-    for shape, recs in sorted(by_shape.items()):
+    for shape, recs in sorted(_group_by_shape(records).items()):
         if shape in never_auto:
             continue
-        run = []  # current trailing streak
-        for r in recs:
-            h = r.get("human")
-            if r["_line"] in refuted:
-                run = []  # a refuted line breaks the streak it sat in
-            elif h == "approved_clean":
-                run.append(r)
-            elif h == "auto_pass" and run:
-                run.append(r)  # extends an earned streak, never starts one
-            else:
-                # rejected / approved_edited / a correction line / anything unknown
-                run = []
+        run = _trailing_streak(recs, refuted)
         clean = [r for r in run if r.get("human") == "approved_clean"]
         if len(clean) >= streak:
             earners = clean[-streak:]
-            auto[shape] = {"earned_by": [r["_line"] for r in earners],
-                           "since": earners[-1].get("ts", "")}
+            auto[shape] = {
+                "earned_by": [r["_line"] for r in earners],
+                "since": earners[-1].get("ts", ""),
+            }
     return auto
 
 
@@ -125,7 +144,9 @@ def write_policy(path, project, version, auto, never_auto, streak):
     if auto:
         for shape in sorted(auto):
             e = auto[shape]
-            lines.append(f"  {shape}: {{earned_by: {e['earned_by']}, since: {e['since']}}}")
+            lines.append(
+                f"  {shape}: {{earned_by: {e['earned_by']}, since: {e['since']}}}"
+            )
     else:
         lines[-1] = "auto: {}"
     if never_auto:
@@ -154,9 +175,17 @@ def main(argv=None):
     version, never_auto = read_existing_policy(args.policy)
     auto = distill(records, args.streak, never_auto)
     write_policy(args.policy, args.project, version + 1, auto, never_auto, args.streak)
-    print(json.dumps({"policy": args.policy, "version": version + 1,
-                      "auto_shapes": sorted(auto), "never_auto": never_auto,
-                      "ledger_lines": len(records)}))
+    print(
+        json.dumps(
+            {
+                "policy": args.policy,
+                "version": version + 1,
+                "auto_shapes": sorted(auto),
+                "never_auto": never_auto,
+                "ledger_lines": len(records),
+            }
+        )
+    )
 
 
 if __name__ == "__main__":

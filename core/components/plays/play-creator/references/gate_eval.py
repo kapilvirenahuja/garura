@@ -56,9 +56,17 @@ def cmd_append(args):
     if args.predicted not in PREDICTED:
         fail(f"predicted must be one of {sorted(PREDICTED)}")
     if (args.human == "auto_pass") != (args.predicted == "auto") and not args.refutes:
-        fail("auto_pass pairs with predicted=auto (and vice versa) except on corrections")
-    rec = {"ts": args.ts, "play": args.play, "issue": args.issue,
-           "shape": args.shape, "predicted": args.predicted, "human": args.human}
+        fail(
+            "auto_pass pairs with predicted=auto (and vice versa) except on corrections"
+        )
+    rec = {
+        "ts": args.ts,
+        "play": args.play,
+        "issue": args.issue,
+        "shape": args.shape,
+        "predicted": args.predicted,
+        "human": args.human,
+    }
     if args.policy_version is not None:
         rec["policy_version"] = args.policy_version
     if args.refutes is not None:
@@ -72,9 +80,12 @@ def cmd_append(args):
 
 
 def cmd_tail(args):
-    recs = [r for r in read_ledger(args.ledger)
-            if not args.shape or r.get("shape") == args.shape]
-    for r in recs[-args.n:]:
+    recs = [
+        r
+        for r in read_ledger(args.ledger)
+        if not args.shape or r.get("shape") == args.shape
+    ]
+    for r in recs[-args.n :]:
         print(json.dumps(r))
 
 

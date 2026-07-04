@@ -35,7 +35,8 @@ SECTION_LINES = 5  # changed lines under one heading to call the section rewritt
 
 STRUCTURAL = re.compile(
     r"^\s*-?\s*(id|status|name|level|depends_on|order|effort|nfr_needs|nfr_[a-z_]+|"
-    r"compliance_needs|compliance_[a-z_]+)\s*:")
+    r"compliance_needs|compliance_[a-z_]+)\s*:"
+)
 STATUS = re.compile(r"^\s*status\s*:\s*(\S+)")
 NODE_ID = re.compile(r"^\s*-?\s*id\s*:\s*(\S+)")
 BAR = re.compile(r"^\s*(nfr_[a-z_]+|compliance_[a-z_]+|level)\s*:\s*(\S+)")
@@ -59,7 +60,9 @@ def read_lines(path):
 def walk(root):
     out = {}
     for base, dirs, files in os.walk(root):
-        dirs[:] = [d for d in dirs if not d.startswith((".", "_")) and d != "__pycache__"]
+        dirs[:] = [
+            d for d in dirs if not d.startswith((".", "_")) and d != "__pycache__"
+        ]
         for f in files:
             if f.startswith((".", "_")) or f.endswith((".pyc", ".bak")):
                 continue
@@ -80,67 +83,109 @@ def count_node_ids(lines):
     return {m.group(1) for ln in lines if (m := NODE_ID.match(ln))}
 
 
-def classify_pair(rel, old, new, axes):
-    """Update axes from one changed file's line diff."""
+def _diff_lines(old, new):
+    """The removed and added lines of a unified diff, fences stripped."""
     diff = list(difflib.unified_diff(old, new, lineterm="", n=0))
-    minus = [l[1:] for l in diff if l.startswith("-") and not l.startswith("---")]
-    plus = [l[1:] for l in diff if l.startswith("+") and not l.startswith("+++")]
+    minus = [
+        line[1:] for line in diff if line.startswith("-") and not line.startswith("---")
+    ]
+    plus = [
+        line[1:] for line in diff if line.startswith("+") and not line.startswith("+++")
+    ]
+    return minus, plus
 
-    # status transitions: value changed for the status key
+
+def _status_changes(minus, plus):
+    """Count status: values that changed between the removed and added lines."""
     old_status = [m.group(1) for ln in minus if (m := STATUS.match(ln))]
     new_status = [m.group(1) for ln in plus if (m := STATUS.match(ln))]
-    axes["status_changes"] += sum(1 for a, b in zip(old_status, new_status) if a != b)
+    return sum(1 for a, b in zip(old_status, new_status) if a != b)
 
-    # profile bars
+
+def _bar_changes(minus, plus):
+    """Count level-bearing keys whose value moved (profile files only)."""
+    old_bars = {m.group(1): m.group(2) for ln in minus if (m := BAR.match(ln))}
+    new_bars = {m.group(1): m.group(2) for ln in plus if (m := BAR.match(ln))}
+    return sum(
+        1 for k in set(old_bars) | set(new_bars) if old_bars.get(k) != new_bars.get(k)
+    )
+
+
+def _decision_delta(minus, plus):
+    """Net decision entries appended (decisions files only)."""
+    added = sum(1 for ln in plus if DECISION_ENTRY.match(ln))
+    removed = sum(1 for ln in minus if DECISION_ENTRY.match(ln))
+    return max(0, added - removed)
+
+
+def _heading_map(lines):
+    """line index -> nearest H2/H3 heading above it in the file."""
+    headings = {}
+    current = "(top)"
+    for i, ln in enumerate(lines):
+        m = HEADING.match(ln)
+        if m:
+            current = m.group(1).strip()
+        headings[i] = current
+    return headings
+
+
+def _md_changes(old, new):
+    """(sections_rewritten, prose_edits) for a markdown file's change."""
+    heading_for_line = _heading_map(new)
+    sm = difflib.SequenceMatcher(a=old, b=new, autojunk=False)
+    changed_by_heading = {}
+    prose = 0
+    for tag, _i1, _i2, j1, j2 in sm.get_opcodes():
+        if tag == "equal":
+            continue
+        for j in range(j1, j2):
+            if j >= len(new):
+                continue
+            heading = heading_for_line.get(j, "(top)")
+            changed_by_heading[heading] = changed_by_heading.get(heading, 0) + 1
+            if not STRUCTURAL.match(new[j]) and not HEADING.match(new[j]):
+                prose += 1
+    sections = sum(1 for n in changed_by_heading.values() if n >= SECTION_LINES)
+    return sections, prose
+
+
+def classify_pair(rel, old, new, axes):
+    """Update axes from one changed file's line diff."""
+    minus, plus = _diff_lines(old, new)
+
+    axes["status_changes"] += _status_changes(minus, plus)
     if is_profile_path(rel):
-        old_bars = {m.group(1): m.group(2) for ln in minus if (m := BAR.match(ln))}
-        new_bars = {m.group(1): m.group(2) for ln in plus if (m := BAR.match(ln))}
-        axes["profile_bars_changed"] += sum(
-            1 for k in set(old_bars) | set(new_bars) if old_bars.get(k) != new_bars.get(k))
+        axes["profile_bars_changed"] += _bar_changes(minus, plus)
 
     # node ids added/removed inside an existing file (spine index entries)
     old_ids, new_ids = count_node_ids(old), count_node_ids(new)
     axes["nodes_added"] += len(new_ids - old_ids)
     axes["nodes_removed"] += len(old_ids - new_ids)
 
-    # decisions appended inside an existing decisions file
     if is_decision_path(rel):
-        axes["decisions_added"] += max(
-            0, sum(1 for ln in plus if DECISION_ENTRY.match(ln))
-            - sum(1 for ln in minus if DECISION_ENTRY.match(ln)))
+        axes["decisions_added"] += _decision_delta(minus, plus)
 
     if rel.endswith(".md"):
-        # sections rewritten: changed lines grouped under the nearest heading of NEW file
-        heading_for_line = {}
-        current = "(top)"
-        for i, ln in enumerate(new):
-            m = HEADING.match(ln)
-            if m:
-                current = m.group(1).strip()
-            heading_for_line[i] = current
-        sm = difflib.SequenceMatcher(a=old, b=new, autojunk=False)
-        changed_by_heading = {}
-        prose = 0
-        for tag, _i1, _i2, j1, j2 in sm.get_opcodes():
-            if tag == "equal":
-                continue
-            for j in range(j1, j2):
-                if j < len(new):
-                    h = heading_for_line.get(j, "(top)")
-                    changed_by_heading[h] = changed_by_heading.get(h, 0) + 1
-                    if not STRUCTURAL.match(new[j]) and not HEADING.match(new[j]):
-                        prose += 1
-        axes["sections_rewritten"] += sum(
-            1 for n in changed_by_heading.values() if n >= SECTION_LINES)
+        sections, prose = _md_changes(old, new)
+        axes["sections_rewritten"] += sections
         axes["prose_edits"] += prose
     else:
         # structured files: non-structural changed lines still count as prose edits
         axes["prose_edits"] += sum(
-            1 for ln in plus if not STRUCTURAL.match(ln) and ln.strip())
+            1 for ln in plus if not STRUCTURAL.match(ln) and ln.strip()
+        )
 
 
-AXES = ["nodes_added", "nodes_removed", "status_changes", "profile_bars_changed",
-        "decisions_added", "sections_rewritten", "prose_edits"]
+AXES = [
+    "nodes_added",
+    "nodes_removed",
+    "status_changes",
+    "profile_bars_changed",
+    "decisions_added",
+    "sections_rewritten",
+    "prose_edits",
+]
 
 
 def main(argv=None):

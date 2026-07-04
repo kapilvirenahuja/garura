@@ -21,8 +21,9 @@ PY = sys.executable or "python3"
 
 
 def run(script, *args):
-    r = subprocess.run([PY, os.path.join(HERE, script), *args],
-                       capture_output=True, text=True)
+    r = subprocess.run(
+        [PY, os.path.join(HERE, script), *args], capture_output=True, text=True
+    )
     if r.returncode != 0:
         raise AssertionError(f"{script} {' '.join(args)} failed:\n{r.stderr}")
     return r.stdout
@@ -52,7 +53,8 @@ def test_classifier():
     assert r["axes"]["sections_rewritten"] == 0, r
 
     # 2. status flip -> status_changes counted
-    shutil.rmtree(t); os.makedirs(t)
+    shutil.rmtree(t)
+    os.makedirs(t)
     write(live, "spine.yaml", "- id: slice-1\n  status: shaped\n")
     write(draft, "spine.yaml", "- id: slice-1\n  status: realized\n")
     r = classify(draft, live, play="measure")
@@ -60,7 +62,8 @@ def test_classifier():
     assert "status_changes" in r["shape_key"], r
 
     # 3. new node file -> nodes_added
-    shutil.rmtree(t); os.makedirs(t)
+    shutil.rmtree(t)
+    os.makedirs(t)
     write(live, "spine.yaml", "- id: cap-1\n")
     write(draft, "spine.yaml", "- id: cap-1\n- id: cap-2\n")
     write(draft, "cap-2/capability.md", "# Cap 2\n\n## Boundary\nDoes X.\n")
@@ -68,28 +71,44 @@ def test_classifier():
     assert r["axes"]["nodes_added"] >= 1, r
 
     # 4. profile bar move
-    shutil.rmtree(t); os.makedirs(t)
+    shutil.rmtree(t)
+    os.makedirs(t)
     write(live, "profile.yaml", "nfr_security: L2\nnfr_perf: L1\n")
     write(draft, "profile.yaml", "nfr_security: L3\nnfr_perf: L1\n")
     r = classify(draft, live, play="understand")
     assert r["axes"]["profile_bars_changed"] == 1, r
 
     # 5. decision appended
-    shutil.rmtree(t); os.makedirs(t)
+    shutil.rmtree(t)
+    os.makedirs(t)
     write(live, "decisions/log.yaml", "- id: d1\n  decision: use X\n")
-    write(draft, "decisions/log.yaml", "- id: d1\n  decision: use X\n- id: d2\n  decision: use Y\n")
+    write(
+        draft,
+        "decisions/log.yaml",
+        "- id: d1\n  decision: use X\n- id: d2\n  decision: use Y\n",
+    )
     r = classify(draft, live, play="arch")
     assert r["axes"]["decisions_added"] >= 1, r
 
     # 6. section rewrite (>=5 changed lines under one heading)
-    shutil.rmtree(t); os.makedirs(t)
-    write(live, "ux.md", "## Screens\n" + "\n".join(f"old line {i}" for i in range(8)) + "\n")
-    write(draft, "ux.md", "## Screens\n" + "\n".join(f"new line {i}" for i in range(8)) + "\n")
+    shutil.rmtree(t)
+    os.makedirs(t)
+    write(
+        live,
+        "ux.md",
+        "## Screens\n" + "\n".join(f"old line {i}" for i in range(8)) + "\n",
+    )
+    write(
+        draft,
+        "ux.md",
+        "## Screens\n" + "\n".join(f"new line {i}" for i in range(8)) + "\n",
+    )
     r = classify(draft, live)
     assert r["axes"]["sections_rewritten"] == 1, r
 
     # 7. identical -> none; live file absent from draft is NOT a removal
-    shutil.rmtree(t); os.makedirs(t)
+    shutil.rmtree(t)
+    os.makedirs(t)
     write(live, "a.md", "same\n")
     write(live, "b.md", "untouched\n")
     write(draft, "a.md", "same\n")
@@ -101,16 +120,40 @@ def test_classifier():
 
 
 def ledger_line(ledger, play, shape, human, ts, predicted="gate", refutes=None):
-    args = ["append", "--ledger", ledger, "--play", play, "--issue", "478",
-            "--shape", shape, "--predicted", predicted, "--human", human, "--ts", ts]
+    args = [
+        "append",
+        "--ledger",
+        ledger,
+        "--play",
+        play,
+        "--issue",
+        "478",
+        "--shape",
+        shape,
+        "--predicted",
+        predicted,
+        "--human",
+        human,
+        "--ts",
+        ts,
+    ]
     if refutes:
         args += ["--refutes", str(refutes)]
     run("gate_eval.py", *args)
 
 
 def distill(ledger, policy, streak="3"):
-    out = run("distill_gate_policy.py", "--ledger", ledger, "--policy", policy,
-              "--streak", streak, "--project", "testproj")
+    out = run(
+        "distill_gate_policy.py",
+        "--ledger",
+        ledger,
+        "--policy",
+        policy,
+        "--streak",
+        streak,
+        "--project",
+        "testproj",
+    )
     return json.loads(out)
 
 
