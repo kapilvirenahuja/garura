@@ -126,6 +126,9 @@ a resume: the issue and branch already exist; nothing is duplicated.
   legacy epic cut before ADR 022) is unknown, not a default: it is DECLARED
   before building, never assumed to be `service_read_model` or any other value.
   Building the same or a higher surface than declared is fine.
+- C20 — The play ends by proving its Done means at close (gated, #464): the same
+  bar its own done-assembly already asserts, baked as a stop-condition manifest
+  the standard close evaluates.
 
 ### Failure conditions
 
@@ -165,6 +168,7 @@ a resume: the issue and branch already exist; nothing is duplicated.
 - F15 — implement builds a spec whose surface is below the epic's declared
   `surface.type` without human approval — the promised user surface is silently
   downgraded to a local service/read-model.
+- F16 — COMPLETED without the Done means held.
 
 ## Expectation
 
@@ -230,6 +234,17 @@ a resume: the issue and branch already exist; nothing is duplicated.
   completes from approval to done with no further human input; any temporary
   implementation skill created is removed by run end.
 
+### Done means
+
+- D1 — says: "the build plan exists"
+  check: { type: artifact_exists, path: "specs/implement/plan.yaml" }
+- D2 — says: "the done verdict was assembled"
+  check: { type: artifact_exists, path: "evidence/implement/done.yaml" }
+- D3 — says: "the build ended at specs passing, awaiting validation"
+  check: { type: field_equals, file: "evidence/implement/done.yaml", field: "done.status", equals: "specs-passing-awaiting-validation" }
+- D4 — says: "every quality gate passed"
+  check: { type: field_equals, file: "evidence/implement/gates-results.yaml", field: "gates_results.pass", equals: true }
+
 ### Recovery (one per failure condition)
 
 - REC1 (F1) — trigger: no epic resolvable, the epic isn't ready, or a
@@ -294,3 +309,8 @@ a resume: the issue and branch already exist; nothing is duplicated.
   build the lower surface only on explicit human approval of a recut, else
   regenerate the spec preserving the declared surface; for a missing surface,
   have it declared before building, never defaulted. handoff: human.
+- REC16 (F16) — trigger: the close is about to record COMPLETED while the
+  stop-condition verdict is unmet or unevaluable. direction: evaluate the stop
+  condition, surface the unmet clauses in the evidence's Stop Condition section,
+  and close HALTED with exit_reason stop_condition_unmet — never COMPLETED.
+  handoff: autonomous.

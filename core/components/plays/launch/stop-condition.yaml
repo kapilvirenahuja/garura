@@ -1,0 +1,16 @@
+# launch stop condition — baked from reference/ice.md "### Done means" (#464/#466 Batch B).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Paths are relative to the run's STM root ({stm_base}{issue}/); {working} = launch/.
+# The HITL walk itself is NEVER capped — its only exit is the resolved sign-off gate.
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the HITL scenario set exists"
+      check: { type: artifact_exists, path: "launch/scenarios.yaml" }
+    - id: D2
+      says: "the sign-off gate produced its record"
+      check: { type: artifact_exists, path: "launch/gate.json" }
+    - id: D3
+      says: "the gate resolved either way — release or fix_required"
+      check: { type: field_equals, file: "launch/gate.json", field: "resolved", equals: true }

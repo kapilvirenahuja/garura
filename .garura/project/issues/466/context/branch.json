@@ -1,6 +1,6 @@
 {
-  "branch_name": "feature/466-goal-loop-rollout",
-  "base_sha": "b60f9540af071e50a4b492be9ecd7edecb7857ad",
+  "branch_name": "feature/466-batch-b-execute-pipe",
+  "base_sha": "c8865870d6bfff6fdfeabb09e04e70c19dc0df7e",
   "on_default_branch": false,
   "worktree_path": null
 }

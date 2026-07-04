@@ -1,0 +1,16 @@
+# deploy stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch B).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Paths are relative to the run's working root ({stm_base}_deploy/). A failed deploy that
+# recorded its failure honestly leaves D2 unmet — the run closes HALTED, never COMPLETED.
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the deploy record exists"
+      check: { type: artifact_exists, path: "deploy.json" }
+    - id: D2
+      says: "the increment answered — the independent health check is green"
+      check: { type: field_equals, file: "deploy.json", field: "health.status", equals: "green" }
+    - id: D3
+      says: "the record's environment is the resolved target, recorded and verified"
+      check: { type: field_equals, file: "deploy-checks.json", field: "checks.A1", equals: true }

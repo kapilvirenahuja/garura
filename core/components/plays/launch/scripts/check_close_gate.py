@@ -11,10 +11,14 @@ validate_signoff.py first — this script re-asserts it):
 
 The model never decides the release; this script does.
 
+The gate always writes its final resolution (#466 Batch B, Done means D3):
+`resolved: true` with `outcome: release|fix_required` on BOTH real outcomes;
+a blocked record stays `resolved: false, outcome: null` — the run is not done.
+
     python3 check_close_gate.py --signoff <signoff.yaml> --scenarios <scenarios.yaml>
         --out <gate.json>
 
-Prints {ok, decision, accepted, rejected, errors[]}.
+Prints {ok, decision, resolved, outcome, accepted, rejected, errors[]}.
 Exit 0 release, 1 fix_required, 2 blocked/usage.
 """
 
@@ -50,7 +54,10 @@ def main():
     else:
         decision = "release"
 
+    resolved = decision in ("release", "fix_required")
     out = {"ok": record.get("ok", False), "decision": decision,
+           "resolved": resolved,
+           "outcome": decision if resolved else None,
            "accepted": record.get("accepted", 0),
            "rejected": record.get("rejected", 0),
            "errors": record.get("errors", [])}

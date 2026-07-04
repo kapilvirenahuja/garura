@@ -1,0 +1,19 @@
+# implement stop condition — baked from reference/ice.md "### Done means" (#464/#466).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close —
+# the same bar the play's own done-assembly (check_done.py, Step 11) already asserts.
+# Paths are relative to the run's STM root ({stm_base}/{issue}/).
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the build plan exists"
+      check: { type: artifact_exists, path: "specs/implement/plan.yaml" }
+    - id: D2
+      says: "the done verdict was assembled"
+      check: { type: artifact_exists, path: "evidence/implement/done.yaml" }
+    - id: D3
+      says: "the build ended at specs passing, awaiting validation"
+      check: { type: field_equals, file: "evidence/implement/done.yaml", field: "done.status", equals: "specs-passing-awaiting-validation" }
+    - id: D4
+      says: "every quality gate passed"
+      check: { type: field_equals, file: "evidence/implement/gates-results.yaml", field: "gates_results.pass", equals: true }

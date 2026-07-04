@@ -51,6 +51,9 @@ come only via injection.
 - C13 — Verification failures retry a bounded number of times (cap 2 per task); on
   exhaustion the design is revised rather than halting blindly, and the play
   continues with the revised plan.
+- C14 — The play ends by proving its Done means at close (gated, #464): the run
+  closes COMPLETED only when the Done means hold on disk — never because the step
+  list ran out.
 
 ### Failure conditions
 
@@ -72,6 +75,8 @@ come only via injection.
 - F10 — The fix is accepted without a regression test that was failing before the
   fix and passing after it.
 - F11 — The checkpoint was approved but no background issue update was dispatched.
+- F12 — The close proves nothing — the play closes COMPLETED without the Done means
+  held.
 
 ## Expectation
 
@@ -100,6 +105,17 @@ come only via injection.
   fix is implemented, then the test was failing before implementation and passing
   after. Measure: a red verification is recorded before implementation begins, and the
   independent verdict after implementation is `pass`.
+
+### Done means
+
+- D1 — says: "the root cause is recorded"
+  check: { type: artifact_exists, path: "evidence/fix-bug/rca.yaml" }
+- D2 — says: "the fix design is recorded"
+  check: { type: artifact_exists, path: "evidence/fix-bug/design.yaml" }
+- D3 — says: "the regression test was proven red before the fix"
+  check: { type: field_equals, file: "evidence/fix-bug/regression-test-path.yaml", field: "red_verified", equals: true }
+- D4 — says: "the fix landed — the PR is merged"
+  check: { type: field_equals, file: "review/merge-gate.json", field: "pr_merged", equals: true }
 
 ### Recovery (one per failure condition)
 
@@ -139,3 +155,6 @@ come only via injection.
 - REC11 (F11) — trigger: the checkpoint was approved but no issue update was
   dispatched. direction: dispatch the background issue update mirroring the approved
   root cause and fix plan, tracked in evidence. handoff: autonomous.
+- REC12 (F12) — trigger: the close would report COMPLETED without the Done means
+  held. direction: evaluate the stop condition and surface the unmet clauses; the
+  run closes HALTED until state is fixed. handoff: autonomous.

@@ -39,6 +39,11 @@ opens no issue, cuts no branch, and lands no PR — it deploys and records evide
 - C8 — On a failed or unhealthy deploy, the environment is left in its **prior known state** — never
   half-deployed — and the failure is reported. `/deploy` does not attempt an automatic
   rollback-and-redeploy; a human decides the next move.
+- C9 — The play ends by proving its Done means at close (gated, #464): a deploy record exists
+  carrying an **independent** health proof, and the verify step's captured assertion confirms the
+  record's environment is the resolved target. A failed deploy that recorded its failure honestly is
+  a **HALTED** run, not a done one — the close never reads COMPLETED with the stop-condition verdict
+  unmet.
 
 ### Failure conditions
 
@@ -53,6 +58,8 @@ opens no issue, cuts no branch, and lands no PR — it deploys and records evide
 - F6 — A secret value leaked — printed, logged, written into the deploy record, or committed.
 - F7 — A failed deploy left the environment half-deployed rather than in its prior known state.
 - F8 — The slice has no run lens, or no cloud environment is defined, and `/deploy` proceeded anyway.
+- F9 — The run closed COMPLETED without the Done means held (no deploy record, a red or absent health
+  proof, or the verify step's environment assertion not captured or not true).
 
 ## Expectation
 
@@ -63,7 +70,7 @@ opens no issue, cuts no branch, and lands no PR — it deploys and records evide
   lowest cloud tier), deploys exactly what dev declares, an independent health check confirms the
   increment answers, and a deploy evidence record is written. Measure: the resolved target is dev; the
   deploy record shows the declared deploy ran and a green health check with an address; an evidence file
-  exists; the product model is byte-identical before and after.
+  exists; the product model is byte-identical before and after; the stop-condition verdict reads held.
 - S2 — (devops engineer, named higher tier) Given dev and stage cloud environments are both defined,
   when `/deploy` runs with target `stage`, then it deploys to stage, not dev. Measure: the deploy
   record's environment is stage.
@@ -88,6 +95,22 @@ opens no issue, cuts no branch, and lands no PR — it deploys and records evide
   `run.yaml`, when `/deploy` runs, then it halts — there is nothing to deploy against. Measure: `/deploy`
   exits on the no-cloud-environment signal; no deploy is attempted.
 
+### Done means
+
+Paths are relative to the run's working root (`{stm_base}_deploy/`). `deploy.json` is the deploy
+record the `deploy-to-cloud-env` skill writes (its contract: `environment`, `status`, `ran`,
+`address`, `health.status` green|red, `secrets_source`, `prior_state_left`); `deploy-checks.json` is
+the verify step's captured `check_deploy.py` output — the play always writes it, and its `checks.A1`
+field is the mechanical proof that the record's environment equals the resolved target and only
+declared steps ran.
+
+- D1 — says: "the deploy record exists"
+  check: { type: artifact_exists, path: "deploy.json" }
+- D2 — says: "the increment answered — the independent health check is green"
+  check: { type: field_equals, file: "deploy.json", field: "health.status", equals: "green" }
+- D3 — says: "the record's environment is the resolved target, recorded and verified"
+  check: { type: field_equals, file: "deploy-checks.json", field: "checks.A1", equals: true }
+
 ### Recovery (one per failure condition)
 
 - REC1 (F1) — trigger: `/deploy` deployed to, or ran, something the run lens does not declare. direction:
@@ -108,3 +131,7 @@ opens no issue, cuts no branch, and lands no PR — it deploys and records evide
   state for a human to resolve; `/deploy` does not auto-rollback. handoff: human.
 - REC8 (F8) — trigger: no run lens, or no cloud environment is defined. direction: halt; run `/run` to
   define the cloud environment before `/deploy`. handoff: human.
+- REC9 (F9) — trigger: the run is about to close COMPLETED with the Done means unmet. direction:
+  close HALTED with `exit_reason: stop_condition_unmet` and the unmet clauses named; fix the state —
+  re-run the verify capture, or record the honest failure — and re-evaluate; the close stays HALTED
+  until the verdict reads held. handoff: autonomous.

@@ -1,0 +1,18 @@
+# fix-bug stop condition — baked from reference/ice.md "### Done means" (#464/#466 Batch B).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Paths are relative to the run's STM root ({stm_base}{issue}/).
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the root cause is recorded"
+      check: { type: artifact_exists, path: "evidence/fix-bug/rca.yaml" }
+    - id: D2
+      says: "the fix design is recorded"
+      check: { type: artifact_exists, path: "evidence/fix-bug/design.yaml" }
+    - id: D3
+      says: "the regression test was proven red before the fix"
+      check: { type: field_equals, file: "evidence/fix-bug/regression-test-path.yaml", field: "red_verified", equals: true }
+    - id: D4
+      says: "the fix landed — the PR is merged"
+      check: { type: field_equals, file: "review/merge-gate.json", field: "pr_merged", equals: true }

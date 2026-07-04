@@ -1,24 +1,45 @@
 meta:
-  generated_at: "2026-07-04T05:27:29+00:00"
+  generated_at: "2026-07-04T11:30:00+00:00"
   diff_path: ".garura/project/issues/466/review/pr.diff"
-  changed_paths_count: 28
+  changed_paths_count: 37
   scan_coverage: 1.0
   taxonomy_path: "./core/components/memory/standards/rules/pr.md"
   standards_relevant: 15
 
-findings: []
+findings:
+  - standard_id: CODE-09
+    severity: P3
+    file: core/components/plays/validate/scripts/stamp_epic.py
+    line: 40
+    evidence: "main() cyclomatic complexity = 22 (KB threshold: CODE-09 ≤ 10, quality/code/complexity-structure.md)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-09
+  - standard_id: CODE-10
+    severity: P3
+    file: core/components/plays/validate/scripts/stamp_epic.py
+    line: 40
+    evidence: "main() function length = 83 lines, span 40-122 (KB threshold: CODE-10 ≤ 50 lines, quality/code/complexity-structure.md)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-10
+  - standard_id: CODE-10
+    severity: P3
+    file: core/components/plays/refactor/scripts/check_behavior_preserved.py
+    line: 65
+    evidence: "main() function length = 55 lines, span 65-119 (KB threshold: CODE-10 ≤ 50 lines, quality/code/complexity-structure.md)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-10
 
 counts:
   P1: 0
   P2: 0
-  P3: 0
+  P3: 3
   P4: 0
 
 notes:
   artifact_type_classification:
-    garura-prose: 18   # core/components/** — gate-config.md, approval-prompt.md, 4x{SKILL.md, ice.md, check_stop_condition.py, stop-condition.yaml}
-    stm-evidence: 10    # .garura/** — config.yaml + 9 issue-466 context files
-  grep_eligibility: "0 of 28 changed_paths classify as runtime-code/deployable-config/tests — every grep: and grep+path: taxonomy row is ineligible on this diff by construction (#438); no grep rule was evaluated"
+    garura-prose: 31   # core/components/plays/{deploy,fix-bug,implement,launch,refactor,validate}/** — SKILL.md, reference/ice.md, scripts/*.py, stop-condition.yaml + gate-config.md
+    stm-evidence: 6     # .garura/project/issues/466/context/* (analysis.yaml, branch.json, commits.yaml, porcelain.txt, pr.json, self-review.md)
+  grep_eligibility: "0 of 37 changed_paths classify as runtime-code/deployable-config/tests — every grep: and grep+path: taxonomy row is ineligible on this diff by construction (#438); no grep rule was evaluated"
   path_rules_matched:
     - ARCH-02
     - ARCH-03
@@ -36,23 +57,73 @@ notes:
     - CODE-19
     - CODE-20
   byte_copy_verification:
-    reference: "core/components/plays/play-creator/references/check_stop_condition.py"
-    reference_sha256: "d51926566b82fde3bc4d4d602cc41b5bbfa8e8419f1bfdcb03cbb3d76e6b615d"
+    reference:
+      check_stop_condition.py: "core/components/plays/play-creator/references/check_stop_condition.py"
+      session_stamp.py: "core/components/plays/play-creator/references/session_stamp.py"
+    reference_sha256:
+      check_stop_condition.py: "d51926566b82fde3bc4d4d602cc41b5bbfa8e8419f1bfdcb03cbb3d76e6b615d"
+      session_stamp.py: "ce6141800925429682871c1079e458ac9de47388f07422aaf5b706a6b833fbbd"
     copies_checked:
-      - path: "core/components/plays/merge-change/scripts/check_stop_condition.py"
+      - path: "core/components/plays/deploy/scripts/check_stop_condition.py"
         sha256: "d51926566b82fde3bc4d4d602cc41b5bbfa8e8419f1bfdcb03cbb3d76e6b615d"
         identical: true
-      - path: "core/components/plays/propose-change/scripts/check_stop_condition.py"
+      - path: "core/components/plays/deploy/scripts/session_stamp.py"
+        sha256: "ce6141800925429682871c1079e458ac9de47388f07422aaf5b706a6b833fbbd"
+        identical: true
+      - path: "core/components/plays/fix-bug/scripts/check_stop_condition.py"
         sha256: "d51926566b82fde3bc4d4d602cc41b5bbfa8e8419f1bfdcb03cbb3d76e6b615d"
         identical: true
-      - path: "core/components/plays/review-change/scripts/check_stop_condition.py"
+      - path: "core/components/plays/fix-bug/scripts/session_stamp.py"
+        sha256: "ce6141800925429682871c1079e458ac9de47388f07422aaf5b706a6b833fbbd"
+        identical: true
+      - path: "core/components/plays/implement/scripts/check_stop_condition.py"
         sha256: "d51926566b82fde3bc4d4d602cc41b5bbfa8e8419f1bfdcb03cbb3d76e6b615d"
         identical: true
-      - path: "core/components/plays/start-change/scripts/check_stop_condition.py"
+      - path: "core/components/plays/implement/scripts/session_stamp.py"
+        sha256: "ce6141800925429682871c1079e458ac9de47388f07422aaf5b706a6b833fbbd"
+        identical: true
+      - path: "core/components/plays/launch/scripts/check_stop_condition.py"
         sha256: "d51926566b82fde3bc4d4d602cc41b5bbfa8e8419f1bfdcb03cbb3d76e6b615d"
         identical: true
-    verdict: "All 4 are byte-identical to the reference already reviewed under PR #472. ARCH-02/03/08 and CODE-03/04/09/10/11/12/13/14/15/17/19 (the rows whose glob matches .py files) are matched-but-not-refindable: content is unchanged from a prior clean review, so no new finding is emitted for these 4 files under any of those 11 rows. Shape measurement (lizard/wc) was skipped for these files per byte-copy dedup — each file is 136-137 lines, well under CODE-12's 300-line and ARCH-03's 500-line thresholds, consistent with the prior clean review."
+      - path: "core/components/plays/launch/scripts/session_stamp.py"
+        sha256: "ce6141800925429682871c1079e458ac9de47388f07422aaf5b706a6b833fbbd"
+        identical: true
+      - path: "core/components/plays/refactor/scripts/check_stop_condition.py"
+        sha256: "d51926566b82fde3bc4d4d602cc41b5bbfa8e8419f1bfdcb03cbb3d76e6b615d"
+        identical: true
+      - path: "core/components/plays/refactor/scripts/session_stamp.py"
+        sha256: "ce6141800925429682871c1079e458ac9de47388f07422aaf5b706a6b833fbbd"
+        identical: true
+      - path: "core/components/plays/validate/scripts/check_stop_condition.py"
+        sha256: "d51926566b82fde3bc4d4d602cc41b5bbfa8e8419f1bfdcb03cbb3d76e6b615d"
+        identical: true
+      - path: "core/components/plays/validate/scripts/session_stamp.py"
+        sha256: "ce6141800925429682871c1079e458ac9de47388f07422aaf5b706a6b833fbbd"
+        identical: true
+    verdict: "All 12 copies (6 plays x check_stop_condition.py + session_stamp.py: deploy, fix-bug, implement, launch, refactor, validate) are byte-identical to the play-creator reference already reviewed under PR #471/#472. No new finding emitted for these files under CODE-03/04/09-15/17/19/20 or ARCH-02/03/08 — content unchanged from a prior clean review."
+  measured_shape_new_scripts:
+    tooling: "lizard -C 15 -L 60 (thresholds shown for warning display only; actual pass/fail evaluated against KB quality/code/complexity-structure.md CODE-09 CCN<=10, CODE-10 length<=50, CODE-12 module<=300)"
+    scope: "diff-added extended play scripts only — check_behavior_preserved.py (refactor), stamp_epic.py (validate), check_close_gate.py (launch). deploy/SKILL.md Step 6 posting-contract and merge-change machine-field additions are prose/config, not measured by lizard."
+    results:
+      - file: core/components/plays/refactor/scripts/check_behavior_preserved.py
+        module_nloc: 74
+        functions:
+          - {name: _load, ccn: 2, length: 3}
+          - {name: _is_green, ccn: 5, length: 5}
+          - {name: _assertion_counts, ccn: 6, length: 9}
+          - {name: main, ccn: 10, length: 55}
+        verdict: "CODE-09 pass (max CCN 10 <= 10); CODE-10 FAIL on main() (55 > 50); CODE-12 pass (module 123 lines < 300)"
+      - file: core/components/plays/validate/scripts/stamp_epic.py
+        module_nloc: 81
+        functions:
+          - {name: main, ccn: 22, length: 83}
+        verdict: "CODE-09 FAIL (22 > 10); CODE-10 FAIL (83 > 50); CODE-12 pass (module 126 lines < 300)"
+      - file: core/components/plays/launch/scripts/check_close_gate.py
+        module_nloc: 40
+        functions:
+          - {name: main, ccn: 5, length: 33}
+        verdict: "CODE-09 pass; CODE-10 pass; CODE-12 pass (module 71 lines < 300)"
   code_20_naming_check:
-    scope: "path:**/* matched all 28 changed_paths"
-    result: "No violation — every changed file/dir name in the diff is kebab-case or snake_case (gate-config.md, approval-prompt.md, ice.md, stop-condition.yaml, check_stop_condition.py, merge-change/propose-change/review-change/start-change dirs); SKILL.md/context filenames follow existing repo-wide fixed conventions, not new drift"
-  security_scan: "No secrets, injection patterns, or credentials found in the added gates: config.yaml block or gate-config.md/approval-prompt.md prose (manually verified as a sanity check even though grep rules are categorically ineligible on garura-prose/stm-evidence artifact types)"
+    scope: "path:**/* matched all 37 changed_paths"
+    result: "No violation — every changed file/dir name in the diff is kebab-case or snake_case (check_behavior_preserved.py, stamp_epic.py, check_close_gate.py, check_stop_condition.py, session_stamp.py, stop-condition.yaml, gate-config.md); SKILL.md/ice.md/context filenames follow existing repo-wide fixed conventions, not new drift"
+  security_scan: "No secrets, injection patterns, or credentials found in the added Python scripts, SKILL.md posting-contract prose, or gate-config.md/stop-condition.yaml additions (manually verified as a sanity check even though grep rules are categorically ineligible on garura-prose/stm-evidence artifact types)"

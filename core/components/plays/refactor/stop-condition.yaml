@@ -1,0 +1,15 @@
+# refactor stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch B).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Paths are relative to the run's STM root ({stm_base}{issue}/).
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the refactor plan exists"
+      check: { type: artifact_exists, path: "evidence/refactor/refactor-plan.yaml" }
+    - id: D2
+      says: "the pre-refactor behavior baseline record exists"
+      check: { type: artifact_exists, path: "evidence/refactor/baseline-verdict.yaml" }
+    - id: D3
+      says: "behavior preservation is machine-recorded: green before AND after, no test weakened"
+      check: { type: field_equals, file: "evidence/refactor/preservation.yaml", field: "behavior_preserved", equals: true }
