@@ -1,0 +1,6 @@
+ M core/components/plays/commit-change/SKILL.md
+ M core/components/plays/commit-change/reference/ice.md
+ M core/components/plays/commit-change/scripts/execute_commits.py
+?? .garura/project/issues/465/
+?? core/components/plays/commit-change/scripts/check_stop_condition.py
+?? core/components/plays/commit-change/stop-condition.yaml

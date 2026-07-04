@@ -82,6 +82,37 @@ def fallback_parse(text):
             "exclusions": [{"path": p} for p in exclusions]}
 
 
+def normalize_subject(subject, commit_type, scope, issue):
+    """The plan carries a BARE subject; the executor owns the conventional wrapper
+    (C3, #465 defect 1). Defensively strip a pre-formatted prefix/issue-ref an
+    agent wrote anyway, instead of doubling them."""
+    s = (subject or "").strip()
+    # strip one leading "type(scope): " or "type: " wrapper (repeat-safe)
+    prefix = re.compile(r"^[a-z]+(\([\w./-]+\))?\s*:\s*", re.I)
+    while prefix.match(s):
+        s = prefix.sub("", s, count=1)
+    # strip trailing "(#123)" issue refs
+    s = re.sub(r"\s*\(#\d+\)\s*$", "", s).strip()
+    return s
+
+
+def split_ignored(files, exclusions, reasons):
+    """Pre-check every planned path against the repo's ignore rules (C4,
+    #465 defect 3): an ignored path becomes a recorded exclusion, never a
+    mid-plan `git add` failure."""
+    keep = []
+    for f in files:
+        res = subprocess.run(["git", "check-ignore", "-q", "--", f],
+                             capture_output=True, text=True)
+        if res.returncode == 0:
+            if f not in exclusions:
+                exclusions.append(f)
+            reasons[f] = "gitignored — excluded by repository ignore rules"
+        else:
+            keep.append(f)
+    return keep
+
+
 def normalize_group(g):
     """Defensive alias mapping (the schema contract is analysis-output.md; this
     absorbs drift instead of failing the run): `name` -> `id`, `type` ->
@@ -106,6 +137,10 @@ def main():
     ap.add_argument("--analysis", required=True)
     ap.add_argument("--issue", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--run-state-dir", default=None,
+                    help="the play's own run-artifact dir (e.g. the issue's "
+                         "context/); committed as the final chore(stm) group so "
+                         "the tree hands off clean (C4, #465 defect 2)")
     args = ap.parse_args()
 
     branch = run_git(["branch", "--show-current"])
@@ -130,12 +165,13 @@ def main():
 
     commits = []
     for g in groups:
-        files = g.get("files") or []
+        files = split_ignored(g.get("files") or [], excl_paths, excl_reasons)
         if not files:
             continue
         scope = g.get("scope") or "core"
-        subject = (g.get("subject") or "").strip()
         issue = g.get("issue") or args.issue
+        subject = normalize_subject(g.get("subject"), g.get("commit_type"),
+                                    scope, issue)
         msg = f"{g.get('commit_type', 'chore')}({scope}): {subject} (#{issue})"
         try:
             # Pathspec-limited commit (C2/F1): the index may already hold OTHER
@@ -154,34 +190,68 @@ def main():
         commits.append({"sha": run_git(["rev-parse", "--short", "HEAD"]),
                         "message": msg, "files": files})
 
-    porcelain = run_git(["status", "--porcelain"], check=False)
-    leftovers = [l[3:].strip().strip('"') for l in porcelain.splitlines() if l.strip()]
-    uncovered = [p for p in leftovers
-                 if not any(p.startswith(e.rstrip("/")) for e in excl_paths)]
+    def porcelain_leftovers():
+        porcelain = run_git(["status", "--porcelain"], check=False)
+        left = [l[3:].strip().strip('"') for l in porcelain.splitlines() if l.strip()]
+        return [p for p in left
+                if not any(p.startswith(e.rstrip("/")) for e in excl_paths)]
 
-    with open(args.out, "w", encoding="utf-8") as fh:
-        fh.write("commits:\n")
-        for c in commits:
-            fh.write(f"  - sha: {c['sha']}\n")
-            fh.write(f"    message: \"{c['message']}\"\n")
-            fh.write("    files:\n")
-            for f in c["files"]:
-                fh.write(f"      - {f}\n")
-            fh.write(f"    branch: {branch}\n")
-        fh.write("excluded_files:\n")
-        if excl_paths:
-            for p in excl_paths:
-                fh.write(f"  - path: \"{p}\"\n")
-                fh.write(f"    reason: \"{excl_reasons.get(p, '')}\"\n")
-        else:
-            fh.write("  []\n")
-        fh.write(f"clean_after: {str(not uncovered).lower()}\n")
-        fh.write("push: false\n")
+    def write_out(uncovered, run_state_commit):
+        with open(args.out, "w", encoding="utf-8") as fh:
+            fh.write("commits:\n")
+            for c in commits:
+                fh.write(f"  - sha: {c['sha']}\n")
+                fh.write(f"    message: \"{c['message']}\"\n")
+                fh.write("    files:\n")
+                for f in c["files"]:
+                    fh.write(f"      - {f}\n")
+                fh.write(f"    branch: {branch}\n")
+            fh.write("excluded_files:\n")
+            if excl_paths:
+                for p in excl_paths:
+                    fh.write(f"  - path: \"{p}\"\n")
+                    fh.write(f"    reason: \"{excl_reasons.get(p, '')}\"\n")
+            else:
+                fh.write("  []\n")
+            # machine fields — the play's Done means checks these (#464/#465):
+            fh.write(f"leftover_count: {len(uncovered)}\n")
+            fh.write(f"tree_clean: {str(not uncovered).lower()}\n")
+            fh.write("pushed: false\n")
+            fh.write(f"run_state_committed: {str(bool(run_state_commit)).lower()}\n")
+
+    # Final chore group (#465 defect 2): the play's own run artifacts — including
+    # this very output file — land in a chore(stm) commit so the tree hands off
+    # clean. The output is written first (predicting the post-commit state), then
+    # committed; the recheck after proves the prediction or surfaces the dirt for
+    # the loop's next round.
+    run_state_sha = None
+    if args.run_state_dir:
+        uncovered_now = [p for p in porcelain_leftovers()
+                         if not p.startswith(args.run_state_dir.rstrip("/"))]
+        write_out(uncovered_now, True)
+        try:
+            run_git(["add", "--", args.run_state_dir])
+            run_git(["commit", "-m",
+                     f"chore(stm): record commit-change run artifacts (#{args.issue})",
+                     "--", args.run_state_dir])
+            run_state_sha = run_git(["rev-parse", "--short", "HEAD"])
+        except RuntimeError as e:
+            print(json.dumps({"error": str(e), "group": "run-state"}))
+            return 4
+        uncovered = porcelain_leftovers()
+        if uncovered:  # prediction missed — rewrite honestly; the loop re-rounds
+            write_out(uncovered, True)
+    else:
+        uncovered = porcelain_leftovers()
+        write_out(uncovered, False)
 
     print(json.dumps({
         "commits": [{"sha": c["sha"], "message": c["message"]} for c in commits],
+        "run_state_commit": run_state_sha,
         "branch": branch,
         "leftover_uncovered": uncovered,  # play policy: F3 if non-empty
+        "leftover_count": len(uncovered),
+        "tree_clean": not uncovered,
         "out": args.out,
         "pushed": False,
     }, indent=2))

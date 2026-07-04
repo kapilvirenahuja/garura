@@ -1,0 +1,27 @@
+commits:
+  - sha: 21be7bf
+    message: "feat(components): recompile commit-change play with loop workflow and stop-condition manifest (#465)"
+    files:
+      - core/components/plays/commit-change/reference/ice.md
+      - core/components/plays/commit-change/SKILL.md
+      - core/components/plays/commit-change/scripts/execute_commits.py
+      - core/components/plays/commit-change/stop-condition.yaml
+      - core/components/plays/commit-change/scripts/check_stop_condition.py
+    branch: feature/465-commit-change-goal-loop
+  - sha: 55ad31f
+    message: "chore(stm): record commit-change pilot context for #465 (#465)"
+    files:
+      - .garura/project/issues/465/context/work-description.txt
+      - .garura/project/issues/465/context/issue.json
+      - .garura/project/issues/465/context/branch.json
+      - .garura/project/issues/465/context/porcelain.txt
+    branch: feature/465-commit-change-goal-loop
+excluded_files:
+  - path: ".garura/project/issues/465/status/session-stamp-commit-change.json"
+    reason: "play run-state directory — mutated by the running play itself; committed later by an stm chore commit, never by its own run"
+  - path: ".garura/project/issues/465/status/session-stamp-start-change.json"
+    reason: "play run-state directory — mutated by the running play itself; committed later by an stm chore commit, never by its own run"
+leftover_count: 0
+tree_clean: true
+pushed: false
+run_state_committed: true
