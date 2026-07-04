@@ -36,6 +36,7 @@ session_id: {Claude Code session UUID from session_stamp.py, or null}
 ledger_file: {path to the session's JSONL ledger, or null}
 ledger_start_offset: {ledger byte size at play pre-flight, or null}
 ledger_end_offset: {ledger byte size at play close, or null}
+stop_condition: held | unmet | not_defined
 ---
 
 # {Play Title} Evidence — {slug or issue}
@@ -86,6 +87,16 @@ audit entries or Vanish).}
 |-------|----------|------------|------|
 | {field path} | blocker \| warning | RESOLVED \| Vanish | {user's resolution text} |
 
+## Stop Condition
+{Only when the play carries a baked stop-condition.yaml (#464). The Step C0
+verdict — one row per done-clause, statuses verbatim from
+check_stop_condition.py. On `held` this section may be a single summary line;
+on `unmet` every unmet clause is listed — the reason the run closed HALTED.}
+
+| Clause | Says | Status | Detail |
+|--------|------|--------|--------|
+| {D-id} | {human sentence} | held \| unmet \| error | {evaluated detail} |
+
 ## Gate Outcomes
 {Only when the run executed the quality lens's binding cards (#462, via
 run-quality-gates). One row per card in quality-gates.yaml — nothing dropped:
@@ -128,6 +139,7 @@ the close chain follows acceptance".}
 | `status` | `COMPLETED` on normal close; `HALTED` on explicit user Vanish; `ABORTED` on unrecoverable failure. |
 | `exit_reason` | Short token describing why the run ended. Specific values are per-play. |
 | `session_id` / `ledger_*` | The session identity stamp (#463), copied verbatim from `session_stamp.py --phase close`. The offline join key for spend attribution — a run's exact token cost is computable later from the ledger slice `[start_offset, end_offset)`. Null when the ledger was unresolved; never fabricate. |
+| `stop_condition` | The Step C0 verdict (#464), verbatim from `check_stop_condition.py`. `held` is the only value that permits `status: COMPLETED`; `unmet` (or an unevaluable `error`) forces `HALTED` with `exit_reason: stop_condition_unmet` and the Stop Condition section filled. `not_defined` only for legacy plays whose recompile has not yet baked a manifest. |
 | Step Eval Results | Must list EVERY SE-n defined in the compiled play — no silent skips. PASS / FAIL only; DEFERRED / N-A are allowed if the corresponding step was not reached (e.g., Vanish cleanup path). |
 | Scenario Eval Results | Must list EVERY SCE-n defined in the compiled play. |
 | Checkpoint Decisions | One row per checkpoint cycle. Orbit retries produce multiple rows for the same stage. |

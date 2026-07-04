@@ -225,6 +225,40 @@ def main(argv):
                         if pf_ok else "Pre-flight references scripts/preflight.py but the "
                                       "file is missing — stamp it from references/preflight.py"))
 
+    # --- stop condition (#464; gated: only when the ICE declares Done means) -
+    # A play whose reference/ice.md carries "### Done means" must be compiled
+    # with a baked stop-condition.yaml (>=1 content.done clause, each with a
+    # closed-set check type) and the stamped checker script. Plays without the
+    # ICE section are legacy and skip this check entirely (non-breaking).
+    play_dir_sc = os.path.dirname(os.path.abspath(argv[1]))
+    ice_path = os.path.join(play_dir_sc, "reference", "ice.md")
+    ice_text = ""
+    if os.path.isfile(ice_path):
+        with open(ice_path, encoding="utf-8") as fh:
+            ice_text = fh.read()
+    if re.search(r"(?im)^###\s+Done means\b", ice_text):
+        sc_path = os.path.join(play_dir_sc, "stop-condition.yaml")
+        chk_path = os.path.join(play_dir_sc, "scripts", "check_stop_condition.py")
+        sc_problems = []
+        if not os.path.isfile(sc_path):
+            sc_problems.append("stop-condition.yaml missing — bake it from the ICE's Done means")
+        else:
+            with open(sc_path, encoding="utf-8") as fh:
+                sc_text = fh.read()
+            clause_types = re.findall(r"type:\s*([a-z_]+)", sc_text)
+            if not clause_types:
+                sc_problems.append("stop-condition.yaml has no content.done clauses")
+            bad_types = [t for t in clause_types
+                         if t not in {"artifact_exists", "field_equals", "gate_outcomes_pass"}]
+            if bad_types:
+                sc_problems.append("unknown check type(s): " + ", ".join(sorted(set(bad_types))))
+        if not os.path.isfile(chk_path):
+            sc_problems.append("scripts/check_stop_condition.py missing — stamp it from "
+                               "references/check_stop_condition.py")
+        results.append((not sc_problems, "stop condition (#464)",
+                        "Done means baked: manifest + checker present, clause types valid"
+                        if not sc_problems else "; ".join(sc_problems)))
+
     # --- fingerprint --------------------------------------------------------
     meta = section_body(text, "Compilation Metadata") or ""
     fp = re.search(r"(?im)fingerprint.*", meta)
@@ -233,6 +267,36 @@ def main(argv):
     results.append((not bad, "fingerprint",
                     "present" if not bad
                     else "missing or placeholder — compute a real one with shasum -a 256"))
+
+    # --- next-command recommendation (pipeline-next.md) ---------------------
+    # A compiled play with a valid position must resolve in the successor map and
+    # render a Next line at close — unless it is meta_exempt. Non-breaking: only
+    # runs when the play has a valid position AND pipeline-next.md is found.
+    if fm and pos_ok:
+        nm = re.search(r"(?m)^name:\s*(\S+)", fm.group(1))
+        play_name = (nm.group(1).strip().strip("\"'") if nm
+                     else os.path.basename(os.path.dirname(os.path.abspath(argv[1]))))
+        play_dir = os.path.dirname(os.path.abspath(argv[1]))
+        map_path = os.path.normpath(os.path.join(
+            play_dir, "..", "..", "memory", "standards", "rules", "pipeline-next.md"))
+        if os.path.isfile(map_path):
+            with open(map_path, encoding="utf-8") as fh:
+                mp = fh.read()
+            after_exempt = re.split(r"meta_exempt:", mp)[1] if "meta_exempt:" in mp else ""
+            exempt = set(re.findall(r"(?m)^\s*-\s*([a-z0-9-]+)\s*$", after_exempt))
+            mapped = set(re.findall(r"(?m)^\s{2,}([a-z0-9-]+):\s*\{", mp))
+            if play_name in exempt:
+                results.append((True, "next-command (pipeline-next)",
+                                f"{play_name} is meta_exempt — no Next required"))
+            else:
+                in_map = play_name in mapped
+                renders = "pipeline-next.md" in text
+                ok = in_map and renders
+                detail = ("resolves in pipeline-next.md and the close renders Next" if ok
+                          else f"{play_name} has no entry in pipeline-next.md (add one, or meta_exempt it)"
+                          if not in_map
+                          else "the close does not render the Next line from pipeline-next.md")
+                results.append((ok, "next-command (pipeline-next)", detail))
 
     # --- report -------------------------------------------------------------
     gaps = [r for r in results if not r[0]]
