@@ -1,0 +1,79 @@
+# categories.yaml — work-category assessment for PR #479 (issue #478)
+# derived from the diff content, not a presumed catalog (per review/_index.md)
+
+categories:
+  - id: harness
+    description: >
+      The play's own behaviour code — install-garura's SKILL.md (adds a --scope
+      option and its direct-edit deviation note) plus the scripts that implement
+      that option (a new SCOPES membership table and an `allow` filter threaded
+      through both host adapters). These files together are what the play
+      *does*, so they're one category, not split by file extension.
+    evidence:
+      - core/components/plays/install-garura/SKILL.md
+      - core/components/plays/install-garura/scripts/install.py
+      - core/components/plays/install-garura/scripts/adapters/claude.py
+      - core/components/plays/install-garura/scripts/adapters/codex.py
+    playbook: review/harness
+    playbook_path: /Users/kapilahuja/.garura/core/memory/knowledge/review/harness.md
+    layers: [1, 2]
+    note: >
+      Design-bearing — Layer 2 (design-grounding) applies. Not run in this task
+      (this contract's output is categories.yaml only); a follow-on design-findings
+      pass should reconstruct the play-pipeline / direct-edit-deviation rules from
+      committed sources (CLAUDE.md's "Play Pipeline Rules", docs/adr/**) before
+      judging conformance.
+
+  - id: config-maps
+    description: >
+      garura's own install manifest — a generated, path-listing record of what
+      install-garura laid into this repo's .claude/. The diff trims it from the
+      full 86-component set down to a 21-component harness set (4 agents / 10
+      skills / 7 plays), matching the new SCOPES["harness"] table, and adds a
+      "trimmed" note.
+    evidence:
+      - .garura/install-manifest.json
+    playbook: review/config-maps
+    playbook_path: /Users/kapilahuja/.garura/core/memory/knowledge/review/config-maps.md
+    layers: [1]
+    note: >
+      Layer 1 only (path-existence / membership check against SCOPES["harness"]);
+      no design-grounding per playbook.
+
+  - id: stm-pipeline-evidence
+    description: >
+      Generated per-issue evidence written by the review/commit pipeline itself
+      (change analysis, branch/commit metadata, the GitHub issue and PR records,
+      git porcelain snapshot, resolved self-review rules, the self-review
+      checklist, and the plain-English work description). These are the play
+      run's own output artifacts under .garura/project/issues/478/context/, not
+      hand-authored design, docs, or code.
+    evidence:
+      - .garura/project/issues/478/context/analysis.yaml
+      - .garura/project/issues/478/context/branch.json
+      - .garura/project/issues/478/context/commits.yaml
+      - .garura/project/issues/478/context/issue.json
+      - .garura/project/issues/478/context/porcelain.txt
+      - .garura/project/issues/478/context/pr.json
+      - .garura/project/issues/478/context/resolved-rules.json
+      - .garura/project/issues/478/context/self-review.md
+      - .garura/project/issues/478/context/work-description.txt
+    playbook: null
+    playbook_note: >
+      playbook missing — none of the seeded review/ categories (adrs, docs,
+      harness, memory, code, config-maps, tests) cover generated STM/pipeline
+      evidence files. A follow-up playbook (e.g. review/stm-evidence.md) is
+      needed to say who reviews these and whether any check applies beyond
+      "does it match what the pipeline actually did" (already partly covered
+      by self-review.md's own checklist).
+    layers: []
+
+absent_categories_checked:
+  - adrs: no docs/adr/** paths in the diff
+  - docs: no docs/** or README/CHANGELOG paths in the diff
+  - memory: no memory/** paths in the diff
+  - code: no non-harness executable source outside core/components/plays/** in the diff
+  - tests: no test files in the diff
+
+changed_paths_count: 14
+categorized_paths_count: 14
