@@ -1,0 +1,6 @@
+decision: approve
+reason: "Human pre-authorized this run through merge (dispatch instruction). Recommended verdict was approve (0 P1, 3 P3 findings — all mechanical shape findings on garura-prose scripts, none blocking). Human decision recorded as approve per pre-authorization, matching the recommendation."
+recommended_verdict: approve
+blocking_findings: []
+recorded_by: repo-orchestrator
+recorded_at: "2026-07-04T11:35:00+00:00"
