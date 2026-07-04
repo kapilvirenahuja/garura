@@ -73,6 +73,14 @@ python3 scripts/preflight.py --play review-change \
     --config .garura/core/config.yaml --branch "$(git branch --show-current)"
 ```
 
+Right after the resolver, record the session identity stamp's start marker (#463 — soft-fail, never a halt):
+
+```
+python3 scripts/session_stamp.py --phase start \
+    --marker "{stm_base}{issue}/status/session-stamp-review-change.json" \
+    --cwd "$(pwd)" --branch "$(git branch --show-current)"
+```
+
 The open-PR check, `gh` availability, the standards set, the review-knowledge shelf path, and
 the PR diff/`changed_paths`/base ref are live host state resolved through repo-orchestrator
 (kept in the table), not the resolver. Record the resolved shelf path, the standards set, the
@@ -245,6 +253,10 @@ delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-repor
 ts=$(date -u +%Y%m%d-%H%M%S)
 evidence_dest="${evidence_base}${ts}.md"
 mkdir -p "$(dirname "$evidence_dest")"
+
+# Session identity stamp (#463) — close phase; start phase ran at pre-flight
+session_stamp=$(python3 scripts/session_stamp.py --phase close \
+    --marker "${stm_base}${issue}/status/session-stamp-review-change.json")
 ```
 
 **Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag (global +
@@ -255,7 +267,9 @@ Otherwise fill the `evidence-file.md` slots (play `review-change`, run_id
 `context.yaml`, `categories.yaml`, `quality-findings.yaml`, `design-findings.yaml`,
 `findings.yaml`, `recommended_verdict.yaml`, `decision.yaml`, the PR comment URL; step/scenario
 eval results; the human decision as the terminal status; commit reference `N/A — no commit
-step`) and write to `$evidence_dest`. Do NOT hand-author the body.
+step`; and the session identity stamp fields from $session_stamp (#463): session_id,
+ledger_file, ledger_start_offset, ledger_end_offset (null when unresolved — never blocks the
+close)) and write to `$evidence_dest`. Do NOT hand-author the body.
 
 **Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
 report: `## review-change Delivered — #${issue}` (lead with the human's decision), the Run
@@ -333,3 +347,7 @@ cite a basis, and ends at one mandatory human gate that owns the approve/reject 
 `preflight.py` is unchanged. New domain agent `change-reviewer` added (categorization +
 design-grounding); `quality-auditor` reused for the standards linter. The fingerprint reflects
 the rewritten `reference/ice.md`.
+
+## Direct-edit deviation note (#463, session identity stamp)
+
+Non-intent change: the Standard Play Close gained the session identity stamp — `scripts/session_stamp.py` (canonical copy: `play-creator/references/session_stamp.py`) runs `--phase start` at pre-flight and `--phase close` in the close block; the evidence frontmatter carries session_id / ledger_file / ledger_start_offset / ledger_end_offset. Source of truth: `standards/rules/play-close.md`; play-creator emits the same lines so a rebuild converges. No constraint, failure, scenario, or eval changed; the fingerprint stands.

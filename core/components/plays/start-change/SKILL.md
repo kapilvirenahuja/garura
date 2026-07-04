@@ -144,6 +144,14 @@ agents' on-disk outputs, confirming the work went through the reused skills, not
 `gh`/`git` commands in play prose.
 
 **Step 5 — Initialize STM Workspace** · Owner: play · Depends on: Step 4
+Record the session identity stamp's start marker first (#463 — soft-fail, never a halt); the stamp start runs here rather than at pre-flight because pre-flight has no issue yet:
+
+```
+python3 scripts/session_stamp.py --phase start \
+    --marker "{stm_base}{issue}/status/session-stamp-start-change.json" \
+    --cwd "$(pwd)" --branch "$(git branch --show-current)"
+```
+
 Run the mechanical script (it creates the five permitted structure keys idempotently):
 
 ```
@@ -185,6 +193,10 @@ delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-repor
 ts=$(date -u +%Y%m%d-%H%M%S)
 evidence_dest="${evidence_base}${ts}.md"
 mkdir -p "$(dirname "$evidence_dest")"
+
+# Session identity stamp (#463) — close phase; start phase ran at Step 5
+session_stamp=$(python3 scripts/session_stamp.py --phase close \
+    --marker "${stm_base}${issue}/status/session-stamp-start-change.json")
 ```
 
 **Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag
@@ -193,7 +205,9 @@ When it resolves false, skip the write and record `evidence skipped (record=fals
 the delivery report's pointer line. Otherwise fill the `evidence-file.md` slots (play
 `start-change`, run_id `start-change-${ts}`, issue, started_at/completed_at, status,
 artifacts produced: `issue.json`, `branch.json`, the STM workspace; step/scenario eval
-results; checkpoint decisions from Step 2; commit reference `N/A — no commit step`) and
+results; checkpoint decisions from Step 2; commit reference `N/A — no commit step`; and
+the session identity stamp fields from $session_stamp (#463): session_id, ledger_file,
+ledger_start_offset, ledger_end_offset (null when unresolved — never blocks the close)) and
 write to `$evidence_dest`. Do NOT hand-author the body.
 
 **Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
@@ -260,3 +274,7 @@ table). The script is the canonical resolver stamped from
 `play-creator/references/preflight.py`; a rebuild reproduces it (play-creator step 4).
 Non-intent change — no constraint, failure, scenario, eval, or `reference/ice.md` touched, so
 the fingerprint stands and no recompile is required. Direct edit; no recompile needed.
+
+## Direct-edit deviation note (#463, session identity stamp)
+
+Non-intent change: the Standard Play Close gained the session identity stamp — `scripts/session_stamp.py` (canonical copy: `play-creator/references/session_stamp.py`) runs `--phase start` at pre-flight and `--phase close` in the close block; the evidence frontmatter carries session_id / ledger_file / ledger_start_offset / ledger_end_offset. Source of truth: `standards/rules/play-close.md`; play-creator emits the same lines so a rebuild converges. No constraint, failure, scenario, or eval changed; the fingerprint stands.

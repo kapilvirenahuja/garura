@@ -72,6 +72,14 @@ python3 scripts/preflight.py --play commit-change \
     --porcelain-file <working>/porcelain.txt
 ```
 
+Right after the resolver, record the session identity stamp's start marker (#463 — soft-fail, never a halt):
+
+```
+python3 scripts/session_stamp.py --phase start \
+    --marker "{stm_base}{issue}/status/session-stamp-commit-change.json" \
+    --cwd "$(pwd)" --branch "$(git branch --show-current)"
+```
+
 It returns one JSON object of facts: `stm_base`, `ltm_project_target`, `evidence_record`,
 `platform`, `branch`, `issue`, `on_default_branch`, `changes_present`. The orchestrator reads
 those and applies the **policy** in the table above (the script resolves facts, the play
@@ -215,6 +223,10 @@ delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-repor
 ts=$(date -u +%Y%m%d-%H%M%S)
 evidence_dest="${evidence_base}${ts}.md"
 mkdir -p "$(dirname "$evidence_dest")"
+
+# Session identity stamp (#463) — close phase; start phase ran at pre-flight
+session_stamp=$(python3 scripts/session_stamp.py --phase close \
+    --marker "${stm_base}${issue}/status/session-stamp-commit-change.json")
 ```
 
 **Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag (global +
@@ -223,8 +235,10 @@ skip the write and record `evidence skipped (record=false)` in the report's poin
 Otherwise fill the `evidence-file.md` slots (play `commit-change`, run_id
 `commit-change-${ts}`, issue, started_at/completed_at, status, artifacts produced:
 `analysis.yaml`, `issue-mappings.yaml`, `commits.yaml`; step/scenario eval results;
-checkpoint decision from Step 3; commit reference = the created commit SHAs) and write to
-`$evidence_dest`. `analysis.yaml` and `issue-mappings.yaml` are written unconditionally in
+checkpoint decision from Step 3; commit reference = the created commit SHAs; and the
+session identity stamp fields from $session_stamp (#463): session_id, ledger_file,
+ledger_start_offset, ledger_end_offset (null when unresolved — never blocks the close)) and
+write to `$evidence_dest`. `analysis.yaml` and `issue-mappings.yaml` are written unconditionally in
 Steps 1–2. Do NOT hand-author the body.
 
 **Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
@@ -290,3 +304,7 @@ matches and content matches in runtime/config paths still hard-block. C6's guara
 unchanged: actual secrets never commit. The SKILL policy lines above were updated to
 read the scanner's per-entry `blocking` flag; `reference/ice.md` and the fingerprint are
 untouched.
+
+## Direct-edit deviation note (#463, session identity stamp)
+
+Non-intent change: the Standard Play Close gained the session identity stamp — `scripts/session_stamp.py` (canonical copy: `play-creator/references/session_stamp.py`) runs `--phase start` at pre-flight and `--phase close` in the close block; the evidence frontmatter carries session_id / ledger_file / ledger_start_offset / ledger_end_offset. Source of truth: `standards/rules/play-close.md`; play-creator emits the same lines so a rebuild converges. No constraint, failure, scenario, or eval changed; the fingerprint stands.

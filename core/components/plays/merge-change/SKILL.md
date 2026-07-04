@@ -62,6 +62,14 @@ python3 scripts/preflight.py --play merge-change \
     --config .garura/core/config.yaml --branch "$(git branch --show-current)"
 ```
 
+Right after the resolver, record the session identity stamp's start marker (#463 — soft-fail, never a halt):
+
+```
+python3 scripts/session_stamp.py --phase start \
+    --marker "{stm_base}{issue}/status/session-stamp-merge-change.json" \
+    --cwd "$(pwd)" --branch "$(git branch --show-current)"
+```
+
 The open-PR check, `gh` availability, the approval verdict, mergeability, and the
 already-merged check are live host state resolved through repo-orchestrator (kept in the
 table), not the resolver. If the PR is already merged, exit cleanly as a no-op (C5).
@@ -144,6 +152,10 @@ delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-repor
 ts=$(date -u +%Y%m%d-%H%M%S)
 evidence_dest="${evidence_base}${ts}.md"
 mkdir -p "$(dirname "$evidence_dest")"
+
+# Session identity stamp (#463) — close phase; start phase ran at pre-flight
+session_stamp=$(python3 scripts/session_stamp.py --phase close \
+    --marker "${stm_base}${issue}/status/session-stamp-merge-change.json")
 ```
 
 **Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag (global +
@@ -152,7 +164,9 @@ skip the write and record `evidence skipped (record=false)` in the report's poin
 Otherwise fill the `evidence-file.md` slots (play `merge-change`, run_id
 `merge-change-${ts}`, issue, started_at/completed_at, status, artifacts produced:
 `merge-gate.json`, the merge commit SHA; step/scenario eval results; checkpoint decision
-from Step 2; commit reference = the merge commit SHA) and write to `$evidence_dest`. Do
+from Step 2; commit reference = the merge commit SHA; and the session identity stamp fields
+from $session_stamp (#463): session_id, ledger_file, ledger_start_offset, ledger_end_offset
+(null when unresolved — never blocks the close)) and write to `$evidence_dest`. Do
 NOT hand-author the body.
 
 **Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
@@ -216,3 +230,7 @@ resolver stamped from `play-creator/references/preflight.py`; a rebuild reproduc
 (play-creator step 4). Non-intent change — no constraint, failure, scenario, eval, or
 `reference/ice.md` touched, so the fingerprint stands and no recompile is required. Direct
 edit; no recompile needed.
+
+## Direct-edit deviation note (#463, session identity stamp)
+
+Non-intent change: the Standard Play Close gained the session identity stamp — `scripts/session_stamp.py` (canonical copy: `play-creator/references/session_stamp.py`) runs `--phase start` at pre-flight and `--phase close` in the close block; the evidence frontmatter carries session_id / ledger_file / ledger_start_offset / ledger_end_offset. Source of truth: `standards/rules/play-close.md`; play-creator emits the same lines so a rebuild converges. No constraint, failure, scenario, or eval changed; the fingerprint stands.

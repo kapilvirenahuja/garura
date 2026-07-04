@@ -59,6 +59,16 @@ This is what lets a pilot tell the block worked even when evidence is off.
 Policy (who may record — plays only, never agents or skills) lives in
 `evidence-recording.md`; this block is the mechanism it switches.
 
+**Session identity stamp (#463).** Every run binds itself to the Claude Code
+session ledger that produced it via `scripts/session_stamp.py` (canonical copy:
+`play-creator/references/session_stamp.py`, stamped into each play's `scripts/`
+like `preflight.py`). Start phase runs at pre-flight (records session id,
+ledger file, byte offset into the play's status dir); close phase reads the
+marker and adds the end offset. The stamp costs one directory listing, one
+line read, and two file sizes — no parsing, no token summing (measure offline
+from the ledger slice; that is deliberate, see #463's re-scope). Soft-fail:
+an unresolved ledger yields null fields, never a blocked close.
+
 **`started_at` source (defined precedence, never fabricate).** In order:
 (1) the timestamp the play recorded at its own pre-flight, if it records one;
 (2) else the earliest checkpoint or evidence-file timestamp written this run;
@@ -87,6 +97,12 @@ delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-repor
 ts=$(date -u +%Y%m%d-%H%M%S)
 evidence_dest="${evidence_base}${ts}.md"
 mkdir -p "$(dirname "$evidence_dest")"
+# Session identity stamp (#463) — close phase; start phase ran at pre-flight:
+#   python3 scripts/session_stamp.py --phase start \
+#       --marker "${stm_base}${issue}/status/session-stamp-{play-name}.json" \
+#       --cwd "$(pwd)" --branch "$(git branch --show-current)"
+session_stamp=$(python3 scripts/session_stamp.py --phase close \
+    --marker "${stm_base}${issue}/status/session-stamp-{play-name}.json")
 ```
 
 **Step C1 — Write evidence file.** Gated by `evidence.record` (skip the write,
@@ -95,7 +111,13 @@ Otherwise fill the `evidence-file.md` slots; write the filled result to
 `$evidence_dest`. Do NOT hand-author the body — fill slots:
 - frontmatter: `play: {play-name}`, run_id `{play-name}-${ts}`, issue or
   product_slug, started_at / completed_at, status
-  (`COMPLETED` | `HALTED` | `ABORTED`), exit_reason.
+  (`COMPLETED` | `HALTED` | `ABORTED`), exit_reason, and the session identity
+  stamp fields from `$session_stamp` (#463): `session_id`, `ledger_file`,
+  `ledger_start_offset`, `ledger_end_offset`. The stamp is soft — when the
+  ledger could not be resolved the fields are null; the close never blocks on
+  it. These four fields are the offline join key: spend and behavior for this
+  exact run are computable later from that ledger slice (token-burn-dash),
+  with zero in-run summing.
 - Artifacts Produced: every artifact this run wrote (from `$evidence_base`,
   the play's output paths, and any commit SHAs).
 - Step Eval Results / Scenario Eval Results: list every eval the play

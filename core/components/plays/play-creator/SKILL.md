@@ -188,7 +188,11 @@ check with an action-on-failure (hard halt, graceful exit, or hard block).
 not orchestrator inference. Stamp the canonical resolver into the compiled play at
 `scripts/preflight.py`, copied verbatim from
 [`references/preflight.py`](references/preflight.py), and have the Pre-flight phase **call
-it** instead of resolving facts in prose. It parses config for the path tokens + the
+it** instead of resolving facts in prose. Stamp `scripts/session_stamp.py` the same way
+(verbatim from [`references/session_stamp.py`](references/session_stamp.py), #463) and have
+the Pre-flight phase run its `--phase start` right after the resolver — the close block's
+stamp step (play-close.md) reads the marker it writes. Soft-fail by design; never a
+pre-flight halt condition. It parses config for the path tokens + the
 resolved `evidence_record` (per-play override → global → true), extracts the issue from the
 branch, and reports `on_default_branch` and `changes_present` — returning one JSON object.
 The orchestrator captures the only two live reads (`git branch --show-current` and `git
