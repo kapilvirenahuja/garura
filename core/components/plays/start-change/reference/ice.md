@@ -26,6 +26,9 @@ the D2 pipeline-position rule injects into any other play declared `position: st
   setup-branch); do not reimplement issue or git logic inline.
 - C6 — Running it again for the same issue resumes the existing context; it does not
   create a second issue or branch.
+- C7 — The play ends by proving its Done means at close (gated, #464), and commits its
+  own run artifacts (issue.json, branch.json, work-description) on the fresh feature
+  branch at close — the workspace opens with a clean tree and its own record aboard.
 
 ### Failure conditions
 
@@ -35,6 +38,8 @@ the D2 pipeline-position rule injects into any other play declared `position: st
 - F4 — The play reports success but the STM workspace was never initialized.
 - F5 — A second run for the same issue duplicates the issue or branch instead of
   resuming.
+- F6 — The close proves nothing — the play closes COMPLETED without the Done means
+  held.
 
 ## Expectation
 
@@ -44,11 +49,13 @@ the D2 pipeline-position rule injects into any other play declared `position: st
   start-change runs, then a new tracked issue, a feature branch off latest main, and
   the STM workspace all exist. Measure: issue number exists; current branch matches
   `feature/<issue>-*`; the branch base is the current origin/main tip; the issue STM
-  folder exists.
+  folder exists; the run artifacts are committed on the branch; the stop-condition
+  verdict reads held.
 - S2 — (developer, existing issue) Given an issue number, when it runs, then it
   resolves that issue, lands on its feature branch, and initializes STM — without
   creating a new issue. Measure: no new issue created; the issue's branch exists; STM
-  folder exists.
+  folder exists; the run artifacts are committed on the branch; the stop-condition
+  verdict reads held.
 - S3 — (developer, resume) Given start-change already ran for an issue (branch and STM
   exist), when it runs again, then it switches to the existing branch and reuses STM.
   Measure: issue count and branch count unchanged; session ends on the existing branch.
@@ -56,6 +63,17 @@ the D2 pipeline-position rule injects into any other play declared `position: st
   then a worktree for the branch is set up; given config does not, none is made.
   Measure: `git worktree list` shows the worktree when the flag is on, and does not
   when it is off.
+
+### Done means
+
+- D1 — says: "the issue is anchored"
+  check: { type: artifact_exists, path: "context/issue.json" }
+- D2 — says: "the branch record exists"
+  check: { type: artifact_exists, path: "context/branch.json" }
+- D3 — says: "we are not on main"
+  check: { type: field_equals, file: "context/branch.json", field: "on_default_branch", equals: false }
+- D4 — says: "the STM workspace exists"
+  check: { type: artifact_exists, path: "specs" }
 
 ### Recovery (one per failure condition)
 
@@ -71,3 +89,6 @@ the D2 pipeline-position rule injects into any other play declared `position: st
 - REC5 (F5) — trigger: a second run would create a duplicate issue or branch.
   direction: detect the existing issue and branch and resume them instead of creating
   new ones. handoff: autonomous.
+- REC6 (F6) — trigger: the close would report COMPLETED without the Done means held.
+  direction: evaluate the stop condition and surface the unmet clauses; the run closes
+  HALTED until state is fixed. handoff: autonomous.

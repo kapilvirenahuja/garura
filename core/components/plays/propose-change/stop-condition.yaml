@@ -1,0 +1,15 @@
+# propose-change stop condition — baked from reference/ice.md "### Done means" (#464/#466).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Paths are relative to the run's STM root ({stm_base}{issue}/).
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the self-review exists"
+      check: { type: artifact_exists, path: "context/self-review.md" }
+    - id: D2
+      says: "the PR record exists"
+      check: { type: artifact_exists, path: "context/pr.json" }
+    - id: D3
+      says: "the PR targets main"
+      check: { type: field_equals, file: "context/pr.json", field: "base", equals: "main" }

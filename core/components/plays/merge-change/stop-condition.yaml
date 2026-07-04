@@ -1,0 +1,15 @@
+# merge-change stop condition — baked from reference/ice.md "### Done means" (#464/#466).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Paths are relative to the run's STM root ({stm_base}{issue}/).
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the merge gate is recorded"
+      check: { type: artifact_exists, path: "review/merge-gate.json" }
+    - id: D2
+      says: "the PR is merged"
+      check: { type: field_equals, file: "review/merge-gate.json", field: "pr_merged", equals: true }
+    - id: D3
+      says: "the branch is gone both sides"
+      check: { type: field_equals, file: "review/merge-gate.json", field: "branch_deleted", equals: true }
