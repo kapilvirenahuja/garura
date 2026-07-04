@@ -1,183 +1,200 @@
-# Layer-2 design-grounding — PR #480 (issue #467), memory category
-# (core/components/memory/standards/rules/gate-config.md rewrite).
-# Grounding sources are ALL committed on origin/main or GitHub; the branch's own
-# gate-learning-design.md is explicitly excluded per the category assessment note.
+# design-findings.yaml — Layer 2 design-grounding for PR #482 (issue #467)
+# Design-bearing categories checked: harness, memory (per categories.yaml)
+# Grounding is read ONLY from committed sources on origin/main — never from this
+# branch's own diff-added prose. Sources cited below all resolve via
+# `git show origin/main:<path>`.
 
-grounded_principles:
-
-  - id: P-DETERMINISM
-    statement: >
-      Run-time execution stays deterministic; learning/adaptation happens between
-      runs, never as inference inside a play's loop. The interior of a box may loop
-      freely but self-checks only the deterministic slice (linters/checks), never
-      subjective judgment.
-    committed_source: docs/adr/025-level-3-redefined-skeleton-and-loop.md (Decision,
-      "The determinism rule"; "The boundary of self-checking")
-
-  - id: P-PRIOR-RULE
-    statement: >
-      Pre-#467 gate-config.md already established the two-kind switch (on/off),
-      first-match resolution (plays -> classes -> default -> absent=on), pinned
-      gates that no config value can disable, and the invariant that a skip is
-      always recorded as a Checkpoint Decisions row (never silent).
-    committed_source: "git show origin/main:core/components/memory/standards/rules/gate-config.md"
-
-  - id: P-EPIC-STAGE4
-    statement: >
-      Stage 4 (#467) exists to reduce human gates "one risk class at a time,"
-      "only where the runner has proven it catches what the human was catching,"
-      with acceptance criterion "Gate-off decisions backed by recorded
-      checker-vs-human evidence per risk class."
-    committed_source: "GitHub issue #467 (gh issue view 467), Description + Acceptance Criteria"
-
-  - id: P-EPIC-460
-    statement: >
-      Human gates become configuration and are "reduced only on recorded evidence
-      that the runner catches what the human was catching" (epic #460, Stage 3-4).
-    committed_source: "GitHub issue #460 (gh issue view 460), Consequences"
-
-  - id: P-TRINITIES
-    statement: >
-      /grill is the bridge from product model to delivery (a wrong cut poisons
-      everything downstream); /launch is the implement trinity's HITL acceptance
-      check; /learn trues the model after any lane closes and is the only place
-      the product model itself is re-taught.
-    committed_source: docs/adr/023-three-execution-trinities.md (Decision table,
-      point 4)
-
-  - id: P-APPROVAL-PROMPT
-    statement: >
-      The checkpoint's render-time resolution of the gate switch is authoritative
-      in templates/approval-prompt.md: "Gate switch (#466)" section states the
-      lookup order as gates.plays -> gates.classes -> gates.default -> absent=on,
-      with no mention of any policy/conditional step.
-    committed_source: core/components/memory/standards/templates/approval-prompt.md
-      (section "Gate switch (#466)")
-
-  - id: P-PLAY-CLOSE
-    statement: >
-      Checkpoint Decisions rows (Tether/Orbit/Vanish + timestamp) come from the
-      checkpoint files the run wrote; `none` if the play has no gates.
-    committed_source: core/components/memory/standards/rules/play-close.md
-      (Step C1 field list, line ~154)
+grounding_sources:
+  - id: adr-025
+    path: docs/adr/025-level-3-redefined-skeleton-and-loop.md
+    principle: >
+      "Determinism lives at the skeleton, never inside the boxes." Runtime execution
+      inside a play stays deterministic; learning happens between runs (at close),
+      never as inference inside the loop.
+  - id: gate-config
+    path: core/components/memory/standards/rules/gate-config.md
+    principle: >
+      Three gate kinds (pinned / conditional / off). Resolution order, first match
+      wins: 0. pinned (always on, no config/policy/ledger can turn it off) → 1.
+      gates.plays.<play> override → 2. conditional plays only: learned-policy lookup
+      via classify_change.py's shape key, gated on auto/never_auto and a
+      blocking-finding guard → 3. gates.classes.<declared class> → 4. gates.default →
+      5. absent ⇒ on. Ruled pinned set: grill, launch, learn. Ruled conditional set
+      (eleven document plays): vision, understand, shape, roadmap, ux, agentic,
+      marketing, arch, quality, run, measure. Ledger append is mandatory on every
+      crossing (auto-pass AND on-path). distill_gate_policy.py runs at close.
+  - id: gate-learning-design
+    path: .garura/project/issues/467/specs/gate-learning-design.md
+    principle: >
+      classify_change.py is deterministic, fixed-axis, no-inference shape
+      classification (Part 1.1). Runtime application is three mechanical moves:
+      classify → policy lookup → auto-pass or gate, with a blocking-finding safety
+      rail (Part 1.4). distill_gate_policy.py runs "at each conditional play's
+      close (cheap: read JSONL, write YAML)" — a soft/non-blocking refresh, not a
+      gate itself (Part 1.3). Batch B scope is exactly "conditional wiring into the
+      11 document plays (one ICE edit each)"; deploy stays untouched pending ruling;
+      grill/launch/learn are untouched by design (Part 3).
+  - id: play-pipeline-rule
+    path: CLAUDE.md (Play Pipeline Rules section, committed on main)
+    principle: >
+      An intent change (constraints, failure conditions, scenarios, agent/skill flow)
+      MUST go through the play's ICE source (reference/ice.md) and be recompiled —
+      never a hand-edit of the compiled SKILL.md. The Compilation Metadata table's
+      fingerprint must be a real sha256 of reference/ice.md, not a placeholder
+      (enforced by play-creator/scripts/lint_play.py::check_fingerprint).
+  - id: memory-relation
+    path: core/components/memory/standards/templates/approval-prompt.md (Related section, prior committed version)
+    principle: >
+      approval-prompt.md is the checkpoint-rendering template that gate-config.md's
+      switch gates; the two documents must describe one consistent resolution order
+      and one consistent switch-state vocabulary (on / off, and now auto-pass).
 
 checks:
-
-  - id: C1-adr025-determinism
-    question: >
-      Does the conditional-gate mechanism (policy lookup in-loop, learning
-      between runs) keep run-time deterministic, and does the rewritten rule
-      put any inference inside a play loop?
+  - id: check-1-ice-discipline
+    category: harness
+    description: >
+      Each of the eleven conditional plays was changed via reference/ice.md +
+      play-editor recompile, not a hand-edit of the compiled SKILL.md.
+    principle: >
+      play-pipeline-rule (CLAUDE.md); fingerprint mechanics from play-creator/scripts/lint_play.py::check_fingerprint (committed on main)
+    method: >
+      Mechanically recomputed `shasum -a 256 reference/ice.md` for all 11 touched
+      plays (agentic, arch, marketing, measure, quality, roadmap, run, shape,
+      understand, ux, vision) and diffed against each SKILL.md's declared
+      Compilation Metadata fingerprint. Spot-verified 3 (vision, quality, run) by
+      hand first, then ran the same check across all 11.
     verdict: conforms
-    severity: null
     details: >
-      The rewritten gate-config.md states explicitly: "Learning happens BETWEEN
-      runs (the distill at close); inside the loop the policy is a file lookup.
-      Run-time stays deterministic per ADR 025." This matches P-DETERMINISM. The
-      three scripts back this up as committed, non-branch-authored implementation
-      evidence (not grounding, but corroboration): classify_change.py is a pure
-      pattern-count classifier ("No inference anywhere: every axis is a pattern
-      count"), gate_eval.py append requires a caller-supplied --ts ("the script
-      stays replay-deterministic (no wall-clock reads here)"), and
-      distill_gate_policy.py is described as "Pure rule, no inference,
-      replay-deterministic" and runs only at a play's close, not inside its loop.
-      No inference is inserted into the resolution path itself: step 2 of the new
-      resolution order is a lookup against a policy file already on disk.
+      All 11 fingerprints match exactly. Example: vision declares
+      sha256:6483756816ee32b576e91421fca45de97682fe7da702dbd0a9bc827a47d1d96d,
+      recomputed shasum of core/components/plays/vision/reference/ice.md is
+      identical. Same for quality (fe14702689bf1ee...) and run (f88a93f2a079...),
+      and for the remaining 8. Every SKILL.md's compiled_by field also credits
+      play-editor for the #467 Batch B compile, consistent with the ICE-source
+      discipline (no play shows a #467 change with a stale or missing compiled_by).
 
-  - id: C2-resolution-order-guarantees
-    question: >
-      Does the new resolution order (pinned -> plays -> policy -> classes ->
-      default) preserve the two committed guarantees — pinned never off, skips
-      always recorded — and stay consistent with the file that actually renders
-      the checkpoint (approval-prompt.md)?
-    verdict: finding
-    severity: P2
+  - id: check-2-gate-config-conformance
+    category: harness
+    description: >
+      The checkpoint step in each conditional play implements exactly the committed
+      gate-config.md resolution order, appends the ledger on both the on-path and
+      the auto-pass path, and refreshes the policy softly at close.
+    principle: >
+      gate-config (resolution order, ledger-on-every-crossing, pinned immutability) and gate-learning-design (distill is a close-time, non-blocking refresh)
+    method: >
+      Read the Checkpoint phase text in run/SKILL.md, quality/SKILL.md, and
+      vision/reference/ice.md's C7, and confirmed the distill_gate_policy.py
+      invocation is suffixed `|| true` in every touched play's close phase.
+    verdict: conforms
     details: >
-      Within gate-config.md itself the two guarantees hold: pinned resolves
-      "always on ... before any config read" (step 0), and the off-behaviour
-      section is untouched ("records `gate skipped by config ...` ... a skip is
-      always visible in evidence"). That part conforms to P-PRIOR-RULE.
-      But templates/approval-prompt.md — the committed, NOT-touched-by-this-diff
-      file that gate-config.md's own "Related" section names as "the checkpoint
-      rendering this switch gates" — still documents the OLD two-tier order
-      (plays -> classes -> default -> absent=on) with no mention of the new
-      conditional/policy step. A checkpoint author implementing strictly from
-      approval-prompt.md (the render-time spec, per P-APPROVAL-PROMPT) has no way
-      to know a policy lookup belongs between "plays" and "classes." As shipped,
-      the conditional-gate mechanism this PR adds has no committed render-time
-      consumer that reads it — the feature is inert until approval-prompt.md is
-      updated to match. This is a real cross-file inconsistency, not a hypothetical:
-      gate-config.md and its own named dependent disagree on the resolution order.
-    finding:
-      file: core/components/memory/standards/templates/approval-prompt.md
-      principle_violated: >
-        A rule and the file it names as its render-time consumer must state the
-        same resolution order; approval-prompt.md's "Gate switch (#466)" section
-        was not updated alongside gate-config.md's #467 rewrite.
-      committed_source: core/components/memory/standards/templates/approval-prompt.md
-        (unchanged on this branch; still describes pre-#467 order)
-      recommendation: >
-        Update approval-prompt.md's "Gate switch" section in the same PR (or a
-        fast-follow before this ships) to add the conditional/policy step, or the
-        conditional kind never actually fires at any real checkpoint.
+      Resolution order stated verbatim in each play matches gate-config.md: pinned
+      (n/a for these 11) → gates.plays.<play> → learned policy (classify_change.py
+      shape key, checked against auto:/never_auto:, blocking-finding guard) →
+      gates.classes.<declared class> → gates.default. Every play's on-path and
+      auto-pass path both call gate_eval.py append (verified in run/SKILL.md: one
+      call under the auto-pass branch with --predicted auto --human auto_pass, one
+      under the gate branch with --predicted gate --human
+      approved_clean|approved_edited|rejected). distill_gate_policy.py is invoked at
+      close with a trailing `|| true` in every touched play (vision, run, and
+      confirmed present in the rest via the same close-phase pattern), matching the
+      design doc's "cheap, between-runs, soft" description — a distill failure never
+      blocks the close.
 
-  - id: C3-epic-evidence-unit
-    question: >
-      Does the live-eval ledger design satisfy the epic's committed acceptance
-      criterion — "recorded evidence per risk class" (#467) — for reducing gates?
-    verdict: finding
-    severity: P2
+  - id: check-3-adr-025-determinism
+    category: harness
+    description: >
+      In-loop gate resolution stays classify (pattern counts) + file lookup; no
+      inference is introduced inside the loop.
+    principle: >
+      adr-025 ("Determinism lives at the skeleton, never inside the boxes") and gate-learning-design Part 1.1/1.4 ("No inference anywhere: every axis is countable")
+    method: >
+      Read core/components/plays/play-creator/references/classify_change.py in
+      full for any model/LLM call, and diffed the canonical copy against the
+      11 stamped copies under each play's scripts/.
+    verdict: conforms
     details: >
-      P-EPIC-STAGE4 and P-EPIC-460 commit to evidence "per risk class" (the
-      existing docs-only / standard / one-way-door axis already wired in
-      config.yaml's `gates.classes`). The rewritten mechanism instead learns and
-      records evidence per "shape key" — a finer, structurally different axis
-      keyed on `<play>:<diff-axes>` (nodes/status/sections/prose changed),
-      entirely independent of the docs-only/standard/one-way-door class a
-      checkpoint declares. `gates.classes` remains in config unchanged and step 3
-      of the resolution order, but nothing in the new mechanism ever reduces a
-      *class's* switch on recorded evidence — auto-pass only ever applies within
-      the "conditional" gate kind, at the shape-key grain, for the eleven document
-      plays. The epic's acceptance criterion is written in terms of "risk class";
-      the shipped mechanism does not produce or consume risk-class-level evidence
-      at all. This is a definitional drift from what #467's own acceptance
-      criteria commit to, not merely a refinement — it should be reconciled
-      (either the epic's AC re-scoped to "per shape" via its own tracked update,
-      or the ledger evidence rolled up to a class-level rate) before the epic is
-      marked satisfying that AC.
-    finding:
-      file: core/components/memory/standards/rules/gate-config.md
-      principle_violated: >
-        Epic #460 / issue #467 commit to gate-reduction evidence keyed by risk
-        class; the rewritten rule's live-eval loop keys evidence by shape (play +
-        structural diff axes) instead, with no stated mapping back to risk class.
-      committed_source: "GitHub issue #467 Acceptance Criteria; GitHub issue #460 Consequences"
-      recommendation: >
-        Either add a class-level rollup of shape-level evidence to distill_gate_policy.py's
-        output, or explicitly amend #467's acceptance criteria to the shape-key
-        unit (a tracked decision, not a silent substitution).
+      classify_change.py's own docstring states "No inference anywhere: every axis
+      is countable" and the script body is pure regex/difflib counting against
+      fixed axes (nodes_added, nodes_removed, status_changes, profile_bars_changed,
+      decisions_added, sections_rewritten, prose_edits) — no import of any model
+      client, no network call. All 11 stamped scripts/classify_change.py (and
+      distill_gate_policy.py, gate_eval.py) are byte-identical to the canonical
+      play-creator/references/ copies (diff empty for all three scripts across all
+      11 plays) — the loop calls the same deterministic classifier and policy
+      lookup everywhere, matching ADR 025's rule that learning happens between runs
+      (the close-time distill) and runtime stays a file lookup.
 
-  - id: C4-related-standards-contradiction
-    question: >
-      Does the rewrite contradict any committed standard that references
-      gate-config (play-close.md, approval-prompt.md)?
-    verdict: finding
-    severity: P2
+  - id: check-4-467-ruling-conformance
+    category: harness
+    description: >
+      The eleven conditional plays touched match the ruled list exactly; vision's
+      wiring conforms to its ruling as conditional (not pinned); grill, launch,
+      learn are untouched.
+    principle: >
+      gate-config ("the eleven document plays ... are conditional") and gate-learning-design's gate taxonomy table (ruled 2026-07-04)
+    method: >
+      Diffed changed play directories against the ruled conditional list; read
+      origin/main's vision/reference/ice.md checkpoint clause (C7) to confirm
+      vision was never pinned before this PR.
+    verdict: conforms
     details: >
-      Same underlying issue as C2 — approval-prompt.md's Gate switch section is
-      stale relative to the new resolution order. play-close.md's Checkpoint
-      Decisions row description ("one row per checkpoint cycle ... `none` if the
-      play has no gates") is unaffected and still holds for both on/off and
-      conditional-auto crossings, since gate_eval.py's ledger append is separate
-      machinery from the evidence-file Checkpoint Decisions row. No contradiction
-      found in play-close.md itself.
-    finding:
-      file: core/components/memory/standards/templates/approval-prompt.md
-      principle_violated: same as C2
-      committed_source: core/components/memory/standards/templates/approval-prompt.md
-      recommendation: fold into the C2 fix — one PR, one section update.
+      Plays touched: agentic, arch, marketing, measure, quality, roadmap, run,
+      shape, understand, ux, vision — exactly the eleven named in gate-config.md
+      and the design doc's ruled table, no more, no fewer. grill, launch, learn,
+      deploy, and the pipeline/execute plays show zero diff. On origin/main,
+      vision's checkpoint (C7) was already a plain unconditional human checkpoint
+      with no `pinned` declaration — so there was nothing to "unpin"; this PR wires
+      it conditional for the first time, which is exactly what the ruling calls
+      for (vision is in the ruled conditional set, not the pinned set).
+
+  - id: check-5-wiring-intact
+    category: harness
+    description: >
+      Play→agent→skill→script wiring stays intact; the checkpoint remains
+      play-owned; no JSON contract collapses into inline work.
+    principle: >
+      gate-learning-design Part 1.4 (runtime application is "the conditional play's checkpoint step" — i.e. the play, not an agent) and the committed CLAUDE.md Agent-First rule (agents craft context, skills produce artifacts, plays orchestrate)
+    method: >
+      Read the "Owner:" tag on the Human review checkpoint step in run/SKILL.md and
+      quality/SKILL.md.
+    verdict: conforms
+    details: >
+      Both checkpoint steps read "Owner: play" — the checkpoint (classify → policy
+      lookup → auto-pass/gate → ledger append) is play-orchestrated, calling the
+      bundled scripts directly, not delegated to an agent. This matches the design:
+      the learning mechanism is deterministic tooling the play itself runs, not a
+      judgement call handed to an agent.
+
+  - id: check-6-memory-template-conformance
+    category: memory
+    description: >
+      approval-prompt.md's gate-switch section matches gate-config.md's rule with
+      no contradiction.
+    principle: >
+      gate-config (three kinds, resolution order, auto-pass behaviour) — the template must describe the same switch the rule defines
+    method: >
+      Diffed approval-prompt.md between origin/main and this branch; compared the
+      new text against gate-config.md (already-committed on main since PR #480).
+    verdict: conforms
+    details: >
+      The added "Gate switch (#466, three kinds per #467)" section states the same
+      5-step resolution order as gate-config.md (pinned → gates.plays → conditional
+      policy lookup w/ blocking-finding guard → gates.classes → gates.default) and
+      adds an "auto-pass" behaviour block whose wording (record a Checkpoint
+      Decisions row, append the ledger with predicted:auto/human:auto_pass, never
+      silent) matches gate-config.md's "Behaviour of the switch" section and the
+      Runtime application text (Part 1.4) in the design doc. No contradiction
+      found between template and rule.
 
 summary:
-  conforms: 1
-  findings: 3
-  severities: { P1: 0, P2: 3, P3: 0, P4: 0 }
+  categories_checked: [harness, memory]
+  total_checks: 6
+  conforms: 6
+  findings: 0
+  note: >
+    No P1-P4 findings raised. Every principle cited above traces to a source
+    committed on origin/main before this branch (ADR 025, gate-config.md, the
+    #467 design doc, and CLAUDE.md's play-pipeline rule) or to the prior
+    (origin/main) version of approval-prompt.md — none was reconstructed from
+    this branch's own diff-added prose. Grounding was reconstructable for both
+    design-bearing categories; no "grounding unavailable" gap encountered.

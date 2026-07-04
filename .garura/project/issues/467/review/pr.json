@@ -1,6 +1,6 @@
 {
-  "number": 480,
-  "url": "https://github.com/kapilvirenahuja/garura/pull/480",
+  "number": 482,
+  "url": "https://github.com/kapilvirenahuja/garura/pull/482",
   "base": "main",
-  "headRefName": "feature/467-reduce-human-gates"
+  "headRefName": "feature/467-batch-b-conditional-gates"
 }
