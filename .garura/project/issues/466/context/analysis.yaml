@@ -1,0 +1,64 @@
+---
+# analyze_changeset.py output (C8 fast path) — grouped by analyze-changes agent pass
+# issue: 466
+needs_judgment: false
+
+change_groups:
+  - id: batch-a-play-recompiles
+    issue: 466
+    commit_type: feat
+    scope: components
+    subject: "recompile start/propose/review/merge-change plays onto the Level 3 pilot pattern"
+    files:
+      - core/components/plays/start-change/SKILL.md
+      - core/components/plays/start-change/reference/ice.md
+      - core/components/plays/start-change/stop-condition.yaml
+      - core/components/plays/start-change/scripts/check_stop_condition.py
+      - core/components/plays/propose-change/SKILL.md
+      - core/components/plays/propose-change/reference/ice.md
+      - core/components/plays/propose-change/stop-condition.yaml
+      - core/components/plays/propose-change/scripts/check_stop_condition.py
+      - core/components/plays/review-change/SKILL.md
+      - core/components/plays/review-change/reference/ice.md
+      - core/components/plays/review-change/stop-condition.yaml
+      - core/components/plays/review-change/scripts/check_stop_condition.py
+      - core/components/plays/merge-change/SKILL.md
+      - core/components/plays/merge-change/reference/ice.md
+      - core/components/plays/merge-change/stop-condition.yaml
+      - core/components/plays/merge-change/scripts/check_stop_condition.py
+
+  - id: batch-a-gate-switches
+    issue: 466
+    commit_type: feat
+    scope: standards
+    subject: "add the gate-config standard and wire the gate switch into approval prompts and config"
+    files:
+      - core/components/memory/standards/rules/gate-config.md
+      - core/components/memory/standards/templates/approval-prompt.md
+      - .garura/core/config.yaml
+
+  - id: batch-a-stm-context
+    issue: 466
+    commit_type: chore
+    scope: stm
+    subject: "record start-change and commit-change STM context and run-state for #466"
+    files:
+      - .garura/project/issues/466/context/porcelain.txt
+      - .garura/project/issues/466/context/issue.json
+      - .garura/project/issues/466/context/branch.json
+      - .garura/project/issues/466/context/work-description.txt
+      - .garura/project/issues/466/context/analysis.yaml
+      - .garura/project/issues/466/status/session-stamp-commit-change.json
+      - .garura/project/issues/466/status/session-stamp-start-change.json
+
+exclusions: []
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+
+eval_gates:
+  SE-1: {status: PASS, evidence: "grouped into 3 concerns per branch issue #466: components, standards, stm — no unrelated issues mixed in"}
+  SE-5: {status: PASS, evidence: "no sensitive patterns matched across modified/untracked files"}

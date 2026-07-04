@@ -1,0 +1,20 @@
+ M .garura/core/config.yaml
+ M core/components/memory/standards/templates/approval-prompt.md
+ M core/components/plays/merge-change/SKILL.md
+ M core/components/plays/merge-change/reference/ice.md
+ M core/components/plays/propose-change/SKILL.md
+ M core/components/plays/propose-change/reference/ice.md
+ M core/components/plays/review-change/SKILL.md
+ M core/components/plays/review-change/reference/ice.md
+ M core/components/plays/start-change/SKILL.md
+ M core/components/plays/start-change/reference/ice.md
+?? .garura/project/issues/466/
+?? core/components/memory/standards/rules/gate-config.md
+?? core/components/plays/merge-change/scripts/check_stop_condition.py
+?? core/components/plays/merge-change/stop-condition.yaml
+?? core/components/plays/propose-change/scripts/check_stop_condition.py
+?? core/components/plays/propose-change/stop-condition.yaml
+?? core/components/plays/review-change/scripts/check_stop_condition.py
+?? core/components/plays/review-change/stop-condition.yaml
+?? core/components/plays/start-change/scripts/check_stop_condition.py
+?? core/components/plays/start-change/stop-condition.yaml
