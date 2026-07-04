@@ -1,62 +1,23 @@
-# Consolidated review findings — PR #483 (issue #467, Stage 4 Batch C), 2026-07-04
-# Gate resolved OFF (gates.plays.review-change) → harness-verdict path.
-# Sources: design-findings.yaml (change-reviewer), quality-findings.yaml (quality-auditor),
-# play-run mechanical layer (executed this run).
-
+# Consolidated review findings — PR #485 (issue #467, Stage 4 Batch D), 2026-07-04
+# Gate OFF (gates.plays.review-change) → harness-verdict path.
 categories:
   harness:
     playbook: review/harness
-    layer1:
-      - check: "lint_play.py on all 5 chain plays (EXECUTED this run)"
-        result: "PASS 5/5, 0 gaps"
-        finding: null
+    layer1: {check: "lint_play.py on 4 execute plays (EXECUTED direct)", result: "PASS 4/4, 0 gaps", finding: null}
     layer2:
-      - source: design-findings.yaml
-        result: "5/5 conform from committed sources: (1) all 5 recompiled from ICE,
-          2 fingerprints re-verified; (2) each gate turned off in the SAME change that
-          adds its replacement check, skips recorded, machinery kept (config-reversible);
-          (3) exactly the ruled five touched — grill/launch/learn and the eleven
-          conditional plays untouched; (4) review-change harness verdict still always
-          posted + decider named (C9 held); (5) merge one-way-door CLASS untouched for
-          other plays"
-        finding: null
-  code:
-    playbook: review/code
-    layer1:
-      - check: "quality-check-scoped on the 4 script files + config (EXECUTED)"
-        result: "0 P1 / 0 P2 / 0 P3 / 0 P4 — lint clean, black clean, complexity within
-          limits (max 10/10, 38 lines, depth 2), single-responsibility"
-        finding: null
-      - check: "runnable — test_chain_checks.py EXECUTED"
-        result: "PASS 10/10"
-        finding: null
-      - check: "stamped-copy identity (EXECUTED)"
-        result: "PASS — validate_issue + check_self_review byte-identical to canonicals"
-        finding: null
-    note:
-      finding:
-        class: P4
-        summary: "scripts under core/components/** are classed 'prose' by the path
-          taxonomy, so pattern-based security rules can't fire on them — code read clean
-          regardless; a policy call (same family as #454), not a defect of this PR"
-        basis: "quality-check-scoped path classification"
+      source: design-findings.yaml
+      result: "5/5 conform from committed sources: all 4 fingerprints hand-verified;
+        gate off in the same change that adds its precondition, skips recorded, machinery
+        kept; fix-bug + implement unpinned correctly via ICE per the committed #467 ruling;
+        exactly the four plays touched, launch/grill/learn + the eleven conditional plays
+        untouched; every replacement check a real pre-existing wall (validate grounded
+        manifest, fix-bug rca+design+red-test, implement plan-lint+grounding+steelman,
+        refactor behavior-pin); implement open_question hard-halt-to-human preserved"
+      finding: null
   config-map:
     playbook: review/config-maps
-    layer1:
-      - check: "YAML validity + gates.plays five-off (EXECUTED)"
-        result: "PASS — valid; no config-map linter in-repo yet (pre-existing gap)"
-        finding: null
+    layer1: {check: "YAML valid + nine gates off (EXECUTED direct)", result: "PASS", finding: null}
   stm-records:
     playbook: null
-    finding:
-      class: P4
-      summary: "generated run-records unplaybooked — FOURTH flag (#478/#480/#482/#483);
-        seed knowledge/review/stm-records.md as a follow-up"
-      basis: "categories.yaml; shelf enumeration"
-
-summary:
-  P1: 0
-  P2: 0
-  P3: 0
-  P4: 2
-  runnable_suites_red: 0
+    finding: {class: P4, summary: "branch.json unplaybooked — recurring flag; seed knowledge/review/stm-records.md", basis: "categories.yaml"}
+summary: {P1: 0, P2: 0, P3: 0, P4: 1, runnable_suites_red: 0}

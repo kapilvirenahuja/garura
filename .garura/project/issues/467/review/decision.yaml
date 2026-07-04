@@ -1,11 +1,6 @@
 decision: approve
 decided_by: harness
-gate_resolution: "off (gates.plays.review-change) — Batch C config; harness-verdict path"
+gate_resolution: "off (gates.plays.review-change); harness-verdict path"
 recommendation_verbatim: 'approve ("no P1 findings; confidence acceptable")'
 decided_at: 2026-07-04
-citing_findings: "0 P1 / 0 P2 / 0 P3 / 2 P4 (both non-blocking follow-ups); all mechanical layers executed green"
-notes: >
-  First live exercise of the gateless review path. Design-grounding 5/5 conform from
-  committed sources; code 0/0/0/0; test_chain_checks 10/10; 5/5 plays lint PASS. Two P4
-  follow-ups: stm-records playbook (fourth flag), core/components script path
-  classification (policy, same family as #454).
+notes: "0 P1/P2/P3; design 5/5 conform; 1 P4 (recurring stm-records playbook gap)."

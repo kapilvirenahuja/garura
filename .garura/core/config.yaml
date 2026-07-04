@@ -170,6 +170,13 @@ gates:
     propose-change: off
     review-change: off
     merge-change: off
+    # Execute-side gates off per the #467 ruling (Batch D) — replaced by machine
+    # preconditions in the same change. fix-bug and implement were pinned; the ruling
+    # unpins them (an intent change), so the config switch now governs them too.
+    validate: off
+    fix-bug: off
+    implement: off
+    refactor: off
   conditional:
     streak: 3                                # clean approvals a shape needs to earn auto
     ledger: .garura/core/gate-evals.jsonl    # live-eval ledger (append-only, committed)

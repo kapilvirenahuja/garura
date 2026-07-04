@@ -1,2067 +1,668 @@
 diff --git a/.garura/core/config.yaml b/.garura/core/config.yaml
-index de8b4b4d..2b0a4612 100644
+index 2b0a4612..6d21be83 100644
 --- a/.garura/core/config.yaml
 +++ b/.garura/core/config.yaml
-@@ -161,7 +161,15 @@ gates:
-     docs-only: on
-     standard: on
-     one-way-door: on
--  plays: {}
-+  # Chain gates off per the #467 ruling (Batch C) — each play carries its
-+  # replacement machine checks; skips are always recorded. Flip any back to on
-+  # to restore the human wait; the checkpoint machinery is kept, not removed.
-+  plays:
-+    start-change: off
-+    commit-change: off
-+    propose-change: off
-+    review-change: off
-+    merge-change: off
+@@ -170,6 +170,13 @@ gates:
+     propose-change: off
+     review-change: off
+     merge-change: off
++    # Execute-side gates off per the #467 ruling (Batch D) — replaced by machine
++    # preconditions in the same change. fix-bug and implement were pinned; the ruling
++    # unpins them (an intent change), so the config switch now governs them too.
++    validate: off
++    fix-bug: off
++    implement: off
++    refactor: off
    conditional:
      streak: 3                                # clean approvals a shape needs to earn auto
      ledger: .garura/core/gate-evals.jsonl    # live-eval ledger (append-only, committed)
-diff --git a/.garura/project/issues/467/context/analysis.yaml b/.garura/project/issues/467/context/analysis.yaml
-index 05ce0c62..11395219 100644
---- a/.garura/project/issues/467/context/analysis.yaml
-+++ b/.garura/project/issues/467/context/analysis.yaml
-@@ -1,110 +1,65 @@
-----
--# analyze_changeset.py output (C8 fast path) — judgment applied by analyze-changes skill
--# issue: 467
- needs_judgment: false
--
- change_groups:
--  - id: fix-play-creator-gate-scripts
--    issue: 481
--    commit_type: fix
--    scope: play-creator
--    subject: "decompose functions and apply formatter for readability"
--    files:
--      - core/components/plays/play-creator/references/classify_change.py
--      - core/components/plays/play-creator/references/gate_eval.py
--      - core/components/plays/play-creator/references/distill_gate_policy.py
--      - core/components/plays/play-creator/references/test_gate_learning.py
--
--  - id: docs-approval-prompt-three-kind-gate
-+  - id: canonical-scripts
-     issue: 467
--    commit_type: docs
--    scope: standards
--    subject: "document three-kind gate resolution including the learned-policy step"
-+    commit_type: feat
-+    scope: play-creator
-+    subject: "add canonical validate-issue, self-review, and chain-check scripts"
-     files:
--      - core/components/memory/standards/templates/approval-prompt.md
--
--  - id: feat-wire-conditional-gates-into-plays
-+      - core/components/plays/play-creator/references/validate_issue.py
-+      - core/components/plays/play-creator/references/check_self_review.py
-+      - core/components/plays/play-creator/references/test_chain_checks.py
-+  - id: chain-play-edits
-     issue: 467
-     commit_type: feat
-     scope: plays
--    subject: "wire conditional-gate resolution into the play with stamped gate-learning scripts"
-+    subject: "turn chain gates off with replacement machine checks"
-+    files:
-+      - core/components/plays/start-change/SKILL.md
-+      - core/components/plays/start-change/reference/ice.md
-+      - core/components/plays/start-change/scripts/validate_issue.py
-+      - core/components/plays/commit-change/SKILL.md
-+      - core/components/plays/commit-change/reference/ice.md
-+      - core/components/plays/propose-change/SKILL.md
-+      - core/components/plays/propose-change/reference/ice.md
-+      - core/components/plays/propose-change/scripts/check_self_review.py
-+      - core/components/plays/review-change/SKILL.md
-+      - core/components/plays/review-change/reference/ice.md
-+      - core/components/plays/merge-change/SKILL.md
-+      - core/components/plays/merge-change/reference/ice.md
-+  - id: config-flip
-+    issue: 467
-+    commit_type: chore
-+    scope: config
-+    subject: "turn off chain gates for the five change-pipeline plays"
-     files:
--      - core/components/plays/vision/SKILL.md
--      - core/components/plays/vision/reference/ice.md
--      - core/components/plays/vision/scripts/classify_change.py
--      - core/components/plays/vision/scripts/gate_eval.py
--      - core/components/plays/vision/scripts/distill_gate_policy.py
--      - core/components/plays/understand/SKILL.md
--      - core/components/plays/understand/reference/ice.md
--      - core/components/plays/understand/scripts/classify_change.py
--      - core/components/plays/understand/scripts/gate_eval.py
--      - core/components/plays/understand/scripts/distill_gate_policy.py
--      - core/components/plays/shape/SKILL.md
--      - core/components/plays/shape/reference/ice.md
--      - core/components/plays/shape/scripts/classify_change.py
--      - core/components/plays/shape/scripts/gate_eval.py
--      - core/components/plays/shape/scripts/distill_gate_policy.py
--      - core/components/plays/roadmap/SKILL.md
--      - core/components/plays/roadmap/reference/ice.md
--      - core/components/plays/roadmap/scripts/classify_change.py
--      - core/components/plays/roadmap/scripts/gate_eval.py
--      - core/components/plays/roadmap/scripts/distill_gate_policy.py
--      - core/components/plays/ux/SKILL.md
--      - core/components/plays/ux/reference/ice.md
--      - core/components/plays/ux/scripts/classify_change.py
--      - core/components/plays/ux/scripts/gate_eval.py
--      - core/components/plays/ux/scripts/distill_gate_policy.py
--      - core/components/plays/agentic/SKILL.md
--      - core/components/plays/agentic/reference/ice.md
--      - core/components/plays/agentic/scripts/classify_change.py
--      - core/components/plays/agentic/scripts/gate_eval.py
--      - core/components/plays/agentic/scripts/distill_gate_policy.py
--      - core/components/plays/marketing/SKILL.md
--      - core/components/plays/marketing/reference/ice.md
--      - core/components/plays/marketing/scripts/classify_change.py
--      - core/components/plays/marketing/scripts/gate_eval.py
--      - core/components/plays/marketing/scripts/distill_gate_policy.py
--      - core/components/plays/arch/SKILL.md
--      - core/components/plays/arch/reference/ice.md
--      - core/components/plays/arch/scripts/classify_change.py
--      - core/components/plays/arch/scripts/gate_eval.py
--      - core/components/plays/arch/scripts/distill_gate_policy.py
--      - core/components/plays/quality/SKILL.md
--      - core/components/plays/quality/reference/ice.md
--      - core/components/plays/quality/scripts/classify_change.py
--      - core/components/plays/quality/scripts/gate_eval.py
--      - core/components/plays/quality/scripts/distill_gate_policy.py
--      - core/components/plays/run/SKILL.md
--      - core/components/plays/run/reference/ice.md
--      - core/components/plays/run/scripts/classify_change.py
--      - core/components/plays/run/scripts/gate_eval.py
--      - core/components/plays/run/scripts/distill_gate_policy.py
--      - core/components/plays/measure/SKILL.md
--      - core/components/plays/measure/reference/ice.md
--      - core/components/plays/measure/scripts/classify_change.py
--      - core/components/plays/measure/scripts/gate_eval.py
--      - core/components/plays/measure/scripts/distill_gate_policy.py
--
-+      - .garura/core/config.yaml
- exclusions:
-   - path: ".garura/project/issues/467/context/analysis.yaml"
--    reason: "run-state scratch — executor records this separately"
-+    reason: "STM scratch artifact (this file) — self-referential, handled by the STM evidence commit, not a change-group commit"
-     blocking: false
-   - path: ".garura/project/issues/467/context/porcelain.txt"
--    reason: "run-state scratch — executor records this separately"
-+    reason: "STM run-record scratch file, handled by the STM evidence commit, not a change-group commit"
-     blocking: false
--
- risks:
--  sensitive_files:
--    []
-+  sensitive_files: []
-   breaking_changes:
--    []
--  ambiguous_types:
--    []
--  hotfix_branch: false
--  notes:
--    - "play-creator/references/*.py are the canonical source scripts for the play-creator compiler — flagged for careful review, not blocking."
--    - "The scripts/ files in each of the 11 play directories are new untracked copies stamped from the play-creator canonical references (informational, not blocking)."
--
-+    - file: ".garura/core/config.yaml"
-+      note: "gates.plays flips start-change, commit-change, propose-change, review-change, merge-change from {} (off/unset) to explicit off. This removes the human-wait checkpoint for all five change-pipeline plays; each play now relies on its bundled replacement machine checks (validate_issue.py, check_self_review.py, test_chain_checks.py) instead of a human gate. Behavior-affecting, not a code-breaking change — checkpoint machinery is retained, only the default is flipped."
-+  ambiguous_types: []
- eval_gates:
--  SE-1: {status: PASS, evidence: "Grouped by concern per prior human decision, not by directory: (1) fix/play-creator/#481 — defect fix to the 4 canonical gate-learning scripts, decomposed functions + formatter; (2) docs/standards/#467 — approval-prompt template documents the three-kind gate resolution incl. learned-policy step; (3) feat/plays/#467 — single uniform group covering the same conditional-gate wiring (ice.md + SKILL.md rewrite + 3 stamped scripts) applied identically across all 11 plays, kept as one group per Rule 4 (never split one concern by directory). Subjects are bare imperative strings; type/scope/issue live in group metadata for the executor to append."}
--  SE-5: {status: PASS, evidence: "no sensitive patterns matched (secrets/credentials/.env); all files are play source, templates, or scripts"}
-+  SE-1:
-+    status: PASS
-+    evidence: >
-+      18 total changed paths reconciled against `git status --porcelain` (13 modified + 5
-+      untracked; the play's stated count of 17 undercounted by one — actual working tree has
-+      18 entries, all accounted for below with none omitted or duplicated).
-+      canonical-scripts=3 (all untracked), chain-play-edits=12 (10 modified SKILL.md/ice.md
-+      across start-change/commit-change/propose-change/review-change/merge-change + 2
-+      untracked scripts under propose-change/scripts and start-change/scripts),
-+      config-flip=1 (config.yaml modified), exclusions=2 (analysis.yaml, porcelain.txt,
-+      both modified). 3 + 12 + 1 + 2 = 18. Secret scan (grep for password/secret/token/
-+      api-key/credential) run across config.yaml and all five new .py scripts: only hits
-+      were fixture strings inside test_chain_checks.py ("Secrets: none found" / "P1 secret
-+      committed in config") and doc comments in session_stamp.py/preflight.py — no actual
-+      credentials. sensitive_files is empty.
 diff --git a/.garura/project/issues/467/context/branch.json b/.garura/project/issues/467/context/branch.json
-index 5cd37c22..878fd5e2 100644
+index 878fd5e2..d4cdc678 100644
 --- a/.garura/project/issues/467/context/branch.json
 +++ b/.garura/project/issues/467/context/branch.json
 @@ -1,6 +1,6 @@
  {
--  "branch_name": "feature/467-batch-b-conditional-gates",
--  "base_sha": "22ada33e84efbf5c56f3b258ce173e7cd6ab63e3",
-+  "branch_name": "feature/467-batch-c-chain-gates-off",
-+  "base_sha": "119a7e6141d8c6200933dd363e03c90fac290a32",
+-  "branch_name": "feature/467-batch-c-chain-gates-off",
+-  "base_sha": "119a7e6141d8c6200933dd363e03c90fac290a32",
++  "branch_name": "feature/467-batch-d-execute-gates-off",
++  "base_sha": "564be111bc5793d71c0ee1313946e7b38f6c3e4a",
    "on_default_branch": false,
    "worktree_path": null
- }
-diff --git a/.garura/project/issues/467/context/commits.yaml b/.garura/project/issues/467/context/commits.yaml
-index 15f2712f..d814b575 100644
---- a/.garura/project/issues/467/context/commits.yaml
-+++ b/.garura/project/issues/467/context/commits.yaml
-@@ -1,81 +1,37 @@
- commits:
--  - sha: 40bec3f
--    message: "fix(play-creator): decompose functions and apply formatter for readability (#481)"
-+  - sha: 70124a4
-+    message: "feat(play-creator): add canonical validate-issue, self-review, and chain-check scripts (#467)"
-     files:
--      - core/components/plays/play-creator/references/classify_change.py
--      - core/components/plays/play-creator/references/gate_eval.py
--      - core/components/plays/play-creator/references/distill_gate_policy.py
--      - core/components/plays/play-creator/references/test_gate_learning.py
--    branch: feature/467-batch-b-conditional-gates
--  - sha: dd65bd8
--    message: "docs(standards): document three-kind gate resolution including the learned-policy step (#467)"
-+      - core/components/plays/play-creator/references/validate_issue.py
-+      - core/components/plays/play-creator/references/check_self_review.py
-+      - core/components/plays/play-creator/references/test_chain_checks.py
-+    branch: feature/467-batch-c-chain-gates-off
-+  - sha: c7d8572
-+    message: "feat(plays): turn chain gates off with replacement machine checks (#467)"
-     files:
--      - core/components/memory/standards/templates/approval-prompt.md
--    branch: feature/467-batch-b-conditional-gates
--  - sha: 9762937
--    message: "feat(plays): wire conditional-gate resolution into the play with stamped gate-learning scripts (#467)"
-+      - core/components/plays/start-change/SKILL.md
-+      - core/components/plays/start-change/reference/ice.md
-+      - core/components/plays/start-change/scripts/validate_issue.py
-+      - core/components/plays/commit-change/SKILL.md
-+      - core/components/plays/commit-change/reference/ice.md
-+      - core/components/plays/propose-change/SKILL.md
-+      - core/components/plays/propose-change/reference/ice.md
-+      - core/components/plays/propose-change/scripts/check_self_review.py
-+      - core/components/plays/review-change/SKILL.md
-+      - core/components/plays/review-change/reference/ice.md
-+      - core/components/plays/merge-change/SKILL.md
-+      - core/components/plays/merge-change/reference/ice.md
-+    branch: feature/467-batch-c-chain-gates-off
-+  - sha: e8b68ed
-+    message: "chore(config): turn off chain gates for the five change-pipeline plays (#467)"
-     files:
--      - core/components/plays/vision/SKILL.md
--      - core/components/plays/vision/reference/ice.md
--      - core/components/plays/vision/scripts/classify_change.py
--      - core/components/plays/vision/scripts/gate_eval.py
--      - core/components/plays/vision/scripts/distill_gate_policy.py
--      - core/components/plays/understand/SKILL.md
--      - core/components/plays/understand/reference/ice.md
--      - core/components/plays/understand/scripts/classify_change.py
--      - core/components/plays/understand/scripts/gate_eval.py
--      - core/components/plays/understand/scripts/distill_gate_policy.py
--      - core/components/plays/shape/SKILL.md
--      - core/components/plays/shape/reference/ice.md
--      - core/components/plays/shape/scripts/classify_change.py
--      - core/components/plays/shape/scripts/gate_eval.py
--      - core/components/plays/shape/scripts/distill_gate_policy.py
--      - core/components/plays/roadmap/SKILL.md
--      - core/components/plays/roadmap/reference/ice.md
--      - core/components/plays/roadmap/scripts/classify_change.py
--      - core/components/plays/roadmap/scripts/gate_eval.py
--      - core/components/plays/roadmap/scripts/distill_gate_policy.py
--      - core/components/plays/ux/SKILL.md
--      - core/components/plays/ux/reference/ice.md
--      - core/components/plays/ux/scripts/classify_change.py
--      - core/components/plays/ux/scripts/gate_eval.py
--      - core/components/plays/ux/scripts/distill_gate_policy.py
--      - core/components/plays/agentic/SKILL.md
--      - core/components/plays/agentic/reference/ice.md
--      - core/components/plays/agentic/scripts/classify_change.py
--      - core/components/plays/agentic/scripts/gate_eval.py
--      - core/components/plays/agentic/scripts/distill_gate_policy.py
--      - core/components/plays/marketing/SKILL.md
--      - core/components/plays/marketing/reference/ice.md
--      - core/components/plays/marketing/scripts/classify_change.py
--      - core/components/plays/marketing/scripts/gate_eval.py
--      - core/components/plays/marketing/scripts/distill_gate_policy.py
--      - core/components/plays/arch/SKILL.md
--      - core/components/plays/arch/reference/ice.md
--      - core/components/plays/arch/scripts/classify_change.py
--      - core/components/plays/arch/scripts/gate_eval.py
--      - core/components/plays/arch/scripts/distill_gate_policy.py
--      - core/components/plays/quality/SKILL.md
--      - core/components/plays/quality/reference/ice.md
--      - core/components/plays/quality/scripts/classify_change.py
--      - core/components/plays/quality/scripts/gate_eval.py
--      - core/components/plays/quality/scripts/distill_gate_policy.py
--      - core/components/plays/run/SKILL.md
--      - core/components/plays/run/reference/ice.md
--      - core/components/plays/run/scripts/classify_change.py
--      - core/components/plays/run/scripts/gate_eval.py
--      - core/components/plays/run/scripts/distill_gate_policy.py
--      - core/components/plays/measure/SKILL.md
--      - core/components/plays/measure/reference/ice.md
--      - core/components/plays/measure/scripts/classify_change.py
--      - core/components/plays/measure/scripts/gate_eval.py
--      - core/components/plays/measure/scripts/distill_gate_policy.py
--    branch: feature/467-batch-b-conditional-gates
-+      - .garura/core/config.yaml
-+    branch: feature/467-batch-c-chain-gates-off
- excluded_files:
-   - path: ".garura/project/issues/467/context/analysis.yaml"
--    reason: "run-state scratch — executor records this separately"
-+    reason: "STM scratch artifact (this file) — self-referential, handled by the STM evidence commit, not a change-group commit"
-   - path: ".garura/project/issues/467/context/porcelain.txt"
--    reason: "run-state scratch — executor records this separately"
-+    reason: "STM run-record scratch file, handled by the STM evidence commit, not a change-group commit"
- leftover_count: 0
- tree_clean: true
- pushed: false
-diff --git a/.garura/project/issues/467/context/porcelain.txt b/.garura/project/issues/467/context/porcelain.txt
-index 2240a917..40901175 100644
---- a/.garura/project/issues/467/context/porcelain.txt
-+++ b/.garura/project/issues/467/context/porcelain.txt
-@@ -1,61 +1,17 @@
-+ M .garura/core/config.yaml
-  M .garura/project/issues/467/context/porcelain.txt
-- M core/components/memory/standards/templates/approval-prompt.md
-- M core/components/plays/agentic/SKILL.md
-- M core/components/plays/agentic/reference/ice.md
-- M core/components/plays/arch/SKILL.md
-- M core/components/plays/arch/reference/ice.md
-- M core/components/plays/marketing/SKILL.md
-- M core/components/plays/marketing/reference/ice.md
-- M core/components/plays/measure/SKILL.md
-- M core/components/plays/measure/reference/ice.md
-- M core/components/plays/play-creator/references/classify_change.py
-- M core/components/plays/play-creator/references/distill_gate_policy.py
-- M core/components/plays/play-creator/references/gate_eval.py
-- M core/components/plays/play-creator/references/test_gate_learning.py
-- M core/components/plays/quality/SKILL.md
-- M core/components/plays/quality/reference/ice.md
-- M core/components/plays/roadmap/SKILL.md
-- M core/components/plays/roadmap/reference/ice.md
-- M core/components/plays/run/SKILL.md
-- M core/components/plays/run/reference/ice.md
-- M core/components/plays/shape/SKILL.md
-- M core/components/plays/shape/reference/ice.md
-- M core/components/plays/understand/SKILL.md
-- M core/components/plays/understand/reference/ice.md
-- M core/components/plays/ux/SKILL.md
-- M core/components/plays/ux/reference/ice.md
-- M core/components/plays/vision/SKILL.md
-- M core/components/plays/vision/reference/ice.md
--?? core/components/plays/agentic/scripts/classify_change.py
--?? core/components/plays/agentic/scripts/distill_gate_policy.py
--?? core/components/plays/agentic/scripts/gate_eval.py
--?? core/components/plays/arch/scripts/classify_change.py
--?? core/components/plays/arch/scripts/distill_gate_policy.py
--?? core/components/plays/arch/scripts/gate_eval.py
--?? core/components/plays/marketing/scripts/classify_change.py
--?? core/components/plays/marketing/scripts/distill_gate_policy.py
--?? core/components/plays/marketing/scripts/gate_eval.py
--?? core/components/plays/measure/scripts/classify_change.py
--?? core/components/plays/measure/scripts/distill_gate_policy.py
--?? core/components/plays/measure/scripts/gate_eval.py
--?? core/components/plays/quality/scripts/classify_change.py
--?? core/components/plays/quality/scripts/distill_gate_policy.py
--?? core/components/plays/quality/scripts/gate_eval.py
--?? core/components/plays/roadmap/scripts/classify_change.py
--?? core/components/plays/roadmap/scripts/distill_gate_policy.py
--?? core/components/plays/roadmap/scripts/gate_eval.py
--?? core/components/plays/run/scripts/classify_change.py
--?? core/components/plays/run/scripts/distill_gate_policy.py
--?? core/components/plays/run/scripts/gate_eval.py
--?? core/components/plays/shape/scripts/classify_change.py
--?? core/components/plays/shape/scripts/distill_gate_policy.py
--?? core/components/plays/shape/scripts/gate_eval.py
--?? core/components/plays/understand/scripts/classify_change.py
--?? core/components/plays/understand/scripts/distill_gate_policy.py
--?? core/components/plays/understand/scripts/gate_eval.py
--?? core/components/plays/ux/scripts/classify_change.py
--?? core/components/plays/ux/scripts/distill_gate_policy.py
--?? core/components/plays/ux/scripts/gate_eval.py
--?? core/components/plays/vision/scripts/classify_change.py
--?? core/components/plays/vision/scripts/distill_gate_policy.py
--?? core/components/plays/vision/scripts/gate_eval.py
-+ M core/components/plays/commit-change/SKILL.md
-+ M core/components/plays/commit-change/reference/ice.md
-+ M core/components/plays/merge-change/SKILL.md
-+ M core/components/plays/merge-change/reference/ice.md
-+ M core/components/plays/propose-change/SKILL.md
-+ M core/components/plays/propose-change/reference/ice.md
-+ M core/components/plays/review-change/SKILL.md
-+ M core/components/plays/review-change/reference/ice.md
-+ M core/components/plays/start-change/SKILL.md
-+ M core/components/plays/start-change/reference/ice.md
-+?? core/components/plays/play-creator/references/check_self_review.py
-+?? core/components/plays/play-creator/references/test_chain_checks.py
-+?? core/components/plays/play-creator/references/validate_issue.py
-+?? core/components/plays/propose-change/scripts/check_self_review.py
-+?? core/components/plays/start-change/scripts/validate_issue.py
-diff --git a/.garura/project/issues/467/context/pr.json b/.garura/project/issues/467/context/pr.json
-index fef683fa..97884715 100644
---- a/.garura/project/issues/467/context/pr.json
-+++ b/.garura/project/issues/467/context/pr.json
-@@ -1,7 +1,7 @@
- {
--  "number": 482,
--  "url": "https://github.com/kapilvirenahuja/garura/pull/482",
-+  "number": 483,
-+  "url": "https://github.com/kapilvirenahuja/garura/pull/483",
-   "state": "open",
--  "title": "feat(plays): Stage 4 Batch B — conditional learned gates in the eleven document plays (#467)",
-+  "title": "feat(plays): Stage 4 Batch C — chain gates off with replacement machine checks (#467)",
-   "base": "main"
- }
-diff --git a/.garura/project/issues/467/context/self-review.md b/.garura/project/issues/467/context/self-review.md
-index 969b312e..3b8193b3 100644
---- a/.garura/project/issues/467/context/self-review.md
-+++ b/.garura/project/issues/467/context/self-review.md
-@@ -1,6 +1,6 @@
--# Self-Review — Issue #467 (Batch B: conditional-gate wiring across the 11 plays)
-+# Self-Review — Issue #467 (Batch C: chain gates off + replacement machine checks)
- 
--- **Branch**: feature/467-batch-b-conditional-gates
-+- **Branch**: feature/467-batch-c-chain-gates-off
- - **Base**: main
- - **Branch pattern**: feature (standard priorities apply)
- - **Rules source**: `/Users/kapilahuja/.garura/core/memory/standards/rules/self-review.md` (base, no project override — see `resolved-rules.json`)
-@@ -8,65 +8,65 @@
- 
- ## Change Summary
- 
--- **Commits**: 5 (40bec3f, dd65bd8, 9762937, c6c5f88, 9aca1e2)
--- **Files changed**: 64
--- **Additions**: +7617 / **Deletions**: -539
--- **Commit types found**: fix (1), docs (1), feat (1), chore/stm (2)
-+- **Commits**: 5 (70124a4, c7d8572, e8b68ed, e34f240, 98646c0)
-+- **Files changed**: 20
-+- **Additions**: +895 / **Deletions**: -349
-+- **Commit types found**: feat (2), chore (3, including 2 stm)
- 
- ## Suggested PR Title
- 
- ```
--feat(plays): wire conditional-gate resolution into all 11 plays with stamped gate-learning scripts (#467)
-+feat(plays): turn off chain gates for the five change-pipeline plays with replacement machine checks (#467)
- ```
- 
- ## Context Detected
- 
- | Pattern | Files |
- |---|---|
--| Play definitions (`SKILL.md`, `reference/ice.md`) under `core/components/plays/**` | 22 (11 plays × SKILL.md + ice.md) |
--| Stamped gate-learning scripts (`classify_change.py`, `distill_gate_policy.py`, `gate_eval.py`) under each play's `scripts/` | 33 (11 plays × 3 scripts) |
--| Canonical references (`play-creator/references/*.py` + `test_gate_learning.py`) | 4 |
--| Standards template (`approval-prompt.md`) | 1 |
--| STM context/evidence files | 4 |
-+| Play definitions (`SKILL.md`, `reference/ice.md`) under `core/components/plays/**` for the five change-pipeline plays (`commit-change`, `merge-change`, `propose-change`, `review-change`, `start-change`) | 10 |
-+| Canonical scripts added under `play-creator/references/` (`check_self_review.py`, `test_chain_checks.py`, `validate_issue.py`) | 3 |
-+| Stamped copies of canonical scripts into the affected plays (`propose-change/scripts/check_self_review.py`, `start-change/scripts/validate_issue.py`) | 2 |
-+| Configuration (`.garura/core/config.yaml`) | 1 |
-+| STM context/evidence files for #467 | 4 |
- 
- ## Scope Checks
- 
- | Check | Status | Evidence |
- |---|---|---|
--| Matches the issue | PASS | All 64 files map to #467 (conditional-gate wiring across the eleven plays) or its immediate dependency (#481 defect fixes in the canonical scripts, pulled in before stamping). No unrelated edits. |
--| No scope creep | PASS | Every file is a play's ICE/SKILL.md rewrite, a stamped copy of the four canonical scripts, the canonical scripts themselves, the approval-prompt template, or the STM run record. |
--| Reasonable size | PASS | +7617/-539 lines look large but are near-entirely repetition: the same 3 scripts (~550 lines) stamped 11 times accounts for ~6000 of the additions. Marginal new authored content is the 11 SKILL.md/ice.md diffs plus the template update. |
--| No stray artifacts | PASS | No commented-out blocks or debug prints found in the diff. STM context files are the expected start-change/commit-change evidence trail. |
-+| Matches the issue | PASS | All 20 files map to #467 (turning chain gates off for the five change-pipeline plays, backed by machine checks): the three canonical scripts, their stamped copies, the five plays' SKILL.md/ice.md updates documenting the gates-off replacement checks, the config flip, and the STM run record. No unrelated edits. |
-+| No scope creep | PASS | Every changed file is either canonical/stamped script, play documentation for the gate change, the config switch itself, or STM evidence. 0 files outside that scope. |
-+| Reasonable size | PASS | 20 files, +895/-349 lines, concentrated in 5 plays + 3 shared scripts + config + STM context — reviewable in one sitting. |
-+| No stray artifacts | PASS | No commented-out blocks or debug prints found in the diff. STM context files (`analysis.yaml`, `branch.json`, `commits.yaml`, `porcelain.txt`) are the expected commit-change/start-change evidence trail for this issue, not accidental output. |
- 
- ## Quality Checks
- 
- | Check | Status | Evidence |
- |---|---|---|
--| Tests present | PASS | Canonical test suite (`test_gate_learning.py`) reported 15/15 passing after the #481 defect fixes in 40bec3f. |
--| Commits are clean | PASS | All 5 commits are conventional-format (`fix(play-creator):`, `docs(standards):`, `feat(plays):`, `chore(stm):`) and each references `(#467)` (40bec3f references its own `#481`). |
--| No secrets | PASS | Diff scanned for key/secret/token/password/BEGIN-key patterns. Only hits are prose describing the "no secrets in repo" security check itself (in gate/scenario text) — no literal secret values. |
--| Docs in step | PASS | `approval-prompt.md` was rewritten in the same batch (dd65bd8) to describe three-kind gate resolution (pinned/conditional/off) including the learned-policy step, ahead of the wiring commit (9762937) that depends on it. |
--| Nothing obviously broken | PASS | `git merge-tree --write-tree main HEAD` produced a clean tree hash with no conflict markers. `black --check` reported clean on all four canonical scripts. |
-+| Tests present | PASS | `test_chain_checks.py` reports 10/10 passing; `test_gate_learning.py` reports 15/15 passing (supplied verification evidence). The behavior change (gates off + replacement checks) is covered. |
-+| Commits are clean | PASS | All 5 commits are conventional-format (`feat(play-creator):`, `feat(plays):`, `chore(config):`, `chore(stm):` × 2) and each references `(#467)`. |
-+| No secrets | PASS | Diff scanned for key/secret/token/password/BEGIN-key patterns. The only hits are the words "secret"/"token"/"password" appearing inside the review/test fixtures themselves (e.g., `check_self_review.py`'s own test cases and its "Secrets: none found" template line) — no literal secret values. |
-+| Docs in step | PASS | Each of the five plays' `reference/ice.md` was updated alongside its `SKILL.md` to document the gates-off decision and its replacement machine check, keeping intent and implementation in step. |
-+| Nothing obviously broken | PASS | No leftover TODOs blocking this change's own goal. Supplied verification evidence: 5/5 plays lint PASS, stamped scripts byte-identical to canonical across all five plays, and `black` formatting clean. |
- 
- ## Additional Context-Triggered Checks
- 
- | Item | Trigger | Status | Evidence |
- |---|---|---|---|
--| Play has valid frontmatter / workflow / checkpoint | 11 `SKILL.md` files changed under `core/components/plays/**` | PASS | All 11 recompiled plays lint PASS with 0 gaps (reported verification). |
--| Stamped scripts match canonical | 33 `scripts/*.py` files added under each play | PASS | Direct diff check: all 33 stamped copies (`classify_change.py`, `distill_gate_policy.py`, `gate_eval.py` × 11 plays) are byte-identical to the canonical references in `core/components/plays/play-creator/references/` — 0 drift. |
--| Canonical scripts fixed and verified | `play-creator/references/*.py` changed (40bec3f) | PASS | Canonical test suite 15/15 pass after the defect fixes; `black --check` clean on all four canonical scripts. |
--| Components deployed from `core/components/` | `core/components/**` changed (22 play files + 33 stamped scripts + 4 canonical files) | REVIEW | Confirmed **not yet deployed**: no `.claude/skills/{agentic,arch,marketing,...}` directories exist yet for the changed plays. Expected pre-merge — deployment happens via `install-garura` after merge — flagging so it isn't forgotten. |
--| Significant feature has design record | commit type `feat:` present, repo-wide wiring change | REVIEW | No ADR added for wiring conditional gates into all 11 plays. Covered instead by the ICE source per play (each play's own `reference/ice.md` rewrite) plus the `approval-prompt.md` standards update — judged sufficient for this batch, but flagging in case an ADR is expected at this altitude given it touches every play. |
-+| Play has valid frontmatter / workflow / checkpoint | 5 `SKILL.md` files changed under `core/components/plays/**` | PASS | Direct check confirms all five (`commit-change`, `merge-change`, `propose-change`, `review-change`, `start-change`) carry valid frontmatter (name + description), a `## Workflow` section, and documented checkpoint behavior (each checkpoint now resolved as a config switch, recorded as a Checkpoint Decisions row). Matches the supplied evidence of 5/5 plays lint PASS. |
-+| Stamped scripts match canonical | 2 stamped `scripts/*.py` files added (`propose-change`, `start-change`) | PASS | Supplied verification evidence: stamped scripts are byte-identical to the canonical copies in `play-creator/references/`. |
-+| No merge conflicts | universal | PASS | `git merge-tree --write-tree main HEAD` produced a single resolved tree hash, no conflict markers. |
-+| Config syntax valid | `.garura/core/config.yaml` changed | PASS | Parses cleanly under `yaml.safe_load`. |
-+| Components deployed from `core/components/` | `core/components/**` changed (10 play files + 5 script files) | REVIEW | Deploy step not yet run for this batch — `install-garura` needs to run post-merge to sync the deployed `.claude/` copies. Expected step, not a defect in the change itself. |
- 
- ## Blocking Issues
- 
--None — no must-have item failed.
-+None — no must-have item failed. No blocking issues found. 0 blockers.
- 
- ## Readiness Assessment
- 
- - **Ready**: yes
- - **Blocking count**: 0
--- **Review-required count**: 2 (both informational, non-blocking — see table above)
-+- **Review-required count**: 1 (informational, non-blocking — deploy step, see table above)
- - **Recommendation**: Create PR
- 
- ---
-@@ -75,42 +75,38 @@ None — no must-have item failed.
- 
- ```yaml
- analysis:
--  branch: feature/467-batch-b-conditional-gates
-+  branch: feature/467-batch-c-chain-gates-off
-   base: main
-   branch_pattern: feature
-   commits: 5
-   changes:
--    files: 64
--    additions: 7617
--    deletions: 539
--  suggested_title: "feat(plays): wire conditional-gate resolution into all 11 plays with stamped gate-learning scripts (#467)"
-+    files: 20
-+    additions: 895
-+    deletions: 349
-+  suggested_title: "feat(plays): turn off chain gates for the five change-pipeline plays with replacement machine checks (#467)"
- 
-   context:
-     file_patterns_matched:
-       - name: "play-definitions"
--        files: 22
--        trigger: "core/components/plays/*/SKILL.md, core/components/plays/*/reference/ice.md"
--      - name: "stamped-gate-scripts"
--        files: 33
--        trigger: "core/components/plays/*/scripts/{classify_change,distill_gate_policy,gate_eval}.py"
--      - name: "canonical-references"
--        files: 4
--        trigger: "core/components/plays/play-creator/references/*.py"
--      - name: "standards-template"
-+        files: 10
-+        trigger: "core/components/plays/{commit-change,merge-change,propose-change,review-change,start-change}/{SKILL.md,reference/ice.md}"
-+      - name: "canonical-scripts"
-+        files: 3
-+        trigger: "core/components/plays/play-creator/references/{check_self_review,test_chain_checks,validate_issue}.py"
-+      - name: "stamped-scripts"
-+        files: 2
-+        trigger: "core/components/plays/{propose-change,start-change}/scripts/*.py"
-+      - name: "config"
-         files: 1
--        trigger: "core/components/memory/standards/templates/approval-prompt.md"
-+        trigger: ".garura/core/config.yaml"
-       - name: "stm-evidence"
-         files: 4
-         trigger: ".garura/project/issues/467/context/*"
-     commit_types:
--      - type: "fix"
--        count: 1
--      - type: "docs"
--        count: 1
-       - type: "feat"
--        count: 1
--      - type: "chore"
-         count: 2
-+      - type: "chore"
-+        count: 3
-     branch_modifiers: []
- 
-   checklist:
-@@ -119,58 +115,58 @@ analysis:
-         item: "No merge conflicts"
-         trigger: "universal"
-         status: "PASS"
--        evidence: "git merge-tree --write-tree main HEAD produced a clean tree, no conflict markers"
-+        evidence: "git merge-tree --write-tree main HEAD produced a single resolved tree, no conflict markers"
-       - id: "no-secrets"
-         item: "No secrets committed"
-         trigger: "universal"
-         status: "PASS"
--        evidence: "pattern scan of diff for key/secret/token/password/BEGIN — only prose describing the no-secrets security check itself, no literal secrets"
-+        evidence: "pattern scan of diff for key/secret/token/password/BEGIN — only hits are test-fixture prose in check_self_review.py's own test cases, no literal secrets"
-       - id: "scope-matches-issue"
-         item: "Matches the issue, no scope creep"
-         trigger: "self-review.md scope checks"
-         status: "PASS"
--        evidence: "all 64 files map to #467 wiring or its #481 prerequisite fix"
-+        evidence: "all 20 files map to #467's chain-gates-off change and its replacement machine checks"
-       - id: "tests-present"
-         item: "Tests present for behavior changes"
-         trigger: "self-review.md quality checks"
-         status: "PASS"
--        evidence: "canonical test_gate_learning.py: 15/15 pass after defect fixes"
-+        evidence: "test_chain_checks.py 10/10 pass, test_gate_learning.py 15/15 pass"
-       - id: "commits-clean"
-         item: "Conventional commits referencing the issue"
-         trigger: "self-review.md quality checks"
-         status: "PASS"
--        evidence: "5/5 commits conventional-format and reference #467 or #481"
-+        evidence: "5/5 commits conventional-format and reference #467"
-       - id: "docs-in-step"
-         item: "Docs updated alongside interface change"
-         trigger: "self-review.md quality checks"
-         status: "PASS"
--        evidence: "approval-prompt.md rewritten (dd65bd8) ahead of the wiring commit (9762937) it supports"
-+        evidence: "each of the five plays' reference/ice.md updated alongside its SKILL.md to document the gates-off decision"
-       - id: "play-frontmatter"
-         item: "Play has valid frontmatter, workflow, checkpoint"
--        trigger: "core/components/plays/**/SKILL.md changed"
-+        trigger: "core/components/plays/**/SKILL.md changed (5 plays)"
-+        status: "PASS"
-+        evidence: "all 5 plays lint PASS; direct check confirms frontmatter, ## Workflow, and checkpoint sections present"
-+      - id: "config-valid"
-+        item: "Configuration syntax valid"
-+        trigger: ".garura/core/config.yaml changed"
-         status: "PASS"
--        evidence: "all 11 recompiled plays lint PASS, 0 gaps"
-+        evidence: "yaml.safe_load parses config.yaml cleanly"
-+    nice_to_have:
-       - id: "stamped-scripts-match-canonical"
-         item: "Stamped gate scripts identical to canonical source"
--        trigger: "33 scripts/*.py added under core/components/plays/*/scripts/"
-+        trigger: "2 scripts/*.py added under core/components/plays/{propose-change,start-change}/scripts/"
-         status: "PASS"
--        evidence: "direct diff of all 33 stamped copies vs play-creator/references/*.py — 0 drift"
--    nice_to_have:
-+        evidence: "supplied verification: stamped scripts byte-identical to canonical references"
-       - id: "canonical-scripts-formatted"
-         item: "Canonical scripts pass formatter check"
--        trigger: "play-creator/references/*.py changed (40bec3f)"
-+        trigger: "play-creator/references/*.py changed"
-         status: "PASS"
--        evidence: "black --check clean on all four canonical scripts"
--      - id: "feat-adr"
--        item: "Significant feature has ADR"
--        trigger: "commit type feat: present, change touches all 11 plays"
--        status: "REVIEW"
--        evidence: "no ADR added; per-play ice.md rewrites plus approval-prompt.md standards update carry the design record instead"
-+        evidence: "black clean (supplied verification evidence)"
-       - id: "deploy-components"
-         item: "Components deployed from core/components/"
--        trigger: "core/components/** changed (22 play files, 33 stamped scripts, 4 canonical files)"
-+        trigger: "core/components/** changed (10 play files, 5 script files)"
-         status: "REVIEW"
--        evidence: "deployed .claude/ copies not yet synced (expected pre-merge); flagged for post-merge install-garura run"
-+        evidence: "deploy not yet run for this batch; flagged for post-merge install-garura run"
- 
-   blocking_issues: []
- 
-diff --git a/core/components/plays/commit-change/SKILL.md b/core/components/plays/commit-change/SKILL.md
-index a8eb8bb4..958a0152 100644
---- a/core/components/plays/commit-change/SKILL.md
-+++ b/core/components/plays/commit-change/SKILL.md
-@@ -26,9 +26,10 @@ step list running out.
+-}
++}
+\ No newline at end of file
+diff --git a/core/components/plays/fix-bug/SKILL.md b/core/components/plays/fix-bug/SKILL.md
+index e623b115..50516b5a 100644
+--- a/core/components/plays/fix-bug/SKILL.md
++++ b/core/components/plays/fix-bug/SKILL.md
+@@ -24,10 +24,10 @@ only via injection.
  ## Compiled From
  
- This play was compiled from the commit-change ICE (`reference/ice.md`) by play-editor
--(#465, Level 3 pilot recompile). Intent defines constraints (C1–C9) and failure conditions
--(F1–F8); the expectation defines success scenarios (S1–S6), a Done means (D1–D4, baked to
--`stop-condition.yaml`), and one recovery entry per failure condition.
-+(#465, Level 3 pilot recompile; #467 Batch C gate-off recompile). Intent defines
-+constraints (C1–C9) and failure conditions (F1–F9); the expectation defines success
-+scenarios (S1–S6), a Done means (D1–D4, baked to `stop-condition.yaml`), and one
-+recovery entry per failure condition.
- To modify this play, update `reference/ice.md` and recompile with play-editor.
- Do NOT edit this file manually — it is a compiled artifact.
- 
-@@ -146,8 +147,10 @@ python3 scripts/analyze_changeset.py \
- ```
- 
-    Policy on its summary: `sensitive` (blocking) non-empty → **hard block** (C6/F5),
--   human recovery (REC5). `warnings` non-empty (content-pattern matches in prose/standards
--   artifacts — pattern carriers, #438) → never a block; surfaced at the checkpoint.
-+   human recovery (REC5) — the block is a machine wall, never gated by the checkpoint
-+   switch. `warnings` non-empty (content-pattern matches in prose/standards
-+   artifacts — pattern carriers, #438) → never a block; surfaced at the checkpoint when
-+   the gate is on, carried into the delivery report's Run Summary when it is off (F9).
-    `needs_judgment: false` → the script's plan IS the plan; a `subject_source: script-draft`
-    subject may be reworded in place (one line, no agent); **no agent is dispatched (C8)**.
-    `needs_judgment: true` → dispatch `repo-orchestrator` → `analyze-changes` for the
-@@ -166,8 +169,19 @@ python3 scripts/analyze_changeset.py \
-    `issue-mappings.yaml`.
- 
- 3. **Checkpoint** — *only when the skip condition fails* (a sensitive flag, scanner
--   warnings, or low-confidence mapping): present the brief — groups, mapping + confidence,
--   risk flags — and wait for typed approval. Approve → execute; cancel → halt.
-+   warnings, or low-confidence mapping) (class: standard). When it fires, resolve the
-+   gate switch per `standards/rules/gate-config.md` FIRST:
-+
-+   - **off** (this project: `gates.plays.commit-change: off`) → do not wait; record
-+     `gate skipped by config (gates.plays.commit-change)` as a Checkpoint Decisions row
-+     in evidence and proceed to execute. The off path drops nothing silently (C9/F9):
-+     scanner **warnings** are carried into the delivery report's Run Summary (a visible
-+     surface); a **low-confidence mapping** proceeds with the mapping recorded as
-+     low-confidence in `issue-mappings.yaml` and the run record — never silently
-+     upgraded. The **sensitive-file block** is untouched by the switch — it already
-+     hard-halted at the scan (a machine wall, never a gate).
-+   - **on** → present the brief — groups, mapping + confidence, risk flags, warnings —
-+     and wait for typed approval. Approve → execute; cancel → halt.
- 
- 4. **Execute** — the decided plan, mechanically, run-state finalization included
-    (#465 defects 2+3 — ignored paths become recorded exclusions; the play's own run
-@@ -214,6 +228,10 @@ python3 scripts/check_stop_condition.py \
- - **SE-8 (F8/C9):** the loop exited by a held stop condition, or halted at the cap with
-   the verdict recorded — the round counter never exceeds 5 and a cap-halt never closes
-   COMPLETED.
-+- **SE-9 (F9/C9):** every scanner warning the run produced is visible somewhere — at a
-+  fired checkpoint (gate on) or in the delivery report's Run Summary Scanner Warnings
-+  row (gate off); a run with warnings and neither surface fails this eval (REC9
-+  re-renders the report).
- 
- ### Phase: Scenario Validation
- 
-@@ -286,8 +304,10 @@ and stop_condition per C0 with the Stop Condition section filled) and write to
- `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to
- see all recommended actions.` (only /next pointer, or omit, when the mapped command is
- null), per `play-close.md`. Fill the `delivery-report.md` slots and output the report:
--`## commit-change Delivered — #${issue}`, the Run Summary table (incl. rounds used and the
--stop-condition verdict), the Pipeline Steps table from the task DAG, the Artifacts Produced
-+`## commit-change Delivered — #${issue}`, the Run Summary table (incl. rounds used, the
-+stop-condition verdict, and a **Scanner Warnings** row — every warning the scan produced,
-+carried here whenever the checkpoint did not fire or was skipped by config; `none` when
-+the scan was clean (F9/SE-9)), the Pipeline Steps table from the task DAG, the Artifacts Produced
- table (the commits created), Next Steps (run propose-change to push and open the PR), and a
- pointer to `$evidence_dest`. Always emitted; never gated.
- 
-@@ -318,6 +338,7 @@ pointer to `$evidence_dest`. Always emitted; never gated.
- | F6 | the play attempted a push | this play commits only — drop the push; leave pushing to propose-change | autonomous |
- | F7 | the script's triviality classification disagrees with the changeset | discard the fast-path analysis and re-run the scan through the analyze agent (or record a needless dispatch); the agent's grouping wins | autonomous |
- | F8 | the loop hit its cap with the Done means unmet | halt HALTED (`loop_cap_exhausted`) with the verdict recorded; a human inspects the unmet clauses and fixes state or knowingly raises the cap | human |
-+| F9 | scan warnings exist but no checkpoint fired and the report carries no Scanner Warnings row | re-render the delivery report with the warnings carried into the Run Summary before closing | autonomous |
- 
- ## Pause and Resume
- 
-@@ -329,8 +350,8 @@ start with no marker begins at round 1 and creates the marker.
- 
- | Field | Value |
- |-------|-------|
--| fingerprint | sha256:458374acf654c7c1d555f5aa11b51663ac7ff4ec812283623e193546bab930b9 (of `reference/ice.md`) |
--| compiled_by | play-editor (#465, Level 3 pilot recompile per ADR 025) |
-+| fingerprint | sha256:5e3b5afb2b9b097c99d610feda8d9b8bb749bf3de04b9c5583c3471995bfe95d (of `reference/ice.md`) |
-+| compiled_by | play-editor (#465, Level 3 pilot recompile per ADR 025; #467 Batch C) |
- | pipeline_position | end |
- | workflow_structure | loop (skeleton: pre-flight → loop ≤5 → validation → gated close) |
- | stop_condition | stop-condition.yaml (D1–D4), gate live at Step C0 |
-@@ -339,9 +360,21 @@ start with no marker begins at round 1 and creates the marker.
- | utility_agents | 2 (repo-orchestrator — judgment path only; project-orchestrator) |
- | skills_reused | analyze-changes (judgment path), resolve-issues, manage-issue |
- | scripts | 5 (preflight.py, analyze_changeset.py, execute_commits.py, check_stop_condition.py, session_stamp.py) |
--| step_evals | 8 (SE-1…SE-8) |
-+| step_evals | 9 (SE-1…SE-9) |
- | scenario_evals | 6 (SCE-1…SCE-6) |
--| recovery_entries | 8 (one per failure condition; 5 autonomous / 3 human) |
-+| recovery_entries | 9 (one per failure condition; 6 autonomous / 3 human) |
-+
-+## Compiled note (#467 Batch C)
-+
-+The loop's conditional checkpoint went **off by config** for this project
-+(`gates.plays.commit-change: off`) with its replacement visibility checks in the same
-+change: scanner warnings are carried into the delivery report's Run Summary (F9, SE-9,
-+REC9 — never silently dropped); a low-confidence mapping proceeds recorded as
-+low-confidence, never silently upgraded; the sensitive-file BLOCK stays a hard halt at
-+the scan, untouched by the switch. The checkpoint machinery is KEPT — the switch
-+resolves per `standards/rules/gate-config.md`; flipping the config back to on restores
-+the wait; skips are always recorded in evidence. No new scripts. Owned by the compiled
-+play (ICE recompile, not a direct edit).
- 
- ## Compiled note (#438, absorbed on recompile)
- 
-diff --git a/core/components/plays/commit-change/reference/ice.md b/core/components/plays/commit-change/reference/ice.md
-index 1ef1726e..d6b816d0 100644
---- a/core/components/plays/commit-change/reference/ice.md
-+++ b/core/components/plays/commit-change/reference/ice.md
-@@ -41,7 +41,15 @@ play declared `position: end`. Positions are start and end only — there is no
-   decides its own moves (scan, group, checkpoint when policy demands, execute, re-check);
-   between rounds the stop condition is evaluated. The loop is bounded by an iteration cap
-   of 5 — hitting the cap without the Done means holding halts the run with the
--  stop-condition verdict recorded; the cap is a circuit breaker, never a target.
-+  stop-condition verdict recorded; the cap is a circuit breaker, never a target. The
-+  conditional checkpoint (it fires only on a sensitive flag, scanner warnings, or a
-+  low-confidence mapping) resolves per gate-config — the per-play override
-+  (`gates.plays.commit-change`) is off for this project, and a skip is recorded, never
-+  silent. When the gate is off, scanner WARNINGS are never silently dropped: they are
-+  carried into the delivery report's Run Summary (a visible surface). The sensitive-file
-+  BLOCK is untouched by the switch — a hard halt, never a gate. A low-confidence issue
-+  mapping when the gate is off proceeds with the mapping recorded as low-confidence in
-+  the run record (visible), never silently upgraded.
- 
- ### Failure conditions
- 
-@@ -57,6 +65,8 @@ play declared `position: end`. Positions are start and end only — there is no
-   already analyzed.
- - F8 — The loop exhausts its iteration cap without the Done means holding — the run must
-   halt with the stop-condition verdict recorded, never silently close as completed.
-+- F9 — Scanner warnings existed but appeared neither at a checkpoint nor in the delivery
-+  report.
- 
- ## Expectation
- 
-@@ -126,3 +136,7 @@ play declared `position: end`. Positions are start and end only — there is no
-   direction: halt HALTED with exit_reason loop_cap_exhausted and the stop-condition
-   verdict recorded; a human inspects the unmet clauses and either fixes the underlying
-   state and re-runs, or raises the cap knowingly. handoff: human.
-+- REC9 (F9) — trigger: the run's scan produced warnings but no checkpoint fired and the
-+  delivery report's Run Summary carries no Scanner Warnings row. direction: re-render
-+  the delivery report with the warnings carried into the Run Summary before closing.
-+  handoff: autonomous.
-diff --git a/core/components/plays/merge-change/SKILL.md b/core/components/plays/merge-change/SKILL.md
-index 3b832203..a80d5e99 100644
---- a/core/components/plays/merge-change/SKILL.md
-+++ b/core/components/plays/merge-change/SKILL.md
-@@ -19,10 +19,10 @@ merge-pr play.**
- ## Compiled From
- 
- This play was compiled from the merge-change ICE (`reference/ice.md`) by play-editor
--(#466 Batch A, Level 3 rollout per ADR 025). Intent defines constraints (C1–C6) and
--failure conditions (F1–F6); the expectation defines success scenarios (S1–S4), a Done
--means (D1–D3, baked to `stop-condition.yaml`), and one recovery entry per failure
+ This play was compiled from the fix-bug ICE (`reference/ice.md`) by play-editor
+-(#466 Batch B, Level 3 rollout per ADR 025). Intent defines constraints (C1–C14) and
+-failure conditions (F1–F12); the expectation defines success scenarios (S1–S4), a Done
+-means (D1–D4, baked to `stop-condition.yaml`), and one recovery entry per failure
 -condition.
-+(#466 Batch A, Level 3 rollout per ADR 025; #467 Batch C gate ruling). Intent defines
-+constraints (C1–C7) and failure conditions (F1–F7); the expectation defines success
-+scenarios (S1–S4), a Done means (D1–D3, baked to `stop-condition.yaml`), and one
++(#466 Batch B, Level 3 rollout per ADR 025; #467 Batch D — design gate unpinned).
++Intent defines constraints (C1–C14) and failure conditions (F1–F13); the expectation
++defines success scenarios (S1–S4), a Done means (D1–D4, baked to `stop-condition.yaml`),
++and one recovery entry per failure condition.
+ To modify this play, update `reference/ice.md` and recompile with play-editor.
+ Do NOT edit this file manually — it is a compiled artifact.
+ 
+@@ -207,11 +207,25 @@ from those YAML artifacts. No standalone brief or HTML artifact is produced (C10
+ **SE-6 (F9/C10):** after this step, no `.html` file and no `briefs/` directory exists
+ anywhere under `{stm_base}/{issue}/evidence/fix-bug/`.
+ 
+-**Step 5 — Human Approval Gate (class: standard, pinned)** · Owner: play · Depends on: Step 4
+-**This is the single checkpoint and is never skippable (C4).** Gate switch resolved per
+-`standards/rules/gate-config.md`; C4 mandates this gate, so it is **pinned** — no config
+-value can resolve it off (an off value records `pinned — config bypass refused`). Present
+-the summary inline:
++**Step 5 — Design Approval Gate (class: standard)** · Owner: play · Depends on: Step 4
++The design checkpoint resolves per `standards/rules/gate-config.md` (first match wins:
++per-play `gates.plays.fix-bug`, then class `standard`, then `default`). It is **no longer
++pinned** — #467 Batch D unpinned it (an intent change to C4); the machine preconditions
++below carry what the human was checking.
++
++- **off** (current config: `gates.plays.fix-bug: off`) → do NOT wait. Record `gate skipped
++  by config (gates.plays.fix-bug)` as a Checkpoint Decisions row in the evidence file, then
++  verify the machine wall before any implement step: `rca.yaml` present with a traced root
++  cause (SE-2), `design.yaml` present with ≥1 weighed alternative (SE-3), and the regression
++  test proven **red before** the fix (the Play post-verify above, SE-5 — TDD red-before-green,
++  the hard invariant, never gated). All three present → dispatch the background issue comment
++  (below, C11), record the off-wall clearance timestamp in the status marker, and proceed to
++  Step 6. Any missing → HARD HALT naming the missing precondition (REC13); the fix never
++  starts.
++- **on** (config flipped back) → present the summary inline and wait for the typed response,
++  exactly as below.
++
++Inline summary (rendered only when the gate resolves **on**):
+ 
+ ```markdown
+ **Fix Design: #{issue} — {title}**
+@@ -248,12 +262,20 @@ stub `{stm_base}/{issue}/evidence/fix-bug/issue-comment-agent.yaml` (`status: di
+ `dispatched_at`) before implementation begins. Implementation does not wait for it.
+ 
+ **SE-7 (F1/C4/C5):** no implementation artifact
+-(`{stm_base}/{issue}/evidence/fix-bug/implementation-report.yaml`) exists unless the status
+-file shows the approval gate completed with a `tether_received_at` that precedes the
+-implement step; the checkpoint is always presented (C4); after Tether no further human
+-approval is requested (C5).
++(`{stm_base}/{issue}/evidence/fix-bug/implementation-report.yaml`) exists unless EITHER the
++status file shows the approval gate completed with a `tether_received_at` that precedes the
++implement step (gate **on**), OR the gate resolved **off** with the `gate skipped by config`
++row recorded and all three machine preconditions (`rca.yaml`, `design.yaml`, red-verified
++regression test) present with the off-wall clearance timestamp preceding the implement step
++(gate off); after the gate clears — Tether or the off-wall — no further human approval is
++requested (C5).
+ **SE-8 (F11/C11):** `issue-comment-agent.yaml` exists with `status: dispatched` (or
+-`completed`) and a non-empty `dispatched_at` before the implement step goes in-progress.
++`completed`) and a non-empty `dispatched_at` before the implement step goes in-progress —
++on both the Tether path and the gate-off path.
++**SE-14 (F13/C4):** with the gate resolved off, no implementation artifact exists until the
++machine wall held — `rca.yaml` with a traced root cause, `design.yaml` with ≥1 alternative,
++and a regression test proven red before the fix all present; any one missing is a hard halt
++(REC13) and the fix never starts.
+ 
+ ### Phase: Implement & Verify (retry loop, cap 2 per C13)
+ 
+@@ -342,13 +364,16 @@ verdict) — merge the PR, switch to main and pull, delete the feature branch (l
+   specific file; `design.yaml` has at least one alternative with a rejection reason; the
+   quality-auditor verdict is `pass`; a merged PR references the issue (from the merge-change
+   result).
+-- **SCE-2 (S2 — tech lead, checkpoint):** the Step 5 inline summary carries a root cause
+-  (specific file + logic), a blast-radius table with ≥1 affected-file row, a fix strategy,
+-  ≥1 alternative with a rejection reason, and a confidence value — and no `.html`/brief file
+-  exists under the evidence path.
++- **SCE-2 (S2 — tech lead, checkpoint):** when the Step 5 gate resolved **on**, the inline
++  summary carries a root cause (specific file + logic), a blast-radius table with ≥1
++  affected-file row, a fix strategy, ≥1 alternative with a rejection reason, and a confidence
++  value — and no `.html`/brief file exists under the evidence path. When the gate resolved
++  **off** the checkpoint is not rendered (skipped by config); the no-`.html`/brief assertion
++  still holds.
+ - **SCE-3 (S3 — QA engineer, audit trail):** the originating issue carries an approved-RCA
+   comment created before implementation; the accepted fix carries the quality-auditor `pass`
+-  verdict; the checkpoint approval timestamp is strictly earlier than the implement start.
++  verdict; the gate-clearance timestamp (the Tether `tether_received_at`, or the off-wall
++  clearance timestamp when the gate resolved off) is strictly earlier than the implement start.
+ - **SCE-4 (S4 — developer, red-before-green):** the regression test was recorded failing
+   (red) before implementation and the independent verdict after implementation is `pass`.
+ 
+@@ -440,6 +465,7 @@ entries below cover this play's defect-resolution core.
+ | F10 | the fix is about to be accepted without a red-then-green regression test | author the failing test and confirm it red before implementation, then confirm it green via quality-auditor before the close | autonomous |
+ | F11 | Tether received but `issue-comment-agent.yaml` not written (or `status: pending`) before implement | write the dispatched tracking stub with a `dispatched_at` before the implement step goes in-progress | autonomous |
+ | F12 | the close would report COMPLETED without the Done means held | evaluate the stop condition and surface the unmet clauses; the run closes HALTED until state is fixed | autonomous |
++| F13 | the gate resolved off and an implement step is starting while the RCA, the fix design, or a red-verified regression test is missing | HARD HALT and name the missing precondition; do not start the fix until all three exist (re-run the producing step per REC2/REC3/REC10 as needed) | autonomous |
+ 
+ At Level 4, `intent-resolver` runs the autonomous entries without a human; the two human
+ entries always escalate. The implement→verify retry loop is governed separately by C13
+@@ -458,17 +484,17 @@ an issue, branch, PR, or merge on a re-run.
+ 
+ | Field | Value |
+ |-------|-------|
+-| fingerprint | sha256:fadc214dfd8cfc40e125702510d0ee934c1da004cb2a79e8c3adc88dc51bdfd6 (of `reference/ice.md`) |
+-| compiled_by | play-editor (#466 Batch B) |
++| fingerprint | sha256:f696433dbaed99d09b8c2623acf2c30123ceb70821f052cf81ba44a5e950ed4a (of `reference/ice.md`) |
++| compiled_by | play-editor (#466 Batch B; #467 Batch D — design gate unpinned) |
+ | pipeline_position | both (start-change head; commit-change → propose-change → review-change → merge-change tail) |
+-| workflow_structure | A (single checkpoint, with retry loop around implement + verify per C13) |
++| workflow_structure | A (single design checkpoint — class: standard, unpinned #467 Batch D, resolves per gate-config; when off the machine wall carries it — RCA + fix design + red regression test — and TDD red-before-green is never gated; retry loop around implement + verify per C13) |
+ | stop_condition | stop-condition.yaml (D1–D4), gate live at Step C0 |
+ | domain_agents | 3 (tech-designer, code-builder, quality-auditor) |
+ | utility_agents | 2 (project-orchestrator, repo-orchestrator) |
+ | skills_reused | draft-rca, draft-fix-design, author-regression-test, manage-issue |
+ | member_subplays | start-change, commit-change, propose-change, review-change, merge-change |
+ | scripts | 3 (check_scope.py, check_stop_condition.py, session_stamp.py) |
+-| step_evals | 13 (SE-1…SE-13) |
++| step_evals | 14 (SE-1…SE-14; SE-14 covers the gate-off machine wall F13/C4) |
+ | scenario_evals | 4 (SCE-1…SCE-4) |
+-| recovery_entries | 12 (one per failure condition; 10 autonomous / 2 human) |
++| recovery_entries | 13 (one per failure condition; 11 autonomous / 2 human) |
+ | supersedes | fix-it |
+diff --git a/core/components/plays/fix-bug/reference/ice.md b/core/components/plays/fix-bug/reference/ice.md
+index 29aff3f0..be8270f7 100644
+--- a/core/components/plays/fix-bug/reference/ice.md
++++ b/core/components/plays/fix-bug/reference/ice.md
+@@ -27,8 +27,16 @@ come only via injection.
+   and why it is wrong. Restating the issue title or description is not RCA.
+ - C3 — The fix design must weigh at least one alternative with the reason it was
+   rejected.
+-- C4 — There is exactly one human checkpoint, after RCA and fix design are complete.
+-  It is never skippable and is always presented.
++- C4 — The design checkpoint is no longer a pinned human gate: it resolves per
++  `standards/rules/gate-config.md` (per-play override `gates.plays.fix-bug`, now
++  **off** — the skip is recorded). When it is off, the fix proceeds only behind the
++  machine preconditions that already made the human redundant: a completed RCA (root
++  cause traced to the specific file and logic), a fix design carrying at least one
++  weighed alternative, and a regression test proven **red before** the fix. TDD
++  red-before-green is the hard invariant and is never gated. Any of the three missing
++  is a hard halt — the fix never starts. When the switch is flipped back on, the
++  single checkpoint is presented after RCA and fix design are complete, exactly as
++  before.
+ - C5 — After the checkpoint is approved, implementation and verification run with no
+   further human approval.
+ - C6 — RCA and design are grounded in the product's and core knowledge via the
+@@ -77,6 +85,9 @@ come only via injection.
+ - F11 — The checkpoint was approved but no background issue update was dispatched.
+ - F12 — The close proves nothing — the play closes COMPLETED without the Done means
+   held.
++- F13 — With the gate off, the fix proceeded to implementation without all three
++  machine preconditions present — a completed RCA, a fix design carrying an
++  alternative, and a regression test proven red before the fix.
+ 
+ ## Expectation
+ 
+@@ -158,3 +169,8 @@ come only via injection.
+ - REC12 (F12) — trigger: the close would report COMPLETED without the Done means
+   held. direction: evaluate the stop condition and surface the unmet clauses; the
+   run closes HALTED until state is fixed. handoff: autonomous.
++- REC13 (F13) — trigger: the gate resolved off and an implement step is starting
++  while any of the RCA, the fix design, or a red-verified regression test is missing.
++  direction: HARD HALT and name the missing precondition; do not start the fix until
++  all three exist (re-run the producing step per REC2/REC3/REC10 as needed).
++  handoff: autonomous.
+diff --git a/core/components/plays/implement/SKILL.md b/core/components/plays/implement/SKILL.md
+index ac5209fc..b5eb787d 100644
+--- a/core/components/plays/implement/SKILL.md
++++ b/core/components/plays/implement/SKILL.md
+@@ -32,9 +32,10 @@ source never hand-rolls issue/branch steps — they come only via injection.
+ 
+ This play was compiled from the implement ICE (`reference/ice.md`) by play-creator
+ (edited via play-editor: crisp-spec approval gate + per-piece context scope; #466 Batch B:
+-Level 3 stop-condition formalization). Intent defines constraints (C1–C20) and failure
+-conditions (F1–F16); the expectation defines success scenarios (S1–S8), a Done means
+-(D1–D4, baked to `stop-condition.yaml`), and one recovery entry per failure condition.
++Level 3 stop-condition formalization; #467 Batch D: spec-approval gate unpinned). Intent
++defines constraints (C1–C20) and failure conditions (F1–F17); the expectation defines
++success scenarios (S1–S8), a Done means (D1–D4, baked to `stop-condition.yaml`), and one
 +recovery entry per failure condition.
- To modify this play, update `reference/ice.md` and recompile with play-editor.
+ To modify this play, update `reference/ice.md` and recompile with play-creator.
  Do NOT edit this file manually — it is a compiled artifact.
  
-@@ -117,13 +117,23 @@ any merge.
- failing required checks before any merge.
+@@ -162,7 +163,7 @@ domain work. The play owns this DAG; agents must not edit its top-level tasks (t
+ [T4]  Build Plan + Spec (breakdown + crisp ICE spec)       blockedBy: [T3]
+ [T5]  Publish Plan to Issue                                blockedBy: [T4]
+ [T6]  Steelman Evals (compartmentalized)                   blockedBy: [T4]
+-[T7]  Plan Checkpoint (MANDATORY — initial build)          blockedBy: [T5, T6]
++[T7]  Plan Checkpoint (spec approval — initial build)      blockedBy: [T5, T6]
+ [T8]  Build Loop (pieces along the DAG)                    blockedBy: [T7]
+ [T9]  Run Gates (scripted)                                 blockedBy: [T8]
+ [T10] Steelman Verdict                                     blockedBy: [T9]
+@@ -357,14 +358,26 @@ eval content, or pass criteria; every `test-engineer` contract carries zero
+ implementation piece reports or builder output. Checked before each dispatch; a dirty
+ contract is rebuilt clean (REC6), never dispatched.
  
- **Step 2 — Confirm Merge (class: one-way-door)** · Owner: play · Depends on: Step 1
--Merging is outward-facing and irreversible on `main`. Present the PR, its approval, and
--mergeability, and wait for a typed approval. Approve → continue; cancel → halt without
--merging. *Skip as a no-op when `already_merged` is true (C5).* This checkpoint is a
--config switch per `standards/rules/gate-config.md` (first match wins:
--`gates.plays.merge-change` → `gates.classes.one-way-door` → `gates.default`; absent ⇒
--on) — when resolved off, it does not wait: it records `gate skipped by config
--(<resolution path>)` as a Checkpoint Decisions row in the evidence and proceeds.
-+Merging is outward-facing and irreversible on `main`. *Skip as a no-op when
-+`already_merged` is true (C5).* This checkpoint is a config switch per
-+`standards/rules/gate-config.md` (C7; first match wins: `gates.plays.merge-change` →
-+`gates.classes.one-way-door` → `gates.default`; absent ⇒ on). Per the #467 ruling the
-+per-play override `gates.plays.merge-change` is `off` — the one-way-door CLASS stays on
-+for every other play; flipping the per-play config back to `on` restores the wait
-+unchanged.
-+- **On** — present the PR, its approval, and mergeability, and wait for a typed
-+  approval. Approve → continue; cancel → halt without merging.
-+- **Off** — do not wait: record `gate skipped by config (gates.plays.merge-change)` as a
-+  Checkpoint Decisions row in the evidence, then verify the three machine preconditions
-+  (C7, F7) — `approved: true` and `mergeable: true` read from `merge-gate.json`
-+  (Step 1), and no failing required checks read from the PR's live checks state via
-+  `repo-orchestrator`/`platform-adapter`. Proceed ONLY on all-true; anything else HALTS
-+  exactly as the pre-flight halts do today (REC7), naming the precondition that failed.
-+  Record the three booleans alongside the skip row so the evidence shows what the merge
-+  stood on.
+-### Phase: Checkpoint (MANDATORY on the initial build — Structure A)
+-
+-**Step 7 — Spec Approval** · Owner: play · Depends on: Steps 5 and 6
+-This is the **last human checkpoint before the autonomous build** — the human approves the
+-spec, hands off, and the agent carries the epic to done alone. It is **mandatory on the
+-initial build and never skipped** (C15), declared **(class: standard, pinned)**: no build
+-piece is dispatched until a typed human approval is recorded. Pinned per gate-config.md —
+-its own intent mandates it; no config value can disable it.
++### Phase: Checkpoint (spec approval on the initial build — Structure A; gate resolves per config)
++
++**Step 7 — Spec Checkpoint (class: standard)** · Owner: play · Depends on: Steps 5 and 6
++The spec-approval checkpoint resolves per `standards/rules/gate-config.md` (first match
++wins: per-play `gates.plays.implement`, then class `standard`, then `default`). It is **no
++longer pinned** — #467 Batch D unpinned it (an intent change to C15); the machine
++preconditions below carry the spec alignment the human was checking, and an open question
++stays a human halt.
++
++- **off** (current config: `gates.plays.implement: off`) → do NOT wait. Record `gate
++  skipped by config (gates.plays.implement)` as a Checkpoint Decisions row, then verify the
++  machine wall before any build-loop dispatch: the plan lints clean (`validate_plan.py`
++  exit 0, Step 4 / SE-4), the spec passed `check_spec.py` including the surface gate
++  (SE-16 / SE-20), the steelman evals exist (`steelman-evals.yaml`, Step 6 / SE-7), and the
++  plan carries NO unresolved `open_questions`. All hold → start the build. Any of the first
++  three missing → hold the build and name what is missing (REC17). An `open_questions` entry
++  HALTS to a human regardless of the switch — present it one at a time, plainly, and dispatch
++  nothing until it is answered; an open question IS a genuine human need (REC3/REC17).
++- **on** (config flipped back) → present the spec inline and wait for the typed approval,
++  exactly as below — no build piece is dispatched until a typed human approval is recorded.
  
- **Step 3 — Merge + Sync + Cleanup** · Owner: `repo-orchestrator` · Depends on: Step 2
- The agent invokes `merge-pr`: merge the PR, switch to main and pull the latest, and delete
-@@ -141,6 +151,9 @@ attempted and the run ended as a clean no-op.
- **SE-6 (F6/C6):** `merge-gate.json` reads `pr_merged: true` + `branch_deleted: true`; the
- records commit exists on main; the stop-condition verdict reads held before any
- COMPLETED close.
-+**SE-7 (F7/C7):** on any off-path merge, the Step 2 gate record shows all three machine
-+preconditions true — `approved: true`, `mergeable: true`, and no failing required
-+checks — before the merge ran; no off-gate merge proceeded otherwise.
+ **Skip rule — fix round only:** when `mode == fix`, skip the gate — the round is
+ report-bounded (C14), its revision pieces trace to /validate's findings and cannot widen
+@@ -401,9 +414,16 @@ directive to `tech-designer` → `author-build-plan` (revision mode); the plan r
+ gate), and it is re-presented — the build never starts on an unapproved or surface-downgraded
+ spec. The box only widens where the human draws the wall (REC3).
  
- ### Phase: Scenario Validation
+-**SE-17 (F12/C15):** on the initial build (`mode != fix`) the status marker records a typed
+-human approval of the spec, and no build-loop dispatch occurred before it; a fix round
+-records the report-bounded skip and carries no approval (REC12).
++**SE-17 (F12/C15):** on the initial build (`mode != fix`), before any build-loop dispatch,
++EITHER the status marker records a typed human approval of the spec (gate **on**) OR the gate
++resolved **off** with the `gate skipped by config` row recorded and the machine wall held
++(plan lints clean, `check_spec.py` passed, steelman evals present, no unresolved
++`open_questions`); an unresolved open question halted to a human regardless of the switch; a
++fix round records the report-bounded skip and carries no approval (REC12).
++**SE-22 (F17/C15):** with the gate resolved off, no build-loop dispatch occurred until the
++machine wall held — the plan linted clean (`validate_plan.py` exit 0), the steelman evals
++were present, and no unresolved `open_questions` remained; any of those missing held the
++build (REC17), and an unresolved open question halted to a human.
  
-@@ -201,7 +214,8 @@ Otherwise fill the `evidence-file.md` slots (play `merge-change`, run_id
- `merge-change-${ts}`, issue, started_at/completed_at, status per C0, artifacts produced:
- `merge-gate.json`, the merge commit SHA, the records commit SHA, the stop-condition
- verdict; step/scenario eval results; checkpoint decision
--from Step 2; commit reference = the merge commit SHA; and the session identity stamp fields
-+from Step 2 (or its config-skip row with the three precondition booleans, C7);
-+commit reference = the merge commit SHA; and the session identity stamp fields
- from $session_stamp (#463): session_id, ledger_file, ledger_start_offset, ledger_end_offset
- (null when unresolved — never blocks the close)) and write to `$evidence_dest`. Do
- NOT hand-author the body.
-@@ -235,6 +249,7 @@ gated.
- | F4 | the PR is not mergeable | halt; conflicts must be resolved or failing checks fixed before retrying | human |
- | F5 | a re-run on an already-merged PR | detect the merged state and no-op cleanly | autonomous |
- | F6 | the run is about to close COMPLETED with the Done means unmet | fix the state — delete the surviving branch / rewrite the gate record — and re-evaluate; the close stays HALTED until the verdict reads held | autonomous |
-+| F7 | an off-gate merge would proceed (or proceeded) without approved, mergeable, and no-failing-required-checks all true | halt the merge and surface which precondition failed; do not merge until it reads true | autonomous |
+ ### Phase: Build (the loop — pieces along the DAG)
  
- ## Pause and Resume
+@@ -562,9 +582,12 @@ the deliverable included the documentation the change requires.
+   exist; the epic file read `in_delivery` from re-admission until done assembly; the
+   done bar re-ran unchanged (final gates green + a fresh quality-auditor verdict).
+ - **SCE-7 (S7 — developer, the approval gate):** on the initial build, no build-loop
+-  dispatch occurred before a recorded typed human approval of the spec; `check_spec.py`
+-  exited 0 (the spec is ICE-shaped and within the readable bound); a fix round recorded
+-  the report-bounded skip and carried no approval gate.
++  dispatch occurred before the gate cleared — a recorded typed human approval of the spec
++  (gate **on**), or the recorded gate-off skip with the machine wall held (plan linted clean,
++  `check_spec.py` exited 0, steelman evals present, no unresolved `open_questions`) with any
++  open question halted to a human (gate **off**); `check_spec.py` exited 0 (the spec is
++  ICE-shaped and within the readable bound); a fix round recorded the report-bounded skip and
++  carried no approval gate.
+ - **SCE-8 (S8 — developer, tight autonomous build):** every `code-builder` and
+   `test-engineer` contract carried its piece's cut context slice (piece + transitive deps
+   + spec) — zero carried the whole `plan.yaml`, a sibling piece, or a free-repo directive;
+@@ -677,6 +700,7 @@ entries below cover this play's build core.
+ | F14 | the spec copies code, exceeds the readable bound, or omits a boundary the build needs (`check_spec.py` non-zero) | re-author it as a crisp ICE boundary doc — trim code to references, cut to the bound, add the missing rule/pattern/design/config — then return it to the human for approval | human |
+ | F15 | the generated spec's surface is below the epic's declared `surface_type` (a downgrade), or the epic has no declared surface (`check_spec.py --product-base --epic` non-zero) | halt at the spec-approval gate and present the downgrade — the spec's surface beside the epic's promised surface per `surface-contract.md`; build the lower surface only on explicit human approval of a recut, else regenerate the spec preserving the declared surface; a missing surface is declared before building, never defaulted | human |
+ | F16 | the close is about to record COMPLETED while the stop-condition verdict is unmet or unevaluable | evaluate the stop condition, surface the unmet clauses in the evidence's Stop Condition section, and close HALTED with `exit_reason: stop_condition_unmet` — never COMPLETED | autonomous |
++| F17 | a build-loop dispatch is about to start with the gate off while the plan is unlinted/ungrounded (`validate_plan.py` non-zero), the steelman evals are absent, or an `open_questions` entry is unresolved | an unresolved open question HALTS to a human (present it, dispatch nothing until answered); the rest is autonomous — hold the build, name what is missing, and clear it (re-lint/re-ground the plan, or author the evals) before any dispatch | mixed |
  
-@@ -246,8 +261,8 @@ pending, and continue. A re-run on an already-merged PR is a clean no-op (C5, F5
+ The piece retry loop (cap 2, then tech-designer re-plan) and the refutation loop (cap 2
+ rounds, then human escalation with the full record) are governed in Steps 8 and 10.
+@@ -696,10 +720,10 @@ issue or branch on a re-run.
  
  | Field | Value |
  |-------|-------|
--| fingerprint | sha256:407cf8de382f4dfaa1533254aa248ee48eaac5d7c1622a35bbe4394ed3386027 (of `reference/ice.md`) |
--| compiled_by | play-editor (#466 Batch A) |
-+| fingerprint | sha256:8571784a0e99e24bd671eb5a888c86bd65e5e2ebf5c9ab6918bcc77584a054a0 (of `reference/ice.md`) |
-+| compiled_by | play-editor (#466 Batch A; #467 Batch C) |
- | pipeline_position | end |
- | workflow_structure | B (fast execution flow, single-pass; stop-condition gated close) |
- | stop_condition | stop-condition.yaml (D1–D3), gate live at Step C0 |
-@@ -255,9 +270,21 @@ pending, and continue. A re-run on an already-merged PR is a clean no-op (C5, F5
- | utility_agents | 1 (repo-orchestrator) |
- | skills_reused | merge-pr, platform-adapter |
- | scripts | 3 (preflight.py, session_stamp.py, check_stop_condition.py) |
--| step_evals | 6 (SE-1…SE-6) |
-+| step_evals | 7 (SE-1…SE-7) |
- | scenario_evals | 4 (SCE-1…SCE-4) |
--| recovery_entries | 6 (one per failure condition; 4 autonomous / 2 human) |
-+| recovery_entries | 7 (one per failure condition; 5 autonomous / 2 human) |
-+
-+## Recompile note (#467 Batch C, chain gates off)
-+
-+Intent change via `reference/ice.md` → play-editor: the Confirm Merge one-way-door
-+checkpoint gained C7/F7 — the gate resolves per gate-config, and per the #467 ruling the
-+per-play override `gates.plays.merge-change` is `off` (the one-way-door CLASS stays on for
-+other plays). When off, the merge proceeds ONLY when the three machine preconditions all
-+hold — `approved: true` (review verdict), `mergeable: true` (no conflicts), and no failing
-+required checks — anything else HALTS exactly as pre-flight does today; the skip and the
-+three booleans are recorded in evidence. Checkpoint machinery is kept, not removed:
-+flipping the config back to `on` restores the human wait unchanged. No new scripts. The
-+fingerprint reflects the updated ICE.
+-| fingerprint | sha256:f3f4f28e68a301f77323cbfe684909d49261232236dda0322bf8ab4abe161370 (of `reference/ice.md`) |
+-| compiled_by | play-editor (#466 Batch B, Level 3 rollout per ADR 025; prior history: play-creator, crisp-spec gate + piece context via play-editor, surface gate #442, epic-lifecycle prose #439) |
++| fingerprint | sha256:69654aa990e9517e1f446db00b3cb7f31ef277e9b63bcda7eb112278ec3aae88 (of `reference/ice.md`) |
++| compiled_by | play-editor (#466 Batch B, Level 3 rollout per ADR 025; #467 Batch D — spec-approval gate unpinned; prior history: play-creator, crisp-spec gate + piece context via play-editor, surface gate #442, epic-lifecycle prose #439) |
+ | pipeline_position | start (start-change head; NO end sequence — the close belongs after /validate) |
+-| workflow_structure | A (MANDATORY spec-approval checkpoint on the initial build — class: standard, pinned; skipped only on a report-bounded fix round; build loop + steelman verify) |
++| workflow_structure | A (spec-approval checkpoint on the initial build — class: standard, unpinned #467 Batch D, resolves per gate-config; when off the machine wall carries it — plan lints clean + every piece grounded + steelman evals exist — and an unresolved open_question still HALTS to a human; skipped on a report-bounded fix round; build loop + steelman verify) |
+ | stop_condition | stop-condition.yaml (D1–D4), gate live at Step C0 — the same bar check_done.py (Step 11) assembles |
+ | iteration_caps | piece retry 2 per piece (then tech-designer re-plan); refuted rounds 2 (then human escalation) — pre-existing loop caps, unchanged, governed in Steps 8 and 10 |
+ | domain_agents | 5 (tech-designer, test-engineer, code-builder, evals-engineer, quality-auditor) |
+@@ -708,9 +732,9 @@ issue or branch on a re-run.
+ | skills_created | author-build-plan, author-steelman-evals |
+ | member_subplays | start-change |
+ | scripts | 13 (preflight.py, check_ready_epic.py, update_epic_status.py, validate_plan.py, check_spec.py, cut_piece_context.py, render_plan.py, run_gates.py, check_box.py, check_plan_sync.py, check_done.py, check_stop_condition.py, session_stamp.py) |
+-| step_evals | 21 (SE-1…SE-21; SE-20 covers the surface-downgrade gate C19/F15; SE-21 the stop-condition close gate F16/C20) |
++| step_evals | 22 (SE-1…SE-22; SE-20 covers the surface-downgrade gate C19/F15; SE-21 the stop-condition close gate F16/C20; SE-22 the gate-off machine wall F17/C15) |
+ | scenario_evals | 8 (SCE-1…SCE-8) |
+-| recovery_entries | 16 (one per failure condition; 11 autonomous / 5 human) |
++| recovery_entries | 17 (one per failure condition; 11 autonomous / 5 human / 1 mixed) |
+ | structural_constraints | C8 (no fixed inner loop — enforced by the play's shape; the DAG orders pieces, the agent orders within a piece) |
+ | supersedes | garura:implement (+ absorbs garura:prepare's breakdown) |
  
- ## Direct-edit deviation note (#434, pre-flight resolver)
- 
-diff --git a/core/components/plays/merge-change/reference/ice.md b/core/components/plays/merge-change/reference/ice.md
-index f6ef2c02..907c17b3 100644
---- a/core/components/plays/merge-change/reference/ice.md
-+++ b/core/components/plays/merge-change/reference/ice.md
-@@ -28,6 +28,13 @@ play.
-   play commits its run records (merge-gate.json, the review dir if present) on main per
-   the evidence self-commit rule (ADR 012) — the push of that commit is reported as owed
-   to the human, never performed by the play.
-+- C7 — The Confirm Merge one-way-door checkpoint resolves per gate-config
-+  (`standards/rules/gate-config.md`; per-play `gates.plays.merge-change` is now off per
-+  the #467 ruling — the one-way-door CLASS stays on for other plays). When off, the merge
-+  proceeds ONLY when the three machine preconditions all hold: `approved: true` (the
-+  review-change verdict), `mergeable: true` (no conflicts), and no failing required
-+  checks — anything else HALTS exactly as pre-flight does today. The skip is recorded in
-+  evidence.
- 
- ### Failure conditions
- 
-@@ -38,6 +45,8 @@ play.
- - F5 — Re-running on an already-merged PR errors or attempts to re-merge.
- - F6 — COMPLETED without the Done means held (e.g. merged but the branch survived, or the
-   gate record missing).
-+- F7 — An off-gate merge proceeded without all three machine preconditions true
-+  (approved, mergeable, no failing required checks).
+diff --git a/core/components/plays/implement/reference/ice.md b/core/components/plays/implement/reference/ice.md
+index bf8acf04..0c1a7e0d 100644
+--- a/core/components/plays/implement/reference/ice.md
++++ b/core/components/plays/implement/reference/ice.md
+@@ -92,13 +92,19 @@ a resume: the issue and branch already exist; nothing is duplicated.
+   finding; no fresh breakdown, no fresh workspace; the epic flips fix_required
+   → in_delivery at re-entry; and work beyond what the report names is out of
+   box.
+-- C15 — The build never begins until a human has explicitly approved the spec.
+-  On the initial build this approval is mandatory and never skipped — it is the
+-  last human checkpoint before the build runs autonomously, the point where
+-  human and agent align on what will be built. A fix round does not re-gate: it
+-  is report-bounded (C14), its revision pieces trace to /validate's findings and
+-  cannot widen the approved box, so it re-enters and proceeds without a fresh
+-  approval.
++- C15 — The spec-approval checkpoint is no longer a pinned human gate: it resolves
++  per `standards/rules/gate-config.md` (per-play override `gates.plays.implement`,
++  now **off** — the skip is recorded). When it is off, the autonomous build starts
++  only when the machine preconditions that made the human redundant all hold: the
++  build plan lints clean (`validate_plan.py` exit 0), every plan piece carries a
++  grounding citation into the box (epic | ice | lens | repo), and steelman evals
++  exist for the epic. Crucially, any `open_questions` entry in the plan remains a
++  HARD HALT to a human — an open question IS a genuine human need, and it is the one
++  human beat that stays, as a machine-detected halt rather than a blanket gate. When
++  the switch is flipped back on, the spec is presented and the build waits for a typed
++  human approval, exactly as before. A fix round does not re-gate: it is
++  report-bounded (C14), its revision pieces trace to /validate's findings and cannot
++  widen the approved box, so it re-enters and proceeds without a fresh approval.
+ - C16 — The approved artifact is a spec: a crisp, human-readable, ICE-shaped
+   boundary document — Intent (what the build delivers), Context (the rules,
+   patterns, design decisions, and configuration — ports and the like — the build
+@@ -169,6 +175,9 @@ a resume: the issue and branch already exist; nothing is duplicated.
+   `surface.type` without human approval — the promised user surface is silently
+   downgraded to a local service/read-model.
+ - F16 — COMPLETED without the Done means held.
++- F17 — With the gate off, the autonomous build started on an unlinted or ungrounded
++  plan, with the steelman evals missing, or with an unresolved `open_questions` entry
++  still in the plan.
  
  ## Expectation
  
-@@ -83,3 +92,7 @@ play.
-   direction: fix the state — delete the surviving branch / rewrite the gate record — and
-   re-evaluate the stop condition; the close stays HALTED until the verdict reads held.
+@@ -314,3 +323,10 @@ a resume: the issue and branch already exist; nothing is duplicated.
+   condition, surface the unmet clauses in the evidence's Stop Condition section,
+   and close HALTED with exit_reason stop_condition_unmet — never COMPLETED.
    handoff: autonomous.
-+- REC7 (F7) — trigger: an off-gate merge would proceed (or proceeded) without approved,
-+  mergeable, and no-failing-required-checks all true. direction: halt the merge and
-+  surface which precondition failed; do not merge until it reads true. handoff:
-+  autonomous.
-diff --git a/core/components/plays/play-creator/references/check_self_review.py b/core/components/plays/play-creator/references/check_self_review.py
-new file mode 100644
-index 00000000..da20fb44
---- /dev/null
-+++ b/core/components/plays/play-creator/references/check_self_review.py
-@@ -0,0 +1,66 @@
-+#!/usr/bin/env python3
-+"""
-+check_self_review.py — machine replacement for propose-change's confirm-raise gate (#467).
-+
-+The human at that gate was scanning the self-review for anything blocking before
-+letting the push happen. That scan is mechanical: the self-review checklist marks its
-+findings, and a raise is safe when zero of them are blocking. Tree-clean and the issue
-+reference are already machine walls (pre-flight + SE-4); this closes the last gap.
-+
-+    python3 check_self_review.py --self-review <self-review.md>
-+
-+A line is a BLOCKER when it carries a blocking marker:
-+  - the words BLOCKER / BLOCKING / "P1" as a classification
-+  - a failed checklist mark: [FAIL] / FAIL: / ❌
-+...and is NOT a negation ("no blocking", "0 blockers", "none blocking", "not blocking",
-+"zero blocking") or a heading/label line that merely names the concept
-+("**Blocking**: none").
-+
-+Output: JSON {clean, blockers: [line texts], count}. Exit 0 clean, 1 blockers found,
-+2 bad input. Deterministic.
-+"""
-+
-+import argparse
-+import json
-+import os
-+import re
-+import sys
-+
-+MARKER = re.compile(r"\b(BLOCKER|BLOCKING|P1)\b|\[FAIL\]|(?<![A-Za-z])FAIL:|❌")
-+NEGATION = re.compile(
-+    r"\b(no|none|zero|0|not|without)\b[^.]{0,40}\b(block\w*|P1)\b"
-+    r"|\b(block\w*|P1)\b[^.]{0,40}\b(no|none|zero|0|not)\b",
-+    re.IGNORECASE,
-+)
-+
-+
-+def fail(msg):
-+    sys.stderr.write(f"check_self_review.py: {msg}\n")
-+    sys.exit(2)
-+
-+
-+def main(argv=None):
-+    ap = argparse.ArgumentParser()
-+    ap.add_argument("--self-review", required=True)
-+    args = ap.parse_args(argv)
-+
-+    if not os.path.isfile(args.self_review):
-+        fail(f"missing self-review: {args.self_review}")
-+    with open(args.self_review, encoding="utf-8") as fh:
-+        lines = fh.read().splitlines()
-+
-+    blockers = []
-+    for line in lines:
-+        if not MARKER.search(line):
-+            continue
-+        if NEGATION.search(line):
-+            continue
-+        blockers.append(line.strip())
-+
-+    verdict = {"clean": not blockers, "count": len(blockers), "blockers": blockers}
-+    print(json.dumps(verdict, indent=2))
-+    sys.exit(0 if verdict["clean"] else 1)
-+
-+
-+if __name__ == "__main__":
-+    main()
-diff --git a/core/components/plays/play-creator/references/test_chain_checks.py b/core/components/plays/play-creator/references/test_chain_checks.py
-new file mode 100644
-index 00000000..6fc827fb
---- /dev/null
-+++ b/core/components/plays/play-creator/references/test_chain_checks.py
-@@ -0,0 +1,121 @@
-+#!/usr/bin/env python3
-+"""
-+test_chain_checks.py — fixture tests for the #467 Batch C replacement checks
-+(validate_issue.py, check_self_review.py). Plain asserts, tempdirs.
-+
-+    python3 test_chain_checks.py
-+"""
-+
-+import json
-+import os
-+import shutil
-+import subprocess
-+import sys
-+import tempfile
-+
-+HERE = os.path.dirname(os.path.abspath(__file__))
-+PY = sys.executable or "python3"
-+
-+
-+def run(script, *args, expect=0):
-+    r = subprocess.run(
-+        [PY, os.path.join(HERE, script), *args], capture_output=True, text=True
-+    )
-+    if r.returncode != expect:
-+        raise AssertionError(
-+            f"{script} exit {r.returncode} (wanted {expect}):\n{r.stdout}\n{r.stderr}"
-+        )
-+    return json.loads(r.stdout)
-+
-+
-+def write(path, text):
-+    with open(path, "w", encoding="utf-8") as fh:
-+        fh.write(text)
-+
-+
-+def test_validate_issue():
-+    t = tempfile.mkdtemp(prefix="cc-")
-+    ij = os.path.join(t, "issue.json")
-+    desc = os.path.join(t, "work-description.txt")
-+
-+    # 1. good: tagged title + real description
-+    write(ij, json.dumps({"title": "[ENH] add a scope option to the installer"}))
-+    write(
-+        desc,
-+        "The installer always deploys everything; add a scope option so a "
-+        "target receives only the subset it needs.",
-+    )
-+    r = run("validate_issue.py", "--issue-json", ij, "--description", desc)
-+    assert r["valid"], r
-+
-+    # 2. missing tag
-+    write(ij, json.dumps({"title": "add a scope option to the installer"}))
-+    r = run("validate_issue.py", "--issue-json", ij, "--description", desc, expect=1)
-+    assert any(p.startswith("T2") for p in r["problems"]), r
-+
-+    # 3. short title
-+    write(ij, json.dumps({"title": "[BUG] fix"}))
-+    r = run("validate_issue.py", "--issue-json", ij, "--description", desc, expect=1)
-+    assert any(p.startswith("T1") for p in r["problems"]), r
-+
-+    # 4. empty description
-+    write(ij, json.dumps({"title": "[ENH] add a scope option to the installer"}))
-+    write(desc, "tbd")
-+    r = run("validate_issue.py", "--issue-json", ij, "--description", desc, expect=1)
-+    assert any(p.startswith("D1") for p in r["problems"]), r
-+
-+    # 5. conventional prefix accepted; description from issue body fallback
-+    write(
-+        ij,
-+        json.dumps(
-+            {"title": "feat(installer): add a component scope option", "body": "A" * 60}
-+        ),
-+    )
-+    r = run("validate_issue.py", "--issue-json", ij)
-+    assert r["valid"], r
-+
-+    shutil.rmtree(t)
-+    print("validate_issue: 5/5 pass")
-+
-+
-+def test_check_self_review():
-+    t = tempfile.mkdtemp(prefix="cc-")
-+    sr = os.path.join(t, "self-review.md")
-+
-+    # 1. clean review with negations only
-+    write(
-+        sr,
-+        "# Self-review\n- Scope: PASS\n- Secrets: none found\n"
-+        "- No blocking issues found.\n- Blockers: 0\nVerdict: ready to raise.\n",
-+    )
-+    r = run("check_self_review.py", "--self-review", sr)
-+    assert r["clean"] and r["count"] == 0, r
-+
-+    # 2. a real blocker marker fails
-+    write(sr, "# Self-review\n- Scope: PASS\n- Tests: [FAIL] suite is red\n")
-+    r = run("check_self_review.py", "--self-review", sr, expect=1)
-+    assert r["count"] == 1, r
-+
-+    # 3. P1 classification fails
-+    write(sr, "# Self-review\n- Finding: P1 secret committed in config\n")
-+    r = run("check_self_review.py", "--self-review", sr, expect=1)
-+    assert not r["clean"], r
-+
-+    # 4. BLOCKING word without negation fails
-+    write(sr, "- One BLOCKING item: the tree is dirty\n")
-+    r = run("check_self_review.py", "--self-review", sr, expect=1)
-+    assert r["count"] == 1, r
-+
-+    # 5. "zero blocking" phrasing stays clean
-+    write(sr, "- Result: zero blocking findings; 2 notes for awareness\n")
-+    r = run("check_self_review.py", "--self-review", sr)
-+    assert r["clean"], r
-+
-+    shutil.rmtree(t)
-+    print("check_self_review: 5/5 pass")
-+
-+
-+if __name__ == "__main__":
-+    test_validate_issue()
-+    test_check_self_review()
-+    print("ALL PASS")
-diff --git a/core/components/plays/play-creator/references/validate_issue.py b/core/components/plays/play-creator/references/validate_issue.py
-new file mode 100644
-index 00000000..07aa2cad
---- /dev/null
-+++ b/core/components/plays/play-creator/references/validate_issue.py
-@@ -0,0 +1,88 @@
-+#!/usr/bin/env python3
-+"""
-+validate_issue.py — machine replacement for start-change's confirm-new-issue gate (#467).
-+
-+The human at that gate was checking two things by eye: the proposed title reads like a
-+real, tagged issue title, and the description actually says what the work is. Both are
-+mechanical. This script checks them; the duplicate-issue guard is separate (the resolve
-+step + SE-5 already own it).
-+
-+    python3 validate_issue.py --issue-json <issue.json> \
-+        [--description <work-description.txt>] [--min-desc-chars 40]
-+
-+Checks:
-+  T1  title present and >= 15 characters
-+  T2  title carries a type tag: [ENH] [BUG] [FEAT] [DOCS] [TASK] (or a
-+      conventional-commit-style `type:` prefix)
-+  D1  a work description exists and is >= --min-desc-chars characters of real text
-+      (read from --description when given, else from issue.json's "description"/"body")
-+
-+Output: one JSON verdict {valid, problems: [...]}. Exit 0 valid, 1 invalid, 2 bad input.
-+Deterministic; no network, no git.
-+"""
-+
-+import argparse
-+import json
-+import os
-+import re
-+import sys
-+
-+TAG = re.compile(r"^\[(ENH|BUG|FEAT|DOCS|TASK)\]\s+\S", re.IGNORECASE)
-+CONVENTIONAL = re.compile(r"^(feat|fix|docs|chore|refactor|test)(\([^)]+\))?:\s+\S")
-+MIN_TITLE = 15
-+
-+
-+def fail(msg):
-+    sys.stderr.write(f"validate_issue.py: {msg}\n")
-+    sys.exit(2)
-+
-+
-+def read_description(args, issue):
-+    if args.description and os.path.isfile(args.description):
-+        with open(args.description, encoding="utf-8") as fh:
-+            return fh.read()
-+    return str(issue.get("description") or issue.get("body") or "")
-+
-+
-+def main(argv=None):
-+    ap = argparse.ArgumentParser()
-+    ap.add_argument("--issue-json", required=True)
-+    ap.add_argument(
-+        "--description", help="work-description file (fallback: issue body)"
-+    )
-+    ap.add_argument("--min-desc-chars", type=int, default=40)
-+    args = ap.parse_args(argv)
-+
-+    if not os.path.isfile(args.issue_json):
-+        fail(f"missing issue json: {args.issue_json}")
-+    try:
-+        with open(args.issue_json, encoding="utf-8") as fh:
-+            issue = json.load(fh)
-+    except ValueError as e:
-+        fail(f"unreadable issue json: {e}")
-+
-+    problems = []
-+    title = str(issue.get("title") or "").strip()
-+
-+    if len(title) < MIN_TITLE:
-+        problems.append(f"T1: title missing or under {MIN_TITLE} chars: {title!r}")
-+    if title and not (TAG.match(title) or CONVENTIONAL.match(title)):
-+        problems.append(
-+            "T2: title carries no type tag ([ENH]/[BUG]/[FEAT]/[DOCS]/[TASK] "
-+            "or conventional prefix)"
-+        )
-+
-+    desc = re.sub(r"\s+", " ", read_description(args, issue)).strip()
-+    if len(desc) < args.min_desc_chars:
-+        problems.append(
-+            f"D1: description under {args.min_desc_chars} chars ({len(desc)}) — "
-+            "the issue does not say what the work is"
-+        )
-+
-+    verdict = {"valid": not problems, "problems": problems, "title": title}
-+    print(json.dumps(verdict, indent=2))
-+    sys.exit(0 if verdict["valid"] else 1)
-+
-+
-+if __name__ == "__main__":
-+    main()
-diff --git a/core/components/plays/propose-change/SKILL.md b/core/components/plays/propose-change/SKILL.md
-index 2b3920cf..079e7490 100644
---- a/core/components/plays/propose-change/SKILL.md
-+++ b/core/components/plays/propose-change/SKILL.md
-@@ -19,10 +19,10 @@ ordering is enforced by each one's pre-flight, not by welding them together.
- ## Compiled From
- 
- This play was compiled from the propose-change ICE (`reference/ice.md`) by play-editor
--(#466 Batch A, Level 3 rollout per ADR 025). Intent defines constraints (C1–C7) and
--failure conditions (F1–F7); the expectation defines success scenarios (S1–S4), a Done
--means (D1–D3, baked to `stop-condition.yaml`), and one recovery entry per failure
--condition. This play is SINGLE-PASS: no loop, no iteration cap — the Done means is
-+(#466 Batch A, Level 3 rollout per ADR 025; #467 Batch C gate ruling). Intent defines
-+constraints (C1–C8) and failure conditions (F1–F8); the expectation defines success
-+scenarios (S1–S4), a Done means (D1–D3, baked to `stop-condition.yaml`), and one
-+recovery entry per failure condition. This play is SINGLE-PASS: no loop, no iteration cap — the Done means is
- proven once, at the gated close.
- To modify this play, update `reference/ice.md` and recompile with play-editor.
- Do NOT edit this file manually — it is a compiled artifact.
-@@ -131,18 +131,38 @@ inlined in the play.
- ### Phase: Approval
- 
- **Step 2 — Confirm Raise** · Owner: play · Depends on: Step 1 · **Checkpoint (class: standard)**
--Opening or updating a PR is outward-facing. Present the self-review and the PR draft (title,
--body, base = main, issue reference) and wait for a typed approval. Approve → continue;
--cancel → halt without pushing or opening. The checkpoint is a config switch per
--`standards/rules/gate-config.md` (first match wins: `gates.plays.propose-change` →
--`gates.classes.standard` → `gates.default`; absent ⇒ on): when it resolves off, do not
--wait — record `gate skipped by config (<resolution path>)` as a Checkpoint Decisions row
--in the evidence and proceed.
-+Opening or updating a PR is outward-facing. The checkpoint is a config switch per
-+`standards/rules/gate-config.md` (C8; first match wins: `gates.plays.propose-change` →
-+`gates.classes.standard` → `gates.default`; absent ⇒ on) — per the #467 ruling
-+`gates.plays.propose-change` is `off`, so the resolved default is the off path; flipping
-+the config back to `on` restores the wait unchanged.
-+- **On** — present the self-review and the PR draft (title, body, base = main, issue
-+  reference) and wait for a typed approval. Approve → continue; cancel → halt without
-+  pushing or opening.
-+- **Off** — do not wait: record `gate skipped by config (gates.plays.propose-change)` as
-+  a Checkpoint Decisions row in the evidence and proceed. The skip is never silent.
-+
-+Gate on or off, the human's blocking scan is replaced by a machine check, not dropped:
-+Step 3 runs `scripts/check_self_review.py` BEFORE any push or PR-open, and a blocking
-+finding halts to a human (C8, F8). Tree-clean (C3, pre-flight) and the issue reference
-+(C4, SE-4) are the other two legs of the raise precondition — machine walls, never gated
-+by this switch.
- 
- ### Phase: Execution
- 
- **Step 3 — Push + Open/Update PR** · Owner: `repo-orchestrator` · Depends on: Step 2
--The agent invokes `submit-pr`: push the branch to origin and open a PR against main (or
-+**Pre-push self-review check (C8/F8) — gate on or off, always first:**
-+
-+```
-+python3 scripts/check_self_review.py --self-review <working>/self-review.md
-+```
-+
-+Exit 0 (clean) → proceed. Non-zero → HALT to a human before any push or PR-open: surface
-+the blocking findings the script printed, and do not push or open until they are fixed
-+and the check passes (REC8). Record the executed command and its exit code for the
-+evidence file.
-+
-+Then the agent invokes `submit-pr`: push the branch to origin and open a PR against main (or
- update the existing one for the branch) with the self-review embedded in the body and the
- issue referenced. Contract carries the `self-review.md` path and the issue; it returns the
- PR record on disk at `<working>/pr.json` (number, URL, `base`), not inline.
-@@ -162,6 +182,9 @@ open against main for the branch.
- **SE-4 (F4/C4):** the PR body references the issue (`#<issue>`).
- **SE-5 (F5/C5):** the open-PR count for the branch is exactly one — a pre-existing PR was
- updated, not duplicated.
-+**SE-8 (F8/C8):** `check_self_review.py` was executed BEFORE the push, and its recorded
-+exit code is 0 — no push or PR-open happened while the self-review carried a blocking
-+finding.
- 
- ### Phase: Scenario Validation
- 
-@@ -256,6 +279,7 @@ gated.
- | F5 | a second run would open a duplicate PR | detect the existing PR for the branch and update it instead | autonomous |
- | F6 | the self-review ran on hardcoded rules or ignored a project override | re-resolve the rules file via `standards_order` (project override → base) and re-run the self-review | autonomous |
- | F7 | the close would stamp COMPLETED without the stop-condition verdict held | evaluate the stop condition, surface the unmet clauses, and close HALTED (`stop_condition_unmet`) until they are fixed — an unevaluable verdict is never a pass | autonomous |
-+| F8 | a push or PR-open happened (or would happen) while the self-review carried a blocking finding | halt to a human — fix the blocking findings, then re-run so `check_self_review.py` passes before any push or PR-open | human |
- 
- ## Pause and Resume
- 
-@@ -268,8 +292,8 @@ it rather than opening a new one (C5, F5).
- 
- | Field | Value |
- |-------|-------|
--| fingerprint | sha256:9f279f4c8dcca281dc201419de868e41bb22ce7aab3a81043c30aa07e2eab3cb (of `reference/ice.md`) |
--| compiled_by | play-editor (#466 Batch A) |
-+| fingerprint | sha256:3445c2819701e87867740b7638354ec8c6d8ef6a6bb5adfe3ea6120ae0bcf384 (of `reference/ice.md`) |
-+| compiled_by | play-editor (#466 Batch A; #467 Batch C) |
- | pipeline_position | end |
- | workflow_structure | B (fast execution flow, single-pass — no loop, no cap; gated close) |
- | stop_condition | stop-condition.yaml (D1–D3), gate live at Step C0 |
-@@ -277,10 +301,10 @@ it rather than opening a new one (C5, F5).
- | utility_agents | 1 (repo-orchestrator) |
- | skills_reused | analyze-pr, submit-pr |
- | standards_consumed | standards/rules/self-review.md (overrideable per project); standards/rules/gate-config.md (Step 2 switch) |
--| scripts | 4 (resolve_standard.py — standards-file precedence; preflight.py — pre-flight facts; session_stamp.py — session identity stamp; check_stop_condition.py — Done-means gate) |
--| step_evals | 7 (SE-1…SE-7) |
-+| scripts | 5 (resolve_standard.py — standards-file precedence; preflight.py — pre-flight facts; session_stamp.py — session identity stamp; check_stop_condition.py — Done-means gate; check_self_review.py — pre-push blocking-finding check) |
-+| step_evals | 8 (SE-1…SE-8) |
- | scenario_evals | 4 (SCE-1…SCE-4) |
--| recovery_entries | 7 (one per failure condition; 6 autonomous / 1 human) |
-+| recovery_entries | 8 (one per failure condition; 6 autonomous / 2 human) |
- 
- ## Direct-edit deviation note (#434, harness-led sweep)
- 
-@@ -299,6 +323,18 @@ canonical resolver stamped from `play-creator/references/preflight.py`; a rebuil
- it (play-creator step 4). `reference/ice.md` and the fingerprint are unchanged. Direct edit —
- recompiling would clobber this play's hand-added scripts, so the wiring is hand-added here.
- 
-+## Recompile note (#467 Batch C, chain gates off)
-+
-+Intent change via `reference/ice.md` → play-editor: the Confirm Raise checkpoint gained
-+C8/F8 — the gate resolves per gate-config (per-play `gates.plays.propose-change` now off;
-+skips recorded), and gate on or off the play runs the bundled
-+`scripts/check_self_review.py` on `self-review.md` BEFORE any push or PR-open, halting to
-+a human on any blocking finding (non-zero exit). Tree-clean (C3) and the issue reference
-+(C4) are named as the other two legs of the raise precondition. Checkpoint machinery is
-+kept, not removed: flipping the config back to `on` restores the human wait unchanged.
-+`check_self_review.py` is stamped from the canonical
-+`play-creator/references/check_self_review.py`. The fingerprint reflects the updated ICE.
-+
- ## Direct-edit deviation note (#463, session identity stamp)
- 
- Non-intent change: the Standard Play Close gained the session identity stamp — `scripts/session_stamp.py` (canonical copy: `play-creator/references/session_stamp.py`) runs `--phase start` at pre-flight and `--phase close` in the close block; the evidence frontmatter carries session_id / ledger_file / ledger_start_offset / ledger_end_offset. Source of truth: `standards/rules/play-close.md`; play-creator emits the same lines so a rebuild converges. No constraint, failure, scenario, or eval changed; the fingerprint stands.
-diff --git a/core/components/plays/propose-change/reference/ice.md b/core/components/plays/propose-change/reference/ice.md
-index bb179a51..cd311721 100644
---- a/core/components/plays/propose-change/reference/ice.md
-+++ b/core/components/plays/propose-change/reference/ice.md
-@@ -29,6 +29,13 @@ their order is enforced by each one's pre-flight, not by welding them into one p
- - C7 — The play ends by proving its Done means at close (gated, #464), and commits its
-   own run artifacts (self-review.md, resolved-rules.json, pr.json) on the feature branch
-   BEFORE the push — the PR carries the play's own record and the tree stays clean.
-+- C8 — The Confirm Raise checkpoint resolves per gate-config
-+  (`standards/rules/gate-config.md`; per-play `gates.plays.propose-change` is now off
-+  per the #467 ruling; a skip is always recorded in evidence). AND — gate on or off —
-+  BEFORE any push or PR-open the play MUST run the bundled `check_self_review.py` on
-+  `self-review.md`: any blocking finding (non-zero exit) HALTS to a human. The raise
-+  precondition stands on three legs: this self-review blocker check, tree-clean (C3 —
-+  pre-flight machine wall), and the issue reference (C4 — eval machine wall).
- 
- ### Failure conditions
- 
-@@ -40,6 +47,7 @@ their order is enforced by each one's pre-flight, not by welding them into one p
- - F6 — The self-review runs on hardcoded rules, or ignores a project override of the
-   rules file when one is present.
- - F7 — The close proves nothing — COMPLETED without the Done means held.
-+- F8 — A push or PR-open happened while the self-review carried a blocking finding.
- 
- ## Expectation
- 
-@@ -92,3 +100,7 @@ their order is enforced by each one's pre-flight, not by welding them into one p
-   verdict held. direction: evaluate the stop condition, surface the unmet clauses, and
-   close HALTED (`stop_condition_unmet`) until they are fixed — an unevaluable verdict is
-   never a pass. handoff: autonomous.
-+- REC8 (F8) — trigger: a push or PR-open happened (or would happen) while the
-+  self-review carried a blocking finding. direction: halt to a human — fix the blocking
-+  findings, then re-run the play so the check passes before any push or PR-open.
-+  handoff: human.
-diff --git a/core/components/plays/propose-change/scripts/check_self_review.py b/core/components/plays/propose-change/scripts/check_self_review.py
-new file mode 100755
-index 00000000..da20fb44
---- /dev/null
-+++ b/core/components/plays/propose-change/scripts/check_self_review.py
-@@ -0,0 +1,66 @@
-+#!/usr/bin/env python3
-+"""
-+check_self_review.py — machine replacement for propose-change's confirm-raise gate (#467).
-+
-+The human at that gate was scanning the self-review for anything blocking before
-+letting the push happen. That scan is mechanical: the self-review checklist marks its
-+findings, and a raise is safe when zero of them are blocking. Tree-clean and the issue
-+reference are already machine walls (pre-flight + SE-4); this closes the last gap.
-+
-+    python3 check_self_review.py --self-review <self-review.md>
-+
-+A line is a BLOCKER when it carries a blocking marker:
-+  - the words BLOCKER / BLOCKING / "P1" as a classification
-+  - a failed checklist mark: [FAIL] / FAIL: / ❌
-+...and is NOT a negation ("no blocking", "0 blockers", "none blocking", "not blocking",
-+"zero blocking") or a heading/label line that merely names the concept
-+("**Blocking**: none").
-+
-+Output: JSON {clean, blockers: [line texts], count}. Exit 0 clean, 1 blockers found,
-+2 bad input. Deterministic.
-+"""
-+
-+import argparse
-+import json
-+import os
-+import re
-+import sys
-+
-+MARKER = re.compile(r"\b(BLOCKER|BLOCKING|P1)\b|\[FAIL\]|(?<![A-Za-z])FAIL:|❌")
-+NEGATION = re.compile(
-+    r"\b(no|none|zero|0|not|without)\b[^.]{0,40}\b(block\w*|P1)\b"
-+    r"|\b(block\w*|P1)\b[^.]{0,40}\b(no|none|zero|0|not)\b",
-+    re.IGNORECASE,
-+)
-+
-+
-+def fail(msg):
-+    sys.stderr.write(f"check_self_review.py: {msg}\n")
-+    sys.exit(2)
-+
-+
-+def main(argv=None):
-+    ap = argparse.ArgumentParser()
-+    ap.add_argument("--self-review", required=True)
-+    args = ap.parse_args(argv)
-+
-+    if not os.path.isfile(args.self_review):
-+        fail(f"missing self-review: {args.self_review}")
-+    with open(args.self_review, encoding="utf-8") as fh:
-+        lines = fh.read().splitlines()
-+
-+    blockers = []
-+    for line in lines:
-+        if not MARKER.search(line):
-+            continue
-+        if NEGATION.search(line):
-+            continue
-+        blockers.append(line.strip())
-+
-+    verdict = {"clean": not blockers, "count": len(blockers), "blockers": blockers}
-+    print(json.dumps(verdict, indent=2))
-+    sys.exit(0 if verdict["clean"] else 1)
-+
-+
-+if __name__ == "__main__":
-+    main()
-diff --git a/core/components/plays/review-change/SKILL.md b/core/components/plays/review-change/SKILL.md
-index 79c5ec17..ae168790 100644
---- a/core/components/plays/review-change/SKILL.md
-+++ b/core/components/plays/review-change/SKILL.md
-@@ -1,7 +1,7 @@
- ---
- name: review-change
- position: end
--description: 'Review an open change thoroughly and against something outside the change itself: assess what work categories the diff contains, resolve each category''s review treatment from the review-knowledge memory shelf, review each through its layers (objective linters, then design-grounding from committed sources for design-bearing categories), consolidate findings that each cite their basis, and stop at one mandatory human gate where the reviewer owns the approve/reject verdict that is posted to the PR. The gate (third step) of the end sequence in the ProductOS command model. Use when a PR is ready to be reviewed and a verdict is needed.'
-+description: 'Review an open change thoroughly and against something outside the change itself: assess what work categories the diff contains, resolve each category''s review treatment from the review-knowledge memory shelf, review each through its layers (objective linters, then design-grounding from committed sources for design-bearing categories), consolidate findings that each cite their basis, and stop at one decision gate resolved per gate-config — the reviewer owns the approve/reject verdict when the gate is on; when off the computed recommendation is recorded and posted as a clearly marked harness verdict. The gate (third step) of the end sequence in the ProductOS command model. Use when a PR is ready to be reviewed and a verdict is needed.'
- user-invocable: true
- ---
- 
-@@ -11,7 +11,9 @@ Review an open change so the merge decision rests on something **outside** the c
- the work categories the diff contains, resolve each category's treatment from the
- review-knowledge memory shelf, review each through up to two layers (objective linters, then
- design-grounding for design-bearing categories), consolidate findings that each cite a basis,
--and stop at one mandatory human gate where the reviewer owns the verdict — posted to the PR.
-+and stop at one decision gate resolved per gate-config: the reviewer owns the verdict when
-+the gate is on; when off, the computed recommendation becomes the decision, marked as a
-+harness verdict — either way it is posted to the PR.
- 
- **Pipeline position: end** (third step of the end sequence: commit-change →
- propose-change → review-change → merge-change). The D2 pipeline-position rule injects this
-@@ -20,30 +22,34 @@ enforced by pre-flight (an open PR must exist).
++- REC17 (F17) — trigger: a build-loop dispatch is about to start with the gate off
++  while the plan is unlinted or ungrounded (`validate_plan.py` non-zero), the steelman
++  evals are absent, or an `open_questions` entry is unresolved. direction: an
++  unresolved open question HALTS to a human — present it and dispatch nothing until it
++  is answered; the rest is autonomous — hold the build, name what is missing, and clear
++  it (re-lint/re-ground the plan, or author the evals) before any dispatch.
++  handoff: mixed (open_question → human; the rest autonomous).
+diff --git a/core/components/plays/refactor/SKILL.md b/core/components/plays/refactor/SKILL.md
+index a76180d5..f36b95da 100644
+--- a/core/components/plays/refactor/SKILL.md
++++ b/core/components/plays/refactor/SKILL.md
+@@ -23,10 +23,11 @@ the closing chain. This source never hand-rolls issue/branch/PR/merge steps.
  
  ## Compiled From
  
--This play was compiled from the review-change ICE (`reference/ice.md`) by play-editor.
--Intent defines constraints (C1–C9) and failure conditions (F1–F9); the expectation defines
--success scenarios (S1–S5), a Done means (D1–D3, baked to `stop-condition.yaml`), and one
--recovery entry per failure condition.
-+This play was compiled from the review-change ICE (`reference/ice.md`) by play-editor
-+(#443 redesign; #467 Batch C gate ruling). Intent defines constraints (C1–C9) and failure
-+conditions (F1–F10); the expectation defines success scenarios (S1–S5), a Done means
-+(D1–D3, baked to `stop-condition.yaml`), and one recovery entry per failure condition.
- To modify this play, update `reference/ice.md` and recompile with play-editor.
+-This play was compiled from the refactor ICE (`reference/ice.md`) by play-editor (#466 Batch B).
+-Intent defines constraints (C1–C7) and failure conditions (F1–F7); the expectation defines success
+-scenarios (S1–S6), a Done means (D1–D3, baked to `stop-condition.yaml`), and one recovery entry per
+-failure condition. To modify this play, update `reference/ice.md` and recompile with play-editor.
++This play was compiled from the refactor ICE (`reference/ice.md`) by play-editor (#466 Batch B;
++#467 Batch D turned the Step 5 plan-approval gate off and elevated the behavior-pin, C3, to the
++machine precondition). Intent defines constraints (C1–C7) and failure conditions (F1–F8); the
++expectation defines success scenarios (S1–S6), a Done means (D1–D3, baked to `stop-condition.yaml`),
++and one recovery entry per failure condition. To modify this play, update `reference/ice.md` and recompile with play-editor.
  Do NOT edit this file manually — it is a compiled artifact.
  
  ## Role
+@@ -182,11 +183,26 @@ Read `refactor-plan.yaml` and render the checkpoint summary **inline** in Step 5
+ brief or HTML artifact is produced.
  
--You are the orchestrator. You own the workflow, the step order, and the one human gate. You
--delegate the agentic assessment and the design-grounding to `change-reviewer`, the standards
--linter to `quality-auditor`, and the PR/host I/O to `repo-orchestrator` — all via JSON
--contracts over files on disk. You presume **no** work categories and **no** review treatment:
--the categories are assessed every run, and each category's treatment is resolved from the
--`knowledge/review/` shelf. You run only the layers and steps that apply to the categories
--present. You never decide the verdict — you compute a *recommendation* and the human decides.
-+You are the orchestrator. You own the workflow, the step order, and the one decision gate.
-+You delegate the agentic assessment and the design-grounding to `change-reviewer`, the
-+standards linter to `quality-auditor`, and the PR/host I/O to `repo-orchestrator` — all via
-+JSON contracts over files on disk. You presume **no** work categories and **no** review
-+treatment: the categories are assessed every run, and each category's treatment is resolved
-+from the `knowledge/review/` shelf. You run only the layers and steps that apply to the
-+categories present. You never invent the verdict — you compute a *recommendation*; the gate
-+resolution (C8) decides who owns the decision: the human when the gate is on, the
-+recommendation itself (recorded as a harness verdict) when it is off.
+ **Step 5 — Human Approval Gate (class: standard)** · Owner: play · Depends on: Step 4
+-**This is the single checkpoint (C6) — the agent never skips it on its own judgment.** It is a
+-config switch per `standards/rules/gate-config.md` (#466): resolve `gates.plays.refactor` →
+-`gates.classes.standard` → `gates.default` (absent ⇒ on); when off, record
+-`gate skipped by config (<resolution path>)` as a Checkpoint Decisions row in the evidence and
+-proceed on the plan. Present the plan inline:
++**This is the single checkpoint (C6) — the agent never skips it on its own judgment; the config
++does.** Resolve the gate FIRST per `standards/rules/gate-config.md` (first match wins:
++`gates.plays.refactor` → `gates.classes.standard` → `gates.default`; absent ⇒ on). Under #467
++Batch D `gates.plays.refactor` is **off** — the human plan-approval is redundant because the
++**behavior-pin** (C3) is the machine precondition that carries what the human was protecting:
++characterization/behavior tests captured and GREEN before the refactor, GREEN after, and no test
++weakened or deleted.
++
++- **off** — do NOT wait. Proceed ONLY behind the behavior-pin wall: `baseline-verdict.yaml` is
++  GREEN (Step 3 pinned the behavior) before any implementation step runs. Record
++  `gate skipped by config (gates.plays.refactor)` as a Checkpoint Decisions row in the evidence and
++  proceed to Step 6. The pin is re-asserted at Step 7 (`preservation.yaml.behavior_preserved: true`
++  — green before AND after, no test weakened); a broken pin at either point is a HARD HALT, never
++  gated (REC8), and the refactor must not land. If the baseline is not green, do NOT proceed — apply
++  REC3/REC8: pin the behavior first.
++- **on** — present the plan inline and wait for the typed Tether/Vanish; the agent never skips it on
++  its own judgment.
++
++Present the plan inline (rendered whether the gate is on for the human, or recorded alongside the
++config-skip row when off):
  
- **The guiding rule: the change under review is never its own standard.**
+ ```markdown
+ **Refactor Plan: #{issue} — {target}**
+@@ -213,8 +229,15 @@ Type **Tether** to approve and proceed, or **Vanish** to reject.
  
- **Forbidden:** presuming or hardcoding a category list or a review treatment; grounding a
- design principle in the branch's own new content; running a full-repo scan (reads outside the
- diff are allowed *only* to reconstruct committed grounding, and are read-only);
--auto-deciding the verdict or posting a machine decision without the human gate; reporting a
--finding with no cited basis.
-+auto-deciding the verdict while the gate resolves on; recording an off-gate decision that
-+differs from the computed recommendation, or posting any decision that does not name its
-+decider (harness vs human); leaving a verdict silent or unposted; reporting a finding with
-+no cited basis.
+ **SE-3 (F6/C6):** no implementation report
+ (`{stm_base}/{issue}/evidence/refactor/implementation-report.yaml`) exists unless the status file
+-shows this gate completed with a `tether_received_at` that precedes the implement step; the
+-checkpoint is always presented.
++shows this gate completed — with a `tether_received_at` that precedes the implement step when the
++gate is ON, or a recorded `gate skipped by config (gates.plays.refactor)` Checkpoint Decisions row
++when it is OFF; the gate resolution is always recorded, never silent.
++
++**SE-10 (F8/C6):** with the gate off, the behavior-pin held across the refactor — no implementation
++step ran unless `baseline-verdict.yaml` was GREEN (Step 3), and the run proceeded/landed only with
++`preservation.yaml.behavior_preserved: true` (green before AND after, no test weakened; Step 7). A
++refactor that proceeded or landed with the pin broken is F8 (REC8) — the machine precondition that
++replaced the human approval was not met.
  
- **Agent boundaries:**
+ ### Phase: Implement & Verify (retry loop, cap 2)
  
-@@ -54,7 +60,8 @@ finding with no cited basis.
- | `quality-auditor` | Run the standards linter (`quality-check-scoped`) against the diff for the standards-driven categories | `quality-check-scoped` | Review | Domain |
+@@ -418,8 +441,9 @@ below cover this play's refactor core.
+ | F5 | the change is cosmetic churn with no real quality gain | re-scope the refactor to a concrete quality issue named against the standards, or drop it | human |
+ | F6 | a code change was made with no completed checkpoint preceding it | hold for the single human Tether/Vanish before any implementation step runs; revert any premature edit | human |
+ | F7 | the run is about to close COMPLETED with the Done means unmet (a missing plan or baseline artifact, or preservation asserted in prose with no machine record) | produce the missing artifact — re-run the behavior guard with `--out` so `preservation.yaml` carries the machine fields — then re-evaluate the stop condition; the close stays HALTED until the verdict reads held | autonomous |
++| F8 | with the plan-approval gate off, a refactor proceeded or landed without the behavior-pin holding (behavior suite not green both before and after, or a test weakened/deleted) | restore the behavior-pin — re-capture or repair the characterization suite to green on the pre-refactor code and restore any weakened test to its prior strength — re-run the behavior guard, and do not land until green before AND after | human |
  
- Domain agents: 2 (`change-reviewer`, `quality-auditor`). The verdict **recommendation** is a
--deterministic script; the verdict **decision** is the human's at the gate.
-+deterministic script; the verdict **decision** follows the gate resolution — the human's
-+when the gate is on, the recommendation recorded as a harness verdict when it is off (C8).
+-At Level 4, `intent-resolver` runs the autonomous entries without a human; the three human entries
++At Level 4, `intent-resolver` runs the autonomous entries without a human; the four human entries
+ always escalate. The implement→verify retry loop is capped at 2, then tech-designer re-plans; resume,
+ never halt blindly.
  
- ## Pre-flight
- 
-@@ -97,7 +104,7 @@ The play owns this DAG; agents must not edit its top-level tasks.
- [T2] Assess Categories                  blockedBy: [T1]
- [T3] Review Per Category (layers)       blockedBy: [T2]
- [T4] Consolidate + Recommend Verdict    blockedBy: [T3]
--[T5] Human Decision Gate                blockedBy: [T4]
-+[T5] Decision Gate (config-resolved)    blockedBy: [T4]
- [T6] Post Decision to PR                blockedBy: [T5]
- [T7] Scenario Validation                blockedBy: [T6]
- [T8] Close                              blockedBy: [T7]
-@@ -207,41 +214,55 @@ This is an input to the human gate, not the decision.
- **SE-6 (F6/C6):** every finding in `findings.yaml` carries a P1–P4 class **and** a cited basis
- — a linter rule id or a grounded principle with its committed source.
- 
--**Step 5 — Human Decision Gate (class: standard)** · Owner: play · Depends on: Step 4
--This checkpoint is a config switch per `standards/rules/gate-config.md` (#466): resolve
--`gates.plays.review-change` → `gates.classes.standard` → `gates.default` (absent ⇒ on);
--when off, record `gate skipped by config (<resolution path>)` as a Checkpoint Decisions
--row in the evidence and proceed on the recommendation. `review-pr.bypass` remains a
-+**Step 5 — Decision Gate (class: standard)** · Owner: play · Depends on: Step 4
-+This checkpoint is a config switch per `standards/rules/gate-config.md` (C8, #466/#467):
-+resolve `gates.plays.review-change` → `gates.classes.standard` → `gates.default`
-+(absent ⇒ on). Per the #467 ruling `gates.plays.review-change` is `off`; flipping the
-+config back to `on` restores the human wait unchanged. `review-pr.bypass` remains a
- SEPARATE, pre-existing config (whether a reject blocks the downstream merge), untouched
- by this switch.
--**Mandatory stop.** Present, in plain language: the categories assessed; for each
--design-bearing category, the principles grounded and their committed sources; the consolidated
--findings grouped by category and severity, each with its basis; and the recommended verdict
--with its reason. Then output the summary and **wait for the reviewer's typed approve or
--reject** (do NOT use AskUserQuestion; do NOT proceed on the recommendation alone). Record the
--reviewer's decision verbatim to `decision.yaml`. The tool recommends; the human decides.
-+- **On — the human decides.** Present, in plain language: the categories assessed; for
-+  each design-bearing category, the principles grounded and their committed sources; the
-+  consolidated findings grouped by category and severity, each with its basis; and the
-+  recommended verdict with its reason. Then output the summary and **wait for the
-+  reviewer's typed approve or reject** (do NOT use AskUserQuestion; do NOT proceed on the
-+  recommendation alone). Record the reviewer's decision verbatim to `decision.yaml`
-+  (`decided_by: human`).
-+- **Off — the recommendation becomes the decision.** Do not wait. Record
-+  `gate skipped by config (gates.plays.review-change)` as a Checkpoint Decisions row in
-+  the evidence. Write `decision.yaml` directly from `recommended_verdict.yaml`:
-+  `decided_by: harness`, the recommendation **verbatim**, and the citing (blocking)
-+  findings. A `reject` outcome stands exactly as a human reject would — fix the cited
-+  findings and re-raise. The verdict is still never silent and never unposted (C9).
- 
- **Step 6 — Post Decision to PR** · Owner: `repo-orchestrator` · Depends on: Step 5
--The agent posts the human's decision comment (decision + the cited findings + routing) to the
--PR via `platform-adapter`. Whether a `reject` hard-blocks the downstream merge is governed by
--config (`review-pr.bypass`), unchanged from prior behavior. A verdict rendered AND posted
--counts as done regardless of approve/reject (C9). After the comment posts, write
-+The agent posts the decision comment (decision + the cited findings + routing) to the PR
-+via `platform-adapter`. The comment ALWAYS names its decider: a human decision is posted
-+as the reviewer's verdict; an off-gate decision is clearly marked as a **harness verdict**
-+(e.g. leading with `Harness verdict (gate off per gates.plays.review-change): <decision>`)
-+so no reader mistakes it for a human review (C8, F10). Whether a `reject` hard-blocks the
-+downstream merge is governed by config (`review-pr.bypass`), unchanged from prior
-+behavior. A verdict rendered AND posted counts as done regardless of approve/reject (C9).
-+After the comment posts, write
- `review/posted.json` `{posted: true, comment_url}`; then commit the review run artifacts
- (`chore(stm): record review-change run artifacts (#<issue>)`) and push the branch — the PR
- updates with its own review record. The posting agent's contract carries these as outputs:
- 
-     {
--      "task":    "post the human's verdict comment to the PR; write posted.json {posted, comment_url}; commit+push the review run artifacts (context.yaml, findings.yaml, verdict.yaml, posted.json)",
-+      "task":    "post the decision comment (naming its decider: human or harness) to the PR; write posted.json {posted, comment_url}; commit+push the review run artifacts (context.yaml, findings.yaml, verdict.yaml, posted.json)",
-       "inputs":  { "decision": "<working>/decision.yaml", "findings": "<working>/findings.yaml" },
-       "outputs": { "posted": "<working>/posted.json" }
-     }
- 
--**SE-8 (F8/C8):** the recommended verdict was computed but the recorded decision equals the
--reviewer's typed input, and a verdict comment authored by this run exists on the PR after the
--step.
-+**SE-8 (F8/C8):** the recommended verdict was computed; when the gate resolved on, the
-+recorded decision equals the reviewer's typed input; a verdict comment authored by this
-+run exists on the PR after the step.
- **SE-9 (F9/C9):** `posted.json` reads `posted: true` with a comment URL; the run artifacts
- are on the remote branch; the stop-condition verdict reads held before the close may read
- COMPLETED.
-+**SE-10 (F10/C8):** when the gate resolved off, `decision.yaml` reads `decided_by: harness`
-+and equals the computed recommendation verbatim with its citing findings, and the posted
-+comment identifies its decider (harness vs human).
- 
- ### Phase: Scenario Validation
- 
-@@ -257,7 +278,9 @@ COMPLETED.
- - **SCE-3 (S3 — external grounding):** every grounding source recorded is committed/external;
-   none is a diff-added file.
- - **SCE-4 (S4 — blocking finding):** with a P1 finding, the recommended verdict is reject
--  citing it, the human gate was presented, and the posted decision equals the human's input.
-+  citing it; the decision followed the gate resolution (human's input when on; the harness
-+  reject, marked as such, when off); the posted decision equals the recorded decision and
-+  names its decider.
- - **SCE-5 (S5 — cited basis):** every finding in the consolidated report names a linter rule
-   or a grounded principle as its basis.
- 
-@@ -303,8 +326,9 @@ Otherwise fill the `evidence-file.md` slots (play `review-change`, run_id
- `review-change-${ts}`, issue, started_at/completed_at, status per C0, exit_reason; artifacts
- produced: `context.yaml`, `categories.yaml`, `quality-findings.yaml`, `design-findings.yaml`,
- `findings.yaml`, `recommended_verdict.yaml`, `decision.yaml`, `posted.json` (with the PR
--comment URL), the stop-condition verdict; step/scenario eval results; the human decision as
--the terminal status; checkpoint decisions (incl. any `gate skipped by config` row);
-+comment URL), the stop-condition verdict; step/scenario eval results; the recorded decision
-+(with its `decided_by`) as the terminal status; checkpoint decisions (incl. any
-+`gate skipped by config` row);
- commit reference = the run-artifacts commit SHA; the session identity stamp fields from
- $session_stamp (#463): session_id, ledger_file, ledger_start_offset, ledger_end_offset (null
- when unresolved — never blocks the close); and stop_condition per C0 with the Stop Condition
-@@ -341,33 +365,36 @@ pointer to `$evidence_dest`. Always emitted; never gated.
- | F5 | the review expanded beyond the diff | re-scope to the diff; keep any outside reads read-only and grounding-only | autonomous |
- | F6 | a finding has no cited basis | attach the finding's basis (linter rule or grounded principle) or drop the finding | autonomous |
- | F7 | a runnable check was read but not executed | execute the check and fold its result into the findings | autonomous |
--| F8 | the verdict was auto-decided, or the decision was not posted | hold at the human gate, record the reviewer's decision verbatim, and post it to the PR | human |
-+| F8 | the verdict was auto-decided while the gate was on, or the decision was not posted | hold at the human gate, record the reviewer's decision verbatim, and post it to the PR | human |
- | F9 | the run is about to close COMPLETED with the Done means unmet (verdict never posted, posted.json or run artifacts missing) | post the verdict / fix the run state (write posted.json, commit+push the run artifacts), then re-evaluate the stop condition; the close stays HALTED until the verdict reads held | autonomous |
-+| F10 | with the gate off, `decision.yaml` differs from the computed recommendation, or the posted comment does not identify its decider | rewrite `decision.yaml` from `recommended_verdict.yaml` (`decided_by: harness`, recommendation verbatim, citing findings) and re-post the comment with the decider named | autonomous |
- 
- ## Pause and Resume
- 
- Steps run top to bottom. On entry, resolve the PR from the branch, check the status
--marker, skip completed steps, reset any in-progress step to pending, and continue. The human
--decision gate (Step 5) is never auto-resolved on resume — if it has not been answered, re-present
--and wait. A re-run re-posts the current decision rather than adding a conflicting second one.
-+marker, skip completed steps, reset any in-progress step to pending, and continue. When the
-+gate resolves on, the decision gate (Step 5) is never auto-resolved on resume — if it has
-+not been answered, re-present and wait; when it resolves off, resume re-derives the
-+decision from the recommendation exactly as a first pass would. A re-run re-posts the
-+current decision rather than adding a conflicting second one.
- 
- ## Compilation Metadata
+@@ -435,16 +459,16 @@ are themselves resumable and never duplicate an issue, branch, PR, or merge on a
  
  | Field | Value |
  |-------|-------|
--| fingerprint | sha256:d3a7f1a6e14fffbf6592517f7849a1c5ed754781be900f1a5f3b19dc2a1feed1 (of `reference/ice.md`) |
--| compiled_by | play-editor (#466 Batch A) |
-+| fingerprint | sha256:71c8c84cbe603ba6c5aa4103ff18ae6d7008097f1dcbd10b8674d4265b8f62e9 (of `reference/ice.md`) |
-+| compiled_by | play-editor (#466 Batch A; #467 Batch C) |
- | pipeline_position | end |
--| workflow_structure | A (multi-agent; agentic assessment + two-layer review; human-owned verdict gate; gated close) |
-+| workflow_structure | A (multi-agent; agentic assessment + two-layer review; config-resolved verdict gate; gated close) |
+-| fingerprint | sha256:93f8eca26f2d55db66322ce123727a48ad0eafd93521facefb4ede1547195a63 (of `reference/ice.md`) |
+-| compiled_by | play-editor (#466 Batch B) |
++| fingerprint | sha256:34b5741606ac28b74d43f0410ebdd2fe49d9b0c4be109ec336532a2b73601498 (of `reference/ice.md`) |
++| compiled_by | play-editor (#466 Batch B; #467 Batch D — Step 5 gate off + C6 gate-resolution/behavior-pin + F8/REC8/SE-10) |
+ | pipeline_position | both (start-change head; commit-change → propose-change → review-change → merge-change tail) |
+-| workflow_structure | A (single checkpoint, with retry loop around implement + verify, cap 2) |
++| workflow_structure | A (single checkpoint — gate off under #467 Batch D, the human plan-approval replaced by the behavior-pin machine wall, C3/C6; with retry loop around implement + verify, cap 2) |
  | stop_condition | stop-condition.yaml (D1–D3), gate live at Step C0 |
- | domain_agents | 2 (change-reviewer, quality-auditor) |
- | utility_agents | 1 (repo-orchestrator) |
- | skills_reused | quality-check-scoped, platform-adapter, lint_play.py, lint-components |
- | knowledge_consumed | knowledge/review/ (category playbooks); standards/rules/pr.md (severity taxonomy); standards_order set |
- | scripts | 4 (preflight.py — pre-flight facts; compute_verdict.py — recommended verdict over classified findings; check_stop_condition.py — Done-means gate; session_stamp.py — #463 identity stamp) |
+ | domain_agents | 3 (tech-designer, code-builder, quality-auditor) |
+ | utility_agents | 2 (project-orchestrator, repo-orchestrator) |
+ | skills_reused | map-test-surface, detect-test-harness, quality-check-scoped, author-regression-test, run-generated-tests-isolated |
+ | member_subplays | start-change, commit-change, propose-change, review-change, merge-change |
+ | scripts | 6 (preflight, check_refactor_scope, check_model_untouched, check_behavior_preserved — writes the machine preservation record, check_stop_condition — Done-means gate, session_stamp — #463 identity stamp) |
 -| step_evals | 9 (SE-1…SE-9) |
-+| step_evals | 10 (SE-1…SE-10) |
- | scenario_evals | 5 (SCE-1…SCE-5) |
--| recovery_entries | 9 (one per failure condition; F8 hands to the human gate, the rest autonomous) |
-+| recovery_entries | 10 (one per failure condition; F8 hands to the human gate, the rest autonomous) |
- 
- ## Direct-edit deviation note (#434, harness-led sweep)
- 
-@@ -392,3 +419,17 @@ the rewritten `reference/ice.md`.
- ## Direct-edit deviation note (#463, session identity stamp)
- 
- Non-intent change: the Standard Play Close gained the session identity stamp — `scripts/session_stamp.py` (canonical copy: `play-creator/references/session_stamp.py`) runs `--phase start` at pre-flight and `--phase close` in the close block; the evidence frontmatter carries session_id / ledger_file / ledger_start_offset / ledger_end_offset. Source of truth: `standards/rules/play-close.md`; play-creator emits the same lines so a rebuild converges. No constraint, failure, scenario, or eval changed; the fingerprint stands.
-+
-+## Recompile note (#467 Batch C, chain gates off)
-+
-+Intent change via `reference/ice.md` → play-editor: the Step 5 gate constraint (C8) now
-+resolves per gate-config (per-play `gates.plays.review-change` off per the #467 ruling).
-+When off, the recommendation from `compute_verdict.py` BECOMES the recorded decision —
-+`decision.yaml` carries `decided_by: harness`, the recommendation verbatim, and the citing
-+findings; the comment posted to the PR is clearly marked as a harness verdict; a REJECT
-+stands exactly as a human reject would (fix the cited findings, re-raise;
-+`review-pr.bypass` untouched). The verdict is still never silent and never unposted (C9
-+unchanged). New F10 + REC10 + SE-10 guard the off path (decision ≡ recommendation; the
-+posted comment names its decider). Checkpoint machinery is kept: flipping the config back
-+to `on` restores the human wait unchanged. No new scripts. The fingerprint reflects the
-+updated ICE.
-diff --git a/core/components/plays/review-change/reference/ice.md b/core/components/plays/review-change/reference/ice.md
-index a8a4d4f9..34a9ba44 100644
---- a/core/components/plays/review-change/reference/ice.md
-+++ b/core/components/plays/review-change/reference/ice.md
-@@ -13,8 +13,10 @@ then, for design-bearing categories, a design-grounding check whose principles a
- reconstructed from committed/external sources rather than from the branch's own new
- content. Run only the layers and steps that apply to the categories present. Consolidate
- every finding — each citing its basis — into one report grouped by category and severity
--with a recommended verdict, then stop at a single mandatory human gate where the reviewer
--owns the approve-or-reject decision, which is posted to the PR.
-+with a recommended verdict, then stop at a single decision gate: resolved per gate-config,
-+the reviewer owns the approve-or-reject decision when the gate is on, and the computed
-+recommendation becomes the decision — marked as a harness verdict — when it is off; either
-+way the decision is posted to the PR.
- 
- The guiding rule: the change under review is never its own standard.
- 
-@@ -39,9 +41,16 @@ enforced by pre-flight (an open PR must exist).
-   cites its basis — a linter rule identifier or a grounded design principle.
- - C7 — Where a category in scope has a runnable check (a test suite, a language linter),
-   that check is executed, not merely read.
--- C8 — The play produces a recommended verdict but never auto-decides; the approve-or-
--  reject decision is the reviewer's at one mandatory human gate, and that decision is
--  posted to the PR.
-+- C8 — The play produces a recommended verdict and stops at one decision gate that
-+  resolves per gate-config (`standards/rules/gate-config.md`; per-play
-+  `gates.plays.review-change` is now off per the #467 ruling). Gate ON: the play never
-+  auto-decides — the approve-or-reject decision is the reviewer's, and that decision is
-+  posted to the PR. Gate OFF: the recommendation from `compute_verdict.py` BECOMES the
-+  recorded decision — `decision.yaml` carries `decided_by: harness`, the recommendation
-+  verbatim, and the citing findings; the verdict is posted to the PR clearly marked as a
-+  harness verdict; a REJECT outcome stands exactly as a human reject would (fix the cited
-+  findings, re-raise; `review-pr.bypass` semantics untouched). The verdict is still never
-+  silent and never unposted (C9 unchanged).
- - C9 — The play ends by proving its Done means at close (gated, #464): a verdict rendered
-   AND posted counts as done regardless of approve/reject; after posting, the play records
-   `review/posted.json` `{posted: true, comment_url}` and commits+pushes its run artifacts
-@@ -58,8 +67,11 @@ enforced by pre-flight (an open PR must exist).
- - F5 — The review expands beyond the diff into a full-repo scan.
- - F6 — A finding is reported with no cited basis.
- - F7 — A runnable check in scope is read but not executed.
--- F8 — The play auto-decides the verdict, or the human's decision is not posted to the PR.
-+- F8 — The play auto-decides the verdict while the gate is on, or the decision is not
-+  posted to the PR.
- - F9 — COMPLETED without the Done means held (e.g. a verdict computed but never posted).
-+- F10 — With the gate off, the recorded decision differs from the computed
-+  recommendation, or the posted comment does not identify the decider (harness vs human).
++| step_evals | 10 (SE-1…SE-10; SE-10 covers the gate-off behavior-pin precondition F8/C6) |
+ | scenario_evals | 6 (SCE-1…SCE-6) |
+-| recovery_entries | 7 (one per failure condition; 4 autonomous / 3 human) |
++| recovery_entries | 8 (one per failure condition; 4 autonomous / 4 human) |
+diff --git a/core/components/plays/refactor/reference/ice.md b/core/components/plays/refactor/reference/ice.md
+index e325619b..9f62a117 100644
+--- a/core/components/plays/refactor/reference/ice.md
++++ b/core/components/plays/refactor/reference/ice.md
+@@ -37,8 +37,16 @@ injected as the closing chain. This source never hand-rolls issue/branch/PR/merg
+ - C5 — Real quality improvement: the change targets concrete quality issues (duplication,
+   complexity, naming, structure) per the quality standards — not cosmetic churn or restyling for
+   its own sake.
+-- C6 — Exactly one human checkpoint on the refactor plan (what improves, why, and how behavior is
+-  held) before any code changes; after approval no further human approval is requested.
++- C6 — The refactor-plan checkpoint (Step 5, class standard, NOT pinned) resolves as a gate per
++  `standards/rules/gate-config.md` (first match wins: `gates.plays.refactor` →
++  `gates.classes.standard` → `gates.default`; absent ⇒ on; per-play now off under #467 Batch D).
++  The resolution — fire or skip — is always recorded, never silent. When ON, exactly one human
++  checkpoint on the refactor plan (what improves, why, and how behavior is held) precedes any code
++  change, and after approval no further human approval is requested. When OFF, the refactor proceeds
++  ONLY behind the behavior-pin machine wall (C3): the characterization/behavior suite captured and
++  GREEN before the refactor, GREEN after, and no test weakened or deleted — any of those failing is
++  a HARD HALT, never gated. The human plan-approval is replaced by exactly this behavior-pin
++  precondition.
+ - C7 — The play ends by proving its Done means at close (gated, #464): the refactor plan exists,
+   the pre-refactor behavior baseline record exists, and behavior preservation is recorded as
+   MACHINE fields — the behavior guard writes a preservation record whose `behavior_preserved`
+@@ -57,6 +65,9 @@ injected as the closing chain. This source never hand-rolls issue/branch/PR/merg
+ - F6 — The refactor landed (any code change was made) without the single human checkpoint.
+ - F7 — The run closed COMPLETED without the Done means held — a missing plan or baseline
+   artifact, or behavior preservation asserted in prose with no machine preservation record.
++- F8 — With the plan-approval gate off, a refactor proceeded or landed without the behavior-pin
++  holding — the behavior suite was not green both before and after, or a test was weakened/deleted —
++  so the machine precondition that replaced the human approval was not actually met.
  
  ## Expectation
  
-@@ -82,9 +94,11 @@ enforced by pre-flight (an open PR must exist).
-   from committed/external sources, not the branch's new text. Measure: every grounding
-   source is committed/external; none is a diff-added file.
- - S4 — (reviewer, blocking finding) Given a PR with a P1 finding, when it runs, then the
--  recommended verdict is reject citing that finding, the human gate is presented, and the
--  decision posted to the PR is the human's. Measure: recommended verdict is reject with the
--  P1 cited; the posted decision equals the human's input.
-+  recommended verdict is reject citing that finding and the gate resolves per gate-config:
-+  on — the human gate is presented and the decision posted is the human's; off — the
-+  harness reject is recorded and posted, marked as a harness verdict, and stands exactly
-+  as a human reject would. Measure: recommended verdict is reject with the P1 cited; the
-+  posted decision equals the recorded decision and names its decider.
- - S5 — (reviewer, cited basis) Given any PR, when the consolidated report is produced, then
-   every finding names a linter rule or a grounded principle as its basis. Measure: zero
-   findings without a cited basis.
-@@ -116,11 +130,16 @@ enforced by pre-flight (an open PR must exist).
-   (linter rule or grounded principle) or drop the finding. handoff: autonomous.
- - REC7 (F7) — trigger: a runnable check was read but not executed. direction: execute the
-   check and fold its result into the findings. handoff: autonomous.
--- REC8 (F8) — trigger: the verdict was auto-decided, or the decision was not posted.
--  direction: hold at the human gate, record the reviewer's decision verbatim, and post it to
--  the PR. handoff: human.
-+- REC8 (F8) — trigger: the verdict was auto-decided while the gate was on, or the
-+  decision was not posted. direction: hold at the human gate, record the reviewer's
-+  decision verbatim, and post it to the PR. handoff: human.
- - REC9 (F9) — trigger: the run is about to close COMPLETED with the Done means unmet (e.g.
-   a verdict computed but never posted, or posted.json / the run artifacts missing).
-   direction: post the verdict / fix the run state (write posted.json, commit+push the run
-   artifacts), then re-evaluate the stop condition; the close stays HALTED until the verdict
-   reads held. handoff: autonomous.
-+- REC10 (F10) — trigger: with the gate off, `decision.yaml` differs from the computed
-+  recommendation, or the posted comment does not identify its decider. direction: rewrite
-+  `decision.yaml` from `recommended_verdict.yaml` (`decided_by: harness`, recommendation
-+  verbatim, citing findings) and re-post the comment with the decider named. handoff:
-+  autonomous.
-diff --git a/core/components/plays/start-change/SKILL.md b/core/components/plays/start-change/SKILL.md
-index 31064215..82e16129 100644
---- a/core/components/plays/start-change/SKILL.md
-+++ b/core/components/plays/start-change/SKILL.md
-@@ -19,10 +19,10 @@ primitive itself, start-change does not get a start composed into it.
+@@ -117,3 +128,8 @@ injected as the closing chain. This source never hand-rolls issue/branch/PR/merg
+   produce the missing artifact — re-run the behavior guard with `--out` so the preservation
+   record carries the machine fields — then re-evaluate the stop condition; the close stays HALTED
+   until the verdict reads held. handoff: autonomous.
++- REC8 (F8) — trigger: with the gate off, a refactor proceeded or landed while the behavior-pin was
++  broken (baseline or post not green, or a test weakened/deleted). direction: restore the
++  behavior-pin — re-capture or repair the characterization suite to green on the pre-refactor code
++  and restore any weakened test to its prior strength — re-run the behavior guard, and do not land
++  until green before AND after. handoff: human.
+diff --git a/core/components/plays/validate/SKILL.md b/core/components/plays/validate/SKILL.md
+index 1cf246a0..57bda27b 100644
+--- a/core/components/plays/validate/SKILL.md
++++ b/core/components/plays/validate/SKILL.md
+@@ -40,8 +40,9 @@ human sign-off. (#434, decisions 20 + 24)
  ## Compiled From
  
- This play was compiled from the start-change ICE (`reference/ice.md`) by play-editor
--(#466 Batch A, Level 3 rollout per ADR 025). Intent defines constraints (C1–C7) and
--failure conditions (F1–F6); the expectation defines success scenarios (S1–S4), a Done
--means (D1–D4, baked to `stop-condition.yaml`), and one recovery entry per failure
--condition.
-+(#466 Batch A, Level 3 rollout per ADR 025; #467 Batch C gate-off recompile). Intent
-+defines constraints (C1–C7) and failure conditions (F1–F7); the expectation defines
-+success scenarios (S1–S4), a Done means (D1–D4, baked to `stop-condition.yaml`), and
-+one recovery entry per failure condition.
- To modify this play, update `reference/ice.md` and recompile with play-editor.
- Do NOT edit this file manually — it is a compiled artifact.
+ This play was compiled from the validate ICE (`reference/ice.md`) by play-editor
+-(#466 Batch B, Level 3 rollout per ADR 025). Intent defines constraints (C1–C14) and
+-failure conditions (F1–F14); the expectation defines success scenarios (S1–S5), a Done
++(#466 Batch B, Level 3 rollout per ADR 025; #467 Batch D turned the Step 4 plan-review
++gate off and elevated its machine precondition). Intent defines constraints (C1–C15) and
++failure conditions (F1–F15); the expectation defines success scenarios (S1–S5), a Done
+ means (D1–D4, baked to `stop-condition.yaml`), and one recovery entry per failure
+ condition. This play is SINGLE-PASS per run: no internal loop, no iteration cap — the
+ implement ↔ validate fix loop lives ACROSS runs; the Done means is proven once, at the
+@@ -216,15 +217,34 @@ id that resolves or a proposal file that exists; none is invented. On GAP, apply
+ ### Phase: Checkpoint (skippable)
  
-@@ -113,10 +113,29 @@ result to disk. The contract moves only paths, never data:
+ **Step 4 — Review the plan** · Owner: play · Depends on: Step 3 · **Checkpoint (class: standard)**
+-Present the check plan in plain language: the stacks detected, the checks per bar, the
+-regression scope and its source, any KB gaps or lens-vs-repo mismatches from `notes`.
+-**Skip rule:** when `check-choices.yaml` grounded clean with zero proposals and the plan's
+-`notes` are empty, skip — post the summary and continue. Otherwise wait for a typed
+-response. The checkpoint is additionally a config switch per
+-`standards/rules/gate-config.md` (first match wins: `gates.plays.validate` →
+-`gates.classes.standard` → `gates.default`; absent ⇒ on): when it resolves off, do not
+-wait — record `gate skipped by config (<resolution path>)` as a Checkpoint Decisions row
+-in the evidence and proceed.
++Resolve the checkpoint's gate FIRST, per `standards/rules/gate-config.md` (first match
++wins: `gates.plays.validate` → `gates.classes.standard` → `gates.default`; absent ⇒ on).
++Under #467 Batch D `gates.plays.validate` is **off** — the human plan-review is redundant
++because the manifest is fully DERIVED (Step 2 detects the stacks, Step 3 grounds every
++tool choice in the KB, and any ungroundable pick already halted as a KB-learning-gap at
++Step 3, C12/F12). The gate governs ONLY the human review; that grounding wall is the
++machine's and is never gated (C15).
++
++- **off** — do NOT wait. The precondition that replaces the human review is the machine
++  wall: `check-choices.yaml` grounded clean at Step 3 — every check traces to a
++  stack-detection result plus a KB-grounded tool choice, no ungrounded pick. Record
++  `gate skipped by config (gates.plays.validate)` as a Checkpoint Decisions row in the
++  evidence and proceed. If any tool choice is ungrounded and was NOT recorded as a
++  KB-learning-gap, do NOT proceed — apply REC15: halt, run the KB search, record the gap,
++  re-derive, and proceed only when the manifest is fully grounded (this halt is the
++  machine wall, never gated).
++- **on** — present the check plan in plain language: the stacks detected, the checks per
++  bar, the regression scope and its source, any KB gaps or lens-vs-repo mismatches from
++  `notes`. **Skip rule:** when `check-choices.yaml` grounded clean with zero proposals and
++  the plan's `notes` are empty, skip — post the summary and continue. Otherwise wait for a
++  typed response.
++
++**SE-16 (F15/C15):** every entry in `checks.yaml` traces to a stack-detection result plus
++a KB basis (its `check-choices.yaml` learning id resolves) OR to a recorded
++KB-learning-gap proposal under `{working}/plan/proposals/` — the off-path precondition
++holds; a proceed on an ungrounded, unrecorded choice is F15 (REC15). The Step 4 gate
++resolution (fired, skipped, or its config-skip row) is recorded in the evidence either
++way — never silent.
  
- **Step 2 — Confirm New Issue** · Owner: play · Depends on: Step 1
- *Skip when `issue.json.resolved == true`.* When no issue was resolved, creating one is an
--outward-facing action — present the proposed new issue (title + summary) and wait for a
--typed approval before proceeding (class: standard). Gate switch resolved per
--`standards/rules/gate-config.md`; off → record the skip in evidence and proceed.
--Approve → continue to Step 3; cancel → halt.
-+outward-facing action (class: standard). Resolve the gate switch per
-+`standards/rules/gate-config.md` FIRST:
-+
-+- **off** (this project: `gates.plays.start-change: off`) → do not wait; record
-+  `gate skipped by config (gates.plays.start-change)` as a Checkpoint Decisions row in
-+  evidence and proceed. A skip is always recorded, never silent.
-+- **on** → present the proposed new issue (title + summary) and wait for a typed
-+  approval. Approve → continue to Step 3; cancel → halt.
-+
-+**Either way — the machine wall (C1/F7), never gated by the switch:** before Step 3
-+creates anything, run the bundled validator on the proposal record:
-+
-+```
-+python3 scripts/validate_issue.py \
-+    --issue-json <working>/issue.json \
-+    --description <working>/work-description.txt
-+```
-+
-+It checks the title is present, ≥15 chars, and tagged (`[ENH]/[BUG]/[FEAT]/[DOCS]/[TASK]`
-+or a conventional prefix), and that the work description is complete. A non-zero exit is
-+a **hard halt** regardless of the gate state — REC7 hands to a human (fix the
-+title/description, re-run). This is the deterministic check that replaced the human eye
-+when the gate went off (#467).
+ ### Phase: Execute
  
- **Step 3 — Create / Finalize Issue** · Owner: `project-orchestrator` · Depends on: Step 2
- When Step 1 resolved an issue, carry it forward unchanged. When Step 2 approved a new
-@@ -124,6 +143,10 @@ issue, the agent invokes `manage-issue` (`action: create`) and writes the finali
- `issue.json` (`created: true`, `issue_number` set).
- **SE-1 (F1/C1):** `issue.json` has a non-empty `issue_number` (an issue is anchored
- before any branch work); on resume, `created == false` and no new issue exists (F5).
-+**SE-8 (F7/C1):** `validate_issue.py` ran BEFORE the create (its verdict predates
-+`created: true`), and it exits 0 when re-run on the created issue's record — title
-+present/tagged, description complete. A non-zero exit at either point halted the run
-+to a human (REC7); no issue exists over a failed validation.
- 
- **Step 4 — Set Up Branch + Worktree** · Owner: `repo-orchestrator` · Depends on: Step 3
- The agent invokes `setup-branch`: pull `main` to its latest origin tip, cut
-@@ -270,6 +293,7 @@ The success scenarios and their evals (run in Step 6):
- | F4 | close check finds the STM workspace missing | run `scripts/init_stm.py` to initialize it before reporting done | autonomous |
- | F5 | a second run would create a duplicate issue or branch | detect the existing issue and branch and resume them instead of creating new ones | autonomous |
- | F6 | the close would report COMPLETED without the Done means held | evaluate the stop condition and surface the unmet clauses; the run closes HALTED until state is fixed | autonomous |
-+| F7 | `validate_issue.py` exits non-zero on the proposed or created issue record | a human fixes the title (present, ≥15 chars, tagged) and/or completes the work description, then re-runs; the play never creates over a failed validation | human |
+@@ -476,6 +496,7 @@ Steps table from the task DAG, the Artifacts Produced table, Next Steps, and a p
+ | F12 | an ungrounded scan choice with no gap recorded | run the KB search; if still uncovered, record the gap proposal, then proceed | autonomous |
+ | F13 | the required surface check for the epic's `surface.type` was not run, or the captured surface result does not match the declared type | stamp `fix_required` naming the unmeasured/mismatched surface (the `surface.type` and the `must_open`/`human_run_target` it owed), and re-admit /implement to restore it so the next round can measure it | autonomous |
+ | F14 | the close would stamp COMPLETED without the stop-condition verdict held | evaluate the stop condition, surface the unmet clauses, and close HALTED (`stop_condition_unmet`) until they are fixed — an unevaluable verdict is never a pass | autonomous |
++| F15 | with the plan-review gate off, the manifest reached the check-execution step carrying an ungrounded tool choice that was neither KB-matched nor recorded as a KB-learning-gap | halt before the checks run; run the KB search for the uncovered choice, record the KB-learning-gap proposal, re-derive the manifest, and proceed only when every check is fully grounded | autonomous |
  
  ## Pause and Resume
  
-@@ -283,18 +307,18 @@ branch (C6, F5).
+@@ -490,21 +511,21 @@ at Step 1. Each round is its own progress marker; a resumed round never re-count
  
  | Field | Value |
  |-------|-------|
--| fingerprint | sha256:a5be3ee35ca28453764114e4a4f1a8e866b73d5affbd5806769d81e5960b1042 (of `reference/ice.md`) |
--| compiled_by | play-editor (#466 Batch A) |
-+| fingerprint | sha256:7921c7fc9fd06c996909a47b3876acfbacfb1e22243aa3ae7543cb3263e982ea (of `reference/ice.md`) |
-+| compiled_by | play-editor (#466 Batch A; #467 Batch C) |
- | pipeline_position | start |
- | workflow_structure | B (fast execution flow) |
+-| fingerprint | sha256:cfef3dc0eca745c73584a2499b0e566d15c753c779de30a9dac77229d98171c3 (of `reference/ice.md`) |
+-| compiled_by | play-editor (#466 Batch B) |
++| fingerprint | sha256:01bbfe25700849b61f01cc3d0ee6390e2578db62c704560ea22831e01cea3ac8 (of `reference/ice.md`) |
++| compiled_by | play-editor (#466 Batch B; #467 Batch D — Step 4 gate off + C15/F15/REC15/SE-16) |
+ | pipeline_position | none |
+ | position_exception | middle of the execute pipeline (implement → validate → launch) — runs on the epic branch /implement started; the close chain belongs to /launch after human sign-off (#434, decisions 20 + 24) |
+ | structural_constraints | C2-part (finder/fixer split — no code-edit step exists), C4 (judge skill carries no Bash; mechanics only via runners), C7 (no acceptance-deploy step — run-to-test only), C9 (remediation only via the posted report; no builder dispatch), C10-position (execute middle — no head, no close) |
+-| workflow_structure | A (checkpoint skippable when the plan grounds clean); single-pass — no loop, no cap; gated close |
++| workflow_structure | A (Step 4 checkpoint gate off under #467 Batch D — the human plan-review is replaced by the KB-grounding wall, C15; still skippable when on and the plan grounds clean); single-pass — no loop, no cap; gated close |
  | stop_condition | stop-condition.yaml (D1–D4), gate live at Step C0 |
- | domain_agents | 0 |
+ | domain_agents | 1 (quality-auditor) |
  | utility_agents | 2 (project-orchestrator, repo-orchestrator) |
- | skills_reused | manage-issue, setup-branch |
--| scripts | 4 (init_stm.py, preflight.py, session_stamp.py, check_stop_condition.py) |
--| step_evals | 7 (SE-1…SE-7) |
-+| scripts | 5 (init_stm.py, preflight.py, session_stamp.py, check_stop_condition.py, validate_issue.py) |
-+| step_evals | 8 (SE-1…SE-8) |
- | scenario_evals | 4 (SCE-1…SCE-4) |
--| recovery_entries | 6 (one per failure condition; all autonomous) |
-+| recovery_entries | 7 (one per failure condition; 6 autonomous / 1 human) |
+ | skills_used | plan-validation-checks, judge-validation-results, kb-search, manage-issue |
+ | standards_consumed | standards/rules/gate-config.md (Step 4 switch); standards/rules/play-close.md; standards/rules/pipeline-next.md |
+ | scripts | 13 + 8 runners (preflight.py, check_ready_validate.py, resolve_blast_scope.py, run_checks.py, check_gates.py, check_kb_grounding.py, compute_verdict.py, stamp_epic.py, render_fix_report.py, check_validate.py, session_stamp.py — session identity stamp, check_stop_condition.py — Done-means gate, runners/_runner_common.py + 7 runner_*.py) |
+-| step_evals | 15 (SE-1…SE-15; every failure condition covered; SE-14 covers the surface contract F13/C13 at the plan and verdict halves; SE-15 covers the gated close F14/C14) |
++| step_evals | 16 (SE-1…SE-16; every failure condition covered; SE-14 covers the surface contract F13/C13 at the plan and verdict halves; SE-15 covers the gated close F14/C14; SE-16 covers the gate-off manifest-grounding precondition F15/C15) |
+ | scenario_evals | 5 (SCE-1…SCE-5) |
+-| recovery_entries | 14 (one per failure condition; 12 autonomous / 2 human) |
++| recovery_entries | 15 (one per failure condition; 13 autonomous / 2 human) |
  
- ## Direct-edit deviation note (#434, pre-flight resolver)
+ ## Direct-edit deviation note (#434, spine + grounding model)
  
-@@ -306,6 +330,17 @@ table). The script is the canonical resolver stamped from
- Non-intent change — no constraint, failure, scenario, eval, or `reference/ice.md` touched, so
- the fingerprint stands and no recompile is required. Direct edit; no recompile needed.
+diff --git a/core/components/plays/validate/reference/ice.md b/core/components/plays/validate/reference/ice.md
+index 6e011d70..74a91ec4 100644
+--- a/core/components/plays/validate/reference/ice.md
++++ b/core/components/plays/validate/reference/ice.md
+@@ -77,6 +77,16 @@ write is the surgical epic stamp. (#434, decisions 20 + 24)
+   either way — `validated` or `fix_required` — counts as done; an unstamped run does not.
+   The run is SINGLE-PASS: the implement ↔ validate fix loop lives ACROSS runs, never
+   inside one.
++- C15 — The plan-review checkpoint (Step 4, class standard) resolves as a gate per
++  `standards/rules/gate-config.md` (first match wins: `gates.plays.validate` →
++  `gates.classes.standard` → `gates.default`; absent ⇒ on; per-play now off under #467
++  Batch D). The resolution — fire or skip — is always recorded, never silent. The switch
++  gates ONLY the human review; the manifest's grounding wall is the machine's, never gated.
++  When the gate is off, the check manifest proceeds on its DERIVED basis — every check
++  traces to a stack-detection result plus a KB-grounded tool choice — and ANY ungroundable
++  tool choice remains a KB-learning-gap HARD HALT (the machine wall). The human plan-review
++  is replaced by exactly this precondition: the manifest is fully grounded — no ungrounded
++  pick — before the checks run.
  
-+## Compiled note (#467 Batch C)
-+
-+The confirm-new-issue gate went **off by config** for this project
-+(`gates.plays.start-change: off`) in the same change that added its replacement machine
-+check: `scripts/validate_issue.py` (canonical copy:
-+`play-creator/references/validate_issue.py`) runs before any issue create, gate on or
-+off, and a non-zero exit hard-halts to a human (C1, F7, SE-8, REC7). The checkpoint
-+machinery is KEPT — the switch resolves per `standards/rules/gate-config.md`; flipping
-+the config back to on restores the wait; skips are always recorded in evidence. Owned
-+by the compiled play (ICE recompile, not a direct edit).
-+
- ## Direct-edit deviation note (#463, session identity stamp)
+ ### Failure conditions
  
- Non-intent change: the Standard Play Close gained the session identity stamp — `scripts/session_stamp.py` (canonical copy: `play-creator/references/session_stamp.py`) runs `--phase start` at pre-flight and `--phase close` in the close block; the evidence frontmatter carries session_id / ledger_file / ledger_start_offset / ledger_end_offset. Source of truth: `standards/rules/play-close.md`; play-creator emits the same lines so a rebuild converges. No constraint, failure, scenario, or eval changed; the fingerprint stands.
-diff --git a/core/components/plays/start-change/reference/ice.md b/core/components/plays/start-change/reference/ice.md
-index 29411f32..c148dcd4 100644
---- a/core/components/plays/start-change/reference/ice.md
-+++ b/core/components/plays/start-change/reference/ice.md
-@@ -16,7 +16,13 @@ the D2 pipeline-position rule injects into any other play declared `position: st
- ### Constraints
- 
- - C1 — Every change is anchored to a tracked issue: resolve an existing one or create
--  one; never start work with no issue.
-+  one; never start work with no issue. Creating a new issue is checkpointed
-+  (confirm-new-issue), and the gate resolves per gate-config — the per-play override
-+  (`gates.plays.start-change`) is off for this project, so a skip is recorded in
-+  evidence, never silent. AND, gate on or off, the play MUST run the bundled
-+  validate_issue.py (title present and tagged, description complete) on the proposed
-+  issue BEFORE any create — a failed validation HALTS to a human regardless of the
-+  gate state (the machine wall that replaced the human eye).
- - C2 — Work goes on a dedicated feature branch cut from an up-to-date main, never on
-   main itself.
- - C3 — A git worktree is set up only when config calls for it (config-driven, not
-@@ -40,6 +46,8 @@ the D2 pipeline-position rule injects into any other play declared `position: st
-   resuming.
- - F6 — The close proves nothing — the play closes COMPLETED without the Done means
-   held.
-+- F7 — An issue was created whose record fails validate_issue.py (missing/short/untagged
-+  title, or an empty work description).
+@@ -100,6 +110,9 @@ write is the surgical epic stamp. (#434, decisions 20 + 24)
+   `surface.type`).
+ - F14 — The close proves nothing — COMPLETED without the Done means held (e.g. the checks
+   ran but no verdict was stamped).
++- F15 — With the plan-review gate off, the check manifest ran with an ungrounded tool
++  choice that was neither KB-matched nor recorded as a KB-learning-gap — the machine
++  precondition that replaced the human review was not actually met before the checks ran.
  
  ## Expectation
  
-@@ -92,3 +100,7 @@ the D2 pipeline-position rule injects into any other play declared `position: st
- - REC6 (F6) — trigger: the close would report COMPLETED without the Done means held.
-   direction: evaluate the stop condition and surface the unmet clauses; the run closes
-   HALTED until state is fixed. handoff: autonomous.
-+- REC7 (F7) — trigger: validate_issue.py exits non-zero on the proposed or created
-+  issue record. direction: a human fixes the title (present, ≥15 chars, tagged) and/or
-+  completes the work description, then re-runs; the play never creates over a failed
-+  validation. handoff: human.
-diff --git a/core/components/plays/start-change/scripts/validate_issue.py b/core/components/plays/start-change/scripts/validate_issue.py
-new file mode 100644
-index 00000000..07aa2cad
---- /dev/null
-+++ b/core/components/plays/start-change/scripts/validate_issue.py
-@@ -0,0 +1,88 @@
-+#!/usr/bin/env python3
-+"""
-+validate_issue.py — machine replacement for start-change's confirm-new-issue gate (#467).
-+
-+The human at that gate was checking two things by eye: the proposed title reads like a
-+real, tagged issue title, and the description actually says what the work is. Both are
-+mechanical. This script checks them; the duplicate-issue guard is separate (the resolve
-+step + SE-5 already own it).
-+
-+    python3 validate_issue.py --issue-json <issue.json> \
-+        [--description <work-description.txt>] [--min-desc-chars 40]
-+
-+Checks:
-+  T1  title present and >= 15 characters
-+  T2  title carries a type tag: [ENH] [BUG] [FEAT] [DOCS] [TASK] (or a
-+      conventional-commit-style `type:` prefix)
-+  D1  a work description exists and is >= --min-desc-chars characters of real text
-+      (read from --description when given, else from issue.json's "description"/"body")
-+
-+Output: one JSON verdict {valid, problems: [...]}. Exit 0 valid, 1 invalid, 2 bad input.
-+Deterministic; no network, no git.
-+"""
-+
-+import argparse
-+import json
-+import os
-+import re
-+import sys
-+
-+TAG = re.compile(r"^\[(ENH|BUG|FEAT|DOCS|TASK)\]\s+\S", re.IGNORECASE)
-+CONVENTIONAL = re.compile(r"^(feat|fix|docs|chore|refactor|test)(\([^)]+\))?:\s+\S")
-+MIN_TITLE = 15
-+
-+
-+def fail(msg):
-+    sys.stderr.write(f"validate_issue.py: {msg}\n")
-+    sys.exit(2)
-+
-+
-+def read_description(args, issue):
-+    if args.description and os.path.isfile(args.description):
-+        with open(args.description, encoding="utf-8") as fh:
-+            return fh.read()
-+    return str(issue.get("description") or issue.get("body") or "")
-+
-+
-+def main(argv=None):
-+    ap = argparse.ArgumentParser()
-+    ap.add_argument("--issue-json", required=True)
-+    ap.add_argument(
-+        "--description", help="work-description file (fallback: issue body)"
-+    )
-+    ap.add_argument("--min-desc-chars", type=int, default=40)
-+    args = ap.parse_args(argv)
-+
-+    if not os.path.isfile(args.issue_json):
-+        fail(f"missing issue json: {args.issue_json}")
-+    try:
-+        with open(args.issue_json, encoding="utf-8") as fh:
-+            issue = json.load(fh)
-+    except ValueError as e:
-+        fail(f"unreadable issue json: {e}")
-+
-+    problems = []
-+    title = str(issue.get("title") or "").strip()
-+
-+    if len(title) < MIN_TITLE:
-+        problems.append(f"T1: title missing or under {MIN_TITLE} chars: {title!r}")
-+    if title and not (TAG.match(title) or CONVENTIONAL.match(title)):
-+        problems.append(
-+            "T2: title carries no type tag ([ENH]/[BUG]/[FEAT]/[DOCS]/[TASK] "
-+            "or conventional prefix)"
-+        )
-+
-+    desc = re.sub(r"\s+", " ", read_description(args, issue)).strip()
-+    if len(desc) < args.min_desc_chars:
-+        problems.append(
-+            f"D1: description under {args.min_desc_chars} chars ({len(desc)}) — "
-+            "the issue does not say what the work is"
-+        )
-+
-+    verdict = {"valid": not problems, "problems": problems, "title": title}
-+    print(json.dumps(verdict, indent=2))
-+    sys.exit(0 if verdict["valid"] else 1)
-+
-+
-+if __name__ == "__main__":
-+    main()
+@@ -178,3 +191,8 @@ write is the surgical epic stamp. (#434, decisions 20 + 24)
+   verdict held. direction: evaluate the stop condition, surface the unmet clauses, and
+   close HALTED (`stop_condition_unmet`) until they are fixed — an unevaluable verdict is
+   never a pass. handoff: autonomous.
++- REC15 (F15) — trigger: an off-gate run reached the check-execution step with the manifest
++  carrying an ungrounded tool choice that was neither KB-matched nor recorded as a
++  KB-learning-gap. direction: halt before the checks run; run the KB search for the
++  uncovered choice, record the KB-learning-gap proposal, then re-derive the manifest and
++  proceed only when every check is fully grounded. handoff: autonomous.
