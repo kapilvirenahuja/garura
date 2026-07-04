@@ -2,6 +2,7 @@
   "approved": true,
   "mergeable": true,
   "already_merged": false,
-  "pr_merged": false,
-  "branch_deleted": false
+  "pr_merged": true,
+  "branch_deleted": true,
+  "merge_sha": "b12f61f15fb727458ffa57861564847045b16cfb"
 }
