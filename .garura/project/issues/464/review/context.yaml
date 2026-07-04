@@ -1,0 +1,37 @@
+pr:
+  number: 472
+  head: feature/464-stop-condition
+  base: main
+  diff_path: .garura/project/issues/464/review/pr.diff
+
+standards_order:
+  - name: kb
+    root: ~/.garura/core/memory/
+  - name: ltm
+    root: ./.garura/core/memory/
+  - name: stm
+    root: .garura/project/issues/
+
+changed_paths:
+  - .garura/.gitignore
+  - .garura/install-manifest.json
+  - .garura/project/issues/464/context/analysis.yaml
+  - .garura/project/issues/464/context/branch.json
+  - .garura/project/issues/464/context/issue.json
+  - .garura/project/issues/464/context/porcelain.txt
+  - .garura/project/issues/464/context/resolved-rules.json
+  - .garura/project/issues/464/context/self-review.md
+  - .garura/project/issues/464/context/work-description.txt
+  - core/components/memory/standards/rules/play-close.md
+  - core/components/memory/standards/templates/evidence-file.md
+  - core/components/plays/play-creator/SKILL.md
+  - core/components/plays/play-creator/references/check_stop_condition.py
+  - core/components/plays/play-creator/references/fixtures/stop-condition/held/run/commits.yaml
+  - core/components/plays/play-creator/references/fixtures/stop-condition/held/run/gate-outcomes.json
+  - core/components/plays/play-creator/references/fixtures/stop-condition/held/run/verdict.yaml
+  - core/components/plays/play-creator/references/fixtures/stop-condition/held/stop-condition.yaml
+  - core/components/plays/play-creator/references/fixtures/stop-condition/unmet/run/gate-outcomes.json
+  - core/components/plays/play-creator/references/fixtures/stop-condition/unmet/run/verdict.yaml
+  - core/components/plays/play-creator/references/fixtures/stop-condition/unmet/stop-condition.yaml
+  - core/components/plays/play-creator/scripts/lint_play.py
+  - core/components/plays/play-editor/scripts/lint_play.py

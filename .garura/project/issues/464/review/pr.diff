@@ -1,0 +1,767 @@
+diff --git a/.garura/.gitignore b/.garura/.gitignore
+index 3bc19a9d..732c84d6 100644
+--- a/.garura/.gitignore
++++ b/.garura/.gitignore
+@@ -1,6 +1,5 @@
+ # Status / resume markers — machine-local, never committed (ADR 021).
+-# Plays write these so an interrupted run can resume; they sit locally on disk,
+-# are read only by the same play on its next run, and are never shared via git.
++# Plays write these to resume; they sit locally and are never shared via git.
+ # The durable record is the evidence system (_evidence/), never these.
+ **/status/
+ **/_status/
+diff --git a/.garura/install-manifest.json b/.garura/install-manifest.json
+new file mode 100644
+index 00000000..b7a28124
+--- /dev/null
++++ b/.garura/install-manifest.json
+@@ -0,0 +1,106 @@
++{
++  "installer": "install-garura",
++  "version": 2,
++  "record": {
++    "tool": "claude",
++    "components": [
++      ".claude/agents/change-reviewer.md",
++      ".claude/agents/code-builder.md",
++      ".claude/agents/env-operator.md",
++      ".claude/agents/evals-engineer.md",
++      ".claude/agents/intent-resolver.md",
++      ".claude/agents/product-os-keeper.md",
++      ".claude/agents/project-orchestrator.md",
++      ".claude/agents/quality-auditor.md",
++      ".claude/agents/repo-orchestrator.md",
++      ".claude/agents/tech-designer.md",
++      ".claude/agents/test-engineer.md",
++      ".claude/skills/analyze-changes",
++      ".claude/skills/analyze-pr",
++      ".claude/skills/author-agentic-lens",
++      ".claude/skills/author-architecture-lens",
++      ".claude/skills/author-build-plan",
++      ".claude/skills/author-epics",
++      ".claude/skills/author-hitl-scenarios",
++      ".claude/skills/author-intent-yaml",
++      ".claude/skills/author-learnings",
++      ".claude/skills/author-marketing-lens",
++      ".claude/skills/author-measure-lens",
++      ".claude/skills/author-quality-lens",
++      ".claude/skills/author-regression-test",
++      ".claude/skills/author-roadmap",
++      ".claude/skills/author-run-lens",
++      ".claude/skills/author-shape-bundle",
++      ".claude/skills/author-steelman-evals",
++      ".claude/skills/author-ux-lens",
++      ".claude/skills/author-vision-seed",
++      ".claude/skills/check-cut-tensions",
++      ".claude/skills/create-commit",
++      ".claude/skills/deploy-to-cloud-env",
++      ".claude/skills/draft-fix-design",
++      ".claude/skills/draft-implementation-plan",
++      ".claude/skills/draft-lld",
++      ".claude/skills/draft-rca",
++      ".claude/skills/draft-technical-approach",
++      ".claude/skills/enrich-capability-ice",
++      ".claude/skills/judge-validation-results",
++      ".claude/skills/kb-search",
++      ".claude/skills/manage-issue",
++      ".claude/skills/merge-pr",
++      ".claude/skills/plan-validation-checks",
++      ".claude/skills/platform-adapter",
++      ".claude/skills/propose-kb-node",
++      ".claude/skills/quality-check",
++      ".claude/skills/quality-check-scoped",
++      ".claude/skills/rank-recommendations",
++      ".claude/skills/refine-quality-profile",
++      ".claude/skills/research-domain-context",
++      ".claude/skills/resolve-issues",
++      ".claude/skills/run-quality-gates",
++      ".claude/skills/search-kb",
++      ".claude/skills/setup-branch",
++      ".claude/skills/stand-up-launch-env",
++      ".claude/skills/submit-pr",
++      ".claude/skills/agentic",
++      ".claude/skills/arch",
++      ".claude/skills/commit-change",
++      ".claude/skills/deploy",
++      ".claude/skills/fix-bug",
++      ".claude/skills/grill",
++      ".claude/skills/implement",
++      ".claude/skills/install-garura",
++      ".claude/skills/launch",
++      ".claude/skills/learn",
++      ".claude/skills/marketing",
++      ".claude/skills/measure",
++      ".claude/skills/merge-change",
++      ".claude/skills/next",
++      ".claude/skills/play-creator",
++      ".claude/skills/play-editor",
++      ".claude/skills/propose-change",
++      ".claude/skills/quality",
++      ".claude/skills/refactor",
++      ".claude/skills/review-change",
++      ".claude/skills/roadmap",
++      ".claude/skills/run",
++      ".claude/skills/shape",
++      ".claude/skills/start-change",
++      ".claude/skills/understand",
++      ".claude/skills/uninstall-garura",
++      ".claude/skills/ux",
++      ".claude/skills/validate",
++      ".claude/skills/vision"
++    ],
++    "counts": {
++      "agents": 11,
++      "skills": 46,
++      "plays": 29
++    },
++    "instruction_surface": "CLAUDE.md.new",
++    "config": ".garura/core/config.yaml",
++    "memory": "/Users/kapilahuja/.garura/core/memory",
++    "global_files": [],
++    "status_gitignore": ".garura/.gitignore",
++    "retired": []
++  }
++}
+diff --git a/.garura/project/issues/464/context/analysis.yaml b/.garura/project/issues/464/context/analysis.yaml
+new file mode 100644
+index 00000000..8fa91b43
+--- /dev/null
++++ b/.garura/project/issues/464/context/analysis.yaml
+@@ -0,0 +1,68 @@
++---
++# analyze_changeset.py output (C8 fast path) + analyze-changes agent grouping
++# issue: 464
++needs_judgment: false
++
++change_groups:
++  - id: stop-condition-checker
++    issue: 464
++    commit_type: feat
++    scope: components
++    subject: "add a machine-checkable stop condition to plays"
++    files:
++      - core/components/plays/play-creator/references/check_stop_condition.py
++      - core/components/plays/play-creator/references/fixtures/stop-condition/held/run/commits.yaml
++      - core/components/plays/play-creator/references/fixtures/stop-condition/held/run/gate-outcomes.json
++      - core/components/plays/play-creator/references/fixtures/stop-condition/held/run/verdict.yaml
++      - core/components/plays/play-creator/references/fixtures/stop-condition/held/stop-condition.yaml
++      - core/components/plays/play-creator/references/fixtures/stop-condition/unmet/run/gate-outcomes.json
++      - core/components/plays/play-creator/references/fixtures/stop-condition/unmet/run/verdict.yaml
++      - core/components/plays/play-creator/references/fixtures/stop-condition/unmet/stop-condition.yaml
++      - core/components/plays/play-creator/SKILL.md
++      - core/components/plays/play-creator/scripts/lint_play.py
++      - core/components/plays/play-editor/scripts/lint_play.py
++      - core/components/memory/standards/rules/play-close.md
++      - core/components/memory/standards/templates/evidence-file.md
++
++  - id: stm-context-464
++    issue: 464
++    commit_type: chore
++    scope: stm
++    subject: "record start-change context for the stop-condition work"
++    files:
++      - .garura/project/issues/464/context/branch.json
++      - .garura/project/issues/464/context/issue.json
++      - .garura/project/issues/464/context/porcelain.txt
++      - .garura/project/issues/464/context/work-description.txt
++      - .garura/project/issues/464/status/session-stamp-start-change.json
++
++exclusions:
++  - path: ".garura/project/issues/464/context/analysis.yaml"
++    reason: "run-state for this analysis step itself — never committed"
++    blocking: false
++  - path: ".garura/.gitignore"
++    reason: "modifies shared repo config (trims comment text in the status/ ignore rule) — not mentioned in issue #464's scope (the stop-condition feature or its STM context); no evidence tying it to this work. Needs a human decision on whether it belongs to #464 or is a stray edit from something else."
++    blocking: true
++  - path: "CLAUDE.md.new"
++    reason: "untracked duplicate of CLAUDE.md, not referenced anywhere in issue #464's work description. Looks like a stray/leftover file (possibly from an unrelated edit or tool run), not part of the stop-condition feature. Should not be silently committed or discarded."
++    blocking: true
++  - path: ".garura/install-manifest.json"
++    reason: "untracked install-garura artifact (records deployed .claude components), unrelated to the #464 stop-condition feature and not part of the STM context for this issue. Likely belongs to a separate install run — needs a human decision on whether to commit, gitignore, or delete."
++    blocking: true
++
++risks:
++  sensitive_files:
++    []
++  ambiguous_types:
++    []
++  breaking_changes:
++    []
++  hotfix_branch: false
++  out_of_scope_files:
++    - ".garura/.gitignore"
++    - "CLAUDE.md.new"
++    - ".garura/install-manifest.json"
++
++eval_gates:
++  SE-1: {status: PASS, evidence: "grouped by issue #464: one feat(components) group for the stop-condition feature, one chore(stm) group for start-change context; 3 unrelated/stray files held out as blocking exclusions pending human decision"}
++  SE-5: {status: PASS, evidence: "no sensitive patterns matched"}
+diff --git a/.garura/project/issues/464/context/branch.json b/.garura/project/issues/464/context/branch.json
+new file mode 100644
+index 00000000..9972b4e0
+--- /dev/null
++++ b/.garura/project/issues/464/context/branch.json
+@@ -0,0 +1,6 @@
++{
++  "branch_name": "feature/464-stop-condition",
++  "base_sha": "fe42077fad77c9b279ce0b6c229e66d587d5d49c",
++  "on_default_branch": false,
++  "worktree_path": null
++}
+diff --git a/.garura/project/issues/464/context/issue.json b/.garura/project/issues/464/context/issue.json
+new file mode 100644
+index 00000000..69dd5b69
+--- /dev/null
++++ b/.garura/project/issues/464/context/issue.json
+@@ -0,0 +1,7 @@
++{
++  "resolved": true,
++  "issue_number": 464,
++  "title": "[ENH] Stage 1c: Machine-checkable stop condition in every play's intent",
++  "state": "OPEN",
++  "created": false
++}
+diff --git a/.garura/project/issues/464/context/porcelain.txt b/.garura/project/issues/464/context/porcelain.txt
+new file mode 100644
+index 00000000..78a4592f
+--- /dev/null
++++ b/.garura/project/issues/464/context/porcelain.txt
+@@ -0,0 +1,11 @@
++ M .garura/.gitignore
++ M core/components/memory/standards/rules/play-close.md
++ M core/components/memory/standards/templates/evidence-file.md
++ M core/components/plays/play-creator/SKILL.md
++ M core/components/plays/play-creator/scripts/lint_play.py
++ M core/components/plays/play-editor/scripts/lint_play.py
++?? .garura/install-manifest.json
++?? .garura/project/issues/464/
++?? CLAUDE.md.new
++?? core/components/plays/play-creator/references/check_stop_condition.py
++?? core/components/plays/play-creator/references/fixtures/
+diff --git a/.garura/project/issues/464/context/resolved-rules.json b/.garura/project/issues/464/context/resolved-rules.json
+new file mode 100644
+index 00000000..70b8f431
+--- /dev/null
++++ b/.garura/project/issues/464/context/resolved-rules.json
+@@ -0,0 +1,6 @@
++{
++  "resolved": true,
++  "path": "/Users/kapilahuja/.garura/core/memory/standards/rules/self-review.md",
++  "source": "/Users/kapilahuja/.garura/core/memory/standards/rules",
++  "is_override": false
++}
+diff --git a/.garura/project/issues/464/context/self-review.md b/.garura/project/issues/464/context/self-review.md
+new file mode 100644
+index 00000000..c99047a0
+--- /dev/null
++++ b/.garura/project/issues/464/context/self-review.md
+@@ -0,0 +1,30 @@
++---
++issue: 464
++resolved_rules_source: /Users/kapilahuja/.garura/core/memory/standards/rules/self-review.md
++is_override: false
++---
++
++# Self-Review — #464 (machine-checkable stop condition)
++
++## Scope checks
++
++| Check | Verdict | Evidence |
++|-------|---------|----------|
++| Matches the issue | PASS | All 4 commits carry #464. The core diff (play-close.md, evidence-file.md, play-creator/SKILL.md, check_stop_condition.py + fixtures, both lint_play.py copies) is exactly Stage 1c of epic #460 as described — nothing beyond the stop-condition feature. |
++| No scope creep | FLAG | Commit `933fa89 chore(install): record self-install manifest and ignore-rule trim from the #463 redeploy` carries no #464 reference — it is a side effect of re-running `install-garura` locally after #463 landed on main, not part of this issue's intent. Noted, not blocking: it is a chore/STM-class commit (install-manifest.json + `.garura/.gitignore` comment trim), already disclosed in the task brief as expected fallout, and touches no play/skill logic. |
++| Reasonable size | PASS | 20 files, 525 insertions / 4 deletions across the diff; single sitting review. |
++| No stray artifacts | PASS | No commented-out code, debug prints, or scratch files. All non-code files are legitimate STM context (`context/analysis.yaml`, `branch.json`, `issue.json`, `porcelain.txt`, `work-description.txt`) or the install manifest chore above. |
++
++## Quality checks
++
++| Check | Verdict | Evidence |
++|-------|---------|----------|
++| Tests present | PASS | Ran both proofs directly: `held` fixture → `check_stop_condition.py` exit 0, all 3 clauses (D1–D3) status `held`. `unmet` fixture → exit 1, all 3 clauses status `unmet`, each with its own detail (missing artifact, wrong verdict value, failing gate counts) — matches the claimed "every clause named" behavior exactly. |
++| Commits are clean | PASS (with the FLAG above) | 4 commits, conventional format (`feat(components)`, `chore(stm)` x2, `chore(install)`), each a coherent concern. 3 of 4 reference #464; the install-manifest commit references #463 instead (see scope flag). |
++| No secrets | PASS | Grepped the full diff for api-key/secret/password/token/private-key patterns — no hits beyond doc prose using the word "token" in its plain-English sense. |
++| Docs in step | PASS | The interface-facing docs (`play-close.md` Step C0, `evidence-file.md` frontmatter + Stop Condition section, `play-creator/SKILL.md` Done-means + bake-step) are updated in the same change as the mechanism they describe. |
++| Nothing obviously broken | PASS | Re-ran `lint_play.py` against all 5 pipeline plays (commit-change, propose-change, review-change, merge-change, start-change) — all still `VERDICT: PASS (0 gap(s))`, and the new stop-condition check line does not even appear in their output, confirming the gate is legacy-transparent (fires only when an ICE declares "### Done means"). No leftover TODOs found in the new code. |
++
++## Verdict
++
++**PASS — 8 of 9 checks clean, 1 flagged (non-blocking).** No FAIL. Proceeding to PR.
+diff --git a/.garura/project/issues/464/context/work-description.txt b/.garura/project/issues/464/context/work-description.txt
+new file mode 100644
+index 00000000..93de4510
+--- /dev/null
++++ b/.garura/project/issues/464/context/work-description.txt
+@@ -0,0 +1 @@
++Stage 1c of the IDSD Level 3 epic (#460): A machine-checkable stop condition in every play's intent. Plays end today because the step list runs out, not because "done" was proven. Each play's ICE source gets a "done means" statement a runner can evaluate — the finish line the loop closes on. The compiler bakes it into the play; the loop exits on the condition holding; evidence records the verdict. Tracked issue: #464.
+diff --git a/core/components/memory/standards/rules/play-close.md b/core/components/memory/standards/rules/play-close.md
+index 25afa8af..8794e1e5 100644
+--- a/core/components/memory/standards/rules/play-close.md
++++ b/core/components/memory/standards/rules/play-close.md
+@@ -59,6 +59,20 @@ This is what lets a pilot tell the block worked even when evidence is off.
+ Policy (who may record — plays only, never agents or skills) lives in
+ `evidence-recording.md`; this block is the mechanism it switches.
+ 
++**Stop-condition gate (#464).** A play ends because "done" was PROVEN, not
++because its step list ran out. When the compiled play carries a baked
++`stop-condition.yaml` (generated by play-creator from the ICE's "### Done
++means" section), Step C0 evaluates it via `scripts/check_stop_condition.py`
++(canonical copy: `play-creator/references/check_stop_condition.py`) — pure
++disk assertions over the run's artifacts, nothing executed. The verdict binds
++the close: **held ⇒ `status: COMPLETED` is permitted; unmet ⇒ the run closes
++`HALTED` with `exit_reason: stop_condition_unmet`** and the evidence names
++every unmet clause; error (unevaluable clause) closes `HALTED` the same way —
++an unevaluable done is not a proven done. A play with no manifest is legacy:
++it stamps `stop_condition: not_defined` and closes as before, until its
++recompile bakes one. Recovery may loop on an unmet verdict before close where
++the play defines it; the gate itself never silently passes.
++
+ **Session identity stamp (#463).** Every run binds itself to the Claude Code
+ session ledger that produced it via `scripts/session_stamp.py` (canonical copy:
+ `play-creator/references/session_stamp.py`, stamped into each play's `scripts/`
+@@ -103,6 +117,16 @@ mkdir -p "$(dirname "$evidence_dest")"
+ #       --cwd "$(pwd)" --branch "$(git branch --show-current)"
+ session_stamp=$(python3 scripts/session_stamp.py --phase close \
+     --marker "${stm_base}${issue}/status/session-stamp-{play-name}.json")
++# Stop-condition gate (#464) — Step C0, runs BEFORE evidence. Only when the
++# compiled play carries a baked manifest; a play without one is legacy and
++# stamps stop_condition: not_defined until its recompile bakes one.
++if [ -f "<play-dir>/stop-condition.yaml" ]; then
++    python3 scripts/check_stop_condition.py \
++        --manifest "<play-dir>/stop-condition.yaml" \
++        --base "${stm_base}${issue}/" \
++        --out "${stm_base}${issue}/status/stop-condition-{play-name}.yaml"
++    sc_exit=$?   # 0 held · 1 unmet · 2 error
++fi
+ ```
+ 
+ **Step C1 — Write evidence file.** Gated by `evidence.record` (skip the write,
+@@ -117,7 +141,11 @@ Otherwise fill the `evidence-file.md` slots; write the filled result to
+   ledger could not be resolved the fields are null; the close never blocks on
+   it. These four fields are the offline join key: spend and behavior for this
+   exact run are computable later from that ledger slice (token-burn-dash),
+-  with zero in-run summing.
++  with zero in-run summing. Plus the stop-condition verdict (#464):
++  `stop_condition: held | unmet | not_defined` from Step C0 — `held` permits
++  `COMPLETED`; `unmet` forces `HALTED` / `stop_condition_unmet` with the unmet
++  clauses listed in a **Stop Condition** section; `not_defined` for legacy
++  plays with no baked manifest.
+ - Artifacts Produced: every artifact this run wrote (from `$evidence_base`,
+   the play's output paths, and any commit SHAs).
+ - Step Eval Results / Scenario Eval Results: list every eval the play
+diff --git a/core/components/memory/standards/templates/evidence-file.md b/core/components/memory/standards/templates/evidence-file.md
+index c3c4817c..95f847da 100644
+--- a/core/components/memory/standards/templates/evidence-file.md
++++ b/core/components/memory/standards/templates/evidence-file.md
+@@ -36,6 +36,7 @@ session_id: {Claude Code session UUID from session_stamp.py, or null}
+ ledger_file: {path to the session's JSONL ledger, or null}
+ ledger_start_offset: {ledger byte size at play pre-flight, or null}
+ ledger_end_offset: {ledger byte size at play close, or null}
++stop_condition: held | unmet | not_defined
+ ---
+ 
+ # {Play Title} Evidence — {slug or issue}
+@@ -86,6 +87,16 @@ audit entries or Vanish).}
+ |-------|----------|------------|------|
+ | {field path} | blocker \| warning | RESOLVED \| Vanish | {user's resolution text} |
+ 
++## Stop Condition
++{Only when the play carries a baked stop-condition.yaml (#464). The Step C0
++verdict — one row per done-clause, statuses verbatim from
++check_stop_condition.py. On `held` this section may be a single summary line;
++on `unmet` every unmet clause is listed — the reason the run closed HALTED.}
++
++| Clause | Says | Status | Detail |
++|--------|------|--------|--------|
++| {D-id} | {human sentence} | held \| unmet \| error | {evaluated detail} |
++
+ ## Gate Outcomes
+ {Only when the run executed the quality lens's binding cards (#462, via
+ run-quality-gates). One row per card in quality-gates.yaml — nothing dropped:
+@@ -128,6 +139,7 @@ the close chain follows acceptance".}
+ | `status` | `COMPLETED` on normal close; `HALTED` on explicit user Vanish; `ABORTED` on unrecoverable failure. |
+ | `exit_reason` | Short token describing why the run ended. Specific values are per-play. |
+ | `session_id` / `ledger_*` | The session identity stamp (#463), copied verbatim from `session_stamp.py --phase close`. The offline join key for spend attribution — a run's exact token cost is computable later from the ledger slice `[start_offset, end_offset)`. Null when the ledger was unresolved; never fabricate. |
++| `stop_condition` | The Step C0 verdict (#464), verbatim from `check_stop_condition.py`. `held` is the only value that permits `status: COMPLETED`; `unmet` (or an unevaluable `error`) forces `HALTED` with `exit_reason: stop_condition_unmet` and the Stop Condition section filled. `not_defined` only for legacy plays whose recompile has not yet baked a manifest. |
+ | Step Eval Results | Must list EVERY SE-n defined in the compiled play — no silent skips. PASS / FAIL only; DEFERRED / N-A are allowed if the corresponding step was not reached (e.g., Vanish cleanup path). |
+ | Scenario Eval Results | Must list EVERY SCE-n defined in the compiled play. |
+ | Checkpoint Decisions | One row per checkpoint cycle. Orbit retries produce multiple rows for the same stage. |
+diff --git a/core/components/plays/play-creator/SKILL.md b/core/components/plays/play-creator/SKILL.md
+index 72d85eb9..f2d2747e 100644
+--- a/core/components/plays/play-creator/SKILL.md
++++ b/core/components/plays/play-creator/SKILL.md
+@@ -138,6 +138,14 @@ From the approved intent, generate the expectation:
+ - Exactly **one recovery entry per failure condition** (F1→REC1, …), each naming the
+   trigger symptom, the corrective direction, and a `handoff` of `autonomous` (the fix
+   can loop back without a human) or `human` (needs a person to decide).
++- A **"### Done means" section (#464)** — the play's stop condition: 2–6 clauses, each
++  with an id (D1…), a plain-language `says`, and a mechanical `check` drawn from the
++  closed clause set (`artifact_exists` | `field_equals` | `gate_outcomes_pass`).
++  Compose the clauses from the scenarios' measures and the artifact-verifiable
++  constraints — the done statement is what the measures already promise, made
++  evaluable against the run's artifacts at close. A done that cannot be composed
++  mechanically is a sign the measures are not binary — fix the measures, don't
++  hand-wave the done.
+ Derive these from the intent — do not ask the user to write them. Present the generated
+ expectation for a quick approve/revise.
+ 
+@@ -250,7 +258,16 @@ decides how it's enforced:
+ ### 6 — Compile the play
+ Emit the play. If it has mechanical steps, emit a **folder** — `<play-name>/SKILL.md` plus
+ `<play-name>/scripts/` for the scripts those steps call (and `references/` for anything it
+-reads); a pure-judgment play can be a single `SKILL.md`. Write each mechanical step's
++reads); a pure-judgment play can be a single `SKILL.md`.
++
++**Bake the stop condition (#464).** When the ICE carries "### Done means", emit
++`<play-name>/stop-condition.yaml` (schema `{name: stop-condition}`, `content.done` =
++the clause list verbatim) and stamp `scripts/check_stop_condition.py` from
++[`references/check_stop_condition.py`](references/check_stop_condition.py) — same
++verbatim-copy discipline as `preflight.py` and `session_stamp.py`. The Standard Play
++Close's Step C0 (play-close.md) evaluates the manifest at close: held permits
++COMPLETED, unmet forces HALTED. A play whose ICE has no Done means bakes no manifest
++and closes as legacy (`stop_condition: not_defined`). Write each mechanical step's
+ script into `scripts/` and have that step invoke it by relative path — don't also inline
+ the logic the script now owns. **Unless the play has no environmental pre-flight, stamp the
+ canonical `scripts/preflight.py` (copy `references/preflight.py` verbatim) per step 4 and
+diff --git a/core/components/plays/play-creator/references/check_stop_condition.py b/core/components/plays/play-creator/references/check_stop_condition.py
+new file mode 100644
+index 00000000..1e801d47
+--- /dev/null
++++ b/core/components/plays/play-creator/references/check_stop_condition.py
+@@ -0,0 +1,136 @@
++#!/usr/bin/env python3
++"""
++check_stop_condition.py — evaluate a play's baked stop condition (#464).
++
++A play ends because "done" was PROVEN, not because its step list ran out.
++The proof is this script: it reads the play's compiled stop-condition
++manifest (stop-condition.yaml, baked by play-creator from the ICE's
++"### Done means" section) and evaluates every clause against what actually
++exists on disk at close. Pure assertions — it executes nothing, so the
++close gate stays instant and side-effect-free (implement's hand-built
++check_done.py pattern, made play-agnostic).
++
++Clause types (mechanical, closed set):
++    artifact_exists     {path}                       — glob ok, ≥1 match
++    field_equals        {file, field, equals}        — dot-path into JSON/YAML
++    gate_outcomes_pass  {file}                       — run-quality-gates output: ok == true
++
++Manifest shape (content.done is the clause list):
++    schema: {name: stop-condition}
++    content:
++      done:
++        - id: D1
++          says: "the commits exist and the tree is clean"   # human sentence
++          check: {type: artifact_exists, path: "...commits.yaml"}
++
++Usage:
++    python3 check_stop_condition.py --manifest <stop-condition.yaml> \
++        --base <run/STM root for relative paths> --out <verdict.yaml>
++
++Verdict: {stop_condition: held|unmet, clauses: [{id, says, status, detail}]}
++Exit 0 held, 1 unmet, 2 manifest/clause error (an unevaluable clause is an
++error, never a silent pass — the run-quality-gates rule, reused).
++"""
++
++import argparse
++import glob
++import json
++import os
++import sys
++
++try:
++    import yaml
++except ImportError:
++    print("PyYAML required: pip install pyyaml", file=sys.stderr)
++    sys.exit(2)
++
++
++def load_doc(path):
++    with open(path, "r", encoding="utf-8") as fh:
++        if path.endswith(".json"):
++            return json.load(fh)
++        return yaml.safe_load(fh)
++
++
++def dot_get(doc, field):
++    cur = doc
++    for part in field.split("."):
++        if isinstance(cur, list):
++            cur = cur[int(part)]
++        elif isinstance(cur, dict) and part in cur:
++            cur = cur[part]
++        else:
++            return None, False
++    return cur, True
++
++
++def eval_clause(clause, base):
++    check = clause.get("check") or {}
++    ctype = check.get("type")
++    try:
++        if ctype == "artifact_exists":
++            pattern = os.path.join(base, check["path"])
++            hits = glob.glob(pattern)
++            return ("held" if hits else "unmet",
++                    f"{len(hits)} match(es) for {check['path']}")
++        if ctype == "field_equals":
++            fpath = os.path.join(base, check["file"])
++            if not os.path.exists(fpath):
++                return "unmet", f"file missing: {check['file']}"
++            value, found = dot_get(load_doc(fpath), check["field"])
++            if not found:
++                return "unmet", f"field missing: {check['field']}"
++            ok = value == check["equals"]
++            return ("held" if ok else "unmet",
++                    f"{check['field']} = {value!r} (want {check['equals']!r})")
++        if ctype == "gate_outcomes_pass":
++            fpath = os.path.join(base, check["file"])
++            if not os.path.exists(fpath):
++                return "unmet", f"gate outcomes missing: {check['file']}"
++            doc = load_doc(fpath)
++            ok = bool(doc.get("ok"))
++            counts = doc.get("counts", {})
++            return ("held" if ok else "unmet", f"gates ok={ok} counts={counts}")
++        return "error", f"unknown check type: {ctype!r}"
++    except Exception as exc:  # noqa: BLE001 — an unevaluable clause is an error
++        return "error", f"clause evaluation failed: {exc}"
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--manifest", required=True)
++    ap.add_argument("--base", required=True,
++                    help="root for the manifest's relative paths (the run's STM)")
++    ap.add_argument("--out", required=True)
++    args = ap.parse_args()
++
++    doc = load_doc(args.manifest) or {}
++    clauses = (doc.get("content") or {}).get("done") or []
++    if not clauses:
++        verdict = {"stop_condition": "error",
++                   "clauses": [],
++                   "detail": "manifest has no content.done clauses"}
++        code = 2
++    else:
++        results = []
++        for c in clauses:
++            status, detail = eval_clause(c, args.base)
++            results.append({"id": c.get("id"), "says": c.get("says"),
++                            "status": status, "detail": detail})
++        if any(r["status"] == "error" for r in results):
++            overall, code = "error", 2
++        elif all(r["status"] == "held" for r in results):
++            overall, code = "held", 0
++        else:
++            overall, code = "unmet", 1
++        verdict = {"stop_condition": overall, "clauses": results}
++
++    os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
++    with open(args.out, "w", encoding="utf-8") as fh:
++        yaml.safe_dump(verdict, fh, sort_keys=False)
++    print(json.dumps(verdict, indent=2))
++    sys.exit(code)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/core/components/plays/play-creator/references/fixtures/stop-condition/held/run/commits.yaml b/core/components/plays/play-creator/references/fixtures/stop-condition/held/run/commits.yaml
+new file mode 100644
+index 00000000..9fd33584
+--- /dev/null
++++ b/core/components/plays/play-creator/references/fixtures/stop-condition/held/run/commits.yaml
+@@ -0,0 +1,2 @@
++commits:
++  - sha: abc123
+diff --git a/core/components/plays/play-creator/references/fixtures/stop-condition/held/run/gate-outcomes.json b/core/components/plays/play-creator/references/fixtures/stop-condition/held/run/gate-outcomes.json
+new file mode 100644
+index 00000000..6b76c83b
+--- /dev/null
++++ b/core/components/plays/play-creator/references/fixtures/stop-condition/held/run/gate-outcomes.json
+@@ -0,0 +1 @@
++{"ok": true, "counts": {"pass": 3, "human": 1}}
+diff --git a/core/components/plays/play-creator/references/fixtures/stop-condition/held/run/verdict.yaml b/core/components/plays/play-creator/references/fixtures/stop-condition/held/run/verdict.yaml
+new file mode 100644
+index 00000000..a3d7125b
+--- /dev/null
++++ b/core/components/plays/play-creator/references/fixtures/stop-condition/held/run/verdict.yaml
+@@ -0,0 +1 @@
++verdict: approve
+diff --git a/core/components/plays/play-creator/references/fixtures/stop-condition/held/stop-condition.yaml b/core/components/plays/play-creator/references/fixtures/stop-condition/held/stop-condition.yaml
+new file mode 100644
+index 00000000..06d7d5d4
+--- /dev/null
++++ b/core/components/plays/play-creator/references/fixtures/stop-condition/held/stop-condition.yaml
+@@ -0,0 +1,13 @@
++# Fixture: HELD — every clause satisfied by the run's artifacts (#464)
++schema: { name: stop-condition }
++content:
++  done:
++    - id: D1
++      says: "the commit record exists"
++      check: { type: artifact_exists, path: "run/commits.yaml" }
++    - id: D2
++      says: "the verdict reads approve"
++      check: { type: field_equals, file: "run/verdict.yaml", field: "verdict", equals: "approve" }
++    - id: D3
++      says: "the quality gates pass"
++      check: { type: gate_outcomes_pass, file: "run/gate-outcomes.json" }
+diff --git a/core/components/plays/play-creator/references/fixtures/stop-condition/unmet/run/gate-outcomes.json b/core/components/plays/play-creator/references/fixtures/stop-condition/unmet/run/gate-outcomes.json
+new file mode 100644
+index 00000000..a28d17d7
+--- /dev/null
++++ b/core/components/plays/play-creator/references/fixtures/stop-condition/unmet/run/gate-outcomes.json
+@@ -0,0 +1 @@
++{"ok": false, "counts": {"pass": 1, "fail": 2}}
+diff --git a/core/components/plays/play-creator/references/fixtures/stop-condition/unmet/run/verdict.yaml b/core/components/plays/play-creator/references/fixtures/stop-condition/unmet/run/verdict.yaml
+new file mode 100644
+index 00000000..22b51a9d
+--- /dev/null
++++ b/core/components/plays/play-creator/references/fixtures/stop-condition/unmet/run/verdict.yaml
+@@ -0,0 +1 @@
++verdict: reject
+diff --git a/core/components/plays/play-creator/references/fixtures/stop-condition/unmet/stop-condition.yaml b/core/components/plays/play-creator/references/fixtures/stop-condition/unmet/stop-condition.yaml
+new file mode 100644
+index 00000000..14386ad2
+--- /dev/null
++++ b/core/components/plays/play-creator/references/fixtures/stop-condition/unmet/stop-condition.yaml
+@@ -0,0 +1,13 @@
++# Fixture: UNMET — a missing artifact, a wrong verdict, failing gates (#464)
++schema: { name: stop-condition }
++content:
++  done:
++    - id: D1
++      says: "the commit record exists"
++      check: { type: artifact_exists, path: "run/commits.yaml" }
++    - id: D2
++      says: "the verdict reads approve"
++      check: { type: field_equals, file: "run/verdict.yaml", field: "verdict", equals: "approve" }
++    - id: D3
++      says: "the quality gates pass"
++      check: { type: gate_outcomes_pass, file: "run/gate-outcomes.json" }
+diff --git a/core/components/plays/play-creator/scripts/lint_play.py b/core/components/plays/play-creator/scripts/lint_play.py
+index 6f9c3557..f9981d8f 100755
+--- a/core/components/plays/play-creator/scripts/lint_play.py
++++ b/core/components/plays/play-creator/scripts/lint_play.py
+@@ -225,6 +225,40 @@ def main(argv):
+                         if pf_ok else "Pre-flight references scripts/preflight.py but the "
+                                       "file is missing — stamp it from references/preflight.py"))
+ 
++    # --- stop condition (#464; gated: only when the ICE declares Done means) -
++    # A play whose reference/ice.md carries "### Done means" must be compiled
++    # with a baked stop-condition.yaml (>=1 content.done clause, each with a
++    # closed-set check type) and the stamped checker script. Plays without the
++    # ICE section are legacy and skip this check entirely (non-breaking).
++    play_dir_sc = os.path.dirname(os.path.abspath(argv[1]))
++    ice_path = os.path.join(play_dir_sc, "reference", "ice.md")
++    ice_text = ""
++    if os.path.isfile(ice_path):
++        with open(ice_path, encoding="utf-8") as fh:
++            ice_text = fh.read()
++    if re.search(r"(?im)^###\s+Done means\b", ice_text):
++        sc_path = os.path.join(play_dir_sc, "stop-condition.yaml")
++        chk_path = os.path.join(play_dir_sc, "scripts", "check_stop_condition.py")
++        sc_problems = []
++        if not os.path.isfile(sc_path):
++            sc_problems.append("stop-condition.yaml missing — bake it from the ICE's Done means")
++        else:
++            with open(sc_path, encoding="utf-8") as fh:
++                sc_text = fh.read()
++            clause_types = re.findall(r"type:\s*([a-z_]+)", sc_text)
++            if not clause_types:
++                sc_problems.append("stop-condition.yaml has no content.done clauses")
++            bad_types = [t for t in clause_types
++                         if t not in {"artifact_exists", "field_equals", "gate_outcomes_pass"}]
++            if bad_types:
++                sc_problems.append("unknown check type(s): " + ", ".join(sorted(set(bad_types))))
++        if not os.path.isfile(chk_path):
++            sc_problems.append("scripts/check_stop_condition.py missing — stamp it from "
++                               "references/check_stop_condition.py")
++        results.append((not sc_problems, "stop condition (#464)",
++                        "Done means baked: manifest + checker present, clause types valid"
++                        if not sc_problems else "; ".join(sc_problems)))
++
+     # --- fingerprint --------------------------------------------------------
+     meta = section_body(text, "Compilation Metadata") or ""
+     fp = re.search(r"(?im)fingerprint.*", meta)
+diff --git a/core/components/plays/play-editor/scripts/lint_play.py b/core/components/plays/play-editor/scripts/lint_play.py
+index 915a91f5..f9981d8f 100755
+--- a/core/components/plays/play-editor/scripts/lint_play.py
++++ b/core/components/plays/play-editor/scripts/lint_play.py
+@@ -225,6 +225,40 @@ def main(argv):
+                         if pf_ok else "Pre-flight references scripts/preflight.py but the "
+                                       "file is missing — stamp it from references/preflight.py"))
+ 
++    # --- stop condition (#464; gated: only when the ICE declares Done means) -
++    # A play whose reference/ice.md carries "### Done means" must be compiled
++    # with a baked stop-condition.yaml (>=1 content.done clause, each with a
++    # closed-set check type) and the stamped checker script. Plays without the
++    # ICE section are legacy and skip this check entirely (non-breaking).
++    play_dir_sc = os.path.dirname(os.path.abspath(argv[1]))
++    ice_path = os.path.join(play_dir_sc, "reference", "ice.md")
++    ice_text = ""
++    if os.path.isfile(ice_path):
++        with open(ice_path, encoding="utf-8") as fh:
++            ice_text = fh.read()
++    if re.search(r"(?im)^###\s+Done means\b", ice_text):
++        sc_path = os.path.join(play_dir_sc, "stop-condition.yaml")
++        chk_path = os.path.join(play_dir_sc, "scripts", "check_stop_condition.py")
++        sc_problems = []
++        if not os.path.isfile(sc_path):
++            sc_problems.append("stop-condition.yaml missing — bake it from the ICE's Done means")
++        else:
++            with open(sc_path, encoding="utf-8") as fh:
++                sc_text = fh.read()
++            clause_types = re.findall(r"type:\s*([a-z_]+)", sc_text)
++            if not clause_types:
++                sc_problems.append("stop-condition.yaml has no content.done clauses")
++            bad_types = [t for t in clause_types
++                         if t not in {"artifact_exists", "field_equals", "gate_outcomes_pass"}]
++            if bad_types:
++                sc_problems.append("unknown check type(s): " + ", ".join(sorted(set(bad_types))))
++        if not os.path.isfile(chk_path):
++            sc_problems.append("scripts/check_stop_condition.py missing — stamp it from "
++                               "references/check_stop_condition.py")
++        results.append((not sc_problems, "stop condition (#464)",
++                        "Done means baked: manifest + checker present, clause types valid"
++                        if not sc_problems else "; ".join(sc_problems)))
++
+     # --- fingerprint --------------------------------------------------------
+     meta = section_body(text, "Compilation Metadata") or ""
+     fp = re.search(r"(?im)fingerprint.*", meta)
+@@ -234,6 +268,36 @@ def main(argv):
+                     "present" if not bad
+                     else "missing or placeholder — compute a real one with shasum -a 256"))
+ 
++    # --- next-command recommendation (pipeline-next.md) ---------------------
++    # A compiled play with a valid position must resolve in the successor map and
++    # render a Next line at close — unless it is meta_exempt. Non-breaking: only
++    # runs when the play has a valid position AND pipeline-next.md is found.
++    if fm and pos_ok:
++        nm = re.search(r"(?m)^name:\s*(\S+)", fm.group(1))
++        play_name = (nm.group(1).strip().strip("\"'") if nm
++                     else os.path.basename(os.path.dirname(os.path.abspath(argv[1]))))
++        play_dir = os.path.dirname(os.path.abspath(argv[1]))
++        map_path = os.path.normpath(os.path.join(
++            play_dir, "..", "..", "memory", "standards", "rules", "pipeline-next.md"))
++        if os.path.isfile(map_path):
++            with open(map_path, encoding="utf-8") as fh:
++                mp = fh.read()
++            after_exempt = re.split(r"meta_exempt:", mp)[1] if "meta_exempt:" in mp else ""
++            exempt = set(re.findall(r"(?m)^\s*-\s*([a-z0-9-]+)\s*$", after_exempt))
++            mapped = set(re.findall(r"(?m)^\s{2,}([a-z0-9-]+):\s*\{", mp))
++            if play_name in exempt:
++                results.append((True, "next-command (pipeline-next)",
++                                f"{play_name} is meta_exempt — no Next required"))
++            else:
++                in_map = play_name in mapped
++                renders = "pipeline-next.md" in text
++                ok = in_map and renders
++                detail = ("resolves in pipeline-next.md and the close renders Next" if ok
++                          else f"{play_name} has no entry in pipeline-next.md (add one, or meta_exempt it)"
++                          if not in_map
++                          else "the close does not render the Next line from pipeline-next.md")
++                results.append((ok, "next-command (pipeline-next)", detail))
++
+     # --- report -------------------------------------------------------------
+     gaps = [r for r in results if not r[0]]
+     print(f"PLAY LINT: {argv[1]}")

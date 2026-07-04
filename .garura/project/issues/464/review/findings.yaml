@@ -1,0 +1,78 @@
+meta:
+  generated_at: "2026-07-04T00:00:00Z"
+  diff_path: ".garura/project/issues/464/review/pr.diff"
+  changed_paths_count: 22
+  scan_coverage: 1.0
+  taxonomy_path: "core/components/memory/standards/rules/pr.md"
+  standards_relevant: 16
+
+findings:
+  - standard_id: CODE-09
+    severity: P3
+    file: core/components/plays/play-creator/references/check_stop_condition.py
+    line: 67
+    evidence: "eval_clause() cyclomatic complexity 12, exceeds CODE-09 threshold (<=10, quality/code/complexity-structure.md)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-09
+  - standard_id: CODE-12
+    severity: P3
+    file: core/components/plays/play-creator/scripts/lint_play.py
+    line: 1
+    evidence: "file is 311 lines, exceeds CODE-12 module-size threshold (<=300, quality/code/complexity-structure.md)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-12
+  - standard_id: CODE-09
+    severity: P3
+    file: core/components/plays/play-creator/scripts/lint_play.py
+    line: 89
+    evidence: "main() cyclomatic complexity 75, exceeds CODE-09 threshold (<=10)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-09
+  - standard_id: CODE-10
+    severity: P3
+    file: core/components/plays/play-creator/scripts/lint_play.py
+    line: 89
+    evidence: "main() is 178 NLOC / 219-line span, exceeds CODE-10 function-length threshold (<=50 lines); this diff adds ~65 more lines to it"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-10
+  - standard_id: CODE-13
+    severity: P3
+    file: core/components/plays/play-creator/scripts/lint_play.py
+    line: 89
+    evidence: "main() now runs >=8 unrelated lint checks (frontmatter, sections, ids, pre-flight, stop-condition (#464), fingerprint, next-command, report) in one function body — single-responsibility anti-pattern (quality/code/complexity-structure.md 'God class/function')"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-13
+  - standard_id: CODE-12
+    severity: P3
+    file: core/components/plays/play-editor/scripts/lint_play.py
+    line: 1
+    evidence: "file is 311 lines, exceeds CODE-12 module-size threshold (<=300)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-12
+  - standard_id: CODE-09
+    severity: P3
+    file: core/components/plays/play-editor/scripts/lint_play.py
+    line: 89
+    evidence: "main() cyclomatic complexity 75, exceeds CODE-09 threshold (<=10)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-09
+  - standard_id: CODE-10
+    severity: P3
+    file: core/components/plays/play-editor/scripts/lint_play.py
+    line: 89
+    evidence: "main() is 178 NLOC / 219-line span, exceeds CODE-10 function-length threshold (<=50 lines); this diff adds ~65 more lines to it"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-10
+  - standard_id: CODE-13
+    severity: P3
+    file: core/components/plays/play-editor/scripts/lint_play.py
+    line: 89
+    evidence: "main() now runs >=8 unrelated lint checks in one function body — single-responsibility anti-pattern"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-13
+
+counts:
+  P1: 0
+  P2: 0
+  P3: 9
+  P4: 0
