@@ -44,6 +44,10 @@ opens no issue, cuts no branch, and lands no PR — it deploys and records evide
   record's environment is the resolved target. A failed deploy that recorded its failure honestly is
   a **HALTED** run, not a done one — the close never reads COMPLETED with the stop-condition verdict
   unmet.
+- C10 — The Confirm Deploy checkpoint is pinned (class: one-way-door, pinned; gate-config.md).
+  Deploying to a live cloud environment is outward-facing and always requires a typed human approval
+  before anything is deployed — no config value, policy, or ledger turns it off. Unpinning would be an
+  intent change (play-editor), never a config edit.
 
 ### Failure conditions
 
@@ -60,6 +64,8 @@ opens no issue, cuts no branch, and lands no PR — it deploys and records evide
 - F8 — The slice has no run lens, or no cloud environment is defined, and `/deploy` proceeded anyway.
 - F9 — The run closed COMPLETED without the Done means held (no deploy record, a red or absent health
   proof, or the verify step's environment assertion not captured or not true).
+- F10 — A deploy proceeded (or would proceed) without the pinned human approval — the increment
+  reached a live environment with no typed confirmation.
 
 ## Expectation
 
@@ -135,3 +141,5 @@ declared steps ran.
   close HALTED with `exit_reason: stop_condition_unmet` and the unmet clauses named; fix the state —
   re-run the verify capture, or record the honest failure — and re-evaluate; the close stays HALTED
   until the verdict reads held. handoff: autonomous.
+- REC10 (F10) — trigger: a deploy would proceed without the pinned approval. direction: halt with
+  nothing deployed; present the proposed deploy and wait for the typed approval. handoff: human.
