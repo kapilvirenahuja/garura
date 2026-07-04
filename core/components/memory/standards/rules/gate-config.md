@@ -72,10 +72,12 @@ config value can disable it; the switch machinery records `pinned — config byp
 refused` if an off value would otherwise match. Unpinning is an intent change to that
 play (play-editor), never a config edit. Per the #467 ruling the pinned set is: **grill**
 (a wrong epic cut poisons everything downstream), **launch** (the one HITL gate of the
-implement trinity — the acceptance walk), and **learn** (a wrong model learning bends the
-product model). The eleven document plays (vision, understand, shape, roadmap, and the
-seven realize lenses) are **conditional**; the pipeline/execute mechanical gates are
-**off** with replacement checks.
+implement trinity — the acceptance walk), **learn** (a wrong model learning bends the
+product model), and **merge-change's land-on-main step** (the #467 re-pin correction —
+merging to main is the one irreversible action in the chain, so the actual land always
+keeps its human beat; the rest of merge-change is automatic). The eleven document plays
+(vision, understand, shape, roadmap, and the seven realize lenses) are **conditional**;
+the other pipeline/execute mechanical gates are **off** with replacement checks.
 
 ## Behaviour of the switch
 
