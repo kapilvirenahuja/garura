@@ -1,74 +1,62 @@
-# Consolidated review findings — PR #480 (issue #467, Stage 4 Batch A), 2026-07-04
-# Sources: quality-findings.yaml (quality-auditor / quality-check-scoped),
-# design-findings.yaml (change-reviewer, committed-source grounding),
-# play-run checks (test execution, config-map).
+# Consolidated review findings — PR #482 (issue #467, Stage 4 Batch B), 2026-07-04
+# Sources: design-findings.yaml (change-reviewer), play-run mechanical layer (executed
+# this run), categories.yaml. quality-auditor NOT dispatched: no standards-driven
+# code/config/docs-prose category assessed (scripts judged harness by content) — layer
+# skipped as not applicable (SE-3).
 
 categories:
-  code:
-    playbook: review/code
+  harness:
+    playbook: review/harness
     layer1:
-      - source: quality-findings.yaml
-        result: "24 findings: 0 P1, 10 P2 (complexity: classify_pair 39 branches vs
-          limit 10 / 57 lines vs 50; distill + read_existing_policy over limits; all
-          four files fail the auto-formatter check), 14 P3 (semicolon compound lines
-          in tests, ambiguous 'l' variable names)"
-        basis: "quality-check-scoped rule ids per finding (see quality-findings.yaml)"
-      - check: "runnable — test_gate_learning.py EXECUTED this run"
-        result: "PASS 15/15 (classifier 7/7, learner 8/8)"
-        basis: "direct execution, output captured"
+      - check: "lint_play.py on all 11 recompiled plays (EXECUTED this run)"
+        result: "PASS 11/11, 0 gaps"
+        basis: "linter output captured"
         finding: null
-  tests:
-    playbook: review/tests
-    note: "test file audited under generic code checks — the rule book's test checks
-      only fire on test/ or tests/ dirs, this file lives in references/ (P4 process
-      note: rule-book gap, not a PR defect)"
-  memory:
-    playbook: review/memory
+      - check: "stamped-script identity 33/33 vs canonicals (EXECUTED)"
+        result: "PASS — 0 non-identical"
+        basis: "cmp per file"
+        finding: null
     layer2:
       - source: design-findings.yaml
-        findings:
-          - class: P2
-            summary: "approval-prompt.md template not updated — it still documents the
-              two-step lookup; nothing in the repo yet consults the learned policy, so
-              conditional auto-pass has no renderer wiring"
-            basis: "templates/approval-prompt.md (committed) vs the rewritten
-              gate-config.md resolution order; gate-config.md itself names the template
-              as this switch's consumer"
-          - class: P2
-            summary: "evidence unit mismatch vs epic text — #467 promised gate reduction
-              evidence 'per risk class'; the built mechanism records per change-shape
-              (finer, unlinked to class). The in-session human redirect authorized the
-              shape-level design but is not yet recorded on the issue"
-            basis: "gh issue #467 acceptance text (committed/external) vs the ledger
-              record shape"
-        conforms:
-          - "ADR 025 determinism: policy lookup in-loop, learning between runs — holds;
-            scripts verified no wall-clock, no inference, pure pattern counts"
-          - "pinned-never-off and skip-always-recorded guarantees preserved in the new
-            resolution order"
-  config-map:
-    playbook: review/config-maps
-    layer1:
-      - check: "YAML validity + conditional block keys"
-        result: "PASS — valid yaml; streak/ledger/policy present; pointed-at ledger and
-          policy files appear on first use (by design, noted)"
-        basis: "yaml.safe_load + key inspection, executed this run"
+        result: "6/6 conform: (1) all 11 fingerprints mechanically re-verified against
+          edited ICE sources; (2) checkpoint steps implement the committed resolution
+          order with ledger append on both paths; (3) classifier is pure counting —
+          ADR 025 determinism holds in-loop; (4) touched set == the ruled 11 exactly;
+          grill/launch/learn untouched; (5) play owns the gate step, wiring intact;
+          (6) template and rule agree"
         finding: null
-  docs:
-    playbook: review/docs
-    note: "design doc reviewed as prose; correctly NOT used as grounding (branch's own
-      content — circularity guard held)"
+  memory:
+    playbook: review/memory
+    layer2: "covered in design-findings check 6 — template conforms to committed rule"
+  tests:
+    playbook: review/tests
+    layer1:
+      - check: "test_gate_learning.py EXECUTED this run"
+        result: "PASS 15/15"
+        basis: "direct execution"
+        finding: null
+      - check: "black --check on the four in-scope canonical scripts"
+        result: "PASS (4 unchanged)"
+        basis: "formatter run"
+        finding: null
+  out-of-scope-note:
+    finding:
+      class: P4
+      summary: "three PRE-EXISTING canonical scripts (preflight.py, session_stamp.py,
+        check_stop_condition.py) fail black --check — untouched by this PR (#463/#464
+        vintage); cleanup candidate for a later chore"
+      basis: "black --check output; git log confirms no touch in this branch"
   stm-records:
     playbook: null
     finding:
       class: P4
-      summary: "generated run-record files still unplaybooked (repeat of the #478/PR-479
-        flag; backlog item exists, not duplicated)"
-      basis: "categories.yaml assessment; knowledge/review/ shelf enumeration"
+      summary: "generated run-record files unplaybooked — THIRD occurrence (#478, #480,
+        now #482); seed knowledge/review/stm-records.md as a follow-up"
+      basis: "categories.yaml; shelf enumeration"
 
 summary:
   P1: 0
-  P2: 12   # 10 code-quality + 2 design
-  P3: 14
+  P2: 0
+  P3: 0
   P4: 2
   runnable_suites_red: 0

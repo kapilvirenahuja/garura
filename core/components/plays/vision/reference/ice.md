@@ -53,8 +53,20 @@ Pipeline position: **start**. /vision OPENS the strategy pipeline (vision → un
   skip-if-exists. No existing spine entry or doc is ever overwritten or redrawn. An
   existing domain may be extended with new capabilities.
 - C7 — Exactly one human checkpoint, presenting the domain, the directional
-  capabilities, and the directional profile. Nothing is persisted to the product model
-  before that checkpoint is approved.
+  capabilities, and the directional profile. The checkpoint is a **conditional gate**
+  (#467; `gate-config.md` three gate kinds — /vision is one of the eleven conditional
+  document plays). Resolution order: pinned (n/a here) → the `gates.plays` override →
+  the learned policy (classify the draft-vs-live change shape with the bundled
+  `classify_change.py`; a shape in `gate-policy.yaml`'s `auto:` and not in
+  `never_auto:`, with NO blocking finding — a lint gap or a content-eval fail —
+  auto-passes with the skip and the diff summary recorded) → `gates.classes.standard` →
+  `gates.default`. EVERY crossing appends one live-eval line via the bundled
+  `gate_eval.py` (shape, predicted gate|auto, the human's real action
+  `approved_clean|approved_edited|rejected`, or `auto_pass`). Nothing is persisted to
+  the product model before the gate resolves: a typed approval, a recorded config skip,
+  OR a recorded policy auto-pass. At close the play refreshes the learned policy with
+  the bundled `distill_gate_policy.py` (config `gates.conditional`:
+  streak/ledger/policy paths).
 - C8 — The play ends by proving its Done means at close (gated, #464): the goal was
   grounded, the seed drafted, and the approved seed applied to the product model —
   never by its step list running out.
@@ -73,9 +85,13 @@ Pipeline position: **start**. /vision OPENS the strategy pipeline (vision → un
 - F4 — A capability is neither grounded in a KB domain shelf nor recorded as a KB-node
   proposal.
 - F5 — An existing spine entry or grounding doc was overwritten or redrawn.
-- F6 — The product model was written before the human approved the checkpoint.
+- F6 — The product model was written before the checkpoint gate resolved — no typed
+  approval, no recorded config skip, and no recorded policy auto-pass.
 - F7 — The close proves nothing — the play closes COMPLETED without the Done means
   held.
+- F8 — A conditional-gate crossing left no live-eval ledger line, or an auto-pass
+  fired for a shape the policy does not list as auto (or that carried a blocking
+  finding).
 
 ## Expectation
 
@@ -103,7 +119,9 @@ Pipeline position: **start**. /vision OPENS the strategy pipeline (vision → un
   is presented, then it shows the domain, the directional capabilities, and the
   directional profile, rendered inline, before any write. Measure: each of those
   sections is present in the checkpoint; no product-model file's modification time falls
-  between the run start and the checkpoint approval.
+  between the run start and the checkpoint approval — or, on the auto-pass path (a
+  policy-listed shape), the gate resolves with no wait and the recorded auto-pass, the
+  appended ledger line, and the diff summary stand in the approval's place.
 
 ### Done means
 
@@ -148,3 +166,8 @@ always-written records, not per-node docs.
 - REC7 (F7) — trigger: the close would report COMPLETED without the Done means held.
   direction: evaluate the stop condition and surface the unmet clauses; the run closes
   HALTED until state is fixed. handoff: autonomous.
+- REC8 (F8) — trigger: a crossing left no live-eval ledger line, or an auto-pass fired
+  for a shape not listed `auto:` in the policy (or one carrying a blocking finding).
+  direction: re-append the missing ledger line for the recorded crossing; when the
+  auto-pass was unearned, re-run the gate as a live wait — render the approval prompt
+  and wait for the typed response — before proceeding. handoff: autonomous.

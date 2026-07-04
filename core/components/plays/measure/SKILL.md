@@ -25,11 +25,13 @@ merging the realized slice to main. (#437; 3-pipe realize 2026-06-26)
 ## Compiled From
 
 This play was compiled from the measure ICE (`reference/ice.md`) by play-editor (#466 Batch C,
-Level 3 rollout per ADR 025). Intent defines constraints (C1–C13) and failure conditions (F1–F13);
+Level 3 rollout per ADR 025). Intent defines constraints (C1–C13) and failure conditions (F1–F14);
 the expectation defines success scenarios (S1–S6), a Done means (D1–D4, baked to
 `stop-condition.yaml` — D4 counts BOTH stamp outcomes as done), and one recovery entry per failure
 condition. To modify this play, update `reference/ice.md` and recompile with play-editor. Do NOT
 edit this file manually — it is a compiled artifact.
+
+(#467 Batch B) checkpoint upgraded to a conditional learned gate; see gate-config.md.
 
 ## Role
 
@@ -38,8 +40,9 @@ authoring the measure lens grounding doc — to the `product-os-keeper` agent vi
 files on disk, and you run the mechanical checks (readiness/hub resolution, the shape linter, the
 content-quality eval, grounding + coverage, KB grounding, the allowlisted apply, the lines-up gate,
 the realized stamp, the verify) through bundled scripts and an isolated judge. You never write the
-lens yourself, you never stamp a slice that has not lined up, and you never persist before the human
-approves the single checkpoint (C11).
+lens yourself, you never stamp a slice that has not lined up, and you never persist before the single
+checkpoint's gate resolves (C11) — a typed approval, a recorded config skip, or a recorded policy
+auto-pass.
 
 **Forbidden:** hand-writing the lens or a decision; writing anything other than this slice's
 `measure.md`, a decision, and (on lines-up) the one realized status field (C2); stamping the slice
@@ -187,19 +190,55 @@ profile outcome (the manifest grounds), and a material choice names a decision t
 learning or a recorded proposal.
 On any GAP, apply the matching recovery (REC3–REC7, REC12) and re-run before the checkpoint.
 
-### Phase: Checkpoint (class: standard, C11)
+### Phase: Checkpoint (conditional gate, class: standard, C11)
 
-**Step 3 — Human review (class: standard)** · Owner: play · Depends on: Step 2
+**Step 3 — Human review (conditional gate, class: standard)** · Owner: play · Depends on: Step 2
 **This is the single checkpoint (C11) — the agent never skips it on its own judgment.** It is a
-config switch per `standards/rules/gate-config.md` (#466): resolve `gates.plays.measure` →
-`gates.classes.standard` → `gates.default` (absent ⇒ on); when off, record
-`gate skipped by config (<resolution path>)` as a Checkpoint Decisions row in the evidence and
-proceed on the validated draft. Present the proposed focus, metrics, and out-of-scope **inline**,
-plus any decision, AND the realized stamp this run will make — or, if a lens doc is missing, the
-lenses still outstanding (the slice will not be stamped). Approve → persist; cancel → halt, nothing
-written.
-**SE-11 (F11/C11):** the lens and the stamp are persisted only after this approval — Step 4 is the sole
-writer and depends on this step; nothing is written before approval.
+**conditional gate** per `standards/rules/gate-config.md` (#467 — /measure is one of the eleven
+conditional document plays). Resolve, first match wins: pinned (n/a here) → `gates.plays.measure` →
+the learned policy → `gates.classes.standard` → `gates.default` (absent ⇒ on). When config resolves
+it off, record `gate skipped by config (<resolution path>)` as a Checkpoint Decisions row in the
+evidence and proceed on the validated draft.
+
+For the policy leg, classify the draft-vs-live change shape mechanically:
+
+```
+python3 scripts/classify_change.py --play measure --draft <working>/draft --live <product_base> --out <working>/shape.json
+```
+
+Look the shape key up in the config-resolved learned policy (`gates.conditional.policy` →
+`gate-policy.yaml`). **Shape in `auto:` AND not in `never_auto:` AND no blocking finding (a Step 2
+lint gap or content-eval fail) → auto-pass:** record `gate auto-passed by learned policy
+(shape: <shape-key>, policy v<version>)` as a Checkpoint Decisions row plus the draft's diff summary
+(the axis counts from `shape.json`), append the ledger line, and proceed — no wait:
+
+```
+python3 scripts/gate_eval.py append --ledger <gates.conditional.ledger> --play measure \
+    --issue <issue> --shape <shape-key> --predicted auto --human auto_pass \
+    --ts <run ts> --policy-version <policy version>
+```
+
+**Anything else → gate:** render the approval prompt — the proposed focus, metrics, and out-of-scope
+**inline**, plus any decision, AND the realized stamp this run will make — or, if a lens doc is
+missing, the lenses still outstanding (the slice will not be stamped) — and wait for the typed
+response. Approve → persist; cancel → halt, nothing written. Then append the ledger line with the
+human's real action:
+
+```
+python3 scripts/gate_eval.py append --ledger <gates.conditional.ledger> --play measure \
+    --issue <issue> --shape <shape-key> --predicted gate \
+    --human approved_clean|approved_edited|rejected --ts <run ts>
+```
+
+`<run ts>` is the run's own timestamp, derived the same way the close derives `ts` (`date -u`) and
+passed by the orchestrator — the script never reads the wall clock. EVERY crossing appends exactly
+one live-eval ledger line, gated or auto.
+**SE-11 (F11/C11):** the lens and the stamp are persisted only after this gate resolves — a typed
+approval, a recorded config skip, or a recorded policy auto-pass; Step 4 is the sole writer and
+depends on this step.
+**SE-13 (F14/C11):** every conditional-gate crossing appended exactly one live-eval ledger line
+(`gate_eval.py append`), and an auto-pass fired only for a shape the policy lists in `auto:` (and not
+in `never_auto:`) with no blocking finding.
 
 ### Phase: Apply
 
@@ -287,7 +326,9 @@ Each end member owns its own evals (commit grouped by concern, PR opened, verdic
 - **SCE-5 (S5 — delivery owner, re-run):** a re-run re-derives only `measure.md` and re-affirms the
   stamp; everything else byte-identical; no accepted decision edited in place.
 - **SCE-6 (S6 — reviewer, the checkpoint):** the checkpoint showed the lens and the stamp inline, and
-  no product-model file was written before approval.
+  no product-model file was written before approval — or, on the auto-pass path, the shape was
+  policy-listed and the recorded auto-pass, the ledger line, and the diff summary stood in for the
+  wait (nothing written before the gate resolved).
 
 ### Phase: Evidence & Close
 
@@ -319,6 +360,11 @@ python3 scripts/check_stop_condition.py \
     --base "${stm_base}_realize/measure/" \
     --out "${stm_base}_realize/measure/status/stop-condition-measure.yaml"
 sc_exit=$?   # 0 held · 1 unmet · 2 error
+# Conditional-gate policy refresh (#467) — soft: a distill failure never blocks the close.
+#   gates_ledger / gates_policy / gates_streak = yq '.gates.conditional.ledger|.policy|.streak'
+#   project_name = yq '.project.name' .garura/core/config.yaml
+python3 scripts/distill_gate_policy.py --ledger "${gates_ledger}" --policy "${gates_policy}" \
+    --streak "${gates_streak}" --project "${project_name}" || true
 ```
 
 `/measure` opens its own deliver-pipe issue (position start), so it is project-scoped:
@@ -336,8 +382,9 @@ record `evidence skipped (record=false)`. Otherwise fill the `evidence-file.md` 
 run_id `measure-${ts}`, slice slug, started/completed, status per C0, exit_reason; artifacts: the
 slice's `measure.md`, the manifest, any decision, the lines-up result, the stamp record (stamped or
 explicitly not-stamped with the missing lenses), the stop-condition verdict; the content-eval verdict;
-step + scenario evals SE-1…SE-12 / SCE-1…SCE-6; checkpoint decision (incl. any `gate skipped by
-config` row); the end-sequence results; the session identity stamp fields from $session_stamp (#463):
+step + scenario evals SE-1…SE-13 / SCE-1…SCE-6; checkpoint decision (incl. any `gate skipped by
+config` or `gate auto-passed by learned policy` row, with the diff summary and the ledger line); the
+end-sequence results; the session identity stamp fields from $session_stamp (#463):
 session_id, ledger_file, ledger_start_offset, ledger_end_offset (null when unresolved — never blocks
 the close); and stop_condition per C0 with the Stop Condition section filled) and write to
 `$evidence_dest`. Do NOT hand-author the body.
@@ -377,9 +424,10 @@ emitted.
 | F8 | the slice was stamped realized when a lens doc was missing | revert the stamp, report the missing lens, route to the pipe that owns it | human |
 | F9 | the stamp changed more than this slice's status on the spine | restore the spine and re-apply only the single status flip | human |
 | F10 | a non-lens/non-decision file changed, or an accepted decision was edited in place | restore it and re-apply only measure.md and the new decision, after a human confirms the restore | human |
-| F11 | the lens or stamp was persisted before the checkpoint was approved | revert the premature write and re-present the checkpoint; persist only after approval | human |
+| F11 | the lens or stamp was persisted before the checkpoint gate resolved | revert the premature write and re-present the checkpoint; persist only after the gate resolves (a typed approval, a recorded config skip, or a recorded policy auto-pass) | human |
 | F12 | a measurement frame with no KB learning and no recorded proposal | search the KB via kb-search and ground the frame, or raise a KB-learning-gap proposal | autonomous |
 | F13 | the run is about to close COMPLETED with the Done means unmet | close HALTED (`stop_condition_unmet`) with the unmet clauses named; fix the state — re-run the verify capture, or re-run the stamp step so the record names one of the two outcomes — and re-evaluate; the close stays HALTED until the verdict reads held | autonomous |
+| F14 | a conditional-gate crossing left no live-eval ledger line, or an auto-pass fired for a shape the policy does not list as auto (or that carried a blocking finding) | re-append the missing ledger line from the recorded crossing; when the auto-pass was unearned, re-run the gate as a live wait (render the prompt, take the typed verdict) and append the corrected line | autonomous |
 
 ## Pause and Resume
 
@@ -390,15 +438,15 @@ skip completed steps, reset any in-progress step to pending, and continue.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:663bb738201f08710eb5337a6a3825159142b6310a12cbc9686a201ff242b244 (of `reference/ice.md`) |
-| compiled_by | play-editor (#466 Batch C) |
+| fingerprint | sha256:0bac8299871a0d9b072941b301ed1d922ff90fee34503d24567dc11e2ec907fc (of `reference/ice.md`) |
+| compiled_by | play-editor (#466 Batch C; #467 Batch B — conditional learned gate) |
 | pipeline_position | both (deliver pipe — injects start-change head and commit → propose → review → merge close) |
-| workflow_structure | A (single checkpoint — class: standard, config-switched per gate-config.md; stop-condition gated close) |
+| workflow_structure | A (single checkpoint — conditional learned gate, class: standard, per gate-config.md #467; stop-condition gated close) |
 | stop_condition | stop-condition.yaml (D1–D4; D4 counts both stamp outcomes), gate live at Step C0 |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |
 | skills_used | kb-search, author-measure-lens |
-| scripts | 12 (preflight, check_ready_slice, lint_grounding, grounding_gate, validate_measure, check_kb_grounding, apply_measure, lines_up, stamp_slice, check_measure, check_stop_condition, session_stamp) |
-| step_evals | 12 (SE-1…SE-12) |
+| scripts | 15 (preflight, check_ready_slice, lint_grounding, grounding_gate, validate_measure, check_kb_grounding, apply_measure, lines_up, stamp_slice, check_measure, check_stop_condition, session_stamp, classify_change + gate_eval + distill_gate_policy — #467 conditional gate) |
+| step_evals | 13 (SE-1…SE-13) |
 | scenario_evals | 6 (SCE-1…SCE-6) |
-| recovery_entries | 13 (one per failure condition; 7 autonomous / 6 human) |
+| recovery_entries | 14 (one per failure condition; 8 autonomous / 6 human) |

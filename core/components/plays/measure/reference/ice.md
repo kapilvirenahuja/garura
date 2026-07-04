@@ -52,10 +52,18 @@ merge-change`, merging the realized slice to main. (#437; 3-pipe realize 2026-06
 - C10 — Non-destructive: a re-run re-derives only `measure.md`; an accepted decision is never edited
   in place; the only spine change the run may make is the realized stamp.
 - C11 — Exactly one human checkpoint, presenting the measure lens and the realized stamp it will make
-  (or the missing lenses if it cannot). Nothing is persisted or stamped before approval. The
-  checkpoint is a config switch per `standards/rules/gate-config.md` (class: standard, unpinned):
-  the agent never skips it on its own judgment; a config-resolved skip is recorded in the evidence,
-  never silent (#466 Batch C).
+  (or the missing lenses if it cannot). The checkpoint is a **conditional gate** (#467;
+  `gate-config.md` three kinds — /measure is one of the eleven conditional document plays); the agent
+  never skips it on its own judgment. Resolution order: pinned (n/a here) → `gates.plays.measure`
+  override → the learned policy (classify the draft-vs-live change shape with the bundled
+  `classify_change.py`; a shape in `gate-policy.yaml`'s `auto:` and not in `never_auto:`, with NO
+  blocking finding — lint gap or content-eval fail — auto-passes with the skip and the diff summary
+  recorded) → `gates.classes.standard` → `gates.default`. EVERY crossing appends one live-eval line
+  via the bundled `gate_eval.py` (shape, predicted gate|auto, the human's real action
+  approved_clean|approved_edited|rejected, or auto_pass). Nothing is persisted or stamped before the
+  gate resolves: a typed approval, a recorded config skip, OR a recorded policy auto-pass. At close
+  the play refreshes the learned policy with the bundled `distill_gate_policy.py` (config
+  `gates.conditional`: streak/ledger/policy paths).
 - C12 — Measurement frames are KB-grounded: the metric frame choices (the triangle and any industry
   translation) trace to a KB learning or a recorded KB-node proposal — never invented.
 - C13 — The play ends by proving its Done means at close (gated, #464): the lens draft and its
@@ -79,11 +87,14 @@ merge-change`, merging the realized slice to main. (#437; 3-pipe realize 2026-06
 - F8 — The slice was stamped `realized` when a lens doc was missing (the lines-up gate did not pass).
 - F9 — The realized stamp changed more than this slice's `status` field on the spine.
 - F10 — A non-lens/non-decision file changed, or an accepted decision was edited in place.
-- F11 — The lens or the stamp was persisted before the checkpoint was approved.
+- F11 — The lens or the stamp was persisted before the checkpoint gate resolved — no typed approval,
+  no recorded config skip, and no recorded policy auto-pass.
 - F12 — A measurement frame choice with no KB learning and no recorded proposal.
 - F13 — The run closed COMPLETED without the Done means held — a missing lens draft or grounding
   manifest, no captured verify record proving the approved lens was applied, or the realized-stamp
   question left unresolved (no stamp record naming either outcome).
+- F14 — A conditional-gate crossing left no live-eval ledger line, or an auto-pass fired for a shape
+  the policy does not list as auto (or that carried a blocking finding).
 
 ## Expectation
 
@@ -108,7 +119,9 @@ merge-change`, merging the realized slice to main. (#437; 3-pipe realize 2026-06
   accepted decision is edited in place.
 - S6 — (reviewer, the checkpoint) Given the lens and the stamp are ready, when the checkpoint is
   presented, then it shows the lens inline and the realized stamp it will make (or the missing lenses),
-  and no product-model file is written before approval.
+  and no product-model file is written before approval — or, on the auto-pass path, the change's
+  shape is policy-listed and the recorded auto-pass, the ledger line, and the diff summary stand in
+  for the wait (no product-model file written before the gate resolved).
 
 ### Done means
 
@@ -155,8 +168,9 @@ with the reason recorded — both outcomes count as done.
 - REC10 (F10) — trigger: a non-lens/non-decision file changed, or an accepted decision was edited in
   place. direction: restore it and re-apply only measure.md and the new decision, after a human
   confirms the restore. handoff: human.
-- REC11 (F11) — trigger: the lens or stamp was persisted before approval. direction: revert the
-  premature write and re-present the checkpoint; persist only after approval. handoff: human.
+- REC11 (F11) — trigger: the lens or stamp was persisted before the checkpoint gate resolved.
+  direction: revert the premature write and re-present the checkpoint; persist only after the gate
+  resolves (a typed approval, a recorded config skip, or a recorded policy auto-pass). handoff: human.
 - REC12 (F12) — trigger: a measurement frame with no KB learning and no recorded proposal. direction:
   search the KB via kb-search and ground the frame, or raise a KB-learning-gap proposal. handoff:
   autonomous.
@@ -165,3 +179,8 @@ with the reason recorded — both outcomes count as done.
   re-run the verify capture, or re-run the stamp step so the stamp record names one of the two
   outcomes — and re-evaluate; the close stays HALTED until the verdict reads held. handoff:
   autonomous.
+- REC14 (F14) — trigger: a conditional-gate crossing left no live-eval ledger line, or an auto-pass
+  fired for a shape the policy does not list as auto (or that carried a blocking finding). direction:
+  re-append the missing ledger line from the recorded crossing; when the auto-pass was unearned,
+  re-run the gate as a live wait (render the prompt, take the typed verdict) and append the corrected
+  line. handoff: autonomous.

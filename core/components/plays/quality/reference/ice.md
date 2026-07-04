@@ -57,9 +57,17 @@ lens. (#437; 3-pipe realize 2026-06-25)
   other lenses, and the other slices are byte-unchanged. Re-running re-derives the lens; accepted
   decisions are superseded, never edited in place.
 - C10 — Exactly one human checkpoint, presenting the intent and the gates, plus any decision, before
-  anything is written. The checkpoint is a **default-on config gate** (`gate-config.md`, class:
-  standard, not pinned): it fires unless config resolves it off, and a config skip is always recorded
-  in evidence — nothing persists before the gate resolves (a typed approval, or a recorded skip).
+  anything is written. The checkpoint is a **conditional gate** (#467; `gate-config.md` three kinds —
+  /quality is one of the eleven conditional document plays). Resolution order: pinned (n/a here) →
+  `gates.plays.quality` override → the learned policy (classify the draft-vs-live change shape with
+  the bundled `classify_change.py`; a shape in `gate-policy.yaml`'s `auto:` and not in `never_auto:`,
+  with NO blocking finding — lint gap or content-eval fail — auto-passes with the skip and the diff
+  summary recorded) → `gates.classes.standard` → `gates.default`. EVERY crossing appends one live-eval
+  line via the bundled `gate_eval.py` (shape, predicted gate|auto, the human's real action
+  approved_clean|approved_edited|rejected, or auto_pass). Nothing persists before the gate resolves: a
+  typed approval, a recorded config skip, OR a recorded policy auto-pass. At close the play refreshes
+  the learned policy with the bundled `distill_gate_policy.py` (config `gates.conditional`:
+  streak/ledger/policy paths).
 - C11 — The play ends by proving its Done means at close (gated, #464): the drafted lens and its
   grounding manifest exist in the run's workspace, and the apply manifest carries the MACHINE fields
   `lens_applied: true` and `gates_machine_applied: true` (the lens and its machine sibling landed in
@@ -83,10 +91,12 @@ lens. (#437; 3-pipe realize 2026-06-25)
 - F9 — A product-model file other than this slice's `quality.md`, its machine sibling
   `quality-gates.yaml`, or a new decision changed, or an accepted decision was edited in place rather
   than superseded.
-- F10 — The lens was persisted before the checkpoint gate resolved — no typed approval and no
-  recorded config skip.
+- F10 — The lens was persisted before the checkpoint gate resolved — no typed approval, no recorded
+  config skip, and no recorded policy auto-pass.
 - F11 — The run closed COMPLETED without the Done means held — a missing draft lens or grounding
   manifest, or an apply manifest without the machine applied fields true.
+- F12 — A conditional-gate crossing left no live-eval ledger line, or an auto-pass fired for a shape
+  the policy does not list as auto (or that carried a blocking finding).
 
 ## Expectation
 
@@ -112,7 +122,9 @@ lens. (#437; 3-pipe realize 2026-06-25)
   lenses, and profile are byte-identical.
 - S6 — (reviewer, the checkpoint) Given the lens is ready, the checkpoint presents the intent and the
   gates, plus any decision, before any write. Measure: the checkpoint shows the lens inline; no
-  product-model file is written before approval.
+  product-model file is written before approval — or, on the auto-pass path, the change's shape is
+  policy-listed and the recorded auto-pass, the ledger line, and the diff summary stand in for the
+  wait (no product-model file written before the gate resolved).
 
 ### Done means
 
@@ -149,10 +161,15 @@ lens. (#437; 3-pipe realize 2026-06-25)
   place. direction: restore it and re-apply only the `quality.md` (and the new decision), after a
   human confirms the restore. handoff: human.
 - REC10 (F10) — trigger: the lens was persisted before the checkpoint gate resolved. direction: revert
-  the premature write and re-present the checkpoint; persist only after the gate resolves (approval,
-  or a recorded config skip). handoff: human.
+  the premature write and re-present the checkpoint; persist only after the gate resolves (a typed
+  approval, a recorded config skip, or a recorded policy auto-pass). handoff: human.
 - REC11 (F11) — trigger: the run is about to close COMPLETED with the Done means unmet (a missing
   draft or manifest artifact, or an apply manifest without the machine applied fields). direction:
   produce the missing artifact — re-run the failed step, or re-run `apply_quality.py` so the apply
   manifest carries the machine fields — then re-evaluate the stop condition; the close stays HALTED
   until the verdict reads held. handoff: autonomous.
+- REC12 (F12) — trigger: a conditional-gate crossing left no live-eval ledger line, or an auto-pass
+  fired for a shape the policy does not list as auto (or that carried a blocking finding). direction:
+  re-append the missing ledger line from the recorded crossing; when the auto-pass was unearned,
+  re-run the gate as a live wait (render the prompt, take the typed verdict) and append the corrected
+  line. handoff: autonomous.

@@ -53,12 +53,21 @@ Pipeline position: **none**. /understand is a MIDDLE play of the strategy pipeli
   box never halts.
 - C9 — Exactly one human checkpoint, presenting the detailed capability, its
   functionalities, the per-capability NFR needs, and the profile changes — every box-move
-  as its own line item (dimension, from→to, the decision it creates). Nothing is persisted
-  before the checkpoint resolves. The checkpoint is a **default-on config gate** per
-  `gate-config.md`, declared `(class: standard)` and NOT pinned (#466 — the Stage 4
-  lever): when config resolves it off, the play does not wait — it records the skip as a
-  Checkpoint Decisions row in the evidence and proceeds; box-move approvals ride this same
-  gate. It defaults on, so behaviour is unchanged until evidence retires it.
+  as its own line item (dimension, from→to, the decision it creates). The checkpoint is a
+  **conditional gate** (#467; `gate-config.md` three gate kinds — /understand is one of
+  the eleven conditional document plays). Resolution order: pinned (n/a here) → the
+  `gates.plays` override → the learned policy (classify the draft-vs-live change shape
+  with the bundled `classify_change.py`; a shape in `gate-policy.yaml`'s `auto:` and not
+  in `never_auto:`, with NO blocking finding — a lint gap or a content-eval fail —
+  auto-passes with the skip and the diff summary recorded) → `gates.classes.standard` →
+  `gates.default`. EVERY crossing appends one live-eval line via the bundled
+  `gate_eval.py` (shape, predicted gate|auto, the human's real action
+  `approved_clean|approved_edited|rejected`, or `auto_pass`). Nothing is persisted before
+  the gate resolves: a typed approval, a recorded config skip, OR a recorded policy
+  auto-pass — box-move approvals ride this same gate, so the recorded skip or auto-pass
+  stands in evidence for them too. At close the play refreshes the learned policy with
+  the bundled `distill_gate_policy.py` (config `gates.conditional`: streak/ledger/policy
+  paths).
 - C10 — Non-destructive to the rest of the model (allowlist): the run writes only the
   target capability (its doc + spine entry), its new functionalities (docs + entries), the
   firmed profile, and the box-move decisions. No other capability, functionality, or domain
@@ -82,8 +91,9 @@ Pipeline position: **none**. /understand is a MIDDLE play of the strategy pipeli
   needs were written globally instead of on the capability.
 - F6 — A profile dimension was lowered, or the box was firmed to a state other than `set`
   (left `directional`, or written `locked`).
-- F7 — Against a `set` box, an out-of-box need was persisted without a human-approved
-  decision at the checkpoint.
+- F7 — Against a `set` box, an out-of-box need was persisted without the checkpoint gate
+  resolving for it — no typed approval, no recorded config skip, and no recorded policy
+  auto-pass.
 - F8 — A box-move was persisted without its own decision record, or a decision omits the
   dimension or the from→to it represents.
 - F9 — Allowlist breach: a capability, functionality, or domain other than the target (and
@@ -93,6 +103,8 @@ Pipeline position: **none**. /understand is a MIDDLE play of the strategy pipeli
 - F11 — The run closed COMPLETED without the Done means held (no applied record, the
   profile roll-up not stamped as persisted, or the post-apply verification not captured or
   not ok).
+- F12 — A conditional-gate crossing left no live-eval ledger line, or an auto-pass fired
+  for a shape the policy does not list as auto (or that carried a blocking finding).
 
 ## Expectation
 
@@ -127,7 +139,9 @@ Pipeline position: **none**. /understand is a MIDDLE play of the strategy pipeli
   functionalities, the per-capability NFR needs, and, for each box-move, an explicit line
   naming the dimension, the from→to levels, and the ADR it will create — rendered inline,
   before any write. Measure: each box-move appears as its own line item; no product-model
-  file is written before the approval.
+  file is written before the approval — or, on the auto-pass path (a policy-listed
+  shape), the gate resolves with no wait and the recorded auto-pass, the appended ledger
+  line, and the diff summary stand in the approval's place.
 
 ### Done means
 
@@ -188,3 +202,8 @@ accepted decision.
   named; fix the state — re-run the allowlisted persist or re-capture the post-apply
   verification — and re-evaluate; the close stays HALTED until the verdict reads held.
   handoff: autonomous.
+- REC12 (F12) — trigger: a crossing left no live-eval ledger line, or an auto-pass fired
+  for a shape not listed `auto:` in the policy (or one carrying a blocking finding).
+  direction: re-append the missing ledger line for the recorded crossing; when the
+  auto-pass was unearned, re-run the gate as a live wait — render the approval prompt
+  and wait for the typed response — before proceeding. handoff: autonomous.
