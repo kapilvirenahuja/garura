@@ -1,0 +1,8 @@
+{
+  "number": 479,
+  "url": "https://github.com/kapilvirenahuja/garura/pull/479",
+  "base": "main",
+  "headRefName": "feature/478-install-scope",
+  "title": "feat(install-garura): add --scope option to filter deployed component subset (#478)",
+  "state": "OPEN"
+}

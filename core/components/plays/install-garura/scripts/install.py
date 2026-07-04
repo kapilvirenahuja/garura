@@ -12,10 +12,12 @@ user names. It reads garura's `core/components/` (agents, skills, plays, memory)
 and the source `.garura/core/config.yaml` + `CLAUDE.md`, and lays them down so a
 host coding tool can discover them in the target.
 
-    python3 install.py --target <path> [--tool claude|codex]
+    python3 install.py --target <path> [--tool claude|codex] [--scope full|harness]
 
   --target        the project directory to install into (a path, created if absent)
   --tool          which host tool to target: claude (default) or codex
+  --scope         which component set to install: full (default, everything) or
+                  harness (meta plays + change chain + their workers only)
   --source        the garura checkout to install FROM (auto-derived if omitted)
   --memory-dest   where shared memory goes (default ~/.garura/core/memory)
   --force-config  overwrite an existing target .garura/core/config.yaml
@@ -145,9 +147,39 @@ STATUS_GITIGNORE = (
 )
 
 
+# --- install scopes -----------------------------------------------------------
+
+# A scope names WHICH components a target receives; everything else about the
+# install (shared memory, config, STM scaffold, manifest) is unchanged. `full`
+# is the default and installs every component. `harness` is for garura-style
+# harness repos that must carry only the meta plays, the change chain, and the
+# workers those plays dispatch — nothing product-facing. Membership is explicit
+# and deterministic: when a kept play gains a new worker skill or agent, add it
+# here in the same change.
+SCOPES = {
+    "full": None,  # no filter — every component installs
+    "harness": {
+        "plays": {
+            "play-creator", "play-editor",
+            "start-change", "commit-change", "propose-change",
+            "review-change", "merge-change",
+        },
+        "skills": {
+            "analyze-changes", "analyze-pr", "create-commit", "manage-issue",
+            "merge-pr", "platform-adapter", "quality-check-scoped",
+            "resolve-issues", "setup-branch", "submit-pr",
+        },
+        "agents": {
+            "change-reviewer", "project-orchestrator",
+            "quality-auditor", "repo-orchestrator",
+        },
+    },
+}
+
+
 # --- the install --------------------------------------------------------------
 
-def install(source, target, tool, force, quiet, memory_dest):
+def install(source, target, tool, force, quiet, memory_dest, scope="full"):
     adapter = get_adapter(tool)
     components = os.path.join(source, "core", "components")
     if not os.path.isdir(components):
@@ -158,6 +190,7 @@ def install(source, target, tool, force, quiet, memory_dest):
 
     record = {
         "tool": tool,
+        "scope": scope,
         "components": [],
         "counts": {},
         "instruction_surface": None,
@@ -166,8 +199,10 @@ def install(source, target, tool, force, quiet, memory_dest):
         "global_files": [],
     }
 
-    # 1. components — the host surface, owned by the adapter
-    paths, counts, _ = adapter.lay_components(components, target, _info)
+    # 1. components — the host surface, owned by the adapter; the scope filter
+    #    decides which components the adapter may lay down
+    allow = SCOPES[scope]
+    paths, counts, _ = adapter.lay_components(components, target, _info, allow=allow)
     record["components"] = paths
     record["counts"] = counts
 
@@ -263,6 +298,9 @@ def main(argv=None):
     ap.add_argument("--target", required=True, help="project directory to install into (a path)")
     ap.add_argument("--tool", default="claude", choices=known(),
                     help="host tool to target (default: claude)")
+    ap.add_argument("--scope", default="full", choices=sorted(SCOPES),
+                    help="component set to install: full (default) or harness "
+                         "(meta plays + change chain + their workers)")
     ap.add_argument("--source", help="garura checkout to install from (auto-derived if omitted)")
     ap.add_argument("--memory-dest", default="~/.garura/core/memory",
                     help="where shared memory goes (default ~/.garura/core/memory)")
@@ -275,8 +313,10 @@ def main(argv=None):
     target = os.path.abspath(args.target)
     os.makedirs(target, exist_ok=True)
 
-    info(args.quiet, f"installing garura ({source}) into {target} for {args.tool}")
-    record = install(source, target, args.tool, args.force_config, args.quiet, args.memory_dest)
+    scoped = "" if args.scope == "full" else f" (scope: {args.scope})"
+    info(args.quiet, f"installing garura ({source}) into {target} for {args.tool}{scoped}")
+    record = install(source, target, args.tool, args.force_config, args.quiet,
+                     args.memory_dest, scope=args.scope)
     record["retired"] = retire_stale(target, record["components"], args.quiet)
     write_manifest(target, record, args.quiet)
 

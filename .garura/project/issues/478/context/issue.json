@@ -1,0 +1,6 @@
+{
+  "resolved": false,
+  "issue_number": 478,
+  "title": "[ENH] install-garura: add a component-scope option so targets can receive a subset",
+  "created": true
+}

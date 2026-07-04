@@ -1,0 +1,160 @@
+# design-findings.yaml — Layer 2 design-grounding for PR #479 (issue #478)
+# category: harness (core/components/plays/install-garura/{SKILL.md, scripts/install.py,
+# scripts/adapters/claude.py, scripts/adapters/codex.py})
+#
+# Grounding discipline: every principle below is reconstructed from a COMMITTED source —
+# the base-ref (origin/main) version of the play's own files, docs/philosophy/**,
+# docs/adr/**, and core/grounding/glossary.md. None is drawn from the branch's own new
+# prose (the added --scope section, the new deviation note, or work-description.txt).
+
+principles_grounded:
+  - id: bootstrap-meta-play-exemption
+    statement: >
+      install-garura is a hand-authored "bootstrap meta-play" with no intent.yaml /
+      reference/ice.md — like play-creator, it is exempt from the ICE-source →
+      /play-creator|/play-editor recompile pipeline. Non-intent direct edits to its
+      SKILL.md/scripts are the sanctioned path, recorded with a "Direct-edit deviation
+      note", and this exemption was already exercised twice before this PR (#434: adapter
+      split + --tool; #441/ADR021: .gitignore scaffold) plus reaffirmed at #466.
+    committed_source: >
+      git show origin/main:core/components/plays/install-garura/SKILL.md — "## How this
+      play is built (read this first)" ("This is a bootstrap meta-play — like play-creator,
+      it is hand-authored, not compiled from an ICE source"); "Direct-edit deviation note
+      (#434)"; "Direct-edit deviation note (#441/ADR 021)"; "Level 3 note (#466): bootstrap
+      meta-play — exempt from the goal-loop recompile (no ICE source, like play-creator)".
+      Corroborated by core/grounding/glossary.md's "/play-creator" and "Level 2 (Compiled,
+      Intent-Driven)" entries, which name play-creator as the sole ICE-exempt precedent and
+      describe the general rule ("Intent changes require recompilation; only non-intent
+      surface edits are made directly, with a deviation note") that install-garura is
+      declared exempt from at the play level, not just per-edit.
+      Confirmed independently: `find core/components/plays/install-garura -type f` /
+      `git ls-tree -r origin/main -- core/components/plays/install-garura/` show no
+      `reference/` directory exists on main — there genuinely is no ICE source to recompile.
+
+  - id: harness-led-orchestrator-vs-adapter-seam
+    statement: >
+      install-garura is "harness-led": the play (prose) decides and reports; a bundled
+      script (scripts/install.py) does the deterministic file work; anything host-specific
+      is delegated further to a per-tool adapter under scripts/adapters/. "If you find
+      yourself special-casing a host's model names or file layout in the orchestrator,
+      stop — that belongs in the adapter."
+    committed_source: >
+      git show origin/main:core/components/plays/install-garura/SKILL.md — "## How this
+      play is built (read this first)" and "The adapter is the seam." paragraphs.
+
+  - id: determinism-at-the-skeleton-never-in-the-boxes
+    statement: >
+      Garura's governing rule for mechanical work is that determinism lives at the
+      compiled/scripted skeleton, never inside free-form judgment ("boxes").
+    committed_source: >
+      core/grounding/glossary.md, "Level 3 (Skeleton + Goal-Loop)" entry: "Governing rule:
+      determinism lives at the skeleton, never inside the boxes."
+
+  - id: manifest-driven-reversal-contract
+    statement: >
+      install-garura's manifest records "the exact list of what was placed... so
+      uninstall-garura can reverse precisely this set"; uninstall.py reads
+      `.garura/install-manifest.json` and "removes precisely that set. It never guesses
+      and never deletes a file it cannot prove the installer created." Re-running install
+      with a narrower scope over a prior wider install is expected to retire the
+      now-out-of-scope components via the existing manifest-diff retirement mechanism
+      ("Re-running also retires: any component the previous install's manifest placed that
+      this install did not re-place... is removed from the target").
+    committed_source: >
+      git show origin/main:core/components/plays/install-garura/SKILL.md — "## What
+      'installed' means" (manifest bullet) and "Re-running also retires..." paragraph;
+      core/components/plays/uninstall-garura/scripts/uninstall.py module docstring
+      ("It reads the target's .garura/install-manifest.json... and removes precisely that
+      set").
+
+findings:
+  - id: F1
+    principle: bootstrap-meta-play-exemption
+    artifact: core/components/plays/install-garura/SKILL.md
+    verdict: conforms
+    severity: null
+    detail: >
+      The PR adds a "Direct-edit deviation note (#478)" for the --scope option, citing
+      "same bootstrap-meta-play path as #434; no ICE source exists to recompile." This
+      matches the committed, pre-existing declaration on the base ref that install-garura
+      is exempt from the ICE pipeline, and matches the two prior precedents (#434, #441)
+      already recorded on main before this branch existed. No ICE source was added or
+      needed to exist for this to be true — confirmed independently by directory listing.
+      Note (not a harness finding, out of category scope): the STM evidence file
+      work-description.txt — which is generated pipeline evidence, not part of the harness
+      category — states the opposite ("This is an intent change to the play... so it goes
+      through reference/ice.md + play-editor recompile"), contradicting the executed
+      direct-edit path and the play's own committed self-description. This is flagged for
+      the review-change orchestrator as a process-consistency note, not scored here since
+      work-description.txt sits in the ungoverned stm-pipeline-evidence category per
+      categories.yaml.
+
+  - id: F2
+    principle: harness-led-orchestrator-vs-adapter-seam
+    artifact:
+      - core/components/plays/install-garura/scripts/install.py
+      - core/components/plays/install-garura/scripts/adapters/claude.py
+      - core/components/plays/install-garura/scripts/adapters/codex.py
+      - core/components/plays/install-garura/SKILL.md
+    verdict: conforms
+    severity: null
+    detail: >
+      The SCOPES table and the resulting `allow` dict are built in install.py (the
+      orchestrator), then passed through to `adapter.lay_components(..., allow=allow)`,
+      which applies the per-kind filter (`if allow is not None and name not in allow[kind]:
+      continue`) identically in both claude.py and codex.py. The orchestrator does not
+      special-case either host's directory layout or naming to implement the filter — it
+      hands the adapter a plain name-set and lets the adapter apply it inside its own
+      existing per-kind loop. SKILL.md's new --scope prose stays descriptive (what the
+      option means, where the membership list lives) and does not restate or duplicate the
+      SCOPES table. Wiring (play prose → script → adapter) stays intact.
+
+  - id: F3
+    principle: determinism-at-the-skeleton-never-in-the-boxes
+    artifact: core/components/plays/install-garura/scripts/install.py
+    verdict: conforms
+    severity: null
+    detail: >
+      The `harness` membership set is a hardcoded, explicit Python set literal in the
+      script (the skeleton layer), not a runtime inference or judgment call made by an
+      agent. This is the conformant shape per the governing rule. Its maintenance
+      obligation is documented in two places: the script's own comment ("Membership is
+      explicit and deterministic: when a kept play gains a new worker skill or agent, add
+      it here in the same change") and SKILL.md's --scope option text ("The harness
+      membership list lives in scripts/install.py (SCOPES) — when a kept play gains a new
+      worker, add it here in the same change"). Both are new content added by this PR, but
+      they document a maintenance rule for a mechanism whose deterministic-list shape is
+      itself grounded in the base-ref/ADR-025 principle above, not self-grounded.
+
+  - id: F4
+    principle: manifest-driven-reversal-contract
+    artifact:
+      - core/components/plays/install-garura/scripts/install.py
+      - core/components/plays/uninstall-garura/scripts/uninstall.py
+    verdict: conforms
+    severity: null
+    detail: >
+      `scope` is added to the manifest record as a plain informational field
+      (`record["scope"] = scope`); uninstall.py's reversal logic (confirmed on read) walks
+      `manifest["components"]` generically and removes exactly those paths — it does not
+      branch on `scope` at all. A scoped install therefore produces a manifest whose
+      `components` list already reflects the filtered set, so uninstall reverses exactly
+      what was placed with no code change needed on the uninstall side, matching the
+      "reverses precisely this set" contract. Re-running `--scope harness` over a prior
+      full install also matches the pre-existing retirement mechanism (out-of-scope
+      components fall out of the new manifest's `components` list and are retired by the
+      existing "any component the previous manifest placed that this install did not
+      re-place is removed" logic) — no new retirement code was needed or added.
+
+grounding_gaps: []
+
+summary: >
+  4 principles reconstructed from committed sources (base-ref SKILL.md self-description,
+  glossary.md, uninstall.py docstring); 4 findings, all conforms, no P1-P4 violations. The
+  --scope addition follows the play's own pre-existing (base-ref) declared exemption from
+  the ICE pipeline, keeps the harness-led play→script→adapter wiring intact, keeps the new
+  deterministic membership list at the script layer per ADR 025's skeleton/box rule, and
+  preserves the manifest-driven uninstall reversal contract untouched. One process-level
+  inconsistency was observed (work-description.txt's stated plan vs. the executed direct-
+  edit path) but sits outside the harness category's evidence set per categories.yaml and is
+  reported as a note, not a harness finding.

@@ -1,0 +1,58 @@
+# Consolidated review findings — PR #479 (issue #478), review-change run 2026-07-04
+# Sources: design-findings.yaml (change-reviewer), bundled Layer-1 linters (play-run),
+# config-map path check (play-run), executed runnable checks (play-run).
+# quality-check-scoped NOT dispatched: no standards-driven category (code/config/tests/
+# docs-prose) present in categories.yaml — layer skipped as not applicable (SE-3).
+
+categories:
+  harness:
+    playbook: review/harness
+    layer1:
+      - check: lint_play.py on core/components/plays/install-garura/SKILL.md
+        result: FAIL (5 gaps) — IDENTICAL to main baseline (bootstrap meta-play class,
+          hand-authored, no ICE; same 5 gaps on unchanged main copy)
+        basis: "lint_play.py output diff vs main baseline: no new gap introduced"
+        finding: null
+      - check: executed runnable check — scoped installs (this run)
+        result: "PASS: --scope harness lands 21 components with scope recorded; default
+          full lands 86 (behavior unchanged); harness re-install over full retires 65"
+        basis: "install.py runs into scratch targets, manifests inspected"
+        finding: null
+    layer2:
+      - source: design-findings.yaml
+        result: "4 principles grounded from committed sources (main-ref SKILL.md
+          bootstrap declaration + precedent, harness-led script/adapter split,
+          determinism-in-mechanical-layer rule, manifest-driven uninstall reversal);
+          all conform; zero violations"
+        finding: null
+  config-map:
+    playbook: review/config-maps
+    layer1:
+      - check: path-existence over .garura/install-manifest.json components
+        result: "PASS: 21/21 paths resolve; no dangling pointer"
+        basis: "os.path.exists over every recorded component path"
+        finding: null
+      - check: manifest schema consistency vs the feature it motivates
+        result: "NOTE: garura's own manifest carries the trim note but NO scope field
+          (it was hand-trimmed before the feature existed); a future
+          --scope harness run over garura would stamp scope: harness"
+        basis: "field inspection vs install.py's new record schema (record.scope)"
+        finding:
+          class: P4
+          summary: "own manifest lacks scope field; converges on next scoped install"
+  stm-evidence:
+    playbook: null
+    note:
+      finding:
+        class: P4
+        summary: "9 generated run-record files under .garura/project/issues/478/ have no
+          review playbook; category flagged 'playbook missing' by assessment —
+          follow-up: seed a review/stm-evidence playbook"
+        basis: "categories.yaml assessment; knowledge/review/ shelf enumeration"
+
+summary:
+  P1: 0
+  P2: 0
+  P3: 0
+  P4: 2
+  runnable_suites_red: 0

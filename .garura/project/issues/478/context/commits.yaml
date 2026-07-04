@@ -1,0 +1,23 @@
+commits:
+  - sha: 63f019e
+    message: "feat(install-garura): add --scope option to filter deployed component subset (#478)"
+    files:
+      - core/components/plays/install-garura/scripts/install.py
+      - core/components/plays/install-garura/scripts/adapters/claude.py
+      - core/components/plays/install-garura/scripts/adapters/codex.py
+      - core/components/plays/install-garura/SKILL.md
+    branch: feature/478-install-scope
+  - sha: 8cea2e4
+    message: "chore(install-garura): trim garura's own install manifest to the harness component set (#478)"
+    files:
+      - .garura/install-manifest.json
+    branch: feature/478-install-scope
+excluded_files:
+  - path: ".garura/project/issues/478/context/analysis.yaml"
+    reason: "STM evidence artifact for this play run, not part of the code change"
+  - path: ".garura/project/issues/478/context/porcelain.txt"
+    reason: "STM scan artifact for this play run, not part of the code change"
+leftover_count: 0
+tree_clean: true
+pushed: false
+run_state_committed: true
