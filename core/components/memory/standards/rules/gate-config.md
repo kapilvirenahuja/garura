@@ -30,6 +30,15 @@ Every checkpoint in a compiled play declares its risk class inline (e.g.
 `Checkpoint (class: one-way-door)`). A checkpoint with no declared class resolves as
 `standard`.
 
+**Pinned gates (#466 Batch B).** A checkpoint whose play's own intent mandates it
+("mandatory — never skipped", the #436 human-only sign-off) declares
+`(class: <class>, pinned)`. A pinned gate NEVER resolves off — no config value can
+disable it; the switch machinery records `pinned — config bypass refused` if an off
+value would otherwise match. Unpinning is an intent change to that play (play-editor),
+never a config edit. Stage 4 retires unpinned gates on evidence; pinned gates are the
+edges the epic keeps human by design (brief approval, spec approval before autonomous
+build, acceptance sign-off, one-way-door merges).
+
 ## Behaviour of the switch
 
 - **on** — the checkpoint fires exactly as today: render the approval prompt, wait for
