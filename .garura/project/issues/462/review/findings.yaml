@@ -1,0 +1,92 @@
+meta:
+  generated_at: "2026-07-04T03:15:29Z"
+  diff_path: ".garura/project/issues/462/review/pr.diff"
+  changed_paths_count: 17
+  scan_coverage: 1.0
+  taxonomy_path: "core/components/memory/standards/rules/pr.md"
+  standards_relevant: 14
+  overall_confidence: high
+
+artifact_classification:
+  # First-match classification per core/components/memory/standards/rules/pr.md
+  # (Artifact-Type Scoping #438). All 17 changed_paths land in garura-prose or
+  # stm-evidence — no changed path classifies as runtime-code, deployable-config,
+  # or tests, so every grep and grep+path taxonomy row is ineligible on this diff
+  # (path: rules are unaffected and were still evaluated).
+  garura-prose:
+    - core/components/memory/standards/schemas/product-os/grounding/lens/quality.md
+    - core/components/memory/standards/schemas/product-os/lens/quality-gates.yaml
+    - core/components/memory/standards/templates/evidence-file.md
+    - core/components/skills/author-quality-lens/SKILL.md
+    - core/components/skills/run-quality-gates/SKILL.md
+    - core/components/skills/run-quality-gates/fixtures/brownfield/check_coverage.py
+    - core/components/skills/run-quality-gates/fixtures/brownfield/check_fail.py
+    - core/components/skills/run-quality-gates/fixtures/brownfield/check_pass.py
+    - core/components/skills/run-quality-gates/fixtures/brownfield/quality-gates.yaml
+    - core/components/skills/run-quality-gates/fixtures/greenfield/quality-gates.yaml
+    - core/components/skills/run-quality-gates/scripts/run_quality_gates.py
+  stm-evidence:
+    - .garura/project/issues/462/context/analysis.yaml
+    - .garura/project/issues/462/context/branch.json
+    - .garura/project/issues/462/context/commits.yaml
+    - .garura/project/issues/462/context/issue.json
+    - .garura/project/issues/462/context/porcelain.txt
+    - .garura/project/issues/462/context/work-description.txt
+
+findings:
+  - standard_id: CODE-10
+    severity: P3
+    file: core/components/skills/run-quality-gates/scripts/run_quality_gates.py
+    line: 121
+    evidence: "def run_card(card, project_root, provision): body spans file lines 121-173 (~53 non-blank lines) — exceeds the 50-line function-length limit (KB: quality/code/complexity-structure.md CODE-10)"
+    taxonomy_rule_id: CODE-10
+
+counts:
+  P1: 0
+  P2: 0
+  P3: 1
+  P4: 0
+
+evaluated_paths:
+  count: 17
+  paths:
+    - .garura/project/issues/462/context/analysis.yaml
+    - .garura/project/issues/462/context/branch.json
+    - .garura/project/issues/462/context/commits.yaml
+    - .garura/project/issues/462/context/issue.json
+    - .garura/project/issues/462/context/porcelain.txt
+    - .garura/project/issues/462/context/work-description.txt
+    - core/components/memory/standards/schemas/product-os/grounding/lens/quality.md
+    - core/components/memory/standards/schemas/product-os/lens/quality-gates.yaml
+    - core/components/memory/standards/templates/evidence-file.md
+    - core/components/skills/author-quality-lens/SKILL.md
+    - core/components/skills/run-quality-gates/SKILL.md
+    - core/components/skills/run-quality-gates/fixtures/brownfield/check_coverage.py
+    - core/components/skills/run-quality-gates/fixtures/brownfield/check_fail.py
+    - core/components/skills/run-quality-gates/fixtures/brownfield/check_pass.py
+    - core/components/skills/run-quality-gates/fixtures/brownfield/quality-gates.yaml
+    - core/components/skills/run-quality-gates/fixtures/greenfield/quality-gates.yaml
+    - core/components/skills/run-quality-gates/scripts/run_quality_gates.py
+
+skill_notes:
+  # Taxonomy rows whose path glob matched at least one changed file but were
+  # NOT turned into findings, with the reason — logged per F3 (never fabricate
+  # a finding when required evidence is unobtainable from diff-only inspection).
+  test_doubles_not_defects:
+    - "core/components/skills/run-quality-gates/fixtures/brownfield/check_fail.py exits 1 by design (a fixture standing in for a failing linter) — not a CODE/SEC defect."
+    - "core/components/skills/run-quality-gates/fixtures/brownfield/quality-gates.yaml (gate-absent) and fixtures/greenfield/quality-gates.yaml (code-health, test-depth) deliberately name absent tool_bins (eslint-gf-fixture-absent, pytest-gf-fixture-absent, axe-bf-fixture-absent) to exercise the missing-tool path — not a broken dependency declaration."
+  dropped_evidence_unobtainable:
+    - {standard_id: CODE-03, reason: "Linter-clean check requires running an actual linter (pylint/eslint); not derivable from static diff text."}
+    - {standard_id: CODE-04, reason: "Formatter zero-diff check requires running the formatter; not derivable from diff text."}
+    - {standard_id: CODE-09, reason: "Cyclomatic complexity per function requires lizard/radon/SonarQube; manual approximation would be non-deterministic judgment, not mechanical evidence."}
+    - {standard_id: CODE-11, reason: "Nesting-depth check requires ESLint max-depth/SonarQube cognitive-complexity tooling; not derivable from diff text alone."}
+    - {standard_id: CODE-14, reason: "Circular-dependency check (madge/import-cycles) needs the whole dependency graph, which would require reading files outside changed_paths — out of scope per the diff-scope invariant."}
+    - {standard_id: CODE-15, reason: "SonarQube cognitive-complexity metric; no substitute tool available from diff inspection."}
+    - {standard_id: ARCH-08, reason: "Package/module boundary-vs-architecture match is a manual-review standard; no mechanical diff-only check exists."}
+    - {standard_id: CODE-13, reason: "Single-Responsibility is a manual-review/SonarQube coupling-metric standard; no mechanical diff-only check exists."}
+  checked_no_violation:
+    - {standard_id: ARCH-03, reason: "500-line file-size limit; largest new file (run_quality_gates.py) is 202 lines — compliant."}
+    - {standard_id: CODE-12, reason: "300-line module-size limit; largest new file is 202 lines — compliant."}
+    - {standard_id: CODE-17, reason: "snake_case function/variable naming; all identifiers in the diff (load_gates, validate_card, tool_present, read_measure, threshold_holds, run_card, etc.) are idiomatic — compliant."}
+    - {standard_id: CODE-19, reason: "SCREAMING_SNAKE_CASE constants; DEFAULT_TIMEOUT and THRESHOLD_RE are correctly cased — compliant."}
+    - {standard_id: CODE-20, reason: "File/directory naming convention (kebab-case/snake_case); all 17 changed paths conform (snake_case .py, kebab-case .yaml/.md, canonical SKILL.md) — compliant."}

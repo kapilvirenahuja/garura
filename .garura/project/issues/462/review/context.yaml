@@ -1,0 +1,33 @@
+pr:
+  number: 470
+  head: feature/462-quality-lens-runner
+  base: main
+  url_source: .garura/project/issues/462/review/pr.json
+  diff_path: .garura/project/issues/462/review/pr.diff
+
+standards_order:
+  - name: kb
+    root: ~/.garura/core/memory/
+  - name: ltm
+    root: ./.garura/core/memory/
+  - name: stm
+    root: .garura/project/issues/
+
+changed_paths:
+  - .garura/project/issues/462/context/analysis.yaml
+  - .garura/project/issues/462/context/branch.json
+  - .garura/project/issues/462/context/commits.yaml
+  - .garura/project/issues/462/context/issue.json
+  - .garura/project/issues/462/context/porcelain.txt
+  - .garura/project/issues/462/context/work-description.txt
+  - core/components/memory/standards/schemas/product-os/grounding/lens/quality.md
+  - core/components/memory/standards/schemas/product-os/lens/quality-gates.yaml
+  - core/components/memory/standards/templates/evidence-file.md
+  - core/components/skills/author-quality-lens/SKILL.md
+  - core/components/skills/run-quality-gates/SKILL.md
+  - core/components/skills/run-quality-gates/fixtures/brownfield/check_coverage.py
+  - core/components/skills/run-quality-gates/fixtures/brownfield/check_fail.py
+  - core/components/skills/run-quality-gates/fixtures/brownfield/check_pass.py
+  - core/components/skills/run-quality-gates/fixtures/brownfield/quality-gates.yaml
+  - core/components/skills/run-quality-gates/fixtures/greenfield/quality-gates.yaml
+  - core/components/skills/run-quality-gates/scripts/run_quality_gates.py
