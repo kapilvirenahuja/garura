@@ -1,193 +1,114 @@
-# design-findings.yaml — PR #486 (issue #467, "re-pin the merge-to-main land"), review-change Job 2
-# Layer 2: design-grounding for the harness category (merge-change SKILL.md + ice.md).
-# Every principle below is reconstructed from a source committed BEFORE this branch
-# (base_sha 9c880ea8bcc3759a8810a04a61e28568632faf86, an ancestor of origin/main) or from
-# an external record (the #467 GitHub issue thread, PR #483/#485 run records). No
-# principle is grounded in this branch's own new prose.
-
-grounding_sources:
-  - id: gate-config-standard
-    path: core/components/memory/standards/rules/gate-config.md
-    note: >
-      Unchanged between base_sha and HEAD (git diff empty) — a stable committed source.
-      Defines the three gate kinds (pinned/conditional/off), the pinned-gate rule ("A
-      pinned gate NEVER resolves off — no config value can disable it... Unpinning is an
-      intent change to that play, never a config edit"), and the #467-ruled pinned set:
-      "the pinned set is: grill ... launch ... and learn." Also: "the pipeline/execute
-      mechanical gates are off with replacement checks" (explicitly includes the
-      change-pipeline plays, of which merge-change is one).
-  - id: config-yaml-base
-    path: .garura/core/config.yaml
-    ref: base_sha 9c880ea8bcc3759a8810a04a61e28568632faf86
-    note: >
-      Committed top-of-block comment: "Pinned gates (grill, launch, learn) ignore this
-      block entirely." merge-change was listed under gates.plays as `off`, not in the
-      pinned set.
-  - id: issue-467-ruling-comment
-    source: "gh issue view 467 --comments (2026-07-04 session ruling, external to any branch)"
-    note: >
-      Explicit closed enumeration: "pinned HITL: grill, launch, learn; ... off with
-      replacement machine checks: start-change, commit-change, propose-change,
-      review-change, merge-change, validate, fix-bug, implement, refactor." merge-change
-      is named in the OFF list, not the pinned list.
-  - id: merge-gate-467-record
-    path: .garura/project/issues/467/review/merge-gate.json
-    note: >
-      Committed run record from the Batch C merge itself (PR #483): `"gate": "off;
-      three-boolean precondition true; human authorized the land"` — i.e. even under the
-      "off" config, a human in fact authorized the land. This is genuine external
-      evidence (not this branch's prose) that partially supports the PR's stated
-      rationale ("the environment held for a human beat on #483 and #485"), though it
-      documents only the #483/#467 merge itself, not #485.
-  - id: ice-base
-    path: core/components/plays/merge-change/reference/ice.md
-    ref: base_sha 9c880ea8bcc3759a8810a04a61e28568632faf86
-    note: >
-      Pre-image of C7/F7/REC7 under the Batch C off-model, used as the "before" for the
-      mechanical fingerprint/coherence checks below.
+task_id: review-467-design-ground
+category: harness
+base_ref: 7ada772bc3f44c8897715161bf459f836cef43b5
 
 findings:
-  - id: P-1
-    title: "Fingerprint mechanically verified — recompile is real, not a hand-edit"
-    principle: >
-      An intent change to a play must be made in reference/ice.md and recompiled by
-      play-editor; the fingerprint recorded in SKILL.md must be sha256 of the edited
-      ice.md. A stale or mismatched fingerprint is a play-pipeline-rules violation
-      (hand-edited compiled file / recompile drift).
-    committed_source: "CLAUDE.md Play Pipeline Rules (project instructions); play-creator's own fingerprint contract (SKILL.md `## Compilation Record` field)"
-    check: >
-      shasum -a 256 core/components/plays/merge-change/reference/ice.md ==
-      74cc886071b058a80a76c3a0ba215091d6a2790c306c80dafe3540ca30bed4c1
-      SKILL.md `fingerprint` field records exactly that hash.
-    verdict: PASS
-    severity: null
-    file: core/components/plays/merge-change/SKILL.md
 
-  - id: P-2
-    title: "Pinned mechanism itself conforms to the committed pinned-gate definition"
-    principle: >
-      "A pinned gate NEVER resolves off — no config value can disable it... Unpinning is
-      an intent change to that play, never a config edit" (gate-config.md). The
-      mechanism the diff implements — Step 2 declares `class: one-way-door, pinned`,
-      C7 states no config value/policy/ledger can turn it off, and the play drops its
-      own `gates.plays.merge-change` config key rather than leaving a dead switch — is a
-      correct, literal implementation of that committed definition.
-    committed_source: "core/components/memory/standards/rules/gate-config.md, '## Behaviour of the switch' + 'Pinned gates' section"
-    verdict: PASS
-    severity: null
-    file: core/components/plays/merge-change/reference/ice.md
+  - id: DF-1
+    file: core/components/plays/deploy/SKILL.md
+    check: "fingerprint mechanical conformance (lint_play.py invariant)"
+    principle: "A compiled play's fingerprint must equal sha256 of its own reference/ice.md;
+      an intent change must trace to the ICE source, never a hand-edited compiled file."
+    committed_source: "knowledge/review/harness.md (Layer-1 linter definition); the fingerprint
+      mechanism itself is defined in the play-editor compiler, referenced from
+      core/components/plays/deploy/SKILL.md's own 'Compiled From' section."
+    verification: "shasum -a 256 core/components/plays/deploy/reference/ice.md (working tree)
+      = 495ffe2a4d7fb55d8e4b598a24cba7f6586ef9204ed5b3b6f90cc917635cb431, matches the
+      fingerprint recorded in SKILL.md's Compilation Record exactly."
+    severity: pass
+    status: conforms
 
-  - id: P-3
-    title: "Pinned-set taxonomy drifts from its own committed enumeration — merge-change added without updating the canonical list"
-    principle: >
-      gate-config.md, the committed config.yaml top-of-block comment, and the #467
-      issue-ruling comment all independently and explicitly enumerate the pinned set as
-      a CLOSED list — {grill, launch, learn} — and separately place merge-change in the
-      "off with replacement machine checks" bucket. This PR re-pins merge-change in the
-      play's own ICE (which gate-config.md explicitly allows: "Unpinning is an intent
-      change to that play" — the reverse, re-pinning, is symmetric), but does not touch
-      gate-config.md's pinned-set enumeration, nor the config.yaml top comment ("Pinned
-      gates (grill, launch, learn) ignore this block entirely" — still reads this way
-      after the diff, still committed-source-accurate as of HEAD), nor post a
-      countervailing ruling comment on #467 updating the closed list. A future reader of
-      gate-config.md (human or agent resolving `gates.plays.<name>` per its own
-      documented precedence order) is told a false thing: that grill/launch/learn are
-      the only plays a config value cannot disable. merge-change is now also such a
-      play, and the canonical source of that fact is silent about it.
-    committed_source: >
-      core/components/memory/standards/rules/gate-config.md ("the pinned set is: grill
-      ... launch ... and learn"); .garura/core/config.yaml top-of-block comment
-      (unchanged pre/post diff); gh issue 467 ruling comment (2026-07-04, external,
-      "pinned HITL: grill, launch, learn").
-    verdict: FINDING
-    severity: P2
+  - id: DF-2
     file: core/components/memory/standards/rules/gate-config.md
-    note: >
-      Not a defect in merge-change's own play files — those are internally correct and
-      match the pinned mechanics. The gap is coherence between this diff and the three
-      independent committed statements of the pinned-set taxonomy, none of which this
-      diff amends. Recommend the same PR (or an immediate follow-up) update
-      gate-config.md's pinned-set line and the config.yaml top comment to read
-      "{grill, launch, learn, merge-change}", and/or post a ruling comment on #467
-      recording the re-scope, so the taxonomy's committed sources stay in sync with the
-      play behavior they document.
+    check: "pin mechanics match the committed 'pinned' definition (never resolves off,
+      config cannot disable, changed only via ICE/play-editor)"
+    principle: "'pinned' — Always fires. No config value, policy, or ledger can turn it
+      off. Unpinning is an intent change to that play (play-editor), never a config edit."
+    committed_source: "core/components/memory/standards/rules/gate-config.md @ base
+      7ada772b (git show 7ada772b:core/components/memory/standards/rules/gate-config.md)
+      — the pinned-kind row and 'Pinned gates' section, unchanged by this branch."
+    finding: "The new deploy Step 1 text ('always requires a typed human approval... no
+      config value, policy, or ledger can disable it; unpinning is an intent change via
+      play-editor') restates the committed definition correctly. The mechanics of the
+      pin itself conform."
+    severity: pass
+    status: conforms
 
-  - id: P-4
-    title: "Three preconditions preserved as a machine wall verified before the human beat"
-    principle: >
-      Per gate-config.md's hard boundary, "Pre-flight halts, sensitive-file blocks,
-      stop-condition gates, and eval failures are never gated by this [human-checkpoint]
-      block — they are the machine's walls, not human courtesies." A pinned human
-      checkpoint does not preclude machine preconditions running first; it only means
-      the human beat itself cannot be config-disabled. The base-ref ICE (Batch C,
-      9c880ea) already established the three named preconditions (approved, mergeable,
-      no failing required checks) as the thing standing between merge-gate.json (Step 1)
-      and the merge (Step 3).
-    committed_source: >
-      core/components/memory/standards/rules/gate-config.md ("Hard boundaries" — machine
-      walls are distinct from human-checkpoint gating); core/components/plays/
-      merge-change/reference/ice.md at base_sha 9c880ea (C4/F4: "the merge happens only
-      when the PR is mergeable"; C1/F1: only after an approval verdict).
-    check: >
-      Step 2 in the diff: "Machine wall first (verified before presenting)... If any is
-      false, HALT exactly as pre-flight does (REC7), naming the failed precondition —
-      there is nothing to approve, so the human is not asked." then "Then the human
-      beat... With all three true, present... wait for a typed approval."
-    verdict: PASS
-    severity: null
-    file: core/components/plays/merge-change/SKILL.md
+  - id: DF-3
+    file: core/components/plays/deploy/reference/ice.md
+    check: "C10/F10/REC10/SE-11 form one coherent new constraint set with no orphans;
+      old config-switch/off-path text for Step 1 fully removed"
+    principle: "knowledge/review/harness.md Layer-1: lint_play.py invariant — every
+      constraint/failure/scenario is covered by exactly one eval, exactly one recovery
+      per failure, no orphan references."
+    committed_source: "knowledge/review/harness.md (Layer 1, lint_play.py description)"
+    verification: "C10 (ice.md) -> F10 (ice.md) -> REC10 (ice.md) -> SE-11 (SKILL.md,
+      Evidence & Close) -> step_evals/recovery_entries counters incremented 10->11 and
+      9->10 in the Compilation Record, consistently. The prior 'this checkpoint is a
+      config switch... when resolved off, it does not wait: it records gate skipped by
+      config' paragraph for Step 1 is removed in full — no dangling off-path text remains
+      in the diff."
+    severity: pass
+    status: conforms
 
-  - id: P-5
-    title: "F7/REC7/SE-7 updated in step with C7 — no dangling off-path reference"
-    principle: >
-      CLAUDE.md's play-pipeline rule and gate-config.md both treat a play's
-      constraint/failure/recovery/eval set as one coherent unit describing a single
-      resolved behavior; a failure condition or recovery entry that still describes a
-      retired resolution path (here, "an off-gate merge proceeded without...") after the
-      constraint changes is an orphan reference the compiled play's own internal
-      consistency check (lint_play.py, run by quality-auditor, not this agent) would
-      flag, but design-grounding also checks it against what C7 now says.
-    committed_source: >
-      core/components/plays/merge-change/reference/ice.md at base_sha 9c880ea (F7:
-      "An off-gate merge proceeded without all three machine preconditions true"; REC7
-      matching trigger) — the "before" text this diff must not leave dangling.
-    check: >
-      Diff updates F7 ("a merge would proceed without the pinned human approval, or a
-      precondition ... was not verified true before presenting"), REC7 (same reframing),
-      and SE-7 in SKILL.md ("the merge proceeded only on the pinned human approval, AND
-      the Step 2 record shows all three machine preconditions true ... verified before
-      the human was presented"). No remaining "off-gate" language in the current C7/F7/
-      REC7/SE-7 text.
-    verdict: PASS
-    severity: null
-    file: core/components/plays/merge-change/reference/ice.md
+  - id: DF-4
+    file:
+      - core/components/plays/deploy/SKILL.md
+      - core/components/plays/deploy/reference/ice.md
+      - core/components/memory/standards/rules/gate-config.md
+    check: "the branch's stated authority for pinning deploy ('per Kapil's ruling —
+      deploy needs HITL') against the committed issue record"
+    principle: "Every prior pinned-set entry (grill, launch, learn, merge-change's land)
+      traces to an explicit ruling comment on issue #467, and gate-config.md's own text
+      says the pinned set changes only by a ruled intent change. A pin claimed to be
+      'per Kapil's ruling' must be traceable to an actual ruling comment, not asserted
+      by the branch that implements it."
+    committed_source: "gh issue view 467 --comments (3 committed comments as of base
+      7ada772b): comment 2 (Stage 4 direction record) states explicitly '...deploy
+      unruled (held as-is)'; comment 3 (the merge-change re-pin correction) states
+      'Pinned set is now: grill, launch, learn, and merge-change's land' — deploy is
+      named nowhere as pinned in any comment. gate-config.md @ base 7ada772b independently
+      confirms the same pinned set with no deploy entry."
+    finding: "GROUNDING GAP. Both new prose blocks — the SKILL.md '(#467) deploy Confirm
+      checkpoint pinned per Kapil's ruling' note and the ICE C10 constraint text — assert
+      an issue ruling that does not exist in the committed issue #467 record. The only
+      committed disposition for deploy is 'unruled (held as-is).' This is exactly the
+      circular-grounding failure mode this review guards against: the branch cites an
+      authority for its own change that only the branch itself asserts, not a source
+      that predates the branch. The pin mechanism (C10/F10/REC10/SE-11, the gate-config.md
+      edit) is internally well-formed (see DF-1..DF-3), but its stated justification is
+      unsupported by any committed source. Either (a) a real ruling comment exists on
+      #467 that was not surfaced to this review, in which case cite the comment id/date
+      precisely instead of 'per Kapil's ruling', or (b) no such ruling exists, in which
+      case this PR is unilaterally pinning a gate the issue record explicitly left open,
+      which needs a human decision before merge, not a retroactive citation."
+    severity: P2
+    status: violation
+    recommendation: "Before merge: either produce the actual issue-467 comment that rules
+      deploy pinned (and cite it precisely, replacing the vague 'per Kapil's ruling'), or
+      route this through an explicit new ruling/decision record rather than asserting one
+      inside the PR that implements it."
 
-  - id: P-6
-    title: "Scope conforms — only merge-change touched; the other eight off-gates, the eleven conditional, and launch/grill/learn are untouched"
-    principle: >
-      A Stage-4 gate-kind change to one play should not silently alter another play's
-      gate kind; gate-config.md's pinned set (grill, launch, learn) and the #467 ruling's
-      off-list (the other eight plays: start-change, commit-change, propose-change,
-      review-change, validate, fix-bug, implement, refactor) are each independent
-      per-play decisions.
-    committed_source: >
-      gh issue 467 ruling comment (2026-07-04): full per-play taxonomy list; base_sha
-      9c880ea config.yaml (the eight other `gates.plays.<name>: off` keys, all present
-      and unchanged in this diff).
-    check: >
-      The diff touches exactly four files: .garura/core/config.yaml (one key removed,
-      one comment added), .garura/project/issues/467/context/branch.json (STM run
-      record), and merge-change's SKILL.md + reference/ice.md. No other play file
-      (validate, fix-bug, implement, refactor, start-change, commit-change,
-      propose-change, review-change, launch, grill, learn, or any of the eleven
-      conditional plays) appears in the diff; the other eight `off` keys in config.yaml
-      are present unchanged.
-    verdict: PASS
-    severity: null
-    file: .garura/core/config.yaml
+  - id: DF-5
+    file: core/components/memory/standards/rules/gate-config.md
+    check: "scope — only deploy + gate-config touched, no other play changed"
+    principle: "knowledge/review/harness.md Layer 1 (lint_play.py / lint-components scope
+      discipline) — a change should touch only the plays its stated intent covers."
+    committed_source: "diff itself (changed_paths) cross-checked against issue #467"
+    verification: "Only 4 files changed: deploy/SKILL.md, deploy/reference/ice.md,
+      gate-config.md, and .garura/project/issues/467/context/branch.json (an STM record,
+      not harness). No other play's SKILL.md/ice.md is touched."
+    severity: pass
+    status: conforms
 
 summary:
-  total_findings: 6
-  pass: 5
-  findings_requiring_action: 1
-  worst_severity: P2
+  total_findings: 5
+  violations: 1
+  severity_breakdown:
+    P2: 1
+  headline: "The pin's mechanics (fingerprint, gate-config.md semantics, C10/F10/REC10/SE-11
+    coherence, scope) all conform. The one violation is that the PR's stated justification
+    — 'per Kapil's ruling' — is not backed by any committed issue-467 comment; the committed
+    record instead says deploy was left 'unruled (held as-is).' Grounding this in the
+    branch's own assertion rather than a committed ruling is the circular pattern this
+    review exists to catch."

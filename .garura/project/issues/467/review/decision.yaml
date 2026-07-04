@@ -1,5 +1,4 @@
 decision: approve
 decided_by: harness
-gate_resolution: "off (gates.plays.review-change); harness-verdict path"
 decided_at: 2026-07-04
-notes: "P2 (pinned-set source-of-truth out of sync) found by grounding and FIXED in-PR; 0 P1/P2/P3 remaining; 1 P4 (recurring stm-records playbook)."
+notes: "P2 (deploy ruling absent from committed record) found by grounding and FIXED in-PR by recording the ruling on #467; 0 P1/P2/P3 remaining; 1 P4 (recurring stm-records)."

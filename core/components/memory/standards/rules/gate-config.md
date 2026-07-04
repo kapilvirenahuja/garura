@@ -75,7 +75,8 @@ play (play-editor), never a config edit. Per the #467 ruling the pinned set is: 
 implement trinity — the acceptance walk), **learn** (a wrong model learning bends the
 product model), and **merge-change's land-on-main step** (the #467 re-pin correction —
 merging to main is the one irreversible action in the chain, so the actual land always
-keeps its human beat; the rest of merge-change is automatic). The eleven document plays
+keeps its human beat; the rest of merge-change is automatic), and **deploy** (standing up a live cloud
+environment is outward-facing — always requires a human). The eleven document plays
 (vision, understand, shape, roadmap, and the seven realize lenses) are **conditional**;
 the other pipeline/execute mechanical gates are **off** with replacement checks.
 

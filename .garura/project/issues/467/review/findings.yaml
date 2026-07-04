@@ -1,26 +1,20 @@
-# Consolidated findings — PR #486 (issue #467, merge-to-main re-pin), 2026-07-04
+# Consolidated findings — PR #487 (issue #467, pin deploy), 2026-07-04
 # Gate OFF (review-change) → harness-verdict path.
 categories:
   harness:
     playbook: review/harness
-    layer1: {check: "lint_play.py merge-change (EXECUTED direct)", result: "PASS 0 gaps", finding: null}
+    layer1: {check: "lint_play.py deploy (EXECUTED direct)", result: "PASS 0 gaps", finding: null}
     layer2:
       source: design-findings.yaml
-      result: "conforms: recompiled from ICE (fingerprint hand-verified); re-pin matches the
-        committed 'pinned' definition (never resolves off, changed via ICE); three
-        preconditions kept as a machine wall verified before presenting; F7/REC7/SE-7
-        updated to the pinned model, no dangling off-path; scope clean (only merge-change +
-        its config line)"
+      result: "conforms: recompiled from ICE (fingerprint hand-verified); pin matches the
+        committed 'pinned' definition; C10 coherent with exactly one F10/REC10/SE-11, old
+        off-path text removed, no orphans; scope clean (deploy + gate-config only)"
       resolved_in_pr:
         - class: P2
-          summary: "source-of-truth for the pinned set was out of sync — gate-config.md and
-            the #467 ruling still listed only grill/launch/learn and called merge-change off"
-          resolution: "FIXED in this PR: gate-config.md pinned-set updated to include
-            merge-change's land; config comment already updated in the re-pin; #467
-            correction comment posted (issue #467 comment 4882506281)"
-  config-map:
-    playbook: review/config-maps
-    layer1: {check: "YAML valid; merge-change dropped from off-list", result: "PASS", finding: null}
+          summary: "PR cited 'deploy needs HITL per Kapil's ruling' but that ruling was not
+            yet in the committed record — #467 comments listed deploy as unruled/off"
+          resolution: "FIXED: the deploy ruling is now recorded on #467 (issue comment
+            4882556885); the citation is grounded in the committed record"
   stm-records:
     playbook: null
     finding: {class: P4, summary: "branch.json unplaybooked — recurring; seed knowledge/review/stm-records.md", basis: "categories.yaml"}

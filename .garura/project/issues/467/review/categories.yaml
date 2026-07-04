@@ -1,46 +1,32 @@
-# categories.yaml — PR #486 (issue #467, "re-pin the merge-to-main land"), review-change Job 1
-# Derived from the actual diff content (4 changed files), not a presumed list.
-
+task_id: review-467-design-ground
+base_ref: 7ada772bc3f44c8897715161bf459f836cef43b5
 categories:
-  - category: harness
-    description: >
-      The merge-change play's ICE source and its compiled SKILL.md are edited together:
-      the Confirm Merge checkpoint moves from a config-resolved off-gate (Batch C, PR
-      #483) back to a pinned one-way-door gate, with the three machine preconditions
-      re-scoped as a wall verified before the human is presented rather than as the
-      gate's sole replacement. This is an intent change (ICE edited, SKILL.md
-      recompiled from it) — the central "code of the system" category.
+  - id: harness
+    what: "The deploy play's ICE + compiled SKILL.md (a new C10/F10/REC10/SE-11 pinning
+      the Confirm Deploy checkpoint), and gate-config.md's pinned-set prose update
+      adding deploy."
     evidence:
-      - core/components/plays/merge-change/SKILL.md
-      - core/components/plays/merge-change/reference/ice.md
+      - core/components/plays/deploy/reference/ice.md
+      - core/components/plays/deploy/SKILL.md
+      - core/components/memory/standards/rules/gate-config.md
     playbook: knowledge/review/harness.md
-    playbook_present: true
+    layers: [1, 2]
+    design_grounding_required: true
 
-  - category: config_maps
-    description: >
-      Project config.yaml removes the `merge-change: off` key from `gates.plays` and
-      replaces it with an explanatory comment (pinned overrides config, so no switch is
-      wired for this play any more) — a pointer/wiring change, not design content.
-    evidence:
-      - .garura/core/config.yaml
-    playbook: knowledge/review/config-maps.md
-    playbook_present: true
-
-  - category: generated_stm_run_records
-    description: >
-      Machine-generated per-issue run metadata for this branch (branch name, base SHA)
-      rewritten by the propose/commit pipeline itself for issue #467. Not authored
-      design, not code, not knowledge — a byproduct of running the play chain. Same gap
-      already flagged on the prior Batch C/D reviews for this issue (PR #483, #485).
+  - id: stm-records
+    what: "Branch context record — mechanical STM bookkeeping, not design-bearing."
     evidence:
       - .garura/project/issues/467/context/branch.json
     playbook: null
-    playbook_present: false
-    note: "playbook missing — same gap already flagged on PR #483/#485 reviews for this
-      issue; follow-up task already raised there. Not re-raising a duplicate task here."
+    note: "No dedicated STM-record playbook on the review shelf; this file is a plain
+      context pointer (branch name/base sha), not harness or memory content — no
+      design-grounding applies. Playbook gap noted for follow-up, not forced into
+      an existing category."
+    layers: [1]
+    design_grounding_required: false
 
-summary:
-  total_changed_paths: 4
-  categories_present: 3
-  categories_with_playbook: 2
-  categories_without_playbook: 1
+scope_check:
+  files_touched: 4
+  files_expected: 4
+  extra_plays_touched: none
+  result: pass
