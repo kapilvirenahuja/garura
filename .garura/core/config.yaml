@@ -151,7 +151,10 @@ product:
     experience: experience/
     research: research/
 
-# gate switches (#466) — every human checkpoint resolves here; see standards/rules/gate-config.md
+# gate switches (#466, three kinds per #467) — every human checkpoint resolves here;
+# see standards/rules/gate-config.md. Pinned gates (grill, launch, learn) ignore this
+# block entirely. Conditional plays consult the learned policy before falling through
+# to classes/default.
 gates:
   default: on
   classes:
@@ -159,3 +162,7 @@ gates:
     standard: on
     one-way-door: on
   plays: {}
+  conditional:
+    streak: 3                                # clean approvals a shape needs to earn auto
+    ledger: .garura/core/gate-evals.jsonl    # live-eval ledger (append-only, committed)
+    policy: .garura/core/gate-policy.yaml    # learned per-project policy (distilled)
