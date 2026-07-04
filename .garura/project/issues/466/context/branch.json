@@ -1,6 +1,6 @@
 {
-  "branch_name": "feature/466-batch-c-strategy-lenses",
-  "base_sha": "9d58125f35cef7238a62d33c0fa74be9310a8b49",
+  "branch_name": "feature/466-batch-d-utilities-debt",
+  "base_sha": "fcfb456263db2312309bd375a358168f8321a82e",
   "on_default_branch": false,
   "worktree_path": null
 }

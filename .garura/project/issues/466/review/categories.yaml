@@ -1,0 +1,41 @@
+categories:
+  - name: harness
+    playbook: review/harness
+    layers: [1, 2]
+    files:
+      - core/components/plays/grill/SKILL.md
+      - core/components/plays/install-garura/SKILL.md
+      - core/components/plays/next/SKILL.md
+      - core/components/plays/next/reference/ice.md
+      - core/components/plays/next/stop-condition.yaml
+      - core/components/plays/uninstall-garura/SKILL.md
+  - name: executable_code
+    playbook: review/code
+    layers: [1]
+    files:
+      - core/components/plays/commit-change/scripts/execute_commits.py
+      - core/components/plays/next/scripts/check_stop_condition.py
+      - core/components/plays/next/scripts/session_stamp.py
+      - core/components/plays/play-creator/scripts/lint_play.py
+      - core/components/plays/play-editor/scripts/lint_play.py
+      - core/components/plays/validate/scripts/stamp_epic.py
+  - name: tests
+    playbook: review/tests
+    layers: [1]
+    run_suite: true
+    files:
+      - core/components/plays/grill/scripts/test_validate_epics.py
+
+not_categorized:
+  reason: >
+    STM run-artifacts for #466 itself — the play's own context/self-review record,
+    not reviewable product/harness content. No review/ playbook signal matches
+    (.garura/project/issues/** is not a category-catalog path); consistent with
+    Batch A/B/C treatment of the same file set.
+  files:
+    - .garura/project/issues/466/context/analysis.yaml
+    - .garura/project/issues/466/context/branch.json
+    - .garura/project/issues/466/context/commits.yaml
+    - .garura/project/issues/466/context/porcelain.txt
+    - .garura/project/issues/466/context/pr.json
+    - .garura/project/issues/466/context/self-review.md

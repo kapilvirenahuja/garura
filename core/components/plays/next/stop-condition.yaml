@@ -1,0 +1,17 @@
+# next stop condition — baked from reference/ice.md "### Done means" (#464/#466 Batch D).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close —
+# BEFORE Step 9's self-clean (C10) deletes the working folder; the verdict's durable
+# copy is the evidence record. Paths are relative to the run's working folder
+# (<working> = ${product_base}_status/next/).
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the derived candidate set record exists (candidates + inconsistency report + derivation hash)"
+      check: { type: artifact_exists, path: "candidates.json" }
+    - id: D2
+      says: "the ranked recommendations artifact exists (machine form: NBA + entries + basis)"
+      check: { type: artifact_exists, path: "recommendations.yaml" }
+    - id: D3
+      says: "the presented recommendation report exists (human form)"
+      check: { type: artifact_exists, path: "recommendations.md" }

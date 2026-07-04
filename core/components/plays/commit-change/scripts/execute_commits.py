@@ -164,9 +164,18 @@ def main():
                     for e in excl if isinstance(e, dict)}
 
     commits = []
+    skipped_clean = []
     for g in groups:
         files = split_ignored(g.get("files") or [], excl_paths, excl_reasons)
         if not files:
+            continue
+        # Round-2 re-entry (#466 Batch D): a group whose paths carry no staged or
+        # unstaged change is already committed — satisfied, skip it. Without this,
+        # re-running an executed plan dies on git's nothing-to-commit error.
+        dirty = subprocess.run(["git", "status", "--porcelain", "--"] + files,
+                               capture_output=True, text=True).stdout
+        if not dirty.strip():
+            skipped_clean.append(g.get("id"))
             continue
         scope = g.get("scope") or "core"
         issue = g.get("issue") or args.issue
@@ -191,7 +200,10 @@ def main():
                         "message": msg, "files": files})
 
     def porcelain_leftovers():
-        porcelain = run_git(["status", "--porcelain"], check=False)
+        # NOTE: not run_git — its stdout.strip() eats the first line's leading
+        # status-column space, mangling `l[3:]` for that path (#466 Batch D).
+        porcelain = subprocess.run(["git", "status", "--porcelain"],
+                                   capture_output=True, text=True).stdout
         left = [l[3:].strip().strip('"') for l in porcelain.splitlines() if l.strip()]
         return [p for p in left
                 if not any(p.startswith(e.rstrip("/")) for e in excl_paths)]
@@ -222,31 +234,58 @@ def main():
     # Final chore group (#465 defect 2): the play's own run artifacts — including
     # this very output file — land in a chore(stm) commit so the tree hands off
     # clean. The output is written first (predicting the post-commit state), then
-    # committed; the recheck after proves the prediction or surfaces the dirt for
-    # the loop's next round.
+    # committed; the recheck after PROVES the committed record matches post-commit
+    # reality — a missed prediction is corrected on disk AND committed in a
+    # follow-up chore commit in this same finalize (#466 Batch D), never left as a
+    # committed lie the summary contradicts.
     run_state_sha = None
     if args.run_state_dir:
-        uncovered_now = [p for p in porcelain_leftovers()
-                         if not p.startswith(args.run_state_dir.rstrip("/"))]
-        write_out(uncovered_now, True)
-        try:
-            run_git(["add", "--", args.run_state_dir])
-            run_git(["commit", "-m",
-                     f"chore(stm): record commit-change run artifacts (#{args.issue})",
-                     "--", args.run_state_dir])
-            run_state_sha = run_git(["rev-parse", "--short", "HEAD"])
-        except RuntimeError as e:
-            print(json.dumps({"error": str(e), "group": "run-state"}))
-            return 4
-        uncovered = porcelain_leftovers()
-        if uncovered:  # prediction missed — rewrite honestly; the loop re-rounds
+        rs = args.run_state_dir.rstrip("/")
+        uncovered = [p for p in porcelain_leftovers() if not p.startswith(rs)]
+        rs_dirty = subprocess.run(["git", "status", "--porcelain", "--", rs],
+                                  capture_output=True, text=True).stdout.strip()
+        if not commits and not uncovered and not rs_dirty:
+            # Re-entry no-op: nothing committed this run, tree already clean —
+            # the previously committed record still tells the truth; leave it.
+            pass
+        else:
             write_out(uncovered, True)
+            try:
+                run_git(["add", "--", rs])
+                run_git(["commit", "-m",
+                         f"chore(stm): record commit-change run artifacts (#{args.issue})",
+                         "--", rs])
+                run_state_sha = run_git(["rev-parse", "--short", "HEAD"])
+            except RuntimeError as e:
+                print(json.dumps({"error": str(e), "group": "run-state"}))
+                return 4
+            actual = porcelain_leftovers()
+            if actual != uncovered:
+                # Prediction missed — the committed record is stale. Rewrite from
+                # reality and commit the corrected record (amend-free follow-up).
+                uncovered = actual
+                write_out(uncovered, True)
+                rs_dirty_now = subprocess.run(
+                    ["git", "status", "--porcelain", "--", rs],
+                    capture_output=True, text=True).stdout.strip()
+                if rs_dirty_now:  # the record lives under rs — commit the correction
+                    try:
+                        run_git(["add", "--", rs])
+                        run_git(["commit", "-m",
+                                 f"chore(stm): correct commit-change run record (#{args.issue})",
+                                 "--", rs])
+                        run_state_sha = run_git(["rev-parse", "--short", "HEAD"])
+                    except RuntimeError as e:
+                        print(json.dumps({"error": str(e), "group": "run-state"}))
+                        return 4
+                uncovered = porcelain_leftovers()
     else:
         uncovered = porcelain_leftovers()
         write_out(uncovered, False)
 
     print(json.dumps({
         "commits": [{"sha": c["sha"], "message": c["message"]} for c in commits],
+        "groups_skipped_clean": skipped_clean,
         "run_state_commit": run_state_sha,
         "branch": branch,
         "leftover_uncovered": uncovered,  # play policy: F3 if non-empty

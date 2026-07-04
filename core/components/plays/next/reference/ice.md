@@ -65,6 +65,10 @@ explanation of why it is recommended and what it unblocks.
   the downgrade. Surface debt is a blocking model inconsistency — it rides the same
   repair-takes-the-NBA-slot machinery as C5, detected mechanically from the model
   (never inferred).
+- C12 — The play ends by proving its Done means at close (gated, #464): the candidate
+  set was derived and the ranked recommendation was produced and presented — never by
+  its step list running out. The proof is evaluated at close, before the self-clean
+  (C10) removes the working folder; the verdict's durable copy is the evidence record.
 
 ### Failure conditions
 
@@ -85,6 +89,8 @@ explanation of why it is recommended and what it unblocks.
   was not delivered — yet /next recommends the next execute epic in that slice, so later
   epics keep building on a downgraded surface and compound the debt instead of repairing
   it.
+- F9 — The close proves nothing — the play closes COMPLETED without the Done means
+  held.
 
 ## Expectation
 
@@ -117,6 +123,21 @@ explanation of why it is recommended and what it unblocks.
   lens work as a parallel lane alongside slice 1's next step. Measure: a slice-2 action
   appears, and its explanation cites the roadmap ordering that permits it.
 
+### Done means
+
+Paths are relative to the run's working folder (`<working>` =
+`${product_base}_status/next/`). Derived from the artifacts every completed run
+writes — the derived candidate set record and the two recommendation artifacts
+`rank-recommendations` emits. Evaluated at close (Step C0), BEFORE the self-clean
+(C10) deletes the working folder; the verdict's durable copy is the evidence record.
+
+- D1 — says: "the derived candidate set record exists (candidates + inconsistency report + derivation hash)"
+  check: { type: artifact_exists, path: "candidates.json" }
+- D2 — says: "the ranked recommendations artifact exists (machine form: NBA + entries + basis)"
+  check: { type: artifact_exists, path: "recommendations.yaml" }
+- D3 — says: "the presented recommendation report exists (human form)"
+  check: { type: artifact_exists, path: "recommendations.md" }
+
 ### Recovery (one per failure condition)
 
 - REC1 (F1) — trigger: a recommended command would halt at its own gate when re-checked.
@@ -145,3 +166,7 @@ explanation of why it is recommended and what it unblocks.
   the debt as a blocking inconsistency, recommend the surface-repair action for that slice
   in the next-best-action slot, and withhold every further execute epic of that slice until
   the debt clears. handoff: autonomous.
+- REC9 (F9) — trigger: the close would report COMPLETED without the Done means held.
+  direction: evaluate the stop condition and surface the unmet clauses; re-run the
+  producing step (derivation or ranking) to restore the missing artifact, or close
+  HALTED with the verdict recorded. handoff: autonomous.

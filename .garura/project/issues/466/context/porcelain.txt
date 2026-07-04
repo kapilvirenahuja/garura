@@ -1,1 +1,15 @@
+ M .garura/project/issues/466/context/branch.json
  M .garura/project/issues/466/context/porcelain.txt
+ M core/components/plays/commit-change/scripts/execute_commits.py
+ M core/components/plays/grill/SKILL.md
+ M core/components/plays/grill/scripts/test_validate_epics.py
+ M core/components/plays/install-garura/SKILL.md
+ M core/components/plays/next/SKILL.md
+ M core/components/plays/next/reference/ice.md
+ M core/components/plays/play-creator/scripts/lint_play.py
+ M core/components/plays/play-editor/scripts/lint_play.py
+ M core/components/plays/uninstall-garura/SKILL.md
+ M core/components/plays/validate/scripts/stamp_epic.py
+?? core/components/plays/next/scripts/check_stop_condition.py
+?? core/components/plays/next/scripts/session_stamp.py
+?? core/components/plays/next/stop-condition.yaml
