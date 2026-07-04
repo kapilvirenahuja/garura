@@ -1,0 +1,8 @@
+decision: approve
+decided_by: harness
+gate: off (gates.plays.review-change)
+reason: >
+  Scripted-chain conversion embodies the #484 tool-first rule; each recompile
+  moved only the executor (agent → script), no guarantee changed; all 5 plays
+  lint clean, 62 tests pass, scripts live-verified. No blocking findings.
+blocking_findings: []
