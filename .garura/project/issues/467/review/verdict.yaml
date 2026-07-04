@@ -1,12 +1,11 @@
 {
   "verdict": "approve",
   "decided_by": "harness",
-  "reason": "gate off; grounding found a P2 source-of-truth desync, fixed in-PR; 0 P1/P2/P3 remaining",
+  "reason": "gate off; grounding found a P2 (ruling not in committed record), fixed in-PR by recording the ruling on #467; 0 P1/P2/P3 remaining",
   "blocking": [],
   "counts": {
     "P4": 1
   },
   "confidence": null,
-  "threshold": 0.5,
-  "decision_file": "decision.yaml"
+  "threshold": 0.5
 }
