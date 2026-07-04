@@ -52,15 +52,33 @@ The play parses the user response with this protocol:
 
 **Do NOT use `AskUserQuestion` for checkpoints.** Output the prompt text and wait for the typed response. `AskUserQuestion` is for structured single-choice interactions, not for Tether/Orbit/Vanish gates. This is a global rule from CLAUDE.md.
 
-## Gate switch (#466)
+## Gate switch (#466, three kinds per #467)
 
 Before rendering, resolve the checkpoint's switch per `standards/rules/gate-config.md`
-(first match wins): `gates.plays.<play>` → `gates.classes.<the class this checkpoint
-declares>` → `gates.default` → absent ⇒ on. Each checkpoint declares its risk class in
-the compiled play (`class: docs-only | standard | one-way-door`; undeclared ⇒ standard).
+(first match wins):
 
-- **on** → render and wait, exactly as above. (Everything defaults on — behaviour today
-  is unchanged everywhere.)
+0. **Pinned** (declared in the play: `class: <class>, pinned`) → always render and wait.
+   No config value, policy, or ledger can turn a pinned gate off.
+1. `gates.plays.<play>` — explicit per-play override.
+2. **Conditional plays only** (the eleven document plays — vision, understand, shape,
+   roadmap, and the seven realize lenses): consult the learned policy —
+   `classify_change.py` names the change's shape key; a shape in the policy's `auto:`
+   block (and not in `never_auto:`) → **auto-pass**; anything else → on. A draft
+   carrying ANY blocking finding (lint gap, grounding-eval fail) → on, regardless of
+   policy.
+3. `gates.classes.<the class this checkpoint declares>` — each checkpoint declares its
+   risk class in the compiled play (`class: docs-only | standard | one-way-door`;
+   undeclared ⇒ standard).
+4. `gates.default` → absent ⇒ on.
+
+- **on** → render and wait, exactly as above. Afterwards, a conditional play appends the
+  live-eval line (`gate_eval.py append`): shape, `predicted: gate`, and the human's real
+  action (`approved_clean` | `approved_edited` | `rejected`).
+- **auto-pass** (conditional plays) → do NOT wait: record `gate auto-passed by learned
+  policy (shape: <shape-key>, policy v<version>)` as a Checkpoint Decisions row, include
+  the draft's diff summary in the run record, append the ledger line
+  (`predicted: auto, human: auto_pass`), and proceed. An auto-pass is always visible in
+  the run record — never silent.
 - **off** → do NOT wait: record `gate skipped by config (<resolution path>)` as a
   Checkpoint Decisions row in the evidence file and proceed. A skip is always visible in
   evidence — never silent.
