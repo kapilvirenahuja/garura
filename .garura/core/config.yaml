@@ -169,7 +169,8 @@ gates:
     commit-change: off
     propose-change: off
     review-change: off
-    merge-change: off
+    # merge-change: the land on main is PINNED (#467 re-pin correction) — the actual
+    # merge always keeps its human beat; no config switch here (pinned overrides config).
     # Execute-side gates off per the #467 ruling (Batch D) — replaced by machine
     # preconditions in the same change. fix-bug and implement were pinned; the ruling
     # unpins them (an intent change), so the config switch now governs them too.

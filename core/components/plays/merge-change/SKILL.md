@@ -116,24 +116,20 @@ any merge.
 **SE-2 (F4/C4):** `merge-gate.json.mergeable == true` — the PR has no conflicts and no
 failing required checks before any merge.
 
-**Step 2 — Confirm Merge (class: one-way-door)** · Owner: play · Depends on: Step 1
-Merging is outward-facing and irreversible on `main`. *Skip as a no-op when
-`already_merged` is true (C5).* This checkpoint is a config switch per
-`standards/rules/gate-config.md` (C7; first match wins: `gates.plays.merge-change` →
-`gates.classes.one-way-door` → `gates.default`; absent ⇒ on). Per the #467 ruling the
-per-play override `gates.plays.merge-change` is `off` — the one-way-door CLASS stays on
-for every other play; flipping the per-play config back to `on` restores the wait
-unchanged.
-- **On** — present the PR, its approval, and mergeability, and wait for a typed
-  approval. Approve → continue; cancel → halt without merging.
-- **Off** — do not wait: record `gate skipped by config (gates.plays.merge-change)` as a
-  Checkpoint Decisions row in the evidence, then verify the three machine preconditions
-  (C7, F7) — `approved: true` and `mergeable: true` read from `merge-gate.json`
-  (Step 1), and no failing required checks read from the PR's live checks state via
-  `repo-orchestrator`/`platform-adapter`. Proceed ONLY on all-true; anything else HALTS
-  exactly as the pre-flight halts do today (REC7), naming the precondition that failed.
-  Record the three booleans alongside the skip row so the evidence shows what the merge
-  stood on.
+**Step 2 — Confirm Merge (class: one-way-door, pinned)** · Owner: play · Depends on: Step 1
+Merging is outward-facing and irreversible on `main`, so this checkpoint is **pinned**
+(C7): no config value, policy, or ledger turns it off — the land on `main` always keeps
+its human beat (the #467 re-pin correction). *Skip as a no-op when `already_merged` is
+true (C5).*
+- **Machine wall first (verified before presenting).** Confirm the three preconditions —
+  `approved: true` and `mergeable: true` from `merge-gate.json` (Step 1), and no failing
+  required checks from the PR's live checks state via `repo-orchestrator`/
+  `platform-adapter`. If any is false, HALT exactly as pre-flight does (REC7), naming the
+  failed precondition — there is nothing to approve, so the human is not asked.
+- **Then the human beat.** With all three true, present the PR, its approval, and
+  mergeability, and wait for a typed approval. Approve → continue to Step 3; cancel →
+  halt without merging. The merge proceeds solely on the typed approval; the three
+  booleans are recorded as what the merge stood on.
 
 **Step 3 — Merge + Sync + Cleanup** · Owner: `repo-orchestrator` · Depends on: Step 2
 The agent invokes `merge-pr`: merge the PR, switch to main and pull the latest, and delete
@@ -151,9 +147,10 @@ attempted and the run ended as a clean no-op.
 **SE-6 (F6/C6):** `merge-gate.json` reads `pr_merged: true` + `branch_deleted: true`; the
 records commit exists on main; the stop-condition verdict reads held before any
 COMPLETED close.
-**SE-7 (F7/C7):** on any off-path merge, the Step 2 gate record shows all three machine
-preconditions true — `approved: true`, `mergeable: true`, and no failing required
-checks — before the merge ran; no off-gate merge proceeded otherwise.
+**SE-7 (F7/C7):** the merge proceeded only on the pinned human approval, AND the Step 2
+record shows all three machine preconditions true — `approved: true`, `mergeable: true`,
+and no failing required checks — verified before the human was presented; no merge
+proceeded without both the wall and the human beat.
 
 ### Phase: Scenario Validation
 
@@ -249,7 +246,7 @@ gated.
 | F4 | the PR is not mergeable | halt; conflicts must be resolved or failing checks fixed before retrying | human |
 | F5 | a re-run on an already-merged PR | detect the merged state and no-op cleanly | autonomous |
 | F6 | the run is about to close COMPLETED with the Done means unmet | fix the state — delete the surviving branch / rewrite the gate record — and re-evaluate; the close stays HALTED until the verdict reads held | autonomous |
-| F7 | an off-gate merge would proceed (or proceeded) without approved, mergeable, and no-failing-required-checks all true | halt the merge and surface which precondition failed; do not merge until it reads true | autonomous |
+| F7 | a merge would proceed without the pinned human approval, or a precondition (approved, mergeable, no-failing-required-checks) was not verified true before presenting | halt; on a failed precondition surface which one and do not present; if the human beat was skipped, present and wait | autonomous |
 
 ## Pause and Resume
 
@@ -261,7 +258,7 @@ pending, and continue. A re-run on an already-merged PR is a clean no-op (C5, F5
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:8571784a0e99e24bd671eb5a888c86bd65e5e2ebf5c9ab6918bcc77584a054a0 (of `reference/ice.md`) |
+| fingerprint | sha256:74cc886071b058a80a76c3a0ba215091d6a2790c306c80dafe3540ca30bed4c1 (of `reference/ice.md`) |
 | compiled_by | play-editor (#466 Batch A; #467 Batch C) |
 | pipeline_position | end |
 | workflow_structure | B (fast execution flow, single-pass; stop-condition gated close) |
@@ -274,17 +271,21 @@ pending, and continue. A re-run on an already-merged PR is a clean no-op (C5, F5
 | scenario_evals | 4 (SCE-1…SCE-4) |
 | recovery_entries | 7 (one per failure condition; 5 autonomous / 2 human) |
 
-## Recompile note (#467 Batch C, chain gates off)
+## Recompile note (#467 Batch C → re-pin correction)
 
-Intent change via `reference/ice.md` → play-editor: the Confirm Merge one-way-door
-checkpoint gained C7/F7 — the gate resolves per gate-config, and per the #467 ruling the
-per-play override `gates.plays.merge-change` is `off` (the one-way-door CLASS stays on for
-other plays). When off, the merge proceeds ONLY when the three machine preconditions all
-hold — `approved: true` (review verdict), `mergeable: true` (no conflicts), and no failing
-required checks — anything else HALTS exactly as pre-flight does today; the skip and the
-three booleans are recorded in evidence. Checkpoint machinery is kept, not removed:
-flipping the config back to `on` restores the human wait unchanged. No new scripts. The
-fingerprint reflects the updated ICE.
+Intent change via `reference/ice.md` → play-editor, in two moves. **Batch C** first turned
+the Confirm Merge gate off per config (`gates.plays.merge-change: off`), merging on the
+three machine preconditions alone. **The re-pin correction** (this recompile) then made
+C7 **pinned**: the land on `main` is irreversible, so it always keeps its human beat — no
+config value turns it off. The three preconditions (approved, mergeable, no failing
+required checks) stay, now as a machine wall verified BEFORE the human is presented (a
+failed precondition halts without asking; only all-true reaches the human). Field evidence
+drove the correction: the environment held the automatic land on main for a human beat on
+both #483 and #485, correctly — merge-to-main belongs with the pinned gates. The rest of
+merge-change (Step 1 verification, Step 3 execution) stays automatic. `gates.plays.merge-change`
+in config is now moot for this checkpoint (pinned overrides it) and is dropped from the
+off-list to avoid implying a reversible switch. No new scripts. The fingerprint reflects
+the updated ICE.
 
 ## Direct-edit deviation note (#434, pre-flight resolver)
 
