@@ -77,11 +77,19 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
 - C12 — There is exactly one human checkpoint, presenting the domain's selection bundle —
   kept and pruned capabilities, selected functionalities, personas, journeys, and the
   vertical slices (each with its surface and bundled functionalities) plus the `_deferred`
-  bucket. Nothing is persisted before the checkpoint resolves. The checkpoint is a
-  **default-on config gate** per `gate-config.md`, declared `(class: standard)` and NOT
-  pinned (#466 — the Stage 4 lever): when config resolves it off, the play does not wait —
-  it records the skip as a Checkpoint Decisions row in the evidence and proceeds. It
-  defaults on, so behaviour is unchanged until evidence retires it.
+  bucket. The checkpoint is a **conditional gate** (#467; `gate-config.md` three gate
+  kinds — /shape is one of the eleven conditional document plays). Resolution order:
+  pinned (n/a here) → the `gates.plays` override → the learned policy (classify the
+  draft-vs-live change shape with the bundled `classify_change.py`; a shape in
+  `gate-policy.yaml`'s `auto:` and not in `never_auto:`, with NO blocking finding — a
+  lint gap or a content-eval fail — auto-passes with the skip and the diff summary
+  recorded) → `gates.classes.standard` → `gates.default`. EVERY crossing appends one
+  live-eval line via the bundled `gate_eval.py` (shape, predicted gate|auto, the human's
+  real action `approved_clean|approved_edited|rejected`, or `auto_pass`). Nothing is
+  persisted before the gate resolves: a typed approval, a recorded config skip, OR a
+  recorded policy auto-pass. At close the play refreshes the learned policy with the
+  bundled `distill_gate_policy.py` (config `gates.conditional`: streak/ledger/policy
+  paths).
 - C13 — Non-destructive allowlist: the run writes only capability `status` flips, the new
   slices, personas, journeys, and decisions, and their refs onto the capabilities. It never
   changes a functionality, a domain, or the profile. Stable ids (from name/slug) written
@@ -116,12 +124,15 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
 - F10 — A slice copied a functionality's content instead of referencing it by spine id, or a
   slice carries `order`, `effort`, or resolved `depends_on`.
 - F11 — A prune or a material selection was made with no decision recorded.
-- F12 — The selection was persisted without the human approving the checkpoint.
+- F12 — The selection was persisted before the checkpoint gate resolved — no typed
+  approval, no recorded config skip, and no recorded policy auto-pass.
 - F13 — Allowlist breach: a functionality, a domain, or the profile changed during the run;
   or a re-run duplicated a persona, journey, or slice.
 - F14 — The run closed COMPLETED without the Done means held (no applied record, the
   record not stamped `applied: true`, or the post-apply verification not captured or not
   ok).
+- F15 — A conditional-gate crossing left no live-eval ledger line, or an auto-pass fired
+  for a shape the policy does not list as auto (or that carried a blocking finding).
 
 ## Expectation
 
@@ -166,7 +177,10 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
   presented, then it shows the kept/pruned capabilities, selected functionalities, personas,
   journeys, and slices (with the deferred bucket) inline before any write; and a re-run adds
   no duplicates. Measure: each section is present in the checkpoint and no product-model file
-  was written before approval; on a re-run, every persona/journey/slice id already existed.
+  was written before approval — or, on the auto-pass path (a policy-listed shape), the gate
+  resolves with no wait and the recorded auto-pass, the appended ledger line, and the diff
+  summary stand in the approval's place; on a re-run, every persona/journey/slice id already
+  existed.
 
 ### Done means
 
@@ -235,3 +249,8 @@ decision is on disk.
   named; fix the state — re-run the allowlisted persist or re-capture the post-apply
   verification — and re-evaluate; the close stays HALTED until the verdict reads held.
   handoff: autonomous.
+- REC15 (F15) — trigger: a crossing left no live-eval ledger line, or an auto-pass fired
+  for a shape not listed `auto:` in the policy (or one carrying a blocking finding).
+  direction: re-append the missing ledger line for the recorded crossing; when the
+  auto-pass was unearned, re-run the gate as a live wait — render the approval prompt
+  and wait for the typed response — before proceeding. handoff: autonomous.

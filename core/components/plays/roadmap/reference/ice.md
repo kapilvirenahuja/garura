@@ -49,11 +49,19 @@ Pipeline position: **end**. /roadmap CLOSES the strategy pipeline: after the ord
   schema (an integer `order`, `status: planned`, `depends_on` resolving to real slices).
 - C8 — Exactly one human checkpoint, presenting the plan — the ordered slices with their
   effort and resolved dependencies, plus any cycle anomalies — before any plan is written.
-  The checkpoint is a **default-on config gate** (`standards/rules/gate-config.md`, #466),
-  declared `(class: standard)`, not pinned: when it resolves on (the default), it waits for
-  typed approval and nothing persists before that approval; when config resolves it off, the
-  skip is recorded in evidence (`gate skipped by config`) and the play proceeds on the
-  computed plan.
+  The checkpoint is a **conditional gate** (#467; `gate-config.md` three gate kinds —
+  /roadmap is one of the eleven conditional document plays). Resolution order: pinned
+  (n/a here) → the `gates.plays` override → the learned policy (classify the
+  draft-vs-live change shape with the bundled `classify_change.py`; a shape in
+  `gate-policy.yaml`'s `auto:` and not in `never_auto:`, with NO blocking finding — a
+  lint gap or a content-eval fail — auto-passes with the skip and the diff summary
+  recorded) → `gates.classes.standard` → `gates.default`. EVERY crossing appends one
+  live-eval line via the bundled `gate_eval.py` (shape, predicted gate|auto, the human's
+  real action `approved_clean|approved_edited|rejected`, or `auto_pass`). Nothing
+  persists before the gate resolves: a typed approval, a recorded config skip, OR a
+  recorded policy auto-pass. At close the play refreshes the learned policy with the
+  bundled `distill_gate_policy.py` (config `gates.conditional`: streak/ledger/policy
+  paths).
 - C9 — The play ends by proving its Done means at close (gated, #464): the plan draft
   exists and the computed plan record exists with its order fields — every slice ordered,
   the orders coherent, no cycle persisted — recorded as MACHINE fields, never as prose. A
@@ -73,10 +81,12 @@ Pipeline position: **end**. /roadmap CLOSES the strategy pipeline: after the ord
 - F6 — A non-plan part of the model changed during the run: a slice's non-plan field, or
   any product-model file other than the spine.
 - F7 — A written slice spine entry violates the spine schema.
-- F8 — A plan was persisted before the checkpoint completed — before the human approved
-  it, or (when the gate resolved off by config) before the skip was recorded in evidence.
+- F8 — A plan was persisted before the checkpoint gate resolved — no typed approval, no
+  recorded config skip, and no recorded policy auto-pass.
 - F9 — The run closed COMPLETED without the Done means held — a missing plan draft or
   computed plan record, or an incoherent order asserted done with no machine record.
+- F10 — A conditional-gate crossing left no live-eval ledger line, or an auto-pass fired
+  for a shape the policy does not list as auto (or that carried a blocking finding).
 
 ## Expectation
 
@@ -105,7 +115,10 @@ Pipeline position: **end**. /roadmap CLOSES the strategy pipeline: after the ord
 - S6 — (reviewer, the checkpoint) Given the plan is ready, when the checkpoint is presented,
   then it shows the ordered slices with effort and dependencies and any anomalies, before
   any write. Measure: the checkpoint lists the ordered slices, each with effort and resolved
-  dependencies, plus the anomaly list; no slice's plan fields changed before approval.
+  dependencies, plus the anomaly list; no slice's plan fields changed before approval — or,
+  on the auto-pass path (a policy-listed shape), the gate resolves with no wait and the
+  recorded auto-pass, the appended ledger line, and the diff summary stand in the
+  approval's place.
 
 ### Done means
 
@@ -139,11 +152,17 @@ Pipeline position: **end**. /roadmap CLOSES the strategy pipeline: after the ord
   confirms the restore. handoff: human.
 - REC7 (F7) — trigger: a written slice spine entry fails the spine schema. direction:
   re-emit the failing entry to conform before the play completes. handoff: autonomous.
-- REC8 (F8) — trigger: a plan was persisted before the checkpoint completed (no approval,
-  and no recorded config skip). direction: revert the premature write and re-present the
-  checkpoint; persist only after the gate completes. handoff: human.
+- REC8 (F8) — trigger: a plan was persisted before the checkpoint gate resolved (no typed
+  approval, no recorded config skip, and no recorded policy auto-pass). direction: revert
+  the premature write and re-present the checkpoint; persist only after the gate
+  resolves. handoff: human.
 - REC9 (F9) — trigger: the run is about to close COMPLETED with the Done means unmet (a
   missing plan draft or computed plan record, or `orders_coherent` not true). direction:
   produce the missing artifact — re-run the draft and `compute_plan.py` so the plan record
   carries the machine order fields — then re-evaluate the stop condition; the close stays
   HALTED until the verdict reads held. handoff: autonomous.
+- REC10 (F10) — trigger: a crossing left no live-eval ledger line, or an auto-pass fired
+  for a shape not listed `auto:` in the policy (or one carrying a blocking finding).
+  direction: re-append the missing ledger line for the recorded crossing; when the
+  auto-pass was unearned, re-run the gate as a live wait — render the approval prompt
+  and wait for the typed response — before proceeding. handoff: autonomous.

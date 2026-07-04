@@ -61,10 +61,18 @@ decision 24; 3-pipe realize 2026-06-26)
   best-fit learning on the KB's architecture/technology shelf (matched via kb-search) or to a
   recorded KB-learning-gap proposal — never the model's taste.
 - C11 — Exactly one human checkpoint, presenting the proposed components (with contracts), the
-  stack, and the vertical build, plus any decision, before anything is written. Nothing persists
-  before approval. The checkpoint is a config switch per `standards/rules/gate-config.md`
-  (class: standard, unpinned): the agent never skips it on its own judgment; a config-resolved
-  skip is recorded in the evidence, never silent (#466 Batch C).
+  stack, and the vertical build, plus any decision, before anything is written. The checkpoint is
+  a **conditional gate** (#467; `gate-config.md` three kinds — /arch is one of the eleven
+  conditional document plays). Resolution order: pinned (n/a here) → `gates.plays` override → the
+  learned policy (classify the draft-vs-live change shape with the bundled `classify_change.py`;
+  a shape in `gate-policy.yaml`'s `auto:` and not in `never_auto:`, with NO blocking finding —
+  lint gap or content-eval fail — auto-passes with the skip and the diff summary recorded) →
+  `gates.classes.standard` → `gates.default`. EVERY crossing appends one live-eval line via the
+  bundled `gate_eval.py` (shape, predicted gate|auto, the human's real action
+  approved_clean|approved_edited|rejected, or auto_pass). Nothing persists before the gate
+  resolves: a typed approval, a recorded config skip, OR a recorded policy auto-pass. At close the
+  play refreshes the learned policy with the bundled `distill_gate_policy.py` (config
+  `gates.conditional`: streak/ledger/policy paths).
 - C12 — The play ends by proving its Done means at close (gated, #464): the lens draft and its
   grounding manifest exist, and the verify step's captured record confirms the approved lens was
   applied surgically. A run that never applied — checkpoint cancelled, validation failed — closes
@@ -88,9 +96,12 @@ decision 24; 3-pipe realize 2026-06-26)
 - F9 — A product-model file other than this slice's `architecture.md` or a new decision changed,
   or an accepted decision was edited in place rather than superseded.
 - F10 — An architecture choice rests on neither a matched KB learning nor a recorded proposal.
-- F11 — The lens was persisted before the human approved the checkpoint.
+- F11 — The lens was persisted before the checkpoint gate resolved — no typed approval, no
+  recorded config skip, and no recorded policy auto-pass.
 - F12 — The run closed COMPLETED without the Done means held — a missing lens draft or grounding
   manifest, or no captured verify record proving the approved lens was applied.
+- F13 — A conditional-gate crossing left no live-eval ledger line, or an auto-pass fired for a
+  shape the policy does not list as auto (or that carried a blocking finding).
 
 ## Expectation
 
@@ -119,7 +130,8 @@ decision 24; 3-pipe realize 2026-06-26)
 - S6 — (reviewer, the checkpoint) Given the components are ready, the checkpoint presents the
   components (with contracts), the stack, and the vertical build, plus the decision, before any
   write. Measure: the checkpoint shows the lens inline; no product-model file is written before
-  approval.
+  approval — or, on the auto-pass path, the change shape is policy-listed and a recorded
+  auto-pass + live-eval ledger line + diff summary exist, with no wait.
 
 ### Done means
 
@@ -168,10 +180,14 @@ new decisions changed; the spine byte-identical).
 - REC10 (F10) — trigger: an architecture choice with no KB learning and no recorded proposal.
   direction: search the KB via kb-search for the best-fit learning and ground the choice, or raise
   a KB-learning-gap proposal; never keep a taste-only choice. handoff: autonomous.
-- REC11 (F11) — trigger: the lens was persisted before the checkpoint was approved. direction:
-  revert the premature write and re-present the checkpoint; persist only after approval. handoff:
-  human.
+- REC11 (F11) — trigger: the lens was persisted before the checkpoint gate resolved. direction:
+  revert the premature write and re-present the checkpoint; persist only after the gate resolves
+  (approval, a recorded config skip, or a recorded policy auto-pass). handoff: human.
 - REC12 (F12) — trigger: the run is about to close COMPLETED with the Done means unmet. direction:
   close HALTED with `exit_reason: stop_condition_unmet` and the unmet clauses named; fix the state
   — re-run the verify capture, or complete the missing draft/apply step — and re-evaluate; the
   close stays HALTED until the verdict reads held. handoff: autonomous.
+- REC13 (F13) — trigger: a conditional-gate crossing left no live-eval ledger line, or an
+  auto-pass fired for a shape the policy does not list as auto (or with a blocking finding).
+  direction: re-append the missing ledger line via `gate_eval.py`; when the auto-pass was
+  unearned, revert any premature persist and re-run the gate as a live wait. handoff: autonomous.

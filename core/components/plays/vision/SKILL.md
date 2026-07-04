@@ -22,8 +22,10 @@ here.
 ## Compiled From
 
 This play was compiled from the vision ICE (`reference/ice.md`) by play-creator and
-recompiled by play-editor (#466 Batch C, Level 3 rollout per ADR 025).
-Intent defines constraints (C1–C8) and failure conditions (F1–F7); the expectation
+recompiled by play-editor (#466 Batch C, Level 3 rollout per ADR 025; #467 Batch B —
+the checkpoint upgraded to a conditional learned gate, see
+`standards/rules/gate-config.md`).
+Intent defines constraints (C1–C8) and failure conditions (F1–F8); the expectation
 defines success scenarios (S1–S4), a Done means (D1–D4, baked to
 `stop-condition.yaml`), and one recovery entry per failure condition.
 To modify this play, update `reference/ice.md` and recompile with play-editor.
@@ -36,11 +38,12 @@ domain work — KB grounding and seed authoring — to the `product-os-keeper` a
 JSON contracts over files on disk, and you run the mechanical checks (shape/spine
 validation, grounding, the content-quality eval, the additive merge) through bundled
 scripts and an isolated judge. You never write the grounding docs or the spine yourself,
-and you never persist anything before the human approves the single checkpoint (C7).
+and you never persist anything before the single checkpoint (C7) resolves — a typed
+approval, a recorded config skip, or a recorded policy auto-pass.
 
 **Forbidden:** hand-writing grounding docs or spine entries; writing to `product_base`
-by any route other than `scripts/apply_seed.py`; persisting the seed before Step 4
-approval; writing a functionality, a detailed capability, acceptance criteria, or a
+by any route other than `scripts/apply_seed.py`; persisting the seed before the Step 4
+gate resolves; writing a functionality, a detailed capability, acceptance criteria, or a
 `set`/`locked` profile (over-reach — F3).
 
 **Agent boundaries:**
@@ -220,20 +223,63 @@ On any GAP, apply the matching recovery (REC1–REC4) and re-run before the chec
 for a content-eval fail (SE-2), REC2 rewrites the doc to the judge's cited fixes and
 re-judges until the gate passes.
 
-### Phase: Checkpoint (mandatory — never skipped, C7)
+### Phase: Checkpoint (conditional gate, C7)
 
-**Step 4 — Human review (class: standard, pinned)** · Owner: play · Depends on: Step 3
-Pinned per `gate-config.md` — the brief-approval edge the epic keeps human (#460
-Stage 4); C7 mandates this gate, so no config value can resolve it off (an off value
-records `pinned — config bypass refused`).
-Present the proposed seed **inline** — the domain (its intent, the bet, its guiding
-rules, the directional capabilities), each capability's directional intent, and the
-directional profile (shape + rough NFR levels). This checkpoint is always presented and
-never skippable. Approve → continue to persist; cancel → halt with nothing written to
-the model.
-**SE-7 (F6/C7):** the seed is persisted only after this approval — Step 5 is the sole
+**Step 4 — Human review (class: standard, conditional)** · Owner: play · Depends on: Step 3
+This checkpoint is a **conditional gate** (#467) per `standards/rules/gate-config.md` —
+/vision is one of the eleven conditional document plays. Resolve it first match wins:
+pinned (n/a here) → `gates.plays.vision` → the learned policy → `gates.classes.standard`
+→ `gates.default` (absent ⇒ on). For the policy lookup, classify the draft-vs-live
+change shape first:
+
+```
+python3 scripts/classify_change.py --play vision --draft <working>/draft \
+        --live <product_base> --out <working>/shape.json
+```
+
+Look the shape key up in the config-resolved policy (`gates.conditional.policy`):
+**auto-pass** iff the shape is in the policy's `auto:` block AND not in `never_auto:`
+AND Step 3 stands with no blocking finding (a `lint_grounding.py` gap or a
+`grounding_gate.py` content-eval fail). On auto-pass, do NOT wait: record
+`gate auto-passed by learned policy (shape: <shape-key>, policy v<version>)` as a
+Checkpoint Decisions row, include the draft's diff summary in the run record, append
+the crossing's live-eval ledger line, and proceed to Step 5:
+
+```
+python3 scripts/gate_eval.py append --ledger <gates.conditional.ledger> --play vision \
+        --issue <strategy issue> --shape <shape-key> --predicted auto --human auto_pass \
+        --policy-version <policy version> --ts <run ts>
+```
+
+Anything else resolves the gate on (an explicit `gates.plays.vision: off` instead
+records `gate skipped by config (<resolution path>)` as a Checkpoint Decisions row and
+proceeds). When on, present the proposed seed **inline** — the domain (its intent, the
+bet, its guiding rules, the directional capabilities), each capability's directional
+intent, and the directional profile (shape + rough NFR levels) — render the approval
+prompt (`standards/templates/approval-prompt.md`) and wait for the typed response.
+Approve → continue to persist; cancel → halt with nothing written to the model. Then
+append the crossing's live-eval ledger line with the human's real action:
+
+```
+python3 scripts/gate_eval.py append --ledger <gates.conditional.ledger> --play vision \
+        --issue <strategy issue> --shape <shape-key> --predicted gate \
+        --human <approved_clean|approved_edited|rejected> --ts <run ts>
+```
+
+`<strategy issue>` is the strategy-pipeline issue Step 0 resolved.
+`<gates.conditional.ledger>` / `<gates.conditional.policy>` resolve from config
+`gates.conditional` (defaults `.garura/core/gate-evals.jsonl` /
+`.garura/core/gate-policy.yaml`); `<policy version>` is the policy file's `version:`
+field. `<run ts>` is the run's own UTC timestamp, derived the same way the close
+derives `ts` (`date -u`), passed by the orchestrator.
+**SE-7 (F6/C7):** the seed is persisted only after this gate resolves — a typed
+approval, a recorded config skip, or a recorded policy auto-pass; Step 5 is the sole
 writer to `product_base` and depends on this step; no product-model file exists before
 Step 5 runs.
+**SE-9 (F8):** every crossing of this gate appended exactly one live-eval ledger line
+(shape, predicted `gate|auto`, the human's real action or `auto_pass`), and an
+auto-pass fired only for a shape the policy lists in `auto:` (and not in `never_auto:`)
+with no blocking finding standing.
 
 ### Phase: Apply
 
@@ -288,7 +334,9 @@ profile it wrote is `directional`.
   doc and `written` holds only newly-added capabilities — existing content is untouched.
 - **SCE-4 (S4 — reviewer):** the Step 4 checkpoint showed the domain, the directional
   capabilities, and the directional profile inline, and no product-model file was
-  written before that approval.
+  written before that gate resolved — or, on the auto-pass path (a policy-listed
+  shape), the gate resolved with no wait and the recorded auto-pass, the appended
+  ledger line, and the diff summary stand in the approval's place.
 
 ### Phase: Evidence & Close
 
@@ -324,6 +372,8 @@ python3 scripts/check_stop_condition.py \
     --base "<working>/" \
     --out "${stm_base}_shaping/vision/status/stop-condition-vision.yaml"
 sc_exit=$?   # 0 held · 1 unmet · 2 error
+# Conditional-gate policy refresh (#467) — soft: a distill failure never blocks the close
+python3 scripts/distill_gate_policy.py --ledger "<gates.conditional.ledger>" --policy "<gates.conditional.policy>" --streak <gates.conditional.streak> --project "<project name from config>" || true
 ```
 
 `/vision` is product-scoped: `evidence_base="${product_base}_evidence/vision/"` and
@@ -341,7 +391,9 @@ Otherwise fill the `evidence-file.md` slots (play `vision`, run_id `vision-${ts}
 product_slug, started_at/completed_at, status per C0, exit_reason; artifacts produced:
 `grounding.yaml`, `seed-manifest.yaml`, the persisted spine + grounding-doc paths, the
 apply manifest, the stop-condition verdict; the content-eval verdicts; step and scenario
-eval results SE-1…SE-8 / SCE-1…SCE-4; checkpoint decision from Step 4; the session
+eval results SE-1…SE-9 / SCE-1…SCE-4; checkpoint decision from Step 4 (or the
+`gate skipped by config` / `gate auto-passed by learned policy` row when the gate
+resolved without a wait) plus the gate ledger line(s) appended this run; the session
 identity stamp fields from $session_stamp (#463): session_id, ledger_file,
 ledger_start_offset, ledger_end_offset (null when unresolved — never blocks the close);
 and stop_condition per C0 with the Stop Condition section filled) and write to
@@ -378,6 +430,7 @@ pointer to `$evidence_dest`. Always emitted; never gated.
 | F5 | the content of an existing spine entry or grounding doc changed during the run | restore the prior content and re-apply only the additive seed for absent entries, after a human confirms the restore | human |
 | F6 | a product-model file was written before the checkpoint was approved | revert the premature write and re-present the checkpoint; persist only after the human approves | human |
 | F7 | the close would report COMPLETED without the Done means held | evaluate the stop condition and surface the unmet clauses; the run closes HALTED until state is fixed | autonomous |
+| F8 | a conditional-gate crossing left no live-eval ledger line, or an auto-pass fired for a shape the policy does not list as auto (or that carried a blocking finding) | re-append the missing ledger line for the recorded crossing; when the auto-pass was unearned, re-run the gate as a live wait — render the approval prompt and wait for the typed response — before proceeding | autonomous |
 
 ## Pause and Resume
 
@@ -390,18 +443,18 @@ and creates the marker at Step 1.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:e659af5b97e8d27cad0c7221fffd6d9d73b0bcece14538cf8157aed0f6d9e7b4 (of `reference/ice.md`) |
-| compiled_by | play-editor (#466 Batch C); prior: play-creator (edited via play-editor, #437; spine+grounding+eval model) |
+| fingerprint | sha256:6483756816ee32b576e91421fca45de97682fe7da702dbd0a9bc827a47d1d96d (of `reference/ice.md`) |
+| compiled_by | play-editor (#467 Batch B); prior: play-editor (#466 Batch C); play-creator (edited via play-editor, #437; spine+grounding+eval model) |
 | pipeline_position | start (start-change head; the strategy pipeline closes at /roadmap) |
-| workflow_structure | A (mandatory checkpoint — class: standard, pinned per gate-config.md; stop-condition gated close) |
+| workflow_structure | A (single checkpoint — class: standard, conditional gate per gate-config.md #467; stop-condition gated close) |
 | stop_condition | stop-condition.yaml (D1–D4), gate live at Step C0 |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |
 | skills_used | search-kb, propose-kb-node, author-vision-seed |
-| scripts | 7 (preflight.py, lint_grounding.py, grounding_check.py, grounding_gate.py, apply_seed.py, check_stop_condition.py, session_stamp.py) |
-| step_evals | 8 (SE-1…SE-8) |
+| scripts | 10 (preflight.py, lint_grounding.py, grounding_check.py, grounding_gate.py, apply_seed.py, classify_change.py, gate_eval.py, distill_gate_policy.py, check_stop_condition.py, session_stamp.py) |
+| step_evals | 9 (SE-1…SE-9) |
 | scenario_evals | 4 (SCE-1…SCE-4) |
-| recovery_entries | 7 (one per failure condition; 5 autonomous / 2 human) |
+| recovery_entries | 8 (one per failure condition; 6 autonomous / 2 human) |
 
 **Direct-edit deviation note (drop-codex-judge):** the content-quality judge dispatch
 was simplified from three modes (subagent / different-model / codex grader) to a single
@@ -409,3 +462,6 @@ isolated sub-agent (with an optional model override). This is an execution-mecha
 change only — it touches no constraint, failure, scenario, or eval, so the ICE
 (`reference/ice.md`) and the fingerprint are unchanged. The `run_codex_judge.py` script
 was removed. A future rebuild from the ICE need not restore the dropped modes.
+
+**Recompiled note (#467 Batch B):** checkpoint upgraded to a conditional learned gate;
+see `gate-config.md`.
