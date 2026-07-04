@@ -9,5 +9,6 @@
   "checklist": {
     "required_count": 4,
     "optional_count": 5
-  }
+  },
+  "base": "main"
 }
