@@ -62,7 +62,13 @@ decision 24; 3-pipe realize 2026-06-26)
   recorded KB-learning-gap proposal — never the model's taste.
 - C11 — Exactly one human checkpoint, presenting the proposed components (with contracts), the
   stack, and the vertical build, plus any decision, before anything is written. Nothing persists
-  before approval.
+  before approval. The checkpoint is a config switch per `standards/rules/gate-config.md`
+  (class: standard, unpinned): the agent never skips it on its own judgment; a config-resolved
+  skip is recorded in the evidence, never silent (#466 Batch C).
+- C12 — The play ends by proving its Done means at close (gated, #464): the lens draft and its
+  grounding manifest exist, and the verify step's captured record confirms the approved lens was
+  applied surgically. A run that never applied — checkpoint cancelled, validation failed — closes
+  HALTED, never COMPLETED with the stop-condition verdict unmet.
 
 ### Failure conditions
 
@@ -83,6 +89,8 @@ decision 24; 3-pipe realize 2026-06-26)
   or an accepted decision was edited in place rather than superseded.
 - F10 — An architecture choice rests on neither a matched KB learning nor a recorded proposal.
 - F11 — The lens was persisted before the human approved the checkpoint.
+- F12 — The run closed COMPLETED without the Done means held — a missing lens draft or grounding
+  manifest, or no captured verify record proving the approved lens was applied.
 
 ## Expectation
 
@@ -112,6 +120,22 @@ decision 24; 3-pipe realize 2026-06-26)
   components (with contracts), the stack, and the vertical build, plus the decision, before any
   write. Measure: the checkpoint shows the lens inline; no product-model file is written before
   approval.
+
+### Done means
+
+Paths are relative to the run's working root (`{stm_base}_realize/arch/`). The draft dir holds
+the authored lens bundle — the slice's `architecture.md` under its lens path plus
+`arch-manifest.yaml`, the grounding map; `arch-checks.json` is the verify step's captured
+`check_arch.py` output — the play always captures it, and its `ok` field is the mechanical
+proof that the approved lens was applied surgically (only this slice's `architecture.md` and
+new decisions changed; the spine byte-identical).
+
+- D1 — says: "the architecture lens draft exists"
+  check: { type: artifact_exists, path: "draft/product-os/*/slices/*/lens/architecture.md" }
+- D2 — says: "the grounding manifest exists"
+  check: { type: artifact_exists, path: "draft/arch-manifest.yaml" }
+- D3 — says: "the approved lens was applied and verified surgical"
+  check: { type: field_equals, file: "arch-checks.json", field: "ok", equals: true }
 
 ### Recovery (one per failure condition)
 
@@ -147,3 +171,7 @@ decision 24; 3-pipe realize 2026-06-26)
 - REC11 (F11) — trigger: the lens was persisted before the checkpoint was approved. direction:
   revert the premature write and re-present the checkpoint; persist only after approval. handoff:
   human.
+- REC12 (F12) — trigger: the run is about to close COMPLETED with the Done means unmet. direction:
+  close HALTED with `exit_reason: stop_condition_unmet` and the unmet clauses named; fix the state
+  — re-run the verify capture, or complete the missing draft/apply step — and re-evaluate; the
+  close stays HALTED until the verdict reads held. handoff: autonomous.

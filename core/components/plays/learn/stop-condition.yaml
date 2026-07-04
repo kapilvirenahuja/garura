@@ -1,0 +1,16 @@
+# learn stop condition — baked from reference/ice.md "### Done means" (#464/#466 Batch C).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Single-pass play: the Done means is proven once, at the gated close. Paths are relative
+# to the run's STM root ({stm_base}{issue}/); <working> is its context/ dir.
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the proposed learnings manifest exists"
+      check: { type: artifact_exists, path: "context/draft/learn-manifest.yaml" }
+    - id: D2
+      says: "the applied model-update record exists"
+      check: { type: artifact_exists, path: "context/apply-manifest.json" }
+    - id: D3
+      says: "the approved updates were applied — machine-recorded"
+      check: { type: field_equals, file: "context/apply-manifest.json", field: "applied", equals: true }

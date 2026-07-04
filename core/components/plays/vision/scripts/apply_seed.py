@@ -19,7 +19,8 @@ Layer rule: pure file transform — reads the draft, writes the model. No git/gh
 
     python3 apply_seed.py --draft <draft_dir> --product-base <product_base>
 
-Prints {written[], skipped[]} JSON (entries tagged `doc:<rel>`,
+Prints {applied, written[], skipped[]} JSON (`applied: true` is the stop-condition
+gate's apply record, #464; entries tagged `doc:<rel>`,
 `spine:<kind>:<id>` for kind in domain|capability|functionality|slice|epic, and
 `spine:profile`) so the play has its non-destructive-re-run evidence. Exit 0 on success,
 2 on usage/parse error.
@@ -128,7 +129,9 @@ def main(argv=None):
         with open(live_spine_path, "w", encoding="utf-8") as fh:
             yaml.safe_dump(merged, fh, sort_keys=False, allow_unicode=True)
 
-    print(json.dumps({"written": sorted(written), "skipped": sorted(skipped)}, indent=2))
+    print(json.dumps({"applied": True,
+                      "written": sorted(written),
+                      "skipped": sorted(skipped)}, indent=2))
     return 0
 
 

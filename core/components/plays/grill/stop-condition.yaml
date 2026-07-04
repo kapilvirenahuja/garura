@@ -1,0 +1,26 @@
+# grill stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Paths are relative to the run's grill working base ({stm_base}_grill/<slice-id>/).
+# The grilling rounds themselves are HUMAN-PACED and UNCAPPED — the loop's exit is a
+# clean tension report, never an iteration cap; this manifest proves the exit at close.
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the final write-gate verdict exists — the grilling was checked, not assumed"
+      check: { type: artifact_exists, path: "write-gate.yaml" }
+    - id: D2
+      says: "the write-gate reads clean — the validator passed against the rounds"
+      check: { type: field_equals, file: "write-gate.yaml", field: "ok", equals: true }
+    - id: D3
+      says: "the grilling converged — zero live tensions in the final tension report"
+      check: { type: field_equals, file: "write-gate.yaml", field: "counts.live_tensions", equals: 0 }
+    - id: D4
+      says: "every delivery-method decision question carries the human's answer — zero open"
+      check: { type: field_equals, file: "write-gate.yaml", field: "counts.decision_questions_open", equals: 0 }
+    - id: D5
+      says: "the checkpoint resolved — the approval marker reads approved"
+      check: { type: field_equals, file: "approval.json", field: "approved", equals: true }
+    - id: D6
+      says: "the epic cut records exist — the persist was all-or-none, nothing refused"
+      check: { type: field_equals, file: "apply-manifest.json", field: "ok", equals: true }

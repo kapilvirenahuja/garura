@@ -1,0 +1,15 @@
+# ux stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Paths are relative to the run's working root ({stm_base}_realize/ux/).
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the drafted UX lens exists"
+      check: { type: artifact_exists, path: "draft/product-os/*/slices/*/lens/ux.md" }
+    - id: D2
+      says: "the grounding manifest exists"
+      check: { type: artifact_exists, path: "draft/ux-manifest.yaml" }
+    - id: D3
+      says: "the UX lens landed in the model tree — machine-recorded by the apply"
+      check: { type: field_equals, file: "apply-manifest.json", field: "lens_applied", equals: true }

@@ -65,7 +65,14 @@ and reads the hub only — never another lens. (#437; 3-pipe realize 2026-06-25)
   best-fit learning on the KB (matched via kb-search) or to a recorded KB-learning-gap proposal —
   never the model's taste.
 - C12 — Exactly one human checkpoint, presenting the intent, discoverability, accessibility, and
-  analytics, plus any decision, before anything is written. Nothing persists before approval.
+  analytics, plus any decision, before anything is written. The checkpoint is a **default-on config
+  gate** (`gate-config.md`, class: standard, not pinned): it fires unless config resolves it off,
+  and a config skip is always recorded in evidence — nothing persists before the gate resolves (a
+  typed approval, or a recorded skip).
+- C13 — The play ends by proving its Done means at close (gated, #464): the drafted lens and its
+  grounding manifest exist in the run's workspace, and the apply manifest carries the MACHINE field
+  `lens_applied: true` (the lens landed in the model tree) — never prose claims. A close whose Done
+  means does not hold reads HALTED, never COMPLETED.
 
 ### Failure conditions
 
@@ -87,7 +94,10 @@ and reads the hub only — never another lens. (#437; 3-pipe realize 2026-06-25)
   accepted decision was edited in place rather than superseded.
 - F11 — A discoverability/accessibility pattern rests on neither a matched KB learning nor a recorded
   proposal.
-- F12 — The lens was persisted before the human approved the checkpoint.
+- F12 — The lens was persisted before the checkpoint gate resolved — no typed approval and no
+  recorded config skip.
+- F13 — The run closed COMPLETED without the Done means held — a missing draft lens or grounding
+  manifest, or an apply manifest without the machine applied field true.
 
 ## Expectation
 
@@ -114,6 +124,15 @@ and reads the hub only — never another lens. (#437; 3-pipe realize 2026-06-25)
 - S6 — (reviewer, the checkpoint) Given the lens is ready, the checkpoint presents the intent,
   discoverability, accessibility, and analytics, plus any decision, before any write. Measure: the
   checkpoint shows the lens inline; no product-model file is written before approval.
+
+### Done means
+
+- D1 — says: "the drafted marketing lens exists"
+  check: { type: artifact_exists, path: "draft/product-os/*/slices/*/lens/marketing.md" }
+- D2 — says: "the grounding manifest exists"
+  check: { type: artifact_exists, path: "draft/marketing-manifest.yaml" }
+- D3 — says: "the marketing lens landed in the model tree — machine-recorded by the apply"
+  check: { type: field_equals, file: "apply-manifest.json", field: "lens_applied", equals: true }
 
 ### Recovery (one per failure condition)
 
@@ -146,5 +165,11 @@ and reads the hub only — never another lens. (#437; 3-pipe realize 2026-06-25)
 - REC11 (F11) — trigger: a discoverability/accessibility pattern with no KB learning and no recorded
   proposal. direction: search the KB via kb-search for the best-fit learning and ground the choice, or
   raise a KB-learning-gap proposal; never keep a taste-only choice. handoff: autonomous.
-- REC12 (F12) — trigger: the lens was persisted before the checkpoint was approved. direction: revert
-  the premature write and re-present the checkpoint; persist only after approval. handoff: human.
+- REC12 (F12) — trigger: the lens was persisted before the checkpoint gate resolved. direction: revert
+  the premature write and re-present the checkpoint; persist only after the gate resolves (approval,
+  or a recorded config skip). handoff: human.
+- REC13 (F13) — trigger: the run is about to close COMPLETED with the Done means unmet (a missing
+  draft or manifest artifact, or an apply manifest without the machine applied field). direction:
+  produce the missing artifact — re-run the failed step, or re-run `apply_marketing.py` so the apply
+  manifest carries the machine field — then re-evaluate the stop condition; the close stays HALTED
+  until the verdict reads held. handoff: autonomous.

@@ -47,7 +47,8 @@ def census(root):
 
 def is_lens(rel):
     parts = rel.split(os.sep)
-    return len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == "quality.md"
+    return (len(parts) >= 2 and parts[-2] == "lens"
+            and parts[-1] in ("quality.md", "quality-gates.yaml"))
 
 
 def is_decision(rel):

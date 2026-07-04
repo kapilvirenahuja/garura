@@ -1,0 +1,16 @@
+# roadmap stop condition — baked from reference/ice.md "### Done means" (#464/#466 Batch C).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Single-pass play: the Done means is proven once, at the gated close. Paths are relative
+# to the run's STM working root ({stm_base}_shaping/roadmap/).
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the plan draft exists"
+      check: { type: artifact_exists, path: "plan-draft.yaml" }
+    - id: D2
+      says: "the computed plan record exists"
+      check: { type: artifact_exists, path: "plan.json" }
+    - id: D3
+      says: "the computed plan's orders are coherent — every slice ordered 1..N with its order fields, no cycle persisted"
+      check: { type: field_equals, file: "plan.json", field: "orders_coherent", equals: true }
