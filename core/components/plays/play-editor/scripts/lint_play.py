@@ -329,6 +329,27 @@ def check_next_command(ctx):
     return [(ok, "next-command (pipeline-next)", detail)]
 
 
+# --- concurrent read-only fan-out declaration (#468; convergence-lint) ------------
+def check_fanout_declaration(ctx):
+    # Non-breaking: fires ONLY when the play invokes the concurrent read-only
+    # fan-out pattern (cites concurrent-fanout.md). A step that claims concurrency
+    # must make its safety visible — the JOIN barrier and the READ-ONLY condition
+    # (standards/rules/concurrent-fanout.md). A play that never fans out is silent.
+    text = ctx["text"]
+    if "concurrent-fanout.md" not in text:
+        return []
+    low = text.lower()
+    missing = []
+    if "join" not in low:
+        missing.append("the join barrier ('join')")
+    if "read-only" not in low:
+        missing.append("the read-only condition ('read-only')")
+    return [(not missing, "concurrent fan-out (#468)",
+             "fan-out declares its join + read-only safety"
+             if not missing else "cites concurrent-fanout.md but does not declare "
+                                  + " and ".join(missing))]
+
+
 CHECKS = [
     check_sections,
     check_coverage,
@@ -341,6 +362,7 @@ CHECKS = [
     check_stop_condition,
     check_fingerprint,
     check_next_command,
+    check_fanout_declaration,
 ]
 
 

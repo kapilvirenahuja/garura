@@ -192,6 +192,15 @@ play's **pre-flight checks** here too: every constraint that is really an enviro
 precondition ("must be on a feature branch", "config must exist") becomes a pre-flight
 check with an action-on-failure (hard halt, graceful exit, or hard block).
 
+**Concurrent read-only fan-out (#468).** When a step does the same read-only work over N
+independent items — one isolated sub-agent per doc, one runner per check — emit it as a
+concurrent fan-out (one batch, then join), not a serial loop, provided the three safety
+conditions hold (read-only over shared inputs, distinct output paths, no sibling
+dependency). The form and the required declaration are in
+[`references/workflow-structures.md`](references/workflow-structures.md) and
+`standards/rules/concurrent-fanout.md`. A step whose sub-tasks WRITE the tree stays serial
+(that is #488).
+
 **Pre-flight resolver (harness-led — emit it).** The deterministic part of pre-flight is
 not orchestrator inference. Stamp the canonical resolver into the compiled play at
 `scripts/preflight.py`, copied verbatim from
