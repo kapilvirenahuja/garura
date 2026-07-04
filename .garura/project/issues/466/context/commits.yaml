@@ -1,7 +1,7 @@
 commits:
 excluded_files:
   []
-leftover_count: 1
-tree_clean: false
+leftover_count: 0
+tree_clean: true
 pushed: false
 run_state_committed: true
