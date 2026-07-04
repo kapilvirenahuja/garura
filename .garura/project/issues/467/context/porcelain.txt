@@ -1,0 +1,7 @@
+ M .garura/core/config.yaml
+ M core/components/memory/standards/rules/gate-config.md
+?? .garura/project/issues/467/context/porcelain.txt
+?? core/components/plays/play-creator/references/classify_change.py
+?? core/components/plays/play-creator/references/distill_gate_policy.py
+?? core/components/plays/play-creator/references/gate_eval.py
+?? core/components/plays/play-creator/references/test_gate_learning.py
