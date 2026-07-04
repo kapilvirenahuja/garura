@@ -1,7 +1,7 @@
 {
-  "number": 474,
-  "url": "https://github.com/kapilvirenahuja/garura/pull/474",
-  "head": "feature/466-goal-loop-rollout",
+  "number": 475,
+  "url": "https://github.com/kapilvirenahuja/garura/pull/475",
+  "head": "feature/466-batch-b-execute-pipe",
   "base": "main",
   "updated_existing": false
 }
