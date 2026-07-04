@@ -255,9 +255,14 @@ python3 scripts/run_checks.py --manifest {working}/plan/checks.yaml \
         --results-dir {working}/results [--only <prior-findings' check ids, round > 1>]
 ```
 
-The orchestrator dispatches each check to its runner; runners ensure their tool (install
-when the manifest says how), run it, and emit normalized records. A tool that cannot run
-is `status: error` — recorded, never skipped.
+The orchestrator dispatches each check to its runner as a **concurrent read-only fan-out**
+(`standards/rules/concurrent-fanout.md`): the checks run in a bounded worker pool and JOIN
+before the summary is built. The three safety conditions hold — each check only READS the
+code (SE-12 proves the tracked-file set is byte-unchanged), each writes only its own
+`<check_id>.json`, and no check consumes another's output; results are collected in
+manifest order, so `summary.json` is identical to a serial run. Runners ensure their tool
+(install when the manifest says how), run it, and emit normalized records. A tool that
+cannot run is `status: error` — recorded, never skipped.
 **SE-5 (F5/C4, C7):** every result in `{working}/results/` was emitted by a runner (each
 carries `raw_log_path`; `summary.json` counts them); no check result was authored by an
 agent or inline prose; everything that ran, ran to TEST — the manifest carries no
@@ -554,3 +559,14 @@ points at the `.md` lenses + the spine. The gate LOGIC (every declared bar maps 
 result; an unmeasured bar is not a passed bar) is identical — only the definition source moved
 from YAML to the linted, eval-gated grounding docs. `reference/ice.md` and the fingerprint are
 unchanged.
+
+**Direct-edit deviation note (#468 Stage 5, concurrent fan-out):** `run_checks.py` now runs
+its per-tool check runners as a concurrent read-only fan-out — a bounded worker pool that
+joins before the summary is built (`standards/rules/concurrent-fanout.md`) — instead of a
+serial loop. The three safety conditions hold (each check reads only the code, writes only
+its own `<check_id>.json`, and depends on no other), and results are collected in manifest
+order, so `summary.json` is byte-identical to a serial run; a `--max-parallel 1` flag forces
+the old serial behavior. Execution-timing change only: no constraint/failure/scenario/eval
+touched, the finder-not-fixer guarantee (SE-12) is unchanged, and `reference/ice.md` and the
+fingerprint stand. A duplicate-`check_id` guard was added because concurrent runners must not
+race on the same result file.

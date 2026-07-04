@@ -162,11 +162,16 @@ resolving against the domain) is checked post-apply in Step 6 against the merged
 python3 scripts/lint_grounding.py --root <working>/draft/product-os
 ```
 
-Then run the **content-quality eval** over EACH grounding doc the draft adds or changes
-(the detailed `capability.md` and every new `functionality.md`): spawn an isolated,
-clean-context sub-agent handed the judge prompt (`standards/rules/grounding-eval.md`), the
-doc, and the kind's per-section guidance (it sees neither the brief nor the author's
-reasoning), on the model from `grounding-eval.judge.model`. Gate every returned verdict:
+Then run the **content-quality eval** over the grounding docs the draft adds or changes
+(the detailed `capability.md` and every new `functionality.md`) as a **concurrent
+read-only fan-out** (`standards/rules/concurrent-fanout.md`): dispatch one isolated,
+clean-context judge sub-agent PER doc, ALL IN ONE CONCURRENT BATCH — each handed the judge
+prompt (`standards/rules/grounding-eval.md`), its doc, and the kind's per-section guidance
+(it sees neither the brief nor the author's reasoning), on the model from
+`grounding-eval.judge.model`. The three safety conditions hold: each judge only READS its
+own doc, writes only its own verdict JSON, and no judge depends on another. **Join** —
+wait for every verdict to return before gating any. Then gate every returned verdict
+(order-stable, so the outcome is identical to a serial run):
 
 ```
 python3 scripts/grounding_gate.py --verdict <verdict.json>
@@ -461,3 +466,12 @@ runs everything and creates the marker at Step 1.
 
 **Recompiled note (#467 Batch B):** checkpoint upgraded to a conditional learned gate;
 see `gate-config.md`.
+
+**Direct-edit deviation note (#468 Stage 5, concurrent fan-out):** the Step 2
+content-quality judge loop was changed from a serial per-doc loop to a concurrent
+read-only fan-out — one isolated judge per doc dispatched in one batch, joined before
+gating (`standards/rules/concurrent-fanout.md`). Execution-timing change only: each judge
+stays isolated and read-only, writes only its own verdict, and the gate still runs over
+every verdict, so coverage (SE-4) is unchanged. No constraint, failure, scenario, or eval
+touched — the ICE (`reference/ice.md`) and fingerprint stand. play-creator emits the same
+fan-out form so a rebuild converges.
