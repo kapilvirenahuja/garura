@@ -1,6 +1,6 @@
 {
-  "branch_name": "feature/467-batch-d-execute-gates-off",
-  "base_sha": "564be111bc5793d71c0ee1313946e7b38f6c3e4a",
+  "branch_name": "feature/467-repin-merge-land",
+  "base_sha": "9c880ea8bcc3759a8810a04a61e28568632faf86",
   "on_default_branch": false,
   "worktree_path": null
 }
