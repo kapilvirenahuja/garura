@@ -1,6 +1,6 @@
 {
-  "branch_name": "feature/467-repin-merge-land",
-  "base_sha": "9c880ea8bcc3759a8810a04a61e28568632faf86",
+  "branch_name": "feature/467-pin-deploy",
+  "base_sha": "7ada772bc3f44c8897715161bf459f836cef43b5",
   "on_default_branch": false,
   "worktree_path": null
 }
