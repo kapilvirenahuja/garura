@@ -27,8 +27,16 @@ come only via injection.
   and why it is wrong. Restating the issue title or description is not RCA.
 - C3 — The fix design must weigh at least one alternative with the reason it was
   rejected.
-- C4 — There is exactly one human checkpoint, after RCA and fix design are complete.
-  It is never skippable and is always presented.
+- C4 — The design checkpoint is no longer a pinned human gate: it resolves per
+  `standards/rules/gate-config.md` (per-play override `gates.plays.fix-bug`, now
+  **off** — the skip is recorded). When it is off, the fix proceeds only behind the
+  machine preconditions that already made the human redundant: a completed RCA (root
+  cause traced to the specific file and logic), a fix design carrying at least one
+  weighed alternative, and a regression test proven **red before** the fix. TDD
+  red-before-green is the hard invariant and is never gated. Any of the three missing
+  is a hard halt — the fix never starts. When the switch is flipped back on, the
+  single checkpoint is presented after RCA and fix design are complete, exactly as
+  before.
 - C5 — After the checkpoint is approved, implementation and verification run with no
   further human approval.
 - C6 — RCA and design are grounded in the product's and core knowledge via the
@@ -77,6 +85,9 @@ come only via injection.
 - F11 — The checkpoint was approved but no background issue update was dispatched.
 - F12 — The close proves nothing — the play closes COMPLETED without the Done means
   held.
+- F13 — With the gate off, the fix proceeded to implementation without all three
+  machine preconditions present — a completed RCA, a fix design carrying an
+  alternative, and a regression test proven red before the fix.
 
 ## Expectation
 
@@ -158,3 +169,8 @@ come only via injection.
 - REC12 (F12) — trigger: the close would report COMPLETED without the Done means
   held. direction: evaluate the stop condition and surface the unmet clauses; the
   run closes HALTED until state is fixed. handoff: autonomous.
+- REC13 (F13) — trigger: the gate resolved off and an implement step is starting
+  while any of the RCA, the fix design, or a red-verified regression test is missing.
+  direction: HARD HALT and name the missing precondition; do not start the fix until
+  all three exist (re-run the producing step per REC2/REC3/REC10 as needed).
+  handoff: autonomous.

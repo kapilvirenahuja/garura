@@ -40,8 +40,9 @@ human sign-off. (#434, decisions 20 + 24)
 ## Compiled From
 
 This play was compiled from the validate ICE (`reference/ice.md`) by play-editor
-(#466 Batch B, Level 3 rollout per ADR 025). Intent defines constraints (C1–C14) and
-failure conditions (F1–F14); the expectation defines success scenarios (S1–S5), a Done
+(#466 Batch B, Level 3 rollout per ADR 025; #467 Batch D turned the Step 4 plan-review
+gate off and elevated its machine precondition). Intent defines constraints (C1–C15) and
+failure conditions (F1–F15); the expectation defines success scenarios (S1–S5), a Done
 means (D1–D4, baked to `stop-condition.yaml`), and one recovery entry per failure
 condition. This play is SINGLE-PASS per run: no internal loop, no iteration cap — the
 implement ↔ validate fix loop lives ACROSS runs; the Done means is proven once, at the
@@ -216,15 +217,34 @@ id that resolves or a proposal file that exists; none is invented. On GAP, apply
 ### Phase: Checkpoint (skippable)
 
 **Step 4 — Review the plan** · Owner: play · Depends on: Step 3 · **Checkpoint (class: standard)**
-Present the check plan in plain language: the stacks detected, the checks per bar, the
-regression scope and its source, any KB gaps or lens-vs-repo mismatches from `notes`.
-**Skip rule:** when `check-choices.yaml` grounded clean with zero proposals and the plan's
-`notes` are empty, skip — post the summary and continue. Otherwise wait for a typed
-response. The checkpoint is additionally a config switch per
-`standards/rules/gate-config.md` (first match wins: `gates.plays.validate` →
-`gates.classes.standard` → `gates.default`; absent ⇒ on): when it resolves off, do not
-wait — record `gate skipped by config (<resolution path>)` as a Checkpoint Decisions row
-in the evidence and proceed.
+Resolve the checkpoint's gate FIRST, per `standards/rules/gate-config.md` (first match
+wins: `gates.plays.validate` → `gates.classes.standard` → `gates.default`; absent ⇒ on).
+Under #467 Batch D `gates.plays.validate` is **off** — the human plan-review is redundant
+because the manifest is fully DERIVED (Step 2 detects the stacks, Step 3 grounds every
+tool choice in the KB, and any ungroundable pick already halted as a KB-learning-gap at
+Step 3, C12/F12). The gate governs ONLY the human review; that grounding wall is the
+machine's and is never gated (C15).
+
+- **off** — do NOT wait. The precondition that replaces the human review is the machine
+  wall: `check-choices.yaml` grounded clean at Step 3 — every check traces to a
+  stack-detection result plus a KB-grounded tool choice, no ungrounded pick. Record
+  `gate skipped by config (gates.plays.validate)` as a Checkpoint Decisions row in the
+  evidence and proceed. If any tool choice is ungrounded and was NOT recorded as a
+  KB-learning-gap, do NOT proceed — apply REC15: halt, run the KB search, record the gap,
+  re-derive, and proceed only when the manifest is fully grounded (this halt is the
+  machine wall, never gated).
+- **on** — present the check plan in plain language: the stacks detected, the checks per
+  bar, the regression scope and its source, any KB gaps or lens-vs-repo mismatches from
+  `notes`. **Skip rule:** when `check-choices.yaml` grounded clean with zero proposals and
+  the plan's `notes` are empty, skip — post the summary and continue. Otherwise wait for a
+  typed response.
+
+**SE-16 (F15/C15):** every entry in `checks.yaml` traces to a stack-detection result plus
+a KB basis (its `check-choices.yaml` learning id resolves) OR to a recorded
+KB-learning-gap proposal under `{working}/plan/proposals/` — the off-path precondition
+holds; a proceed on an ungrounded, unrecorded choice is F15 (REC15). The Step 4 gate
+resolution (fired, skipped, or its config-skip row) is recorded in the evidence either
+way — never silent.
 
 ### Phase: Execute
 
@@ -476,6 +496,7 @@ Steps table from the task DAG, the Artifacts Produced table, Next Steps, and a p
 | F12 | an ungrounded scan choice with no gap recorded | run the KB search; if still uncovered, record the gap proposal, then proceed | autonomous |
 | F13 | the required surface check for the epic's `surface.type` was not run, or the captured surface result does not match the declared type | stamp `fix_required` naming the unmeasured/mismatched surface (the `surface.type` and the `must_open`/`human_run_target` it owed), and re-admit /implement to restore it so the next round can measure it | autonomous |
 | F14 | the close would stamp COMPLETED without the stop-condition verdict held | evaluate the stop condition, surface the unmet clauses, and close HALTED (`stop_condition_unmet`) until they are fixed — an unevaluable verdict is never a pass | autonomous |
+| F15 | with the plan-review gate off, the manifest reached the check-execution step carrying an ungrounded tool choice that was neither KB-matched nor recorded as a KB-learning-gap | halt before the checks run; run the KB search for the uncovered choice, record the KB-learning-gap proposal, re-derive the manifest, and proceed only when every check is fully grounded | autonomous |
 
 ## Pause and Resume
 
@@ -490,21 +511,21 @@ at Step 1. Each round is its own progress marker; a resumed round never re-count
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:cfef3dc0eca745c73584a2499b0e566d15c753c779de30a9dac77229d98171c3 (of `reference/ice.md`) |
-| compiled_by | play-editor (#466 Batch B) |
+| fingerprint | sha256:01bbfe25700849b61f01cc3d0ee6390e2578db62c704560ea22831e01cea3ac8 (of `reference/ice.md`) |
+| compiled_by | play-editor (#466 Batch B; #467 Batch D — Step 4 gate off + C15/F15/REC15/SE-16) |
 | pipeline_position | none |
 | position_exception | middle of the execute pipeline (implement → validate → launch) — runs on the epic branch /implement started; the close chain belongs to /launch after human sign-off (#434, decisions 20 + 24) |
 | structural_constraints | C2-part (finder/fixer split — no code-edit step exists), C4 (judge skill carries no Bash; mechanics only via runners), C7 (no acceptance-deploy step — run-to-test only), C9 (remediation only via the posted report; no builder dispatch), C10-position (execute middle — no head, no close) |
-| workflow_structure | A (checkpoint skippable when the plan grounds clean); single-pass — no loop, no cap; gated close |
+| workflow_structure | A (Step 4 checkpoint gate off under #467 Batch D — the human plan-review is replaced by the KB-grounding wall, C15; still skippable when on and the plan grounds clean); single-pass — no loop, no cap; gated close |
 | stop_condition | stop-condition.yaml (D1–D4), gate live at Step C0 |
 | domain_agents | 1 (quality-auditor) |
 | utility_agents | 2 (project-orchestrator, repo-orchestrator) |
 | skills_used | plan-validation-checks, judge-validation-results, kb-search, manage-issue |
 | standards_consumed | standards/rules/gate-config.md (Step 4 switch); standards/rules/play-close.md; standards/rules/pipeline-next.md |
 | scripts | 13 + 8 runners (preflight.py, check_ready_validate.py, resolve_blast_scope.py, run_checks.py, check_gates.py, check_kb_grounding.py, compute_verdict.py, stamp_epic.py, render_fix_report.py, check_validate.py, session_stamp.py — session identity stamp, check_stop_condition.py — Done-means gate, runners/_runner_common.py + 7 runner_*.py) |
-| step_evals | 15 (SE-1…SE-15; every failure condition covered; SE-14 covers the surface contract F13/C13 at the plan and verdict halves; SE-15 covers the gated close F14/C14) |
+| step_evals | 16 (SE-1…SE-16; every failure condition covered; SE-14 covers the surface contract F13/C13 at the plan and verdict halves; SE-15 covers the gated close F14/C14; SE-16 covers the gate-off manifest-grounding precondition F15/C15) |
 | scenario_evals | 5 (SCE-1…SCE-5) |
-| recovery_entries | 14 (one per failure condition; 12 autonomous / 2 human) |
+| recovery_entries | 15 (one per failure condition; 13 autonomous / 2 human) |
 
 ## Direct-edit deviation note (#434, spine + grounding model)
 

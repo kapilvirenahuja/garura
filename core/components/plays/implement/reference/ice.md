@@ -92,13 +92,19 @@ a resume: the issue and branch already exist; nothing is duplicated.
   finding; no fresh breakdown, no fresh workspace; the epic flips fix_required
   → in_delivery at re-entry; and work beyond what the report names is out of
   box.
-- C15 — The build never begins until a human has explicitly approved the spec.
-  On the initial build this approval is mandatory and never skipped — it is the
-  last human checkpoint before the build runs autonomously, the point where
-  human and agent align on what will be built. A fix round does not re-gate: it
-  is report-bounded (C14), its revision pieces trace to /validate's findings and
-  cannot widen the approved box, so it re-enters and proceeds without a fresh
-  approval.
+- C15 — The spec-approval checkpoint is no longer a pinned human gate: it resolves
+  per `standards/rules/gate-config.md` (per-play override `gates.plays.implement`,
+  now **off** — the skip is recorded). When it is off, the autonomous build starts
+  only when the machine preconditions that made the human redundant all hold: the
+  build plan lints clean (`validate_plan.py` exit 0), every plan piece carries a
+  grounding citation into the box (epic | ice | lens | repo), and steelman evals
+  exist for the epic. Crucially, any `open_questions` entry in the plan remains a
+  HARD HALT to a human — an open question IS a genuine human need, and it is the one
+  human beat that stays, as a machine-detected halt rather than a blanket gate. When
+  the switch is flipped back on, the spec is presented and the build waits for a typed
+  human approval, exactly as before. A fix round does not re-gate: it is
+  report-bounded (C14), its revision pieces trace to /validate's findings and cannot
+  widen the approved box, so it re-enters and proceeds without a fresh approval.
 - C16 — The approved artifact is a spec: a crisp, human-readable, ICE-shaped
   boundary document — Intent (what the build delivers), Context (the rules,
   patterns, design decisions, and configuration — ports and the like — the build
@@ -169,6 +175,9 @@ a resume: the issue and branch already exist; nothing is duplicated.
   `surface.type` without human approval — the promised user surface is silently
   downgraded to a local service/read-model.
 - F16 — COMPLETED without the Done means held.
+- F17 — With the gate off, the autonomous build started on an unlinted or ungrounded
+  plan, with the steelman evals missing, or with an unresolved `open_questions` entry
+  still in the plan.
 
 ## Expectation
 
@@ -314,3 +323,10 @@ a resume: the issue and branch already exist; nothing is duplicated.
   condition, surface the unmet clauses in the evidence's Stop Condition section,
   and close HALTED with exit_reason stop_condition_unmet — never COMPLETED.
   handoff: autonomous.
+- REC17 (F17) — trigger: a build-loop dispatch is about to start with the gate off
+  while the plan is unlinted or ungrounded (`validate_plan.py` non-zero), the steelman
+  evals are absent, or an `open_questions` entry is unresolved. direction: an
+  unresolved open question HALTS to a human — present it and dispatch nothing until it
+  is answered; the rest is autonomous — hold the build, name what is missing, and clear
+  it (re-lint/re-ground the plan, or author the evals) before any dispatch.
+  handoff: mixed (open_question → human; the rest autonomous).

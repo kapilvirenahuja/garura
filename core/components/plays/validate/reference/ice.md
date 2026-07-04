@@ -77,6 +77,16 @@ write is the surgical epic stamp. (#434, decisions 20 + 24)
   either way — `validated` or `fix_required` — counts as done; an unstamped run does not.
   The run is SINGLE-PASS: the implement ↔ validate fix loop lives ACROSS runs, never
   inside one.
+- C15 — The plan-review checkpoint (Step 4, class standard) resolves as a gate per
+  `standards/rules/gate-config.md` (first match wins: `gates.plays.validate` →
+  `gates.classes.standard` → `gates.default`; absent ⇒ on; per-play now off under #467
+  Batch D). The resolution — fire or skip — is always recorded, never silent. The switch
+  gates ONLY the human review; the manifest's grounding wall is the machine's, never gated.
+  When the gate is off, the check manifest proceeds on its DERIVED basis — every check
+  traces to a stack-detection result plus a KB-grounded tool choice — and ANY ungroundable
+  tool choice remains a KB-learning-gap HARD HALT (the machine wall). The human plan-review
+  is replaced by exactly this precondition: the manifest is fully grounded — no ungrounded
+  pick — before the checks run.
 
 ### Failure conditions
 
@@ -100,6 +110,9 @@ write is the surgical epic stamp. (#434, decisions 20 + 24)
   `surface.type`).
 - F14 — The close proves nothing — COMPLETED without the Done means held (e.g. the checks
   ran but no verdict was stamped).
+- F15 — With the plan-review gate off, the check manifest ran with an ungrounded tool
+  choice that was neither KB-matched nor recorded as a KB-learning-gap — the machine
+  precondition that replaced the human review was not actually met before the checks ran.
 
 ## Expectation
 
@@ -178,3 +191,8 @@ write is the surgical epic stamp. (#434, decisions 20 + 24)
   verdict held. direction: evaluate the stop condition, surface the unmet clauses, and
   close HALTED (`stop_condition_unmet`) until they are fixed — an unevaluable verdict is
   never a pass. handoff: autonomous.
+- REC15 (F15) — trigger: an off-gate run reached the check-execution step with the manifest
+  carrying an ungrounded tool choice that was neither KB-matched nor recorded as a
+  KB-learning-gap. direction: halt before the checks run; run the KB search for the
+  uncovered choice, record the KB-learning-gap proposal, then re-derive the manifest and
+  proceed only when every check is fully grounded. handoff: autonomous.

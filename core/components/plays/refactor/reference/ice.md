@@ -37,8 +37,16 @@ injected as the closing chain. This source never hand-rolls issue/branch/PR/merg
 - C5 — Real quality improvement: the change targets concrete quality issues (duplication,
   complexity, naming, structure) per the quality standards — not cosmetic churn or restyling for
   its own sake.
-- C6 — Exactly one human checkpoint on the refactor plan (what improves, why, and how behavior is
-  held) before any code changes; after approval no further human approval is requested.
+- C6 — The refactor-plan checkpoint (Step 5, class standard, NOT pinned) resolves as a gate per
+  `standards/rules/gate-config.md` (first match wins: `gates.plays.refactor` →
+  `gates.classes.standard` → `gates.default`; absent ⇒ on; per-play now off under #467 Batch D).
+  The resolution — fire or skip — is always recorded, never silent. When ON, exactly one human
+  checkpoint on the refactor plan (what improves, why, and how behavior is held) precedes any code
+  change, and after approval no further human approval is requested. When OFF, the refactor proceeds
+  ONLY behind the behavior-pin machine wall (C3): the characterization/behavior suite captured and
+  GREEN before the refactor, GREEN after, and no test weakened or deleted — any of those failing is
+  a HARD HALT, never gated. The human plan-approval is replaced by exactly this behavior-pin
+  precondition.
 - C7 — The play ends by proving its Done means at close (gated, #464): the refactor plan exists,
   the pre-refactor behavior baseline record exists, and behavior preservation is recorded as
   MACHINE fields — the behavior guard writes a preservation record whose `behavior_preserved`
@@ -57,6 +65,9 @@ injected as the closing chain. This source never hand-rolls issue/branch/PR/merg
 - F6 — The refactor landed (any code change was made) without the single human checkpoint.
 - F7 — The run closed COMPLETED without the Done means held — a missing plan or baseline
   artifact, or behavior preservation asserted in prose with no machine preservation record.
+- F8 — With the plan-approval gate off, a refactor proceeded or landed without the behavior-pin
+  holding — the behavior suite was not green both before and after, or a test was weakened/deleted —
+  so the machine precondition that replaced the human approval was not actually met.
 
 ## Expectation
 
@@ -117,3 +128,8 @@ injected as the closing chain. This source never hand-rolls issue/branch/PR/merg
   produce the missing artifact — re-run the behavior guard with `--out` so the preservation
   record carries the machine fields — then re-evaluate the stop condition; the close stays HALTED
   until the verdict reads held. handoff: autonomous.
+- REC8 (F8) — trigger: with the gate off, a refactor proceeded or landed while the behavior-pin was
+  broken (baseline or post not green, or a test weakened/deleted). direction: restore the
+  behavior-pin — re-capture or repair the characterization suite to green on the pre-refactor code
+  and restore any weakened test to its prior strength — re-run the behavior guard, and do not land
+  until green before AND after. handoff: human.
