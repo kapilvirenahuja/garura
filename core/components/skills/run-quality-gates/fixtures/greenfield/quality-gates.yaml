@@ -1,0 +1,28 @@
+# Fixture: GREENFIELD — a project with NO tooling at all (#462 acceptance).
+# Expectation: every machine card comes back missing-tool (a finding, never a
+# silent pass); the human card comes back human (visible skip). Zero passes.
+schema:
+  name: lens
+  type: quality-gates
+
+content:
+  gates:
+    - id: code-health
+      dimension: Code health
+      bar: Zero lint errors
+      owner: machine
+      requires: { tool: eslint, tool_bins: [eslint-gf-fixture-absent], install: "npm i -D eslint" }
+      command: "npx eslint ."
+    - id: test-depth
+      dimension: Test depth
+      bar: Line coverage at or above 80%
+      owner: machine
+      requires: { tool: pytest-cov, tool_bins: [pytest-gf-fixture-absent] }
+      command: "pytest --cov"
+      measure: coverage_pct
+      threshold: ">= 80"
+    - id: visual-design
+      dimension: Visual design
+      bar: Layout matches the approved UX direction
+      owner: human
+      review: "HITL walk at /launch"

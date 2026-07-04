@@ -1,0 +1,41 @@
+# Fixture: BROWNFIELD — a project WITH tooling (python3 stands in for the
+# project's own tools) plus ONE deliberately unmet demand (#462 acceptance).
+# Expectation: gate-pass passes, gate-fail fails, gate-coverage passes its
+# threshold read, gate-absent comes back missing-tool, human card visible.
+schema:
+  name: lens
+  type: quality-gates
+
+content:
+  gates:
+    - id: gate-pass
+      dimension: Lint clean
+      bar: Checker exits clean
+      owner: machine
+      requires: { tool: custom-check, tool_bins: [python3] }
+      command: "python3 check_pass.py"
+    - id: gate-fail
+      dimension: No forbidden pattern
+      bar: Checker finds zero violations
+      owner: machine
+      requires: { tool: custom-check, tool_bins: [python3] }
+      command: "python3 check_fail.py"
+    - id: gate-coverage
+      dimension: Test depth
+      bar: Coverage at or above 80%
+      owner: machine
+      requires: { tool: custom-check, tool_bins: [python3] }
+      command: "python3 check_coverage.py"
+      measure: coverage_pct
+      threshold: ">= 80"
+    - id: gate-absent
+      dimension: Accessibility
+      bar: WCAG 2.1 AA automated checks clean
+      owner: machine
+      requires: { tool: axe-core, tool_bins: [axe-bf-fixture-absent] }
+      command: "axe ."
+    - id: gate-human
+      dimension: Visual design
+      bar: Layout matches the approved UX direction
+      owner: human
+      review: "fresh-context reviewer on the PR"

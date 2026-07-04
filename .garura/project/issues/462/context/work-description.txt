@@ -1,0 +1,1 @@
+Stage 1a of the IDSD Level 3 epic (#460): Make the quality lens checkable — the deterministic slice of the gates table (linters, tests, type checks, architecture rules, coverage) gains a machine-runnable form; a runner executes it and emits pass/fail per gate into evidence. Design, UX, security judgment stay human/reviewer-owned. Tracked issue: #462.

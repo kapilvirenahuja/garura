@@ -1,0 +1,57 @@
+---
+# analyze_changeset.py output (C8 fast path), grouped by analyze-changes agent
+needs_judgment: false
+branch: feature/462-quality-lens-runner
+issue: 462
+
+change_groups:
+  - id: feat-components
+    issue: 462
+    commit_type: feat
+    scope: components
+    subject: "add executable quality-gate binding cards, runner skill, and evidence wiring"
+    confidence: high
+    files:
+      - core/components/memory/standards/schemas/product-os/lens/quality-gates.yaml
+      - core/components/memory/standards/schemas/product-os/grounding/lens/quality.md
+      - core/components/skills/author-quality-lens/SKILL.md
+      - core/components/skills/run-quality-gates/SKILL.md
+      - core/components/skills/run-quality-gates/scripts/run_quality_gates.py
+      - core/components/skills/run-quality-gates/fixtures/greenfield/quality-gates.yaml
+      - core/components/skills/run-quality-gates/fixtures/brownfield/quality-gates.yaml
+      - core/components/skills/run-quality-gates/fixtures/brownfield/check_pass.py
+      - core/components/skills/run-quality-gates/fixtures/brownfield/check_fail.py
+      - core/components/skills/run-quality-gates/fixtures/brownfield/check_coverage.py
+      - core/components/memory/standards/templates/evidence-file.md
+    risks:
+      sensitive_files: []
+      breaking_changes: []
+    notes: "Stage 1a of epic #460: binding schema, updated lens contract, author extension (v0.4.0), the run-quality-gates runner with greenfield/brownfield proof fixtures, and the evidence template's Gate Outcomes section — one feature (executable quality gates), kept as a single commit."
+
+  - id: chore-stm
+    issue: 462
+    commit_type: chore
+    scope: stm
+    subject: "record workspace context for the quality-gates runner build"
+    confidence: high
+    files:
+      - .garura/project/issues/462/context/work-description.txt
+      - .garura/project/issues/462/context/issue.json
+      - .garura/project/issues/462/context/branch.json
+      - .garura/project/issues/462/context/porcelain.txt
+    risks:
+      sensitive_files: []
+      breaking_changes: []
+    notes: "STM context files only; analysis.yaml itself excluded as play run-state."
+
+exclusions:
+  - path: ".garura/project/issues/462/context/analysis.yaml"
+    reason: "play run-state, not a change artifact"
+    blocking: false
+
+risks:
+  sensitive_files: []
+
+eval_gates:
+  SE-1: {status: PASS, evidence: "grouped into feat(components) + chore(stm) by concern per branch issue #462"}
+  SE-5: {status: PASS, evidence: "no sensitive patterns matched"}

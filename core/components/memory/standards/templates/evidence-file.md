@@ -82,6 +82,18 @@ audit entries or Vanish).}
 |-------|----------|------------|------|
 | {field path} | blocker \| warning | RESOLVED \| Vanish | {user's resolution text} |
 
+## Gate Outcomes
+{Only when the run executed the quality lens's binding cards (#462, via
+run-quality-gates). One row per card in quality-gates.yaml — nothing dropped:
+a human-owned or unmeasured gate is a visible row, never an omission. The
+missing-tool rows are the build loop's provisioning work-list.}
+
+| Gate | Owner | Status | Detail |
+|------|-------|--------|--------|
+| {id (dimension)} | machine \| human | pass \| fail \| error \| missing-tool \| human | {measure=value vs threshold; demanded tool when missing; review edge when human} |
+
+Summary: `{passes}/{machine-card count}` machine gates pass; `{n}` missing-tool; `{n}` human-owned.
+
 ## Recovery Attempts
 {Only when any agent returned a structured failure and the play invoked
 recovery. Lists each recovery cycle, which agent was dispatched, and
@@ -114,6 +126,7 @@ the close chain follows acceptance".}
 | Step Eval Results | Must list EVERY SE-n defined in the compiled play — no silent skips. PASS / FAIL only; DEFERRED / N-A are allowed if the corresponding step was not reached (e.g., Vanish cleanup path). |
 | Scenario Eval Results | Must list EVERY SCE-n defined in the compiled play. |
 | Checkpoint Decisions | One row per checkpoint cycle. Orbit retries produce multiple rows for the same stage. |
+| Gate Outcomes | Must list EVERY card in the lens's quality-gates.yaml when the run executed gates — one row per card, statuses verbatim from run-quality-gates. A gate that didn't run appears as missing-tool/error, never as a dropped row. |
 | Commit Reference | Populated AFTER the self-commit step. If the commit step failed, use `N/A — commit failed, see recovery`. |
 
 ## Non-blocking

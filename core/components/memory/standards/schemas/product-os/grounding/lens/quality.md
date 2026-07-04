@@ -7,6 +7,19 @@
 > job; /validate checks these gates independently). The linter enforces the heading set;
 > the content-quality eval scores it against `_content-standard.md`. Written by `/quality`.
 
+## One lens, two artifacts (#462)
+
+The quality lens follows the run-lens precedent: `quality.md` is the human-readable
+narrative (this contract), and `quality-gates.yaml` is its machine sibling — the per-gate
+binding a runner executes (schema: `standards/schemas/product-os/lens/quality-gates.yaml`).
+Every Gates-table row carries exactly one binding card: `owner: machine` with the demanded
+tooling, command, and pass rule for the deterministic slice (linters, tests, types,
+architecture rules, coverage), or `owner: human` naming the edge that judges it (design,
+UX, security judgment are never runner-owned). The binding is authored in the same pass as
+the table — the prose-gate → tool-command mapping is design-time judgment, never re-inferred
+at run time. A card is a demand, not an assumption: absent tooling surfaces as a
+missing-tool finding, never a silent pass.
+
 ## Heading contract (required, in order)
 
 ```

@@ -1,0 +1,82 @@
+# Lens: quality-gates  (NEW #462) — machine sibling of the quality lens; envelope in lens/_index.md
+#
+# The quality lens is one lens with two artifacts (the run-lens precedent: run.md narrative
+# + run.yaml machine facts). quality.md keeps the human-readable Gates table
+# (| Dimension | Bar | How checked |); THIS file binds each gate to what a machine needs
+# to execute it: the tooling it demands, the command, the measure, the pass rule.
+#
+# Authored ONCE at lens time (by /quality via author-quality-lens) — the prose-gate →
+# tool-command mapping is a judgment call made when the lens is written, never re-inferred
+# at run time. Executed by the run-quality-gates skill on every build/review; verdicts land
+# in the run's evidence file (Gate Outcomes).
+#
+# A card is a DEMAND, not an assumption (#462): greenfield projects have no tooling, and
+# even brownfield lenses legitimately demand checks no installed tool measures — the lens
+# always runs ahead of the tooling. A gate whose demanded tooling is absent produces a
+# MISSING-TOOL finding, never a silent pass ("a check that didn't run is not a check that
+# passed"). Provisioning the demand — installing the standard tool, or writing a thin
+# custom check script — is build-loop work driven by that finding.
+#
+# Deterministic slice ONLY. Design, UX, and security judgment are never runner-owned:
+# they carry owner: human and the runner skips them VISIBLY (a skipped row in the
+# outcomes, not an omission).
+
+schema:
+  name: lens
+  type: quality-gates
+
+content:
+  gates:
+    - id: string           # slug of the quality.md Gates-table Dimension (the join key;
+                           # every table row has exactly one card or one human mark)
+      dimension: string    # mirrors the table's Dimension column verbatim
+      bar: string          # mirrors the table's Bar column verbatim (the human-readable target)
+      owner: string        # machine | human
+
+      # --- present iff owner == machine ---
+      requires:
+        tool: string       # the tool family the gate demands (e.g. eslint, pytest-cov,
+                           # tsc, axe-core, custom-check)
+        tool_bins: [string]  # binaries that satisfy the demand; first found on PATH wins
+        install: string    # optional — provisioning hint (command or approach) the build
+                           # loop uses when the demand is unmet; absence means the loop decides
+      command: string      # the exact command the runner executes (project-root relative)
+      measure: string      # optional — the metric to read from output (e.g. coverage_pct);
+                           # omitted for plain pass/fail-by-exit-code gates
+      threshold: string    # optional — pass rule on the measure (e.g. ">= 80"); required
+                           # when measure is set
+      timeout: integer     # optional — seconds; runner default applies when omitted
+
+      # --- present iff owner == human ---
+      review: string       # who judges it and how — human walk, fresh-context reviewer,
+                           # design sign-off; names the edge this gate lives at
+
+# --- Gold example (an ecommerce checkout slice) ---
+#
+# content:
+#   gates:
+#     - id: code-health
+#       dimension: Code health
+#       bar: Zero lint errors, zero type errors
+#       owner: machine
+#       requires: { tool: eslint, tool_bins: [eslint], install: "npm i -D eslint && npx eslint --init" }
+#       command: "npx eslint . && npx tsc --noEmit"
+#     - id: test-depth
+#       dimension: Test depth
+#       bar: Line coverage at or above 80%
+#       owner: machine
+#       requires: { tool: pytest-cov, tool_bins: [pytest], install: "pip install pytest pytest-cov" }
+#       command: "pytest --cov --cov-report=term"
+#       measure: coverage_pct
+#       threshold: ">= 80"
+#     - id: privacy
+#       dimension: Privacy
+#       bar: No raw prompt text appears in any rendered view
+#       owner: machine
+#       requires: { tool: custom-check, tool_bins: [python3] }
+#       command: "python3 checks/privacy_fixture.py"   # thin repo-owned check script
+#     - id: visual-design
+#       dimension: Visual design
+#       bar: Layout matches the UX lens's approved direction
+#       owner: human
+#       review: "HITL walk at /launch; fresh-context reviewer on the PR"
