@@ -1,6 +1,6 @@
 ---
 name: install-garura
-description: 'Install Garura into a target project or repository so its skills, agents, and plays become discoverable by a host coding tool — Claude Code or the OpenAI Codex CLI. Reads this garura checkout''s core/components and runs a per-tool ADAPTER that lays them down in the host''s native shape: for claude, .claude/ skills + agents with model tiers resolved to Claude models; for codex, .agents/skills Agent Skills plus AGENTS.md and ~/.codex model/sandbox/approval profiles. Always writes a .garura/ tooling tree (config + STM scaffold) and copies shared memory to the machine-global ~/.garura, and records an install manifest so uninstall-garura can reverse exactly what was placed. Use when the user wants to install, set up, bootstrap, add, or enable Garura in another folder or repo for claude or codex — "install garura into X", "set up garura in this repo for codex", "bootstrap garura", "make codex see the garura skills". Takes the target path and an optional --tool. For the reverse, see uninstall-garura.'
+description: 'Install Garura into a target project or repository so its skills, agents, and plays become discoverable by a host coding tool — Claude Code or the OpenAI Codex CLI. Reads this garura checkout''s core/components and runs a per-tool ADAPTER that lays them down in the host''s native shape: for claude, .claude/ skills + agents with model tiers resolved to Claude models; for codex, .agents/skills Agent Skills plus AGENTS.md and ~/.codex model/sandbox/approval profiles. Always writes a .garura/ tooling tree (config + STM scaffold) and copies shared memory to the machine-global ~/.garura, and records an install manifest so uninstall-garura can reverse exactly what was placed. Use when the user wants to install, set up, bootstrap, add, or enable Garura in another folder or repo for claude or codex — "install garura into X", "set up garura in this repo for codex", "bootstrap garura", "make codex see the garura skills". Takes the target path, an optional --tool, and an optional --scope (full = everything, the default; harness = meta plays + change chain + their workers only). For the reverse, see uninstall-garura.'
 user-invocable: true
 ---
 
@@ -104,6 +104,15 @@ python3 core/components/plays/install-garura/scripts/install.py --target <path> 
 
 Options:
 - `--tool claude|codex` — which host tool to target (default `claude`).
+- `--scope full|harness` — which component set the target receives (default `full`,
+  everything). `harness` installs only the meta plays (play-creator, play-editor), the five
+  *change plays, and the worker skills/agents those plays dispatch — for harness-type repos
+  (garura itself) that must not carry product plays. The scope filters **components only**;
+  shared memory, config, the STM scaffold, and the manifest are written the same either way.
+  The manifest records the scope, and since retirement is manifest-driven, re-running with
+  `--scope harness` over a previously full install retires the out-of-scope components
+  cleanly. The `harness` membership list lives in `scripts/install.py` (`SCOPES`) — when a
+  kept play gains a new worker, add it there in the same change.
 - `--source <garura-checkout>` — point at the garura checkout explicitly (needed only when the
   script can't sit beside the source).
 - `--memory-dest <path>` — where shared memory goes (default `~/.garura/core/memory`). Point it
@@ -152,6 +161,13 @@ Keep it short. The detail lives in the manifest; your job is the human summary.
 **Direct-edit deviation note (#434):** this bootstrap meta-play is hand-authored (no
 `intent.yaml`); the adapter split, the `--tool` parameter, and the Codex adapter were added by
 direct edit to this SKILL.md and `scripts/`.
+
+**Direct-edit deviation note (#478):** the `--scope` option (named component subsets: `full`
+default, `harness` = meta plays + change chain + their workers) was added by direct edit to
+this SKILL.md, `scripts/install.py` (the `SCOPES` table, the manifest `scope` field), and both
+adapters' `lay_components` (an `allow` filter) — same bootstrap-meta-play path as #434; no ICE
+source exists to recompile. Uninstall needs no change: it reverses what the manifest records,
+and a scoped manifest records exactly what was placed.
 
 Level 3 note (#466): bootstrap meta-play — exempt from the goal-loop recompile (no ICE
 source, like play-creator); runs are session-stamped by the host play when invoked through
