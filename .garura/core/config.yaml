@@ -161,7 +161,15 @@ gates:
     docs-only: on
     standard: on
     one-way-door: on
-  plays: {}
+  # Chain gates off per the #467 ruling (Batch C) — each play carries its
+  # replacement machine checks; skips are always recorded. Flip any back to on
+  # to restore the human wait; the checkpoint machinery is kept, not removed.
+  plays:
+    start-change: off
+    commit-change: off
+    propose-change: off
+    review-change: off
+    merge-change: off
   conditional:
     streak: 3                                # clean approvals a shape needs to earn auto
     ledger: .garura/core/gate-evals.jsonl    # live-eval ledger (append-only, committed)
