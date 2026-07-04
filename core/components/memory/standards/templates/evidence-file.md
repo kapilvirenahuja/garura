@@ -32,6 +32,10 @@ started_at: {ISO-8601}
 completed_at: {ISO-8601}
 status: COMPLETED | HALTED | ABORTED
 exit_reason: success | validation_failed | user_vanish | pre_flight_failed | recovery_exhausted | {other}
+session_id: {Claude Code session UUID from session_stamp.py, or null}
+ledger_file: {path to the session's JSONL ledger, or null}
+ledger_start_offset: {ledger byte size at play pre-flight, or null}
+ledger_end_offset: {ledger byte size at play close, or null}
 ---
 
 # {Play Title} Evidence — {slug or issue}
@@ -123,6 +127,7 @@ the close chain follows acceptance".}
 | `run_id` | Unique per run. Timestamp-based (`{play}-{YYYYMMDD-HHMMSS}`) is fine. |
 | `status` | `COMPLETED` on normal close; `HALTED` on explicit user Vanish; `ABORTED` on unrecoverable failure. |
 | `exit_reason` | Short token describing why the run ended. Specific values are per-play. |
+| `session_id` / `ledger_*` | The session identity stamp (#463), copied verbatim from `session_stamp.py --phase close`. The offline join key for spend attribution — a run's exact token cost is computable later from the ledger slice `[start_offset, end_offset)`. Null when the ledger was unresolved; never fabricate. |
 | Step Eval Results | Must list EVERY SE-n defined in the compiled play — no silent skips. PASS / FAIL only; DEFERRED / N-A are allowed if the corresponding step was not reached (e.g., Vanish cleanup path). |
 | Scenario Eval Results | Must list EVERY SCE-n defined in the compiled play. |
 | Checkpoint Decisions | One row per checkpoint cycle. Orbit retries produce multiple rows for the same stage. |
