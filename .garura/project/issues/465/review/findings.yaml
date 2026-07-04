@@ -1,0 +1,94 @@
+meta:
+  generated_at: "2026-07-04T00:00:00Z"
+  diff_path: ".garura/project/issues/465/review/pr.diff"
+  changed_paths_count: 13
+  scan_coverage: 1.0
+  taxonomy_path: "core/components/memory/standards/rules/pr.md"
+  standards_relevant: 2
+
+findings:
+  - standard_id: CODE-09
+    severity: P3
+    file: core/components/plays/commit-change/scripts/execute_commits.py
+    line: 135
+    evidence: "main() cyclomatic complexity 27 (lizard), exceeds CODE-09 complexity-score threshold (<=10); pre-existing hotspot the diff touches — CCN was 32 before this change (git show e6b5293:...execute_commits.py), so this diff REDUCES complexity by extracting normalize_subject()/split_ignored() rather than adding to it"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-09
+    confidence: high
+  - standard_id: CODE-10
+    severity: P3
+    file: core/components/plays/commit-change/scripts/execute_commits.py
+    line: 135
+    evidence: "main() is 80 NLOC / 124-line span (lizard), exceeds CODE-10 function-length threshold (<=50 lines); was 72 NLOC / 85-line span before this diff (+8 NLOC net, from run-state-dir finalize + normalized-subject call sites), same pre-existing hotspot as CODE-09"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-10
+    confidence: high
+
+counts:
+  P1: 0
+  P2: 0
+  P3: 2
+  P4: 0
+
+overall_confidence: high
+
+evaluation_notes:
+  artifact_classification:
+    stm-evidence:
+      glob: ".garura/project/**"
+      files:
+        - .garura/project/issues/465/context/analysis.yaml
+        - .garura/project/issues/465/context/branch.json
+        - .garura/project/issues/465/context/commits.yaml
+        - .garura/project/issues/465/context/issue.json
+        - .garura/project/issues/465/context/porcelain.txt
+        - .garura/project/issues/465/context/resolved-rules.json
+        - .garura/project/issues/465/context/self-review.md
+        - .garura/project/issues/465/context/work-description.txt
+      grep_rules_eligible: false
+      note: "records/evidence prose (self-review.md's own secret-scan discussion, analysis.yaml's risk block) — content-pattern rules never fire here per artifact-type scoping (#438)"
+    garura-prose:
+      glob: "core/components/**"
+      files:
+        - core/components/plays/commit-change/SKILL.md
+        - core/components/plays/commit-change/reference/ice.md
+        - core/components/plays/commit-change/scripts/check_stop_condition.py
+        - core/components/plays/commit-change/scripts/execute_commits.py
+        - core/components/plays/commit-change/stop-condition.yaml
+      grep_rules_eligible: false
+      shape_rules_eligible: true
+      note: "framework/play prose and the play's own bundled scripts; grep-based security rules ineligible by classification, but path-based shape rules (CODE-09..13) still fire on the two .py scripts per the taxonomy's 'path: rules are unaffected by artifact type' clause"
+
+  measurements:
+    - file: core/components/plays/commit-change/scripts/check_stop_condition.py
+      method: "sha256 checksum"
+      result: "d51926566b82fde3bc4d4d602cc41b5bbfa8e8419f1bfdcb03cbb3d76e6b615d — byte-identical to core/components/plays/play-creator/references/check_stop_condition.py, the reference copy already reviewed under PR #472. No new complexity to measure; its known CODE-09 note (eval_clause CCN 12) stands unchanged, not re-flagged here."
+      finding_emitted: false
+    - file: core/components/plays/commit-change/scripts/execute_commits.py
+      method: "lizard -w (file-level + per-function CCN/NLOC/length)"
+      result: "9 functions, 189 total NLOC, avg CCN 8.3. Only main() (CCN 27, NLOC 80, length 124) exceeds lizard's own >15 warning bar. File itself is 262 lines — under the CODE-12 module-size threshold (<=300), no finding. No nesting-depth (CODE-11) violation observed — max nesting in main() is 3 levels (function -> if/try -> for)."
+      finding_emitted: true
+    - file: core/components/plays/commit-change/scripts/execute_commits.py
+      method: "before/after diff comparison (git show <base_sha> vs working tree)"
+      result: "main() was CCN 32 / 72 NLOC / 85-line span before this diff; CCN 27 / 80 NLOC / 124-line span after. Net: complexity down, length up slightly (run-state-dir finalize logic + two new call sites for normalize_subject/split_ignored). The diff makes an existing hotspot marginally better, not worse."
+      finding_emitted: false
+    - file: "grep-based SEC-*/BE-*/ARCH-* rules"
+      method: "grep on added (^+) lines in pr.diff for credential/secret/token/injection/auth keyword patterns"
+      result: "3 hits, all inside stm-evidence (self-review.md, analysis.yaml) or garura-prose (SKILL.md) files describing the secret-scanner's own behavior in prose — ineligible artifact types per #438, ARTIFACT-type scoping. Zero eligible-artifact hits. No SEC/BE/ARCH findings."
+      finding_emitted: false
+
+  evaluated_paths_count: 13
+  evaluated_paths:
+    - .garura/project/issues/465/context/analysis.yaml
+    - .garura/project/issues/465/context/branch.json
+    - .garura/project/issues/465/context/commits.yaml
+    - .garura/project/issues/465/context/issue.json
+    - .garura/project/issues/465/context/porcelain.txt
+    - .garura/project/issues/465/context/resolved-rules.json
+    - .garura/project/issues/465/context/self-review.md
+    - .garura/project/issues/465/context/work-description.txt
+    - core/components/plays/commit-change/SKILL.md
+    - core/components/plays/commit-change/reference/ice.md
+    - core/components/plays/commit-change/scripts/check_stop_condition.py
+    - core/components/plays/commit-change/scripts/execute_commits.py
+    - core/components/plays/commit-change/stop-condition.yaml

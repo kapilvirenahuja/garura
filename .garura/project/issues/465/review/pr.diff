@@ -1,0 +1,1075 @@
+diff --git a/.garura/project/issues/465/context/analysis.yaml b/.garura/project/issues/465/context/analysis.yaml
+new file mode 100644
+index 00000000..bf92bed2
+--- /dev/null
++++ b/.garura/project/issues/465/context/analysis.yaml
+@@ -0,0 +1,42 @@
++# analyze_changeset.py output (C8 fast path) + agent grouping pass
++# issue: 465
++needs_judgment: false
++
++change_groups:
++  - id: recompile-commit-change-loop
++    issue: 465
++    commit_type: feat
++    scope: components
++    subject: "recompile commit-change play with loop workflow and stop-condition manifest"
++    files:
++      - core/components/plays/commit-change/reference/ice.md
++      - core/components/plays/commit-change/SKILL.md
++      - core/components/plays/commit-change/scripts/execute_commits.py
++      - core/components/plays/commit-change/stop-condition.yaml
++      - core/components/plays/commit-change/scripts/check_stop_condition.py
++  - id: commit-change-pilot-context
++    issue: 465
++    commit_type: chore
++    scope: stm
++    subject: "record commit-change pilot context for #465"
++    files:
++      - .garura/project/issues/465/context/work-description.txt
++      - .garura/project/issues/465/context/issue.json
++      - .garura/project/issues/465/context/branch.json
++      - .garura/project/issues/465/context/porcelain.txt
++
++exclusions:
++  - path: ".garura/project/issues/465/status/session-stamp-commit-change.json"
++    reason: "play run-state directory — mutated by the running play itself; committed later by an stm chore commit, never by its own run"
++    blocking: false
++  - path: ".garura/project/issues/465/status/session-stamp-start-change.json"
++    reason: "play run-state directory — mutated by the running play itself; committed later by an stm chore commit, never by its own run"
++    blocking: false
++
++risks:
++  sensitive_files:
++    []
++
++eval_gates:
++  SE-1: {status: PASS, evidence: "grouped by concern: components recompile (feat) vs STM pilot context (chore); single-issue branch #465, no unrelated issues present"}
++  SE-5: {status: PASS, evidence: "no sensitive patterns matched; no credentials/keys/secrets in changed files"}
+diff --git a/.garura/project/issues/465/context/branch.json b/.garura/project/issues/465/context/branch.json
+new file mode 100644
+index 00000000..42978848
+--- /dev/null
++++ b/.garura/project/issues/465/context/branch.json
+@@ -0,0 +1,6 @@
++{
++  "branch_name": "feature/465-commit-change-goal-loop",
++  "base_sha": "e6b5293255bd6054db8c657cc0b61174a806cd1f",
++  "on_default_branch": false,
++  "worktree_path": null
++}
+diff --git a/.garura/project/issues/465/context/commits.yaml b/.garura/project/issues/465/context/commits.yaml
+new file mode 100644
+index 00000000..cdfc404d
+--- /dev/null
++++ b/.garura/project/issues/465/context/commits.yaml
+@@ -0,0 +1,27 @@
++commits:
++  - sha: 21be7bf
++    message: "feat(components): recompile commit-change play with loop workflow and stop-condition manifest (#465)"
++    files:
++      - core/components/plays/commit-change/reference/ice.md
++      - core/components/plays/commit-change/SKILL.md
++      - core/components/plays/commit-change/scripts/execute_commits.py
++      - core/components/plays/commit-change/stop-condition.yaml
++      - core/components/plays/commit-change/scripts/check_stop_condition.py
++    branch: feature/465-commit-change-goal-loop
++  - sha: 55ad31f
++    message: "chore(stm): record commit-change pilot context for #465 (#465)"
++    files:
++      - .garura/project/issues/465/context/work-description.txt
++      - .garura/project/issues/465/context/issue.json
++      - .garura/project/issues/465/context/branch.json
++      - .garura/project/issues/465/context/porcelain.txt
++    branch: feature/465-commit-change-goal-loop
++excluded_files:
++  - path: ".garura/project/issues/465/status/session-stamp-commit-change.json"
++    reason: "play run-state directory — mutated by the running play itself; committed later by an stm chore commit, never by its own run"
++  - path: ".garura/project/issues/465/status/session-stamp-start-change.json"
++    reason: "play run-state directory — mutated by the running play itself; committed later by an stm chore commit, never by its own run"
++leftover_count: 0
++tree_clean: true
++pushed: false
++run_state_committed: true
+diff --git a/.garura/project/issues/465/context/issue.json b/.garura/project/issues/465/context/issue.json
+new file mode 100644
+index 00000000..1dcca5be
+--- /dev/null
++++ b/.garura/project/issues/465/context/issue.json
+@@ -0,0 +1,7 @@
++{
++  "resolved": true,
++  "issue_number": 465,
++  "title": "[ENH] Stage 2: Pilot — recompile commit-change as a goal-loop play",
++  "state": "OPEN",
++  "created": false
++}
+diff --git a/.garura/project/issues/465/context/porcelain.txt b/.garura/project/issues/465/context/porcelain.txt
+new file mode 100644
+index 00000000..90eb2fd1
+--- /dev/null
++++ b/.garura/project/issues/465/context/porcelain.txt
+@@ -0,0 +1,6 @@
++ M core/components/plays/commit-change/SKILL.md
++ M core/components/plays/commit-change/reference/ice.md
++ M core/components/plays/commit-change/scripts/execute_commits.py
++?? .garura/project/issues/465/
++?? core/components/plays/commit-change/scripts/check_stop_condition.py
++?? core/components/plays/commit-change/stop-condition.yaml
+diff --git a/.garura/project/issues/465/context/resolved-rules.json b/.garura/project/issues/465/context/resolved-rules.json
+new file mode 100644
+index 00000000..70b8f431
+--- /dev/null
++++ b/.garura/project/issues/465/context/resolved-rules.json
+@@ -0,0 +1,6 @@
++{
++  "resolved": true,
++  "path": "/Users/kapilahuja/.garura/core/memory/standards/rules/self-review.md",
++  "source": "/Users/kapilahuja/.garura/core/memory/standards/rules",
++  "is_override": false
++}
+diff --git a/.garura/project/issues/465/context/self-review.md b/.garura/project/issues/465/context/self-review.md
+new file mode 100644
+index 00000000..8caf8733
+--- /dev/null
++++ b/.garura/project/issues/465/context/self-review.md
+@@ -0,0 +1,60 @@
++# Self-Review — #465 (commit-change recompiled as Level 3 goal-loop pilot)
++
++Rules source: `/Users/kapilahuja/.garura/core/memory/standards/rules/self-review.md`
++(base — no project override present; resolved via
++`.garura/project/issues/465/context/resolved-rules.json`, `is_override: false`).
++
++Branch: `feature/465-commit-change-goal-loop`
++Compared: `git diff main...HEAD` (11 files, +558/-165) + `git log main..HEAD`
++(3 commits: 21be7bf feat, 55ad31f chore(stm) context, 9b3ead0 chore(stm) run-state).
++
++## Scope checks
++
++- **Matches the issue.** PASS. Every changed file is either the play being recompiled
++  (`reference/ice.md`, `SKILL.md`, `scripts/execute_commits.py`,
++  `scripts/check_stop_condition.py`, `stop-condition.yaml`) or the issue's own STM
++  evidence (`.garura/project/issues/465/context/*`). Nothing outside #465's box.
++- **No scope creep.** PASS. No unrelated files, no drive-by edits to other plays.
++- **Reasonable size.** PASS. 11 files, +558/-165 — a full ICE-driven recompile of one
++  play plus its own run evidence; reviewable in one sitting given the ICE diff explains
++  every SKILL.md change 1:1.
++- **No stray artifacts.** PASS. No commented-out code, no debug prints, no scratch
++  files. Checked: `.pyc`/`__pycache__` files present elsewhere in the tree are pre-existing
++  and untouched by this diff.
++
++## Quality checks
++
++- **Tests present.** PASS (substitute form). This is a play/skill artifact, not
++  application code with a unit-test harness — the equivalent proof is the self-test
++  baked into the run itself: the recompiled play committed its own 3 commits, the loop
++  converged in round 1, and the stop-condition verdict is recorded held
++  (`.garura/project/issues/465/status/stop-condition-commit-change.yaml`, all D1–D4
++  `held`). Independently re-ran `check_stop_condition.py`'s sibling lint —
++  `play-editor/scripts/lint_play.py core/components/plays/commit-change/SKILL.md` —
++  and confirmed **12/12 PASS** (required sections, F/S/C coverage, 1:1 recovery, no
++  orphans, pipeline position, standard play close, pre-flight resolver, stop-condition
++  manifest + checker present, fingerprint, next-command) — matches the claimed lint
++  result, verified directly rather than taken on the commit message's word.
++  `execute_commits.py` and `check_stop_condition.py` both parse clean (`ast.parse`).
++- **Commits are clean.** PASS. All 3 commits are conventional
++  (`feat(components): ... (#465)`, `chore(stm): ... (#465)`, `chore(stm): ... (#465)`),
++  each a coherent concern (play recompile / pilot context / run-state), each references
++  #465, no doubled prefixes.
++- **No secrets.** PASS. Grepped the diff for credential/token/key patterns — the only
++  hits are the diff's own prose describing the secret-scanner's behavior (documentation
++  text, not a secret). `analysis.yaml`'s own risk scan reports `sensitive_files: []` and
++  `SE-5: PASS`.
++- **Docs in step.** N/A. The interface this change touches is the play's own compiled
++  contract (`SKILL.md`/`ice.md`), which IS the documentation — updated in the same
++  commit. No separate user-facing docs/README reference commit-change's internals that
++  would need a matching update; ADR 025 (already on main) is the design doc this pilot
++  implements, not something this PR needs to touch.
++- **Nothing obviously broken.** PASS. No leftover TODOs. Traced the new
++  `normalize_subject` / `split_ignored` / run-state-dir finalize logic in
++  `execute_commits.py` against the ICE's C3/C4 extensions — matches. The SKILL.md's
++  step_evals/scenario_evals/recovery_entries counts (8/6/8) match the actual
++  SE-1..8/SCE-1..6/F1..F8 content. Fingerprint changed (ice.md changed, correctly).
++
++## Verdict
++
++**PASS — 9/9 checks (8 PASS, 1 N/A). No FAIL. Proceeding to PR.**
+diff --git a/.garura/project/issues/465/context/work-description.txt b/.garura/project/issues/465/context/work-description.txt
+new file mode 100644
+index 00000000..3c0c84df
+--- /dev/null
++++ b/.garura/project/issues/465/context/work-description.txt
+@@ -0,0 +1 @@
++Stage 2 of the IDSD Level 3 epic (#460): Pilot — recompile commit-change as a goal-loop play. First play on the new model: skeleton and guarantees stay fixed; baked internal steps replaced by goal + checker + iteration cap + evidence schema, with the agent looping freely inside. Intent change via play-editor: author commit-change's "### Done means", fold the iteration-cap line into the loop contract, and design out the three defects harvested this session (subject-formatting collision, run-state clean-tree circularity, ignored-path plan blindness). Compare against old behaviour in real use. Tracked issue: #465.
+diff --git a/core/components/plays/commit-change/SKILL.md b/core/components/plays/commit-change/SKILL.md
+index 9e28b35d..a8eb8bb4 100644
+--- a/core/components/plays/commit-change/SKILL.md
++++ b/core/components/plays/commit-change/SKILL.md
+@@ -16,40 +16,57 @@ messages that reference the tracked issue — leaving a clean tree ready to rais
+ rule injects into any play declared `position: end`. Positions are start and end only —
+ there is no middle.
+ 
++**The pilot (#465).** This is the first play compiled on the Level 3 model (ADR 025):
++the skeleton — pre-flight, one loop, conditional checkpoint, gated close — is deterministic
++and guaranteed; the interior of the loop is the agent's, bounded by four walls: the baked
++stop condition (`stop-condition.yaml`), the bundled scripts as the checker, an iteration
++cap of 5, and the run's evidence. The play ends by PROVING its Done means (C9), never by a
++step list running out.
++
+ ## Compiled From
+ 
+-This play was compiled from the commit-change ICE (`reference/ice.md`) by play-creator.
+-Intent defines constraints (C1–C8) and failure conditions (F1–F7); the expectation defines
+-success scenarios (S1–S5) and one recovery entry per failure condition.
+-To modify this play, update `reference/ice.md` and recompile with play-creator.
++This play was compiled from the commit-change ICE (`reference/ice.md`) by play-editor
++(#465, Level 3 pilot recompile). Intent defines constraints (C1–C9) and failure conditions
++(F1–F8); the expectation defines success scenarios (S1–S6), a Done means (D1–D4, baked to
++`stop-condition.yaml`), and one recovery entry per failure condition.
++To modify this play, update `reference/ice.md` and recompile with play-editor.
+ Do NOT edit this file manually — it is a compiled artifact.
+ 
+ ## Role
+ 
+-You are the orchestrator. You own the workflow and the step order. Mechanical work runs as
+-bundled scripts (C8): the changeset scan and triviality classification
+-(`scripts/analyze_changeset.py`), and commit execution over the decided plan
+-(`scripts/execute_commits.py`). Inference is reserved for the one genuine judgment in this
+-play — grouping a multi-concern changeset — which you delegate to `repo-orchestrator`
+-(invoking `analyze-changes`) via a JSON contract over files on disk. Issue resolution, when
+-not derivable from the branch, goes to `project-orchestrator` (`resolve-issues`,
++You are the orchestrator. You own the skeleton — pre-flight, the loop's walls, the
++checkpoint policy, the gated close — and the agent owns the interior of each round.
++Mechanical work runs as bundled scripts (C8): the changeset scan and triviality
++classification (`scripts/analyze_changeset.py`), commit execution over the decided plan
++(`scripts/execute_commits.py`), and the stop-condition evaluation
++(`scripts/check_stop_condition.py`). Inference is reserved for the one genuine judgment —
++grouping a multi-concern changeset — delegated to `repo-orchestrator` (invoking
++`analyze-changes`) via a JSON contract over files on disk. Issue resolution, when not
++derivable from the branch, goes to `project-orchestrator` (`resolve-issues`,
+ `manage-issue`). **You never push** — that is propose-change's job (C7).
+ 
+ **Forbidden:** ad-hoc `git`/`gh` commands reasoned out inline — git runs only inside the
+ bundled scripts or the dispatched skills; spawning an analyze agent for a changeset the
+ script classified trivial (C8/F7); any push (`git push`, `submit-pr`, or equivalent — the
+-execution script contains no push path).
++execution script contains no push path); closing COMPLETED without the stop condition
++held (C9); exceeding the iteration cap (F8).
+ 
+ **Agent boundaries:**
+ 
+ | Agent | Domain | Skill it invokes | Phases | Dispatched when |
+ |-------|--------|------------------|--------|-----------------|
+-| `repo-orchestrator` | Multi-concern grouping judgment | `analyze-changes` | Preparation | `analyze_changeset.py` reports `needs_judgment: true` |
+-| `project-orchestrator` | Resolve change groups to the tracked issue | `resolve-issues`, `manage-issue` | Preparation | issue not derivable from the branch |
++| `repo-orchestrator` | Multi-concern grouping judgment | `analyze-changes` | Loop | `analyze_changeset.py` reports `needs_judgment: true` |
++| `project-orchestrator` | Resolve change groups to the tracked issue | `resolve-issues`, `manage-issue` | Loop | issue not derivable from the branch |
+ 
+ Both are **utility agents**, exempt from the domain-agent budget. This play uses **zero
+ domain agents**, and on a trivial changeset it spawns **zero agents at all** (S5).
+ 
++**The plan contract (C3, #465 defect 1).** The plan (`analysis.yaml`) carries each group's
++subject BARE — no type prefix, no scope, no issue reference; those live in the group's
++separate `commit_type` / `scope` / `issue` fields. The executor renders the conventional
++message and defensively normalizes a subject that arrives pre-formatted (strips a doubled
++prefix or trailing issue ref) instead of doubling it.
++
+ ## Pre-flight
+ 
+ | Check | Constraint | Action on Failure |
+@@ -57,7 +74,7 @@ domain agents**, and on a trivial changeset it spawns **zero agents at all** (S5
+ | Resolve working base + config (`.garura/core/config.yaml`) | — | Hard halt |
+ | Branch guard (not on `main`/default) | C1 | Hard halt |
+ | Changes exist (`git status --porcelain` non-empty) | C5 | Graceful exit |
+-| Sensitive-file scan (Step 1 script, `analyze_changeset.py` patterns) | C6 | Hard block |
++| Sensitive-file scan (loop's scan script, `analyze_changeset.py` patterns) | C6 | Hard block |
+ | Issue resolvable (from the `feature/<issue>-*` branch, else open issues) | C3 | Hard halt |
+ 
+ Resolve the pre-flight facts mechanically with the bundled resolver — do not derive them by
+@@ -72,48 +89,54 @@ python3 scripts/preflight.py --play commit-change \
+     --porcelain-file <working>/porcelain.txt
+ ```
+ 
+-Right after the resolver, record the session identity stamp's start marker (#463 — soft-fail, never a halt):
+-
+-```
+-python3 scripts/session_stamp.py --phase start \
+-    --marker "{stm_base}{issue}/status/session-stamp-commit-change.json" \
+-    --cwd "$(pwd)" --branch "$(git branch --show-current)"
+-```
+-
+ It returns one JSON object of facts: `stm_base`, `ltm_project_target`, `evidence_record`,
+ `platform`, `branch`, `issue`, `on_default_branch`, `changes_present`. The orchestrator reads
+ those and applies the **policy** in the table above (the script resolves facts, the play
+ decides halts): `on_default_branch == true` → hard halt (C1); `changes_present == false` →
+ graceful exit (C5); a non-null `issue` short-circuits issue resolution
+ (`auto_issue_resolved = true`) and skips the checkpoint (C3). The sensitive-file scan runs
+-inside Step 1's script (same porcelain file), not the resolver.
++inside the loop's scan script (same porcelain file), not the resolver.
++
++Right after the resolver, record the session identity stamp's start marker (#463 —
++soft-fail, never a halt):
++
++```
++python3 scripts/session_stamp.py --phase start \
++    --marker "{stm_base}{issue}/status/session-stamp-commit-change.json" \
++    --cwd "$(pwd)" --branch "$(git branch --show-current)"
++```
+ 
+-**Resume check:** if `{stm_base}/{issue}/status/commit-change.json` exists, resume — skip
+-completed steps, reset any in-progress step to pending, continue from the first incomplete.
++**Resume check:** if `{stm_base}/{issue}/status/commit-change.json` exists, resume — the
++loop re-enters at the next round with the recorded round count; the cap counts all rounds
++across resumes.
+ 
+ ## Task DAG
+ 
+ Create ALL tasks immediately after resolving the working base — before any domain work.
+-The play owns this DAG; agents must not edit its top-level tasks.
++The play owns this DAG; agents must not edit its top-level tasks. The DAG is the skeleton:
++the loop is ONE task, however many rounds it takes (C9 — the interior is the agent's).
+ 
+ ```
+-[T1] Analyze Changes        blockedBy: []
+-[T2] Resolve Issue          blockedBy: [T1]
+-[T3] Confirm (checkpoint)   blockedBy: [T2]
+-[T4] Create Commits         blockedBy: [T3]
+-[T5] Scenario Validation    blockedBy: [T4]
+-[T6] Close                  blockedBy: [T5]
++[T1] Commit Loop (≤5 rounds)      blockedBy: []
++[T2] Scenario Validation          blockedBy: [T1]
++[T3] Close (stop-condition gated) blockedBy: [T2]
+ ```
+ 
+-Mark each task in-progress before its step and completed right after its eval passes. No
+-runtime reordering. On resume, skip completed and reset in-progress to pending.
++Mark each task in-progress before its phase and completed right after its eval passes. On
++resume, the loop task re-enters with its round counter.
+ 
+ ## Workflow
+ 
+-### Phase: Preparation
++### Phase: The Loop
+ 
+-**Step 1 — Analyze Changes** · Owner: play (script), agent on judgment · Depends on: pre-flight
+-Run the mechanical analyzer first — always:
++**Loop — Commit until Done means holds** · Owner: play (scripts) + agent on judgment ·
++Depends on: pre-flight · **Cap: 5 rounds (C9/F8)**
++
++Each round the agent decides its own moves toward the goal — *every change committed or
++excluded-with-reason, tree clean, nothing pushed* — using the bundled scripts as its hands.
++A round typically:
++
++1. **Scan** — always the script first:
+ 
+ ```
+ python3 scripts/analyze_changeset.py \
+@@ -122,18 +145,13 @@ python3 scripts/analyze_changeset.py \
+     --out <working>/analysis.yaml
+ ```
+ 
+-It scans for sensitive files, auto-excludes play run-state paths, and classifies the
+-changeset. Read its JSON summary and apply policy:
+-
+-- `sensitive` (blocking) non-empty → **hard block** (C6/F5), human recovery (REC5).
+-- `warnings` non-empty (content-pattern matches in prose/standards artifacts — pattern
+-  carriers like a severity taxonomy or a skill's instructions, #438) → never a block;
+-  the checkpoint presents them so a human sees what matched and where.
+-- `needs_judgment: false` → the script-emitted `analysis.yaml` is the analysis. A
+-  `subject_source: script-draft` subject may be reworded in place by the orchestrator
+-  (one line, no agent). **No agent is dispatched (C8).**
+-- `needs_judgment: true` → dispatch `repo-orchestrator` to invoke `analyze-changes` for
+-  the grouping judgment, with the standard JSON contract:
++   Policy on its summary: `sensitive` (blocking) non-empty → **hard block** (C6/F5),
++   human recovery (REC5). `warnings` non-empty (content-pattern matches in prose/standards
++   artifacts — pattern carriers, #438) → never a block; surfaced at the checkpoint.
++   `needs_judgment: false` → the script's plan IS the plan; a `subject_source: script-draft`
++   subject may be reworded in place (one line, no agent); **no agent is dispatched (C8)**.
++   `needs_judgment: true` → dispatch `repo-orchestrator` → `analyze-changes` for the
++   grouping judgment, standard JSON contract (subjects BARE per the plan contract):
+ 
+ ```
+     {
+@@ -143,72 +161,82 @@ changeset. Read its JSON summary and apply policy:
+     }
+ ```
+ 
+-**SE-1 (F1/C2):** each change group in `analysis.yaml` holds files of a single concern —
+-no group mixes unrelated file sets.
+-**SE-5 (F5/C6):** no file flagged BLOCKING by the scan is included for commit; a blocking
+-flag halts the run. A prose/standards content match is a surfaced warning, not a block —
+-C6's guarantee (actual secrets never commit) is unchanged (#438).
+-**SE-7 (F7/C8):** the dispatch matches the classification — `needs_judgment: false` and
+-zero analyze-agent spawns, or `needs_judgment: true` and exactly one. A trivial-classified
+-analysis whose group spans unrelated file sets triggers REC7.
+-
+-**Step 2 — Resolve Issue** · Owner: `project-orchestrator` · Depends on: Step 1
+-*Skip when the issue was derived from the branch name (`auto_issue_resolved == true`)* — the
+-play records the branch issue for every group. Otherwise the agent invokes `manage-issue`
+-(fetch open issues) + `resolve-issues` (map groups to issues with confidence) and writes
+-`issue-mappings.yaml`.
++2. **Resolve issue** — *skip when derived from the branch (`auto_issue_resolved`)*;
++   otherwise `project-orchestrator` invokes `manage-issue` + `resolve-issues` and writes
++   `issue-mappings.yaml`.
+ 
+-### Phase: Checkpoint (skip when: issue auto-resolved from branch AND no sensitive flags or scanner warnings AND mappings high-confidence)
++3. **Checkpoint** — *only when the skip condition fails* (a sensitive flag, scanner
++   warnings, or low-confidence mapping): present the brief — groups, mapping + confidence,
++   risk flags — and wait for typed approval. Approve → execute; cancel → halt.
+ 
+-**Step 3 — Confirm** · Owner: play · Depends on: Step 2
+-When the skip condition does not hold (low-confidence mapping, a conflict, or a flagged
+-file), present a brief — change groups, issue mapping + confidence, risk flags — and wait
+-for approval. Approve → continue; cancel → halt.
+-
+-### Phase: Execution
+-
+-**Step 4 — Create Commits** · Owner: play (script) · Depends on: Step 3
+-The plan is decided work — execute it mechanically, no agent, no per-commit reasoning:
++4. **Execute** — the decided plan, mechanically, run-state finalization included
++   (#465 defects 2+3 — ignored paths become recorded exclusions; the play's own run
++   artifacts land as the final chore group):
+ 
+ ```
+ python3 scripts/execute_commits.py \
+     --analysis <working>/analysis.yaml \
+     --issue {issue} \
+-    --out <working>/commits.yaml
++    --out <working>/commits.yaml \
++    --run-state-dir <working>
+ ```
+ 
+-The script loops the groups: `git add` each group's files, `git commit` with its
+-conventional message referencing the issue — all in one pass. It refuses to run on a
+-default branch (C1, defense in depth) and **contains no push path** (C7). Read its JSON
+-summary: `leftover_uncovered` non-empty → F3 policy (REC3: commit the remainder in an
+-appropriate group or record an explicit exclusion in `commits.yaml`).
++5. **Prove or go again** — evaluate the stop condition:
+ 
+-**SE-2 (F2/C3):** each commit message uses conventional `type(scope): subject (#issue)` —
+-it describes the specific change and references the issue, never a bare issue reference.
+-**SE-3 (F3/C4):** after all commits, `git status` is clean — every changed file is
+-committed, or `commits.yaml` records an explicit exclusion reason.
+-**SE-4 (F4/C1):** the commits were made on the feature branch, not `main`.
+-**SE-6 (F6/C7):** no push occurred — the remote branch tip is unchanged by this run.
++```
++python3 scripts/check_stop_condition.py \
++    --manifest <play-dir>/stop-condition.yaml \
++    --base "{stm_base}{issue}/" \
++    --out "{stm_base}{issue}/status/stop-condition-commit-change.yaml"
++```
++
++   **Held (exit 0)** → leave the loop. **Unmet (exit 1)** → the verdict's unmet clauses
++   are the next round's work list (fresh porcelain, plan the remainder); increment the
++   round counter and sync it to the status marker. **Round 5 still unmet** → halt HALTED,
++   `exit_reason: loop_cap_exhausted`, verdict recorded (F8/REC8 — human).
++
++**Loop evals (each round's exit is checked, the loop's exit is proven):**
++- **SE-1 (F1/C2):** each change group in `analysis.yaml` holds files of a single concern.
++- **SE-2 (F2/C3):** each commit message is conventional `type(scope): subject (#issue)`
++  with NO doubled prefix and exactly one issue reference — the executor normalized any
++  pre-formatted subject.
++- **SE-3 (F3/C4):** `commits.yaml` reads `leftover_count: 0` and `tree_clean: true`, or
++  the loop is still running / halted with the verdict naming the leftovers. Ignored paths
++  appear as recorded exclusions, never as add-failures.
++- **SE-4 (F4/C1):** the commits were made on the feature branch, not `main`.
++- **SE-5 (F5/C6):** no file flagged BLOCKING by the scan is included; a blocking flag
++  halts the run. Prose/standards content matches are surfaced warnings, not blocks (#438).
++- **SE-6 (F6/C7):** no push occurred — `commits.yaml` reads `pushed: false` and the remote
++  tip is unchanged by this run.
++- **SE-7 (F7/C8):** the dispatch matches the classification — `needs_judgment: false` and
++  zero analyze-agent spawns, or `true` and exactly one (per round). A trivial-classified
++  analysis whose group spans unrelated file sets triggers REC7.
++- **SE-8 (F8/C9):** the loop exited by a held stop condition, or halted at the cap with
++  the verdict recorded — the round counter never exceeds 5 and a cap-halt never closes
++  COMPLETED.
+ 
+ ### Phase: Scenario Validation
+ 
+-**Step 5 — Scenario Evals** · Owner: play · Depends on: Step 4
+-- **SCE-1 (S1 — developer, multi-concern):** each concern is a separate conventional commit
+-  referencing the issue, the tree is clean, and nothing was pushed.
++**Scenario Evals** · Owner: play · Depends on: the loop
++- **SCE-1 (S1 — developer, multi-concern):** each concern is a separate conventional
++  commit referencing the issue with no doubled prefix, the run artifacts are committed,
++  the tree is clean, and nothing was pushed.
+ - **SCE-2 (S2 — developer, nothing to commit):** a clean tree caused a graceful exit at
+   pre-flight with no commit created.
+ - **SCE-3 (S3 — reviewer, log readability):** every commit follows conventional format with
+   an issue reference, reviewable from the log alone.
+-- **SCE-4 (S4 — developer, sensitive file):** a sensitive file blocked the run at pre-flight
++- **SCE-4 (S4 — developer, sensitive file):** a sensitive file blocked the run
+   with no commit created.
+ - **SCE-5 (S5 — developer, trivial changeset):** a single-concern changeset ran entirely
+-  through the bundled scripts — `analysis.yaml` and `commits.yaml` are script-emitted, zero
+-  analyze/commit agent dispatches occurred, and the commit meets the same C2–C4 guarantees
+-  as the agent path.
++  through the bundled scripts — plan and commits script-emitted, zero analyze/commit agent
++  dispatches, same C2–C4 guarantees as the agent path.
++- **SCE-6 (S6 — developer, loop convergence):** an unmet round fed its verdict to the next
++  round as the work list, and the run converged (verdict held) or halted with the unmet
++  clauses named and rounds ≤ 5.
+ 
+ ### Phase: Evidence & Close
+ 
+-**Step 6 — Close** · Owner: play · Depends on: Step 5
++**Close** · Owner: play · Depends on: Scenario Validation
+ Run the Standard Play Close. Evidence recording is play-only and config-gated per the D1
+ evidence rule (`standards/rules/evidence-recording.md`).
+ 
+@@ -223,29 +251,45 @@ delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-repor
+ ts=$(date -u +%Y%m%d-%H%M%S)
+ evidence_dest="${evidence_base}${ts}.md"
+ mkdir -p "$(dirname "$evidence_dest")"
+-
+ # Session identity stamp (#463) — close phase; start phase ran at pre-flight
+ session_stamp=$(python3 scripts/session_stamp.py --phase close \
+     --marker "${stm_base}${issue}/status/session-stamp-commit-change.json")
++# Stop-condition gate (#464) — Step C0: this play carries a baked manifest, so the
++# gate is LIVE. The loop already wrote the verdict; re-read it here as the close's
++# authoritative input.
++python3 scripts/check_stop_condition.py \
++    --manifest "<play-dir>/stop-condition.yaml" \
++    --base "${stm_base}${issue}/" \
++    --out "${stm_base}${issue}/status/stop-condition-commit-change.yaml"
++sc_exit=$?   # 0 held · 1 unmet · 2 error
+ ```
+ 
++**Step C0 — bind the verdict.** `sc_exit == 0` (held) permits `status: COMPLETED`.
++Anything else closes `HALTED` with `exit_reason: stop_condition_unmet` (or
++`loop_cap_exhausted` when the loop capped) and the evidence's Stop Condition section
++names every unmet clause. An unevaluable verdict is never a pass.
++
+ **Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag (global +
+ per-play `evidence.plays.commit-change`; first match wins, absent ⇒ record). When false,
+ skip the write and record `evidence skipped (record=false)` in the report's pointer line.
+ Otherwise fill the `evidence-file.md` slots (play `commit-change`, run_id
+-`commit-change-${ts}`, issue, started_at/completed_at, status, artifacts produced:
+-`analysis.yaml`, `issue-mappings.yaml`, `commits.yaml`; step/scenario eval results;
+-checkpoint decision from Step 3; commit reference = the created commit SHAs; and the
+-session identity stamp fields from $session_stamp (#463): session_id, ledger_file,
+-ledger_start_offset, ledger_end_offset (null when unresolved — never blocks the close)) and
+-write to `$evidence_dest`. `analysis.yaml` and `issue-mappings.yaml` are written unconditionally in
+-Steps 1–2. Do NOT hand-author the body.
+-
+-**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
+-report: `## commit-change Delivered — #${issue}`, the Run Summary table, the Pipeline Steps
+-table from the task DAG, the Artifacts Produced table (the commits created), Next Steps
+-(run propose-change to push and open the PR), and a pointer to `$evidence_dest`. Always
+-emitted; never gated.
++`commit-change-${ts}`, issue, started_at/completed_at, status per C0, exit_reason;
++artifacts produced: `analysis.yaml`, `issue-mappings.yaml`, `commits.yaml`, the
++stop-condition verdict; step/scenario eval results; checkpoint decisions from the loop's
++checkpoint rounds; commit reference = the created commit SHAs incl. the run-state commit;
++the session identity stamp fields from $session_stamp (#463): session_id, ledger_file,
++ledger_start_offset, ledger_end_offset (null when unresolved — never blocks the close);
++and stop_condition per C0 with the Stop Condition section filled) and write to
++`$evidence_dest`. Do NOT hand-author the body.
++
++**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in
++`standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to
++see all recommended actions.` (only /next pointer, or omit, when the mapped command is
++null), per `play-close.md`. Fill the `delivery-report.md` slots and output the report:
++`## commit-change Delivered — #${issue}`, the Run Summary table (incl. rounds used and the
++stop-condition verdict), the Pipeline Steps table from the task DAG, the Artifacts Produced
++table (the commits created), Next Steps (run propose-change to push and open the PR), and a
++pointer to `$evidence_dest`. Always emitted; never gated.
+ 
+ ```bash
+ # --- end Standard Play Close ---
+@@ -260,51 +304,49 @@ emitted; never gated.
+ | S3 — log readability | reviewer | SCE-3 |
+ | S4 — sensitive file | developer | SCE-4 |
+ | S5 — trivial changeset, scripts only | developer | SCE-5 |
++| S6 — loop convergence | developer | SCE-6 |
+ 
+ ## Recovery
+ 
+ | For | Trigger | Direction | Handoff |
+ |-----|---------|-----------|---------|
+-| F1 | a commit covers more than one concern | regroup so each commit holds a single concern; re-stage by group and recommit | autonomous |
++| F1 | a commit covers more than one concern | regroup so each commit holds a single concern; re-stage by group and recommit (a loop round) | autonomous |
+ | F2 | a commit subject is generic or missing the issue reference | rewrite the subject to describe the change and add the issue reference | autonomous |
+-| F3 | changed files remain uncommitted with no exclusion reason | commit the remaining files in an appropriate group, or record an explicit exclusion reason | autonomous |
++| F3 | changed files remain uncommitted with no exclusion reason | the unmet verdict is the next round's work list — commit the remainder or record the exclusion | autonomous |
+ | F4 | the current branch is main | halt; move the work to a feature branch (start-change) before committing | human |
+ | F5 | a sensitive file is staged | unstage the sensitive file and confirm it is excluded before committing | human |
+ | F6 | the play attempted a push | this play commits only — drop the push; leave pushing to propose-change | autonomous |
+-| F7 | the script's triviality classification disagrees with the changeset | discard the fast-path analysis and re-run Step 1 through the analyze agent (or record a needless dispatch); the agent's grouping wins | autonomous |
++| F7 | the script's triviality classification disagrees with the changeset | discard the fast-path analysis and re-run the scan through the analyze agent (or record a needless dispatch); the agent's grouping wins | autonomous |
++| F8 | the loop hit its cap with the Done means unmet | halt HALTED (`loop_cap_exhausted`) with the verdict recorded; a human inspects the unmet clauses and fixes state or knowingly raises the cap | human |
+ 
+ ## Pause and Resume
+ 
+-Steps run top to bottom. On entry, resolve the issue from the branch name, check the status
+-marker, skip completed steps, reset any in-progress step to pending, and continue. A fresh
+-start with no marker runs everything and creates the marker at Step 1.
++On entry, resolve the issue from the branch name, check the status marker, and re-enter
++the loop at the recorded round count — the cap counts all rounds across resumes. A fresh
++start with no marker begins at round 1 and creates the marker.
+ 
+ ## Compilation Metadata
+ 
+ | Field | Value |
+ |-------|-------|
+-| fingerprint | sha256:97e239f5c42625616edee6bba99889b569e5817da1a42f9672877413d4836a64 (of `reference/ice.md`) |
+-| compiled_by | play-creator (edited via play-editor, #434) |
++| fingerprint | sha256:458374acf654c7c1d555f5aa11b51663ac7ff4ec812283623e193546bab930b9 (of `reference/ice.md`) |
++| compiled_by | play-editor (#465, Level 3 pilot recompile per ADR 025) |
+ | pipeline_position | end |
+-| workflow_structure | A (skippable checkpoint) |
++| workflow_structure | loop (skeleton: pre-flight → loop ≤5 → validation → gated close) |
++| stop_condition | stop-condition.yaml (D1–D4), gate live at Step C0 |
++| iteration_cap | 5 |
+ | domain_agents | 0 |
+ | utility_agents | 2 (repo-orchestrator — judgment path only; project-orchestrator) |
+ | skills_reused | analyze-changes (judgment path), resolve-issues, manage-issue |
+-| scripts | 3 (preflight.py, analyze_changeset.py, execute_commits.py) |
+-| step_evals | 7 (SE-1…SE-7) |
+-| scenario_evals | 5 (SCE-1…SCE-5) |
+-| recovery_entries | 7 (one per failure condition; 5 autonomous / 2 human) |
+-
+-## Direct-edit deviation note (#438)
+-
+-Non-intent change: `analyze_changeset.py`'s secret scanner learned the artifact-type
+-lesson from #438 — content-pattern matches in prose/standards artifacts (which carry
+-hunt patterns by design) are non-blocking warnings surfaced at the checkpoint; filename
+-matches and content matches in runtime/config paths still hard-block. C6's guarantee is
+-unchanged: actual secrets never commit. The SKILL policy lines above were updated to
+-read the scanner's per-entry `blocking` flag; `reference/ice.md` and the fingerprint are
+-untouched.
+-
+-## Direct-edit deviation note (#463, session identity stamp)
+-
+-Non-intent change: the Standard Play Close gained the session identity stamp — `scripts/session_stamp.py` (canonical copy: `play-creator/references/session_stamp.py`) runs `--phase start` at pre-flight and `--phase close` in the close block; the evidence frontmatter carries session_id / ledger_file / ledger_start_offset / ledger_end_offset. Source of truth: `standards/rules/play-close.md`; play-creator emits the same lines so a rebuild converges. No constraint, failure, scenario, or eval changed; the fingerprint stands.
++| scripts | 5 (preflight.py, analyze_changeset.py, execute_commits.py, check_stop_condition.py, session_stamp.py) |
++| step_evals | 8 (SE-1…SE-8) |
++| scenario_evals | 6 (SCE-1…SCE-6) |
++| recovery_entries | 8 (one per failure condition; 5 autonomous / 3 human) |
++
++## Compiled note (#438, absorbed on recompile)
++
++`analyze_changeset.py`'s secret scanner distinguishes artifact types: content-pattern
++matches in prose/standards artifacts (pattern carriers by design) are non-blocking warnings
++surfaced at the checkpoint; filename matches and content matches in runtime/config paths
++hard-block. C6's guarantee is unchanged: actual secrets never commit. Formerly a direct-edit
++deviation note; owned by the compiled play since the #465 recompile.
+diff --git a/core/components/plays/commit-change/reference/ice.md b/core/components/plays/commit-change/reference/ice.md
+index 6c887504..1ef1726e 100644
+--- a/core/components/plays/commit-change/reference/ice.md
++++ b/core/components/plays/commit-change/reference/ice.md
+@@ -17,9 +17,16 @@ play declared `position: end`. Positions are start and end only — there is no
+ 
+ - C1 — Work is committed on a feature branch, never on main.
+ - C2 — Changes are grouped by concern; each commit holds one coherent concern.
+-- C3 — Each commit uses conventional format and references the tracked issue.
++- C3 — Each commit uses conventional format and references the tracked issue. The
++  formatting is owned by exactly one party: the plan carries a BARE subject (no type
++  prefix, no scope, no issue reference — those live in separate fields), and the executor
++  renders the conventional message — defensively normalizing a subject that arrives
++  pre-formatted rather than doubling the prefix (#465 defect 1).
+ - C4 — Every changed file lands in a commit or has a stated exclusion reason; the working
+-  tree is clean afterward.
++  tree is clean afterward — including the play's own run artifacts, which the play commits
++  as its final chore group so the tree handed to propose-change is genuinely clean
++  (#465 defect 2). A path the repository's ignore rules exclude is pre-checked and becomes
++  a recorded exclusion, never a mid-plan failure (#465 defect 3).
+ - C5 — When there is nothing to commit, the play exits cleanly without committing.
+ - C6 — Sensitive files (secrets, credentials, keys) are never committed; their presence
+   blocks the commit.
+@@ -29,6 +36,12 @@ play declared `position: end`. Positions are start and end only — there is no
+   analyzed entirely by script; commit execution is always a script over the decided plan.
+   The analyze agent is dispatched only when the script classifies the changeset as
+   multi-concern, i.e. when grouping genuinely requires judgment.
++- C9 — The interior is a goal-loop, not a baked step sequence (#460 Level 3): the play
++  ends by PROVING its Done means, never by a step list running out. Each round the agent
++  decides its own moves (scan, group, checkpoint when policy demands, execute, re-check);
++  between rounds the stop condition is evaluated. The loop is bounded by an iteration cap
++  of 5 — hitting the cap without the Done means holding halts the run with the
++  stop-condition verdict recorded; the cap is a circuit breaker, never a target.
+ 
+ ### Failure conditions
+ 
+@@ -42,6 +55,8 @@ play declared `position: end`. Positions are start and end only — there is no
+ - F7 — The fast path swallows a judgment call: the script analyzes a changeset it should
+   have classified as multi-concern, or an agent is dispatched for a changeset the script
+   already analyzed.
++- F8 — The loop exhausts its iteration cap without the Done means holding — the run must
++  halt with the stop-condition verdict recorded, never silently close as completed.
+ 
+ ## Expectation
+ 
+@@ -49,9 +64,11 @@ play declared `position: end`. Positions are start and end only — there is no
+ 
+ - S1 — (developer, multi-concern changes) Given uncommitted changes spanning more than one
+   concern on a feature branch, when commit-change runs, then each concern becomes a
+-  separate conventional commit referencing the issue, the tree is left clean, and nothing
+-  is pushed. Measure: commits are grouped one-concern-each; each is conventional and
+-  references the issue; `git status` is clean; the remote branch tip is unchanged.
++  separate conventional commit referencing the issue, the play's own run artifacts land in
++  a final chore commit, the tree is left clean, and nothing is pushed. Measure: commits are
++  grouped one-concern-each; each is conventional and references the issue with no doubled
++  type prefix; the run artifacts are committed; `git status` is clean; the remote branch
++  tip is unchanged.
+ - S2 — (developer, nothing to commit) Given a clean working tree, when commit-change runs,
+   then it exits cleanly without creating a commit. Measure: no commit is created; the run
+   exits gracefully.
+@@ -66,6 +83,23 @@ play declared `position: end`. Positions are start and end only — there is no
+   sub-agent spawned for analysis or commit execution. Measure: analysis.yaml and
+   commits.yaml are script-emitted; zero analyze/commit agent dispatches occurred; the
+   commit satisfies the same C2–C4 guarantees as the agent path.
++- S6 — (developer, loop convergence) Given a round whose execution leaves the Done means
++  unmet (leftover files, an ignored path surfacing, a failed group), when the loop
++  continues, then the next round consumes the stop-condition verdict as its work list and
++  the run either converges within the cap or halts with the verdict recorded. Measure: the
++  run's stop-condition verdict reads held on convergence, or the run closes HALTED with
++  the unmet clauses named and rounds ≤ 5.
++
++### Done means
++
++- D1 — says: "the commit record exists"
++  check: { type: artifact_exists, path: "context/commits.yaml" }
++- D2 — says: "every change is committed or excluded with a recorded reason"
++  check: { type: field_equals, file: "context/commits.yaml", field: "leftover_count", equals: 0 }
++- D3 — says: "the working tree ended clean"
++  check: { type: field_equals, file: "context/commits.yaml", field: "tree_clean", equals: true }
++- D4 — says: "nothing was pushed"
++  check: { type: field_equals, file: "context/commits.yaml", field: "pushed", equals: false }
+ 
+ ### Recovery (one per failure condition)
+ 
+@@ -88,3 +122,7 @@ play declared `position: end`. Positions are start and end only — there is no
+   script-classified-trivial changeset). direction: discard the fast-path analysis and
+   re-run Step 1 through the analyze agent (or, for a needless dispatch, record the
+   redundancy); the agent's grouping wins. handoff: autonomous.
++- REC8 (F8) — trigger: the loop hit its iteration cap with the Done means still unmet.
++  direction: halt HALTED with exit_reason loop_cap_exhausted and the stop-condition
++  verdict recorded; a human inspects the unmet clauses and either fixes the underlying
++  state and re-runs, or raises the cap knowingly. handoff: human.
+diff --git a/core/components/plays/commit-change/scripts/check_stop_condition.py b/core/components/plays/commit-change/scripts/check_stop_condition.py
+new file mode 100644
+index 00000000..1e801d47
+--- /dev/null
++++ b/core/components/plays/commit-change/scripts/check_stop_condition.py
+@@ -0,0 +1,136 @@
++#!/usr/bin/env python3
++"""
++check_stop_condition.py — evaluate a play's baked stop condition (#464).
++
++A play ends because "done" was PROVEN, not because its step list ran out.
++The proof is this script: it reads the play's compiled stop-condition
++manifest (stop-condition.yaml, baked by play-creator from the ICE's
++"### Done means" section) and evaluates every clause against what actually
++exists on disk at close. Pure assertions — it executes nothing, so the
++close gate stays instant and side-effect-free (implement's hand-built
++check_done.py pattern, made play-agnostic).
++
++Clause types (mechanical, closed set):
++    artifact_exists     {path}                       — glob ok, ≥1 match
++    field_equals        {file, field, equals}        — dot-path into JSON/YAML
++    gate_outcomes_pass  {file}                       — run-quality-gates output: ok == true
++
++Manifest shape (content.done is the clause list):
++    schema: {name: stop-condition}
++    content:
++      done:
++        - id: D1
++          says: "the commits exist and the tree is clean"   # human sentence
++          check: {type: artifact_exists, path: "...commits.yaml"}
++
++Usage:
++    python3 check_stop_condition.py --manifest <stop-condition.yaml> \
++        --base <run/STM root for relative paths> --out <verdict.yaml>
++
++Verdict: {stop_condition: held|unmet, clauses: [{id, says, status, detail}]}
++Exit 0 held, 1 unmet, 2 manifest/clause error (an unevaluable clause is an
++error, never a silent pass — the run-quality-gates rule, reused).
++"""
++
++import argparse
++import glob
++import json
++import os
++import sys
++
++try:
++    import yaml
++except ImportError:
++    print("PyYAML required: pip install pyyaml", file=sys.stderr)
++    sys.exit(2)
++
++
++def load_doc(path):
++    with open(path, "r", encoding="utf-8") as fh:
++        if path.endswith(".json"):
++            return json.load(fh)
++        return yaml.safe_load(fh)
++
++
++def dot_get(doc, field):
++    cur = doc
++    for part in field.split("."):
++        if isinstance(cur, list):
++            cur = cur[int(part)]
++        elif isinstance(cur, dict) and part in cur:
++            cur = cur[part]
++        else:
++            return None, False
++    return cur, True
++
++
++def eval_clause(clause, base):
++    check = clause.get("check") or {}
++    ctype = check.get("type")
++    try:
++        if ctype == "artifact_exists":
++            pattern = os.path.join(base, check["path"])
++            hits = glob.glob(pattern)
++            return ("held" if hits else "unmet",
++                    f"{len(hits)} match(es) for {check['path']}")
++        if ctype == "field_equals":
++            fpath = os.path.join(base, check["file"])
++            if not os.path.exists(fpath):
++                return "unmet", f"file missing: {check['file']}"
++            value, found = dot_get(load_doc(fpath), check["field"])
++            if not found:
++                return "unmet", f"field missing: {check['field']}"
++            ok = value == check["equals"]
++            return ("held" if ok else "unmet",
++                    f"{check['field']} = {value!r} (want {check['equals']!r})")
++        if ctype == "gate_outcomes_pass":
++            fpath = os.path.join(base, check["file"])
++            if not os.path.exists(fpath):
++                return "unmet", f"gate outcomes missing: {check['file']}"
++            doc = load_doc(fpath)
++            ok = bool(doc.get("ok"))
++            counts = doc.get("counts", {})
++            return ("held" if ok else "unmet", f"gates ok={ok} counts={counts}")
++        return "error", f"unknown check type: {ctype!r}"
++    except Exception as exc:  # noqa: BLE001 — an unevaluable clause is an error
++        return "error", f"clause evaluation failed: {exc}"
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--manifest", required=True)
++    ap.add_argument("--base", required=True,
++                    help="root for the manifest's relative paths (the run's STM)")
++    ap.add_argument("--out", required=True)
++    args = ap.parse_args()
++
++    doc = load_doc(args.manifest) or {}
++    clauses = (doc.get("content") or {}).get("done") or []
++    if not clauses:
++        verdict = {"stop_condition": "error",
++                   "clauses": [],
++                   "detail": "manifest has no content.done clauses"}
++        code = 2
++    else:
++        results = []
++        for c in clauses:
++            status, detail = eval_clause(c, args.base)
++            results.append({"id": c.get("id"), "says": c.get("says"),
++                            "status": status, "detail": detail})
++        if any(r["status"] == "error" for r in results):
++            overall, code = "error", 2
++        elif all(r["status"] == "held" for r in results):
++            overall, code = "held", 0
++        else:
++            overall, code = "unmet", 1
++        verdict = {"stop_condition": overall, "clauses": results}
++
++    os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
++    with open(args.out, "w", encoding="utf-8") as fh:
++        yaml.safe_dump(verdict, fh, sort_keys=False)
++    print(json.dumps(verdict, indent=2))
++    sys.exit(code)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/core/components/plays/commit-change/scripts/execute_commits.py b/core/components/plays/commit-change/scripts/execute_commits.py
+index d0c3b38e..878ef9b5 100644
+--- a/core/components/plays/commit-change/scripts/execute_commits.py
++++ b/core/components/plays/commit-change/scripts/execute_commits.py
+@@ -82,6 +82,37 @@ def fallback_parse(text):
+             "exclusions": [{"path": p} for p in exclusions]}
+ 
+ 
++def normalize_subject(subject, commit_type, scope, issue):
++    """The plan carries a BARE subject; the executor owns the conventional wrapper
++    (C3, #465 defect 1). Defensively strip a pre-formatted prefix/issue-ref an
++    agent wrote anyway, instead of doubling them."""
++    s = (subject or "").strip()
++    # strip one leading "type(scope): " or "type: " wrapper (repeat-safe)
++    prefix = re.compile(r"^[a-z]+(\([\w./-]+\))?\s*:\s*", re.I)
++    while prefix.match(s):
++        s = prefix.sub("", s, count=1)
++    # strip trailing "(#123)" issue refs
++    s = re.sub(r"\s*\(#\d+\)\s*$", "", s).strip()
++    return s
++
++
++def split_ignored(files, exclusions, reasons):
++    """Pre-check every planned path against the repo's ignore rules (C4,
++    #465 defect 3): an ignored path becomes a recorded exclusion, never a
++    mid-plan `git add` failure."""
++    keep = []
++    for f in files:
++        res = subprocess.run(["git", "check-ignore", "-q", "--", f],
++                             capture_output=True, text=True)
++        if res.returncode == 0:
++            if f not in exclusions:
++                exclusions.append(f)
++            reasons[f] = "gitignored — excluded by repository ignore rules"
++        else:
++            keep.append(f)
++    return keep
++
++
+ def normalize_group(g):
+     """Defensive alias mapping (the schema contract is analysis-output.md; this
+     absorbs drift instead of failing the run): `name` -> `id`, `type` ->
+@@ -106,6 +137,10 @@ def main():
+     ap.add_argument("--analysis", required=True)
+     ap.add_argument("--issue", required=True)
+     ap.add_argument("--out", required=True)
++    ap.add_argument("--run-state-dir", default=None,
++                    help="the play's own run-artifact dir (e.g. the issue's "
++                         "context/); committed as the final chore(stm) group so "
++                         "the tree hands off clean (C4, #465 defect 2)")
+     args = ap.parse_args()
+ 
+     branch = run_git(["branch", "--show-current"])
+@@ -130,12 +165,13 @@ def main():
+ 
+     commits = []
+     for g in groups:
+-        files = g.get("files") or []
++        files = split_ignored(g.get("files") or [], excl_paths, excl_reasons)
+         if not files:
+             continue
+         scope = g.get("scope") or "core"
+-        subject = (g.get("subject") or "").strip()
+         issue = g.get("issue") or args.issue
++        subject = normalize_subject(g.get("subject"), g.get("commit_type"),
++                                    scope, issue)
+         msg = f"{g.get('commit_type', 'chore')}({scope}): {subject} (#{issue})"
+         try:
+             # Pathspec-limited commit (C2/F1): the index may already hold OTHER
+@@ -154,34 +190,68 @@ def main():
+         commits.append({"sha": run_git(["rev-parse", "--short", "HEAD"]),
+                         "message": msg, "files": files})
+ 
+-    porcelain = run_git(["status", "--porcelain"], check=False)
+-    leftovers = [l[3:].strip().strip('"') for l in porcelain.splitlines() if l.strip()]
+-    uncovered = [p for p in leftovers
+-                 if not any(p.startswith(e.rstrip("/")) for e in excl_paths)]
+-
+-    with open(args.out, "w", encoding="utf-8") as fh:
+-        fh.write("commits:\n")
+-        for c in commits:
+-            fh.write(f"  - sha: {c['sha']}\n")
+-            fh.write(f"    message: \"{c['message']}\"\n")
+-            fh.write("    files:\n")
+-            for f in c["files"]:
+-                fh.write(f"      - {f}\n")
+-            fh.write(f"    branch: {branch}\n")
+-        fh.write("excluded_files:\n")
+-        if excl_paths:
+-            for p in excl_paths:
+-                fh.write(f"  - path: \"{p}\"\n")
+-                fh.write(f"    reason: \"{excl_reasons.get(p, '')}\"\n")
+-        else:
+-            fh.write("  []\n")
+-        fh.write(f"clean_after: {str(not uncovered).lower()}\n")
+-        fh.write("push: false\n")
++    def porcelain_leftovers():
++        porcelain = run_git(["status", "--porcelain"], check=False)
++        left = [l[3:].strip().strip('"') for l in porcelain.splitlines() if l.strip()]
++        return [p for p in left
++                if not any(p.startswith(e.rstrip("/")) for e in excl_paths)]
++
++    def write_out(uncovered, run_state_commit):
++        with open(args.out, "w", encoding="utf-8") as fh:
++            fh.write("commits:\n")
++            for c in commits:
++                fh.write(f"  - sha: {c['sha']}\n")
++                fh.write(f"    message: \"{c['message']}\"\n")
++                fh.write("    files:\n")
++                for f in c["files"]:
++                    fh.write(f"      - {f}\n")
++                fh.write(f"    branch: {branch}\n")
++            fh.write("excluded_files:\n")
++            if excl_paths:
++                for p in excl_paths:
++                    fh.write(f"  - path: \"{p}\"\n")
++                    fh.write(f"    reason: \"{excl_reasons.get(p, '')}\"\n")
++            else:
++                fh.write("  []\n")
++            # machine fields — the play's Done means checks these (#464/#465):
++            fh.write(f"leftover_count: {len(uncovered)}\n")
++            fh.write(f"tree_clean: {str(not uncovered).lower()}\n")
++            fh.write("pushed: false\n")
++            fh.write(f"run_state_committed: {str(bool(run_state_commit)).lower()}\n")
++
++    # Final chore group (#465 defect 2): the play's own run artifacts — including
++    # this very output file — land in a chore(stm) commit so the tree hands off
++    # clean. The output is written first (predicting the post-commit state), then
++    # committed; the recheck after proves the prediction or surfaces the dirt for
++    # the loop's next round.
++    run_state_sha = None
++    if args.run_state_dir:
++        uncovered_now = [p for p in porcelain_leftovers()
++                         if not p.startswith(args.run_state_dir.rstrip("/"))]
++        write_out(uncovered_now, True)
++        try:
++            run_git(["add", "--", args.run_state_dir])
++            run_git(["commit", "-m",
++                     f"chore(stm): record commit-change run artifacts (#{args.issue})",
++                     "--", args.run_state_dir])
++            run_state_sha = run_git(["rev-parse", "--short", "HEAD"])
++        except RuntimeError as e:
++            print(json.dumps({"error": str(e), "group": "run-state"}))
++            return 4
++        uncovered = porcelain_leftovers()
++        if uncovered:  # prediction missed — rewrite honestly; the loop re-rounds
++            write_out(uncovered, True)
++    else:
++        uncovered = porcelain_leftovers()
++        write_out(uncovered, False)
+ 
+     print(json.dumps({
+         "commits": [{"sha": c["sha"], "message": c["message"]} for c in commits],
++        "run_state_commit": run_state_sha,
+         "branch": branch,
+         "leftover_uncovered": uncovered,  # play policy: F3 if non-empty
++        "leftover_count": len(uncovered),
++        "tree_clean": not uncovered,
+         "out": args.out,
+         "pushed": False,
+     }, indent=2))
+diff --git a/core/components/plays/commit-change/stop-condition.yaml b/core/components/plays/commit-change/stop-condition.yaml
+new file mode 100644
+index 00000000..f887d286
+--- /dev/null
++++ b/core/components/plays/commit-change/stop-condition.yaml
+@@ -0,0 +1,18 @@
++# commit-change stop condition — baked from reference/ice.md "### Done means" (#464/#465).
++# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close,
++# and between loop rounds. Paths are relative to the run's STM root ({stm_base}{issue}/).
++schema: { name: stop-condition }
++content:
++  done:
++    - id: D1
++      says: "the commit record exists"
++      check: { type: artifact_exists, path: "context/commits.yaml" }
++    - id: D2
++      says: "every change is committed or excluded with a recorded reason"
++      check: { type: field_equals, file: "context/commits.yaml", field: "leftover_count", equals: 0 }
++    - id: D3
++      says: "the working tree ended clean"
++      check: { type: field_equals, file: "context/commits.yaml", field: "tree_clean", equals: true }
++    - id: D4
++      says: "nothing was pushed"
++      check: { type: field_equals, file: "context/commits.yaml", field: "pushed", equals: false }
