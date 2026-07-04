@@ -138,6 +138,14 @@ From the approved intent, generate the expectation:
 - Exactly **one recovery entry per failure condition** (F1→REC1, …), each naming the
   trigger symptom, the corrective direction, and a `handoff` of `autonomous` (the fix
   can loop back without a human) or `human` (needs a person to decide).
+- A **"### Done means" section (#464)** — the play's stop condition: 2–6 clauses, each
+  with an id (D1…), a plain-language `says`, and a mechanical `check` drawn from the
+  closed clause set (`artifact_exists` | `field_equals` | `gate_outcomes_pass`).
+  Compose the clauses from the scenarios' measures and the artifact-verifiable
+  constraints — the done statement is what the measures already promise, made
+  evaluable against the run's artifacts at close. A done that cannot be composed
+  mechanically is a sign the measures are not binary — fix the measures, don't
+  hand-wave the done.
 Derive these from the intent — do not ask the user to write them. Present the generated
 expectation for a quick approve/revise.
 
@@ -250,7 +258,16 @@ decides how it's enforced:
 ### 6 — Compile the play
 Emit the play. If it has mechanical steps, emit a **folder** — `<play-name>/SKILL.md` plus
 `<play-name>/scripts/` for the scripts those steps call (and `references/` for anything it
-reads); a pure-judgment play can be a single `SKILL.md`. Write each mechanical step's
+reads); a pure-judgment play can be a single `SKILL.md`.
+
+**Bake the stop condition (#464).** When the ICE carries "### Done means", emit
+`<play-name>/stop-condition.yaml` (schema `{name: stop-condition}`, `content.done` =
+the clause list verbatim) and stamp `scripts/check_stop_condition.py` from
+[`references/check_stop_condition.py`](references/check_stop_condition.py) — same
+verbatim-copy discipline as `preflight.py` and `session_stamp.py`. The Standard Play
+Close's Step C0 (play-close.md) evaluates the manifest at close: held permits
+COMPLETED, unmet forces HALTED. A play whose ICE has no Done means bakes no manifest
+and closes as legacy (`stop_condition: not_defined`). Write each mechanical step's
 script into `scripts/` and have that step invoke it by relative path — don't also inline
 the logic the script now owns. **Unless the play has no environmental pre-flight, stamp the
 canonical `scripts/preflight.py` (copy `references/preflight.py` verbatim) per step 4 and

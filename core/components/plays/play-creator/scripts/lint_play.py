@@ -225,6 +225,40 @@ def main(argv):
                         if pf_ok else "Pre-flight references scripts/preflight.py but the "
                                       "file is missing — stamp it from references/preflight.py"))
 
+    # --- stop condition (#464; gated: only when the ICE declares Done means) -
+    # A play whose reference/ice.md carries "### Done means" must be compiled
+    # with a baked stop-condition.yaml (>=1 content.done clause, each with a
+    # closed-set check type) and the stamped checker script. Plays without the
+    # ICE section are legacy and skip this check entirely (non-breaking).
+    play_dir_sc = os.path.dirname(os.path.abspath(argv[1]))
+    ice_path = os.path.join(play_dir_sc, "reference", "ice.md")
+    ice_text = ""
+    if os.path.isfile(ice_path):
+        with open(ice_path, encoding="utf-8") as fh:
+            ice_text = fh.read()
+    if re.search(r"(?im)^###\s+Done means\b", ice_text):
+        sc_path = os.path.join(play_dir_sc, "stop-condition.yaml")
+        chk_path = os.path.join(play_dir_sc, "scripts", "check_stop_condition.py")
+        sc_problems = []
+        if not os.path.isfile(sc_path):
+            sc_problems.append("stop-condition.yaml missing — bake it from the ICE's Done means")
+        else:
+            with open(sc_path, encoding="utf-8") as fh:
+                sc_text = fh.read()
+            clause_types = re.findall(r"type:\s*([a-z_]+)", sc_text)
+            if not clause_types:
+                sc_problems.append("stop-condition.yaml has no content.done clauses")
+            bad_types = [t for t in clause_types
+                         if t not in {"artifact_exists", "field_equals", "gate_outcomes_pass"}]
+            if bad_types:
+                sc_problems.append("unknown check type(s): " + ", ".join(sorted(set(bad_types))))
+        if not os.path.isfile(chk_path):
+            sc_problems.append("scripts/check_stop_condition.py missing — stamp it from "
+                               "references/check_stop_condition.py")
+        results.append((not sc_problems, "stop condition (#464)",
+                        "Done means baked: manifest + checker present, clause types valid"
+                        if not sc_problems else "; ".join(sc_problems)))
+
     # --- fingerprint --------------------------------------------------------
     meta = section_body(text, "Compilation Metadata") or ""
     fp = re.search(r"(?im)fingerprint.*", meta)

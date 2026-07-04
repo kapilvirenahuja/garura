@@ -1,0 +1,13 @@
+# Fixture: UNMET — a missing artifact, a wrong verdict, failing gates (#464)
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the commit record exists"
+      check: { type: artifact_exists, path: "run/commits.yaml" }
+    - id: D2
+      says: "the verdict reads approve"
+      check: { type: field_equals, file: "run/verdict.yaml", field: "verdict", equals: "approve" }
+    - id: D3
+      says: "the quality gates pass"
+      check: { type: gate_outcomes_pass, file: "run/gate-outcomes.json" }

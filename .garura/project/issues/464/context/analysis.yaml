@@ -1,0 +1,68 @@
+---
+# analyze_changeset.py output (C8 fast path) + analyze-changes agent grouping
+# issue: 464
+needs_judgment: false
+
+change_groups:
+  - id: stop-condition-checker
+    issue: 464
+    commit_type: feat
+    scope: components
+    subject: "add a machine-checkable stop condition to plays"
+    files:
+      - core/components/plays/play-creator/references/check_stop_condition.py
+      - core/components/plays/play-creator/references/fixtures/stop-condition/held/run/commits.yaml
+      - core/components/plays/play-creator/references/fixtures/stop-condition/held/run/gate-outcomes.json
+      - core/components/plays/play-creator/references/fixtures/stop-condition/held/run/verdict.yaml
+      - core/components/plays/play-creator/references/fixtures/stop-condition/held/stop-condition.yaml
+      - core/components/plays/play-creator/references/fixtures/stop-condition/unmet/run/gate-outcomes.json
+      - core/components/plays/play-creator/references/fixtures/stop-condition/unmet/run/verdict.yaml
+      - core/components/plays/play-creator/references/fixtures/stop-condition/unmet/stop-condition.yaml
+      - core/components/plays/play-creator/SKILL.md
+      - core/components/plays/play-creator/scripts/lint_play.py
+      - core/components/plays/play-editor/scripts/lint_play.py
+      - core/components/memory/standards/rules/play-close.md
+      - core/components/memory/standards/templates/evidence-file.md
+
+  - id: stm-context-464
+    issue: 464
+    commit_type: chore
+    scope: stm
+    subject: "record start-change context for the stop-condition work"
+    files:
+      - .garura/project/issues/464/context/branch.json
+      - .garura/project/issues/464/context/issue.json
+      - .garura/project/issues/464/context/porcelain.txt
+      - .garura/project/issues/464/context/work-description.txt
+      - .garura/project/issues/464/status/session-stamp-start-change.json
+
+exclusions:
+  - path: ".garura/project/issues/464/context/analysis.yaml"
+    reason: "run-state for this analysis step itself — never committed"
+    blocking: false
+  - path: ".garura/.gitignore"
+    reason: "modifies shared repo config (trims comment text in the status/ ignore rule) — not mentioned in issue #464's scope (the stop-condition feature or its STM context); no evidence tying it to this work. Needs a human decision on whether it belongs to #464 or is a stray edit from something else."
+    blocking: true
+  - path: "CLAUDE.md.new"
+    reason: "untracked duplicate of CLAUDE.md, not referenced anywhere in issue #464's work description. Looks like a stray/leftover file (possibly from an unrelated edit or tool run), not part of the stop-condition feature. Should not be silently committed or discarded."
+    blocking: true
+  - path: ".garura/install-manifest.json"
+    reason: "untracked install-garura artifact (records deployed .claude components), unrelated to the #464 stop-condition feature and not part of the STM context for this issue. Likely belongs to a separate install run — needs a human decision on whether to commit, gitignore, or delete."
+    blocking: true
+
+risks:
+  sensitive_files:
+    []
+  ambiguous_types:
+    []
+  breaking_changes:
+    []
+  hotfix_branch: false
+  out_of_scope_files:
+    - ".garura/.gitignore"
+    - "CLAUDE.md.new"
+    - ".garura/install-manifest.json"
+
+eval_gates:
+  SE-1: {status: PASS, evidence: "grouped by issue #464: one feat(components) group for the stop-condition feature, one chore(stm) group for start-change context; 3 unrelated/stray files held out as blocking exclusions pending human decision"}
+  SE-5: {status: PASS, evidence: "no sensitive patterns matched"}
