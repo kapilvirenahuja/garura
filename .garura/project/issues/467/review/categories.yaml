@@ -1,53 +1,34 @@
-# categories.yaml — PR #483 (issue #467), review-change Job 1
-# Derived from actual diff content, not a presumed list.
+# categories.yaml — PR #485 (issue #467, Stage 4 Batch D), review-change Job 1
+# Derived from the actual diff content (10 changed files), not a presumed list.
 
 categories:
   - category: harness
     description: >
-      Play definitions (SKILL.md + ICE source) for five plays in the propose→commit→
-      review→merge chain, edited to turn off human confirm-gates and route to the new
-      replacement machine checks.
+      Four execute-side plays (validate, fix-bug, implement, refactor) — each an
+      ICE source + its compiled SKILL.md — had their human confirm-gate turned off
+      (config-resolved) and replaced by named machine preconditions in the same
+      change. fix-bug and implement were previously PINNED gates; this diff removes
+      the pin (an intent change, done in the ICE, not a hand-edit of the compiled
+      file). validate and refactor were already plain config-switch gates (not
+      pinned) — this diff flips their config value to off and writes the existing
+      machine invariant into the gate's replacement-check language.
     evidence:
-      - core/components/plays/commit-change/SKILL.md
-      - core/components/plays/commit-change/reference/ice.md
-      - core/components/plays/merge-change/SKILL.md
-      - core/components/plays/merge-change/reference/ice.md
-      - core/components/plays/propose-change/SKILL.md
-      - core/components/plays/propose-change/reference/ice.md
-      - core/components/plays/review-change/SKILL.md
-      - core/components/plays/review-change/reference/ice.md
-      - core/components/plays/start-change/SKILL.md
-      - core/components/plays/start-change/reference/ice.md
+      - core/components/plays/fix-bug/SKILL.md
+      - core/components/plays/fix-bug/reference/ice.md
+      - core/components/plays/implement/SKILL.md
+      - core/components/plays/implement/reference/ice.md
+      - core/components/plays/refactor/SKILL.md
+      - core/components/plays/refactor/reference/ice.md
+      - core/components/plays/validate/SKILL.md
+      - core/components/plays/validate/reference/ice.md
     playbook: knowledge/review/harness.md
     playbook_present: true
 
-  - category: executable_code
-    description: >
-      Deterministic python scripts that mechanically replace three human confirm-gates
-      (validate the new-issue title/description, scan the self-review for blockers).
-      Canonical copies live under play-creator/references; per-play copies are deployed
-      under propose-change/scripts and start-change/scripts.
-    evidence:
-      - core/components/plays/play-creator/references/check_self_review.py
-      - core/components/plays/play-creator/references/validate_issue.py
-      - core/components/plays/propose-change/scripts/check_self_review.py
-      - core/components/plays/start-change/scripts/validate_issue.py
-    playbook: knowledge/review/code.md
-    playbook_present: true
-
-  - category: tests
-    description: >
-      Fixture/subprocess tests (plain asserts, tempdirs) exercising validate_issue.py and
-      check_self_review.py end to end.
-    evidence:
-      - core/components/plays/play-creator/references/test_chain_checks.py
-    playbook: knowledge/review/tests.md
-    playbook_present: true
-    note: "tests.md requires the tool to RUN the suite, not just read it — flag for the linter/eval stage."
-
   - category: config_maps
     description: >
-      Project config.yaml path-wiring change (garura's own path map).
+      Project config.yaml gains four new `gates.plays.<play>: off` keys (validate,
+      fix-bug, implement, refactor) under the existing `gates.plays` block —
+      wiring, not design content.
     evidence:
       - .garura/core/config.yaml
     playbook: knowledge/review/config-maps.md
@@ -55,25 +36,21 @@ categories:
 
   - category: generated_stm_run_records
     description: >
-      Machine-generated per-issue run artifacts written by the propose/commit pipeline
-      itself for this branch: branch metadata, commit log, a git-porcelain snapshot, PR
-      metadata, an analysis grouping, and the self-review notes. Not authored design,
-      not code, not knowledge — a byproduct of running the play chain on issue #467.
-      Consistent with prior reviews on this repo: generated STM run-records have no
-      governing playbook on the review shelf.
+      Machine-generated per-issue run metadata for this branch (branch name,
+      base SHA) rewritten by the propose/commit pipeline itself for issue #467.
+      Not authored design, not code, not knowledge — a byproduct of running the
+      play chain. Consistent with prior reviews on this repo (PR #483/Batch C):
+      generated STM run-records have no governing playbook on the review shelf.
     evidence:
-      - .garura/project/issues/467/context/analysis.yaml
       - .garura/project/issues/467/context/branch.json
-      - .garura/project/issues/467/context/commits.yaml
-      - .garura/project/issues/467/context/porcelain.txt
-      - .garura/project/issues/467/context/pr.json
-      - .garura/project/issues/467/context/self-review.md
     playbook: null
     playbook_present: false
-    note: "playbook missing — same gap flagged on prior reviews; follow-up task raised to seed a generated-artifact/STM-record playbook on the review shelf."
+    note: "playbook missing — same gap flagged on the prior Batch C review (PR #483);
+      follow-up task already raised there to seed a generated-artifact/STM-record
+      playbook on the review shelf. Not re-raising a duplicate task here."
 
 summary:
-  total_changed_paths: 22
-  categories_present: 5
-  categories_with_playbook: 4
+  total_changed_paths: 10
+  categories_present: 3
+  categories_with_playbook: 2
   categories_without_playbook: 1

@@ -1,10 +1,10 @@
 {
   "verdict": "approve",
   "decided_by": "harness",
-  "reason": "gate off (gates.plays.review-change); recommendation approve became the recorded decision \u2014 0 P1/P2/P3, all mechanical layers green, design 5/5 conform",
+  "reason": "gate off; recommendation became recorded decision \u2014 0 P1/P2/P3, design 5/5 conform",
   "blocking": [],
   "counts": {
-    "P4": 2
+    "P4": 1
   },
   "confidence": null,
   "threshold": 0.5,

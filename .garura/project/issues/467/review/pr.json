@@ -1,6 +1,1 @@
-{
-  "number": 483,
-  "url": "https://github.com/kapilvirenahuja/garura/pull/483",
-  "base": "main",
-  "headRefName": "feature/467-batch-c-chain-gates-off"
-}
+{"baseRefName":"main","headRefName":"feature/467-batch-d-execute-gates-off","number":485,"url":"https://github.com/kapilvirenahuja/garura/pull/485"}
