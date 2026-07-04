@@ -1,0 +1,11 @@
+ M .garura/.gitignore
+ M core/components/memory/standards/rules/play-close.md
+ M core/components/memory/standards/templates/evidence-file.md
+ M core/components/plays/play-creator/SKILL.md
+ M core/components/plays/play-creator/scripts/lint_play.py
+ M core/components/plays/play-editor/scripts/lint_play.py
+?? .garura/install-manifest.json
+?? .garura/project/issues/464/
+?? CLAUDE.md.new
+?? core/components/plays/play-creator/references/check_stop_condition.py
+?? core/components/plays/play-creator/references/fixtures/
