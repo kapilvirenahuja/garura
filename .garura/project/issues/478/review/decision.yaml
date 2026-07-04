@@ -1,0 +1,9 @@
+decision: approve
+typed_input: "approved"
+decided_by: human (Kapil Viren Ahuja)
+decided_at: 2026-07-04
+recommendation_shown: approve ("no P1 findings; confidence acceptable")
+notes: >
+  Two P4 notes accepted as non-blocking: (1) garura's own manifest lacks the scope
+  field until the next scoped install stamps it; (2) stm-evidence review playbook
+  missing — follow-up to seed one.

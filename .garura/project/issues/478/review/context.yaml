@@ -1,0 +1,37 @@
+pr:
+  number: 479
+  url: https://github.com/kapilvirenahuja/garura/pull/479
+  base: main
+  head: feature/478-install-scope
+
+base: main
+
+standards_order: [kb, ltm, stm]
+standards_source_config_key: review-pr.standards_order
+
+review_shelf: /Users/kapilahuja/.garura/core/memory/knowledge/review/
+review_shelf_resolution:
+  checked:
+    - path: ./.garura/core/memory/knowledge/review/
+      exists: false
+    - path: /Users/kapilahuja/.garura/core/memory/knowledge/review/
+      exists: true
+  resolved_from: global-target
+
+changed_paths:
+  - .garura/install-manifest.json
+  - .garura/project/issues/478/context/analysis.yaml
+  - .garura/project/issues/478/context/branch.json
+  - .garura/project/issues/478/context/commits.yaml
+  - .garura/project/issues/478/context/issue.json
+  - .garura/project/issues/478/context/porcelain.txt
+  - .garura/project/issues/478/context/pr.json
+  - .garura/project/issues/478/context/resolved-rules.json
+  - .garura/project/issues/478/context/self-review.md
+  - .garura/project/issues/478/context/work-description.txt
+  - core/components/plays/install-garura/SKILL.md
+  - core/components/plays/install-garura/scripts/adapters/claude.py
+  - core/components/plays/install-garura/scripts/adapters/codex.py
+  - core/components/plays/install-garura/scripts/install.py
+
+changed_paths_count: 14
