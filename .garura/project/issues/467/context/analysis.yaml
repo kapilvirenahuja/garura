@@ -1,63 +1,110 @@
 ---
-# analyze_changeset.py output (C8 fast path) + analyze-changes skill grouping
+# analyze_changeset.py output (C8 fast path) — judgment applied by analyze-changes skill
 # issue: 467
 needs_judgment: false
-branch: feature/467-reduce-human-gates
-issue: 467
 
 change_groups:
-  - id: feat-gate-learning-spine
-    issue: 467
-    commit_type: feat
+  - id: fix-play-creator-gate-scripts
+    issue: 481
+    commit_type: fix
     scope: play-creator
-    subject: "add the gate-learning spine — deterministic classifier, live-eval ledger, and policy distiller"
-    confidence: high
+    subject: "decompose functions and apply formatter for readability"
     files:
       - core/components/plays/play-creator/references/classify_change.py
       - core/components/plays/play-creator/references/gate_eval.py
       - core/components/plays/play-creator/references/distill_gate_policy.py
       - core/components/plays/play-creator/references/test_gate_learning.py
-    risks:
-      sensitive_files: []
-      breaking_changes: []
-    notes: "Four new files, one concern: the deterministic change-shape classifier, the live-eval ledger appender/reader, the policy learner, and its fixture tests (15 passing)."
 
-  - id: docs-gate-config-three-kinds
+  - id: docs-approval-prompt-three-kind-gate
     issue: 467
     commit_type: docs
     scope: standards
-    subject: "document the three gate kinds and the conditional resolution and live-eval loop"
-    confidence: high
+    subject: "document three-kind gate resolution including the learned-policy step"
     files:
-      - core/components/memory/standards/rules/gate-config.md
-    risks:
-      sensitive_files: []
-      breaking_changes: []
-    notes: "Standards-rule update describing pinned/conditional/off gate kinds, conditional resolution order, and the live-eval loop. Split from the spine and from config wiring per plan contract — pure docs change, no runtime code."
+      - core/components/memory/standards/templates/approval-prompt.md
 
-  - id: chore-conditional-gate-config
+  - id: feat-wire-conditional-gates-into-plays
     issue: 467
-    commit_type: chore
-    scope: config
-    subject: "wire the conditional gate block — streak, ledger path, and policy path"
-    confidence: high
+    commit_type: feat
+    scope: plays
+    subject: "wire conditional-gate resolution into the play with stamped gate-learning scripts"
     files:
-      - .garura/core/config.yaml
-    risks:
-      sensitive_files: []
-      breaking_changes: []
-    notes: "Adds gates.conditional (streak threshold, ledger path, policy path) and clarifies that pinned gates ignore this block. No secrets in diff — reviewed directly."
+      - core/components/plays/vision/SKILL.md
+      - core/components/plays/vision/reference/ice.md
+      - core/components/plays/vision/scripts/classify_change.py
+      - core/components/plays/vision/scripts/gate_eval.py
+      - core/components/plays/vision/scripts/distill_gate_policy.py
+      - core/components/plays/understand/SKILL.md
+      - core/components/plays/understand/reference/ice.md
+      - core/components/plays/understand/scripts/classify_change.py
+      - core/components/plays/understand/scripts/gate_eval.py
+      - core/components/plays/understand/scripts/distill_gate_policy.py
+      - core/components/plays/shape/SKILL.md
+      - core/components/plays/shape/reference/ice.md
+      - core/components/plays/shape/scripts/classify_change.py
+      - core/components/plays/shape/scripts/gate_eval.py
+      - core/components/plays/shape/scripts/distill_gate_policy.py
+      - core/components/plays/roadmap/SKILL.md
+      - core/components/plays/roadmap/reference/ice.md
+      - core/components/plays/roadmap/scripts/classify_change.py
+      - core/components/plays/roadmap/scripts/gate_eval.py
+      - core/components/plays/roadmap/scripts/distill_gate_policy.py
+      - core/components/plays/ux/SKILL.md
+      - core/components/plays/ux/reference/ice.md
+      - core/components/plays/ux/scripts/classify_change.py
+      - core/components/plays/ux/scripts/gate_eval.py
+      - core/components/plays/ux/scripts/distill_gate_policy.py
+      - core/components/plays/agentic/SKILL.md
+      - core/components/plays/agentic/reference/ice.md
+      - core/components/plays/agentic/scripts/classify_change.py
+      - core/components/plays/agentic/scripts/gate_eval.py
+      - core/components/plays/agentic/scripts/distill_gate_policy.py
+      - core/components/plays/marketing/SKILL.md
+      - core/components/plays/marketing/reference/ice.md
+      - core/components/plays/marketing/scripts/classify_change.py
+      - core/components/plays/marketing/scripts/gate_eval.py
+      - core/components/plays/marketing/scripts/distill_gate_policy.py
+      - core/components/plays/arch/SKILL.md
+      - core/components/plays/arch/reference/ice.md
+      - core/components/plays/arch/scripts/classify_change.py
+      - core/components/plays/arch/scripts/gate_eval.py
+      - core/components/plays/arch/scripts/distill_gate_policy.py
+      - core/components/plays/quality/SKILL.md
+      - core/components/plays/quality/reference/ice.md
+      - core/components/plays/quality/scripts/classify_change.py
+      - core/components/plays/quality/scripts/gate_eval.py
+      - core/components/plays/quality/scripts/distill_gate_policy.py
+      - core/components/plays/run/SKILL.md
+      - core/components/plays/run/reference/ice.md
+      - core/components/plays/run/scripts/classify_change.py
+      - core/components/plays/run/scripts/gate_eval.py
+      - core/components/plays/run/scripts/distill_gate_policy.py
+      - core/components/plays/measure/SKILL.md
+      - core/components/plays/measure/reference/ice.md
+      - core/components/plays/measure/scripts/classify_change.py
+      - core/components/plays/measure/scripts/gate_eval.py
+      - core/components/plays/measure/scripts/distill_gate_policy.py
 
 exclusions:
+  - path: ".garura/project/issues/467/context/analysis.yaml"
+    reason: "run-state scratch — executor records this separately"
+    blocking: false
   - path: ".garura/project/issues/467/context/porcelain.txt"
-    reason: "run scratch artifact from the executor's own scan step, not part of the feature"
+    reason: "run-state scratch — executor records this separately"
     blocking: false
 
 risks:
-  sensitive_files: []
+  sensitive_files:
+    []
+  breaking_changes:
+    []
+  ambiguous_types:
+    []
+  hotfix_branch: false
+  notes:
+    - "play-creator/references/*.py are the canonical source scripts for the play-creator compiler — flagged for careful review, not blocking."
+    - "The scripts/ files in each of the 11 play directories are new untracked copies stamped from the play-creator canonical references (informational, not blocking)."
 
 eval_gates:
-  SE-1:
-    status: PASS
-    evidence: "Changeset grouped into 3 concern-based groups (feat spine, docs gate-config, chore config wiring) per branch-issue #467; every changed file from git status --porcelain lands in exactly one group's files or in exclusions (porcelain.txt run scratch). No file appears in two groups or none."
-  SE-5: {status: PASS, evidence: "no sensitive patterns matched"}
+  SE-1: {status: PASS, evidence: "Grouped by concern per prior human decision, not by directory: (1) fix/play-creator/#481 — defect fix to the 4 canonical gate-learning scripts, decomposed functions + formatter; (2) docs/standards/#467 — approval-prompt template documents the three-kind gate resolution incl. learned-policy step; (3) feat/plays/#467 — single uniform group covering the same conditional-gate wiring (ice.md + SKILL.md rewrite + 3 stamped scripts) applied identically across all 11 plays, kept as one group per Rule 4 (never split one concern by directory). Subjects are bare imperative strings; type/scope/issue live in group metadata for the executor to append."}
+  SE-5: {status: PASS, evidence: "no sensitive patterns matched (secrets/credentials/.env); all files are play source, templates, or scripts"}
