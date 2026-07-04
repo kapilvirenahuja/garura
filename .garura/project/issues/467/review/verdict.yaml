@@ -1,0 +1,15 @@
+{
+  "verdict": "approve",
+  "reason": "human approved at the gate (typed: ok) with condition satisfied \u2014 code-quality findings logged as defect issue #481; recommendation was approve (no P1, suite 15/15 green)",
+  "blocking": [],
+  "counts": {
+    "P2": 12,
+    "P3": 14,
+    "P4": 2
+  },
+  "confidence": null,
+  "threshold": 0.5,
+  "decided_by": "human",
+  "decision_file": "decision.yaml",
+  "defect_issue": 481
+}
