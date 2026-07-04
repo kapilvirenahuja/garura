@@ -1,0 +1,45 @@
+---
+# analyze_changeset.py output (C8 fast path)
+# issue: 478
+needs_judgment: false
+
+change_groups:
+  - id: install-scope-option
+    issue: 478
+    commit_type: feat
+    scope: install-garura
+    subject: "add --scope option to filter deployed component subset"
+    files:
+      - core/components/plays/install-garura/scripts/install.py
+      - core/components/plays/install-garura/scripts/adapters/claude.py
+      - core/components/plays/install-garura/scripts/adapters/codex.py
+      - core/components/plays/install-garura/SKILL.md
+
+  - id: trim-install-manifest
+    issue: 478
+    commit_type: chore
+    scope: install-garura
+    subject: "trim garura's own install manifest to the harness component set"
+    files:
+      - .garura/install-manifest.json
+
+exclusions:
+  - path: ".garura/project/issues/478/context/analysis.yaml"
+    reason: "STM evidence artifact for this play run, not part of the code change"
+    blocking: false
+  - path: ".garura/project/issues/478/context/porcelain.txt"
+    reason: "STM scan artifact for this play run, not part of the code change"
+    blocking: false
+
+risks:
+  sensitive_files:
+    []
+  breaking_changes:
+    []
+  ambiguous_types:
+    []
+  hotfix_branch: false
+
+eval_gates:
+  SE-1: {status: PASS, evidence: "Changeset grouped into 2 concerns for issue #478: (1) feat — install.py + both adapters + SKILL.md implementing and documenting the new --scope filter, (2) chore — .garura/install-manifest.json trimmed from 86 to 21 entries as the motivating cleanup. Two untracked STM artifacts (analysis.yaml, porcelain.txt) excluded as non-code evidence."}
+  SE-5: {status: PASS, evidence: "no sensitive patterns matched"}

@@ -1,0 +1,6 @@
+ M .garura/install-manifest.json
+ M core/components/plays/install-garura/SKILL.md
+ M core/components/plays/install-garura/scripts/adapters/claude.py
+ M core/components/plays/install-garura/scripts/adapters/codex.py
+ M core/components/plays/install-garura/scripts/install.py
+?? .garura/project/issues/478/context/porcelain.txt
