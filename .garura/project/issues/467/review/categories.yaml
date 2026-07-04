@@ -1,34 +1,26 @@
-# categories.yaml — PR #485 (issue #467, Stage 4 Batch D), review-change Job 1
-# Derived from the actual diff content (10 changed files), not a presumed list.
+# categories.yaml — PR #486 (issue #467, "re-pin the merge-to-main land"), review-change Job 1
+# Derived from the actual diff content (4 changed files), not a presumed list.
 
 categories:
   - category: harness
     description: >
-      Four execute-side plays (validate, fix-bug, implement, refactor) — each an
-      ICE source + its compiled SKILL.md — had their human confirm-gate turned off
-      (config-resolved) and replaced by named machine preconditions in the same
-      change. fix-bug and implement were previously PINNED gates; this diff removes
-      the pin (an intent change, done in the ICE, not a hand-edit of the compiled
-      file). validate and refactor were already plain config-switch gates (not
-      pinned) — this diff flips their config value to off and writes the existing
-      machine invariant into the gate's replacement-check language.
+      The merge-change play's ICE source and its compiled SKILL.md are edited together:
+      the Confirm Merge checkpoint moves from a config-resolved off-gate (Batch C, PR
+      #483) back to a pinned one-way-door gate, with the three machine preconditions
+      re-scoped as a wall verified before the human is presented rather than as the
+      gate's sole replacement. This is an intent change (ICE edited, SKILL.md
+      recompiled from it) — the central "code of the system" category.
     evidence:
-      - core/components/plays/fix-bug/SKILL.md
-      - core/components/plays/fix-bug/reference/ice.md
-      - core/components/plays/implement/SKILL.md
-      - core/components/plays/implement/reference/ice.md
-      - core/components/plays/refactor/SKILL.md
-      - core/components/plays/refactor/reference/ice.md
-      - core/components/plays/validate/SKILL.md
-      - core/components/plays/validate/reference/ice.md
+      - core/components/plays/merge-change/SKILL.md
+      - core/components/plays/merge-change/reference/ice.md
     playbook: knowledge/review/harness.md
     playbook_present: true
 
   - category: config_maps
     description: >
-      Project config.yaml gains four new `gates.plays.<play>: off` keys (validate,
-      fix-bug, implement, refactor) under the existing `gates.plays` block —
-      wiring, not design content.
+      Project config.yaml removes the `merge-change: off` key from `gates.plays` and
+      replaces it with an explanatory comment (pinned overrides config, so no switch is
+      wired for this play any more) — a pointer/wiring change, not design content.
     evidence:
       - .garura/core/config.yaml
     playbook: knowledge/review/config-maps.md
@@ -36,21 +28,19 @@ categories:
 
   - category: generated_stm_run_records
     description: >
-      Machine-generated per-issue run metadata for this branch (branch name,
-      base SHA) rewritten by the propose/commit pipeline itself for issue #467.
-      Not authored design, not code, not knowledge — a byproduct of running the
-      play chain. Consistent with prior reviews on this repo (PR #483/Batch C):
-      generated STM run-records have no governing playbook on the review shelf.
+      Machine-generated per-issue run metadata for this branch (branch name, base SHA)
+      rewritten by the propose/commit pipeline itself for issue #467. Not authored
+      design, not code, not knowledge — a byproduct of running the play chain. Same gap
+      already flagged on the prior Batch C/D reviews for this issue (PR #483, #485).
     evidence:
       - .garura/project/issues/467/context/branch.json
     playbook: null
     playbook_present: false
-    note: "playbook missing — same gap flagged on the prior Batch C review (PR #483);
-      follow-up task already raised there to seed a generated-artifact/STM-record
-      playbook on the review shelf. Not re-raising a duplicate task here."
+    note: "playbook missing — same gap already flagged on PR #483/#485 reviews for this
+      issue; follow-up task already raised there. Not re-raising a duplicate task here."
 
 summary:
-  total_changed_paths: 10
+  total_changed_paths: 4
   categories_present: 3
   categories_with_playbook: 2
   categories_without_playbook: 1

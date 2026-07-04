@@ -1,23 +1,27 @@
-# Consolidated review findings — PR #485 (issue #467, Stage 4 Batch D), 2026-07-04
-# Gate OFF (gates.plays.review-change) → harness-verdict path.
+# Consolidated findings — PR #486 (issue #467, merge-to-main re-pin), 2026-07-04
+# Gate OFF (review-change) → harness-verdict path.
 categories:
   harness:
     playbook: review/harness
-    layer1: {check: "lint_play.py on 4 execute plays (EXECUTED direct)", result: "PASS 4/4, 0 gaps", finding: null}
+    layer1: {check: "lint_play.py merge-change (EXECUTED direct)", result: "PASS 0 gaps", finding: null}
     layer2:
       source: design-findings.yaml
-      result: "5/5 conform from committed sources: all 4 fingerprints hand-verified;
-        gate off in the same change that adds its precondition, skips recorded, machinery
-        kept; fix-bug + implement unpinned correctly via ICE per the committed #467 ruling;
-        exactly the four plays touched, launch/grill/learn + the eleven conditional plays
-        untouched; every replacement check a real pre-existing wall (validate grounded
-        manifest, fix-bug rca+design+red-test, implement plan-lint+grounding+steelman,
-        refactor behavior-pin); implement open_question hard-halt-to-human preserved"
-      finding: null
+      result: "conforms: recompiled from ICE (fingerprint hand-verified); re-pin matches the
+        committed 'pinned' definition (never resolves off, changed via ICE); three
+        preconditions kept as a machine wall verified before presenting; F7/REC7/SE-7
+        updated to the pinned model, no dangling off-path; scope clean (only merge-change +
+        its config line)"
+      resolved_in_pr:
+        - class: P2
+          summary: "source-of-truth for the pinned set was out of sync — gate-config.md and
+            the #467 ruling still listed only grill/launch/learn and called merge-change off"
+          resolution: "FIXED in this PR: gate-config.md pinned-set updated to include
+            merge-change's land; config comment already updated in the re-pin; #467
+            correction comment posted (issue #467 comment 4882506281)"
   config-map:
     playbook: review/config-maps
-    layer1: {check: "YAML valid + nine gates off (EXECUTED direct)", result: "PASS", finding: null}
+    layer1: {check: "YAML valid; merge-change dropped from off-list", result: "PASS", finding: null}
   stm-records:
     playbook: null
-    finding: {class: P4, summary: "branch.json unplaybooked — recurring flag; seed knowledge/review/stm-records.md", basis: "categories.yaml"}
-summary: {P1: 0, P2: 0, P3: 0, P4: 1, runnable_suites_red: 0}
+    finding: {class: P4, summary: "branch.json unplaybooked — recurring; seed knowledge/review/stm-records.md", basis: "categories.yaml"}
+summary: {P1: 0, P2: 0, P3: 0, P4: 1, resolved_in_pr: 1, runnable_suites_red: 0}

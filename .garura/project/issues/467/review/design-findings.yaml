@@ -1,212 +1,193 @@
-# design-findings.yaml — PR #485 (issue #467, Stage 4 Batch D), review-change Job 2
-# Category grounded: harness (validate, fix-bug, implement, refactor gate-off edits).
-# All grounding sources below are read at base_sha (564be111bc5793d71c0ee1313946e7b38f6c3e4a,
-# recorded in this branch's own context/branch.json) or via `gh issue view` — none is the
-# branch's own new prose. The Stage-4 design doc and gate-config.md's three-kind rule both
-# PREDATE this branch (merged on main via #483/Batch C before Batch D's branch point).
+# design-findings.yaml — PR #486 (issue #467, "re-pin the merge-to-main land"), review-change Job 2
+# Layer 2: design-grounding for the harness category (merge-change SKILL.md + ice.md).
+# Every principle below is reconstructed from a source committed BEFORE this branch
+# (base_sha 9c880ea8bcc3759a8810a04a61e28568632faf86, an ancestor of origin/main) or from
+# an external record (the #467 GitHub issue thread, PR #483/#485 run records). No
+# principle is grounded in this branch's own new prose.
 
-grounding:
-  category: harness
-  committed_sources:
-    - source: "core/components/memory/standards/rules/gate-config.md @ base_sha"
-      verified: "git show <base_sha>:<path>. Already carries the #467 three-kind rule (not
-        introduced by this diff — this file is untouched in the Batch D diff): pinned /
-        conditional / off. The 'off' row: \"the play's own deterministic checks carry what
-        the human was checking ... Config (gates.plays.<play>: off), granted only in the
-        same change that adds the replacement checks.\" Pinned-set line: \"the pipeline/
-        execute mechanical gates are off with replacement checks\" — pinned set named as
-        grill, launch, learn only. Unpinning rule: \"Unpinning is an intent change to that
-        play (play-editor), never a config edit.\""
-    - source: "docs/adr/025-level-3-redefined-skeleton-and-loop.md @ base_sha"
-      verified: "git show <base_sha>:<path>, unchanged by this diff. 'Human gates become
-        configuration. Checkpoints stay defaulted on; each becomes a per-risk-class switch,
-        retired one class at a time only on recorded evidence that the runner catches what
-        the human was catching (Stages 3-4).' Names Stage 4 (#467) as evidence-based gate
-        reduction, staged after commit-change pilot (#465) and rollout (#466)."
-    - source: "gh issue view 467 --comments (Kapil's ruling, 2026-07-04 session, dated
-        before this branch's base_sha commit)"
-      verified: "\"off with replacement machine checks: start-change, commit-change,
-        propose-change, review-change, merge-change, validate, fix-bug, implement,
-        refactor; deploy unruled (held as-is)\". Pinned HITL: grill, launch, learn.
-        Conditional: vision, understand, shape, roadmap, ux, agentic, marketing, arch,
-        quality, run, measure."
-    - source: ".garura/project/issues/467/specs/gate-learning-design.md @ base_sha
-        (Stage 4 design doc, ruled 2026-07-04, merged to main before this branch existed)"
-      verified: "Gate taxonomy table places fix-bug and implement in the 'Off — machine
-        checks carry it' row explicitly alongside validate and refactor. Part 2 per-play
-        replacement-check table gives the exact machine wall this PR must ship: validate
-        (plan-approval removed; check manifest fully derived — stack detection + KB
-        grounding; an ungroundable choice already halts as KB-gap), fix-bug (design
-        checkpoint removed; RCA + design + regression-test-red are the machine
-        preconditions; TDD red-before-green stays the hard invariant), implement (spec
-        approval UNPINNED and removed; build starts when the plan lints clean, every piece
-        grounds into the box, and steelman evals exist; open_questions in the plan still
-        halt — 'a question IS a human need'), refactor (plan checkpoint removed;
-        behavior-pin — characterization tests green before AND after, no test weakened —
-        is the machine precondition, already the play's core invariant). Rollout section:
-        'Batch D — gates-off, execute side: validate, fix-bug, implement, refactor.
-        deploy untouched pending ruling. grill/launch/learn untouched by design.'"
-    - source: "core/components/plays/{fix-bug,implement,refactor,validate}/reference/ice.md
-        @ base_sha (pre-branch state, read to establish PRIOR pinned/gate status)"
-      verified: "fix-bug C4 @ base: 'There is exactly one human checkpoint ... never
-        skippable and always presented' — SKILL.md @ base declares Step 5 '(class:
-        standard, pinned)'. implement C15 @ base: 'mandatory ... never skipped' —
-        SKILL.md @ base declares Step 7 '(class: standard, pinned)'. Both were PINNED
-        before this branch. refactor C6 @ base and validate's Step 4 @ base were already
-        plain config-switch gates (SKILL.md base text: 'a config switch per
-        gate-config.md ... when off, record gate skipped by config'), i.e. NOT pinned —
-        no unpin action was needed or taken for those two."
-  excluded_as_circular:
-    - "The branch's own new 'Compiled note (#467 Batch D)' / 'Recompile note' prose added
-       to each SKILL.md and the new C4/C15/C6/C15(validate) language in each ice.md were
-       read only to compare against the committed design doc and issue ruling — never
-       used as the source of a principle themselves."
+grounding_sources:
+  - id: gate-config-standard
+    path: core/components/memory/standards/rules/gate-config.md
+    note: >
+      Unchanged between base_sha and HEAD (git diff empty) — a stable committed source.
+      Defines the three gate kinds (pinned/conditional/off), the pinned-gate rule ("A
+      pinned gate NEVER resolves off — no config value can disable it... Unpinning is an
+      intent change to that play, never a config edit"), and the #467-ruled pinned set:
+      "the pinned set is: grill ... launch ... and learn." Also: "the pipeline/execute
+      mechanical gates are off with replacement checks" (explicitly includes the
+      change-pipeline plays, of which merge-change is one).
+  - id: config-yaml-base
+    path: .garura/core/config.yaml
+    ref: base_sha 9c880ea8bcc3759a8810a04a61e28568632faf86
+    note: >
+      Committed top-of-block comment: "Pinned gates (grill, launch, learn) ignore this
+      block entirely." merge-change was listed under gates.plays as `off`, not in the
+      pinned set.
+  - id: issue-467-ruling-comment
+    source: "gh issue view 467 --comments (2026-07-04 session ruling, external to any branch)"
+    note: >
+      Explicit closed enumeration: "pinned HITL: grill, launch, learn; ... off with
+      replacement machine checks: start-change, commit-change, propose-change,
+      review-change, merge-change, validate, fix-bug, implement, refactor." merge-change
+      is named in the OFF list, not the pinned list.
+  - id: merge-gate-467-record
+    path: .garura/project/issues/467/review/merge-gate.json
+    note: >
+      Committed run record from the Batch C merge itself (PR #483): `"gate": "off;
+      three-boolean precondition true; human authorized the land"` — i.e. even under the
+      "off" config, a human in fact authorized the land. This is genuine external
+      evidence (not this branch's prose) that partially supports the PR's stated
+      rationale ("the environment held for a human beat on #483 and #485"), though it
+      documents only the #483/#467 merge itself, not #485.
+  - id: ice-base
+    path: core/components/plays/merge-change/reference/ice.md
+    ref: base_sha 9c880ea8bcc3759a8810a04a61e28568632faf86
+    note: >
+      Pre-image of C7/F7/REC7 under the Batch C off-model, used as the "before" for the
+      mechanical fingerprint/coherence checks below.
 
-checks:
-  - id: P1
-    check: "Each of the 4 plays changed via ICE + play-editor recompile (not a hand-edit of
-      a compiled SKILL.md), with fingerprints matching a mechanical recompute."
-    method: "shasum -a 256 of each edited reference/ice.md, compared against the
-      Compilation Metadata table's stated fingerprint in the paired SKILL.md — all 4
-      computed (not just a 2-of-4 spot sample, since only 4 plays are in scope here)."
-    evidence:
-      - file: core/components/plays/validate/reference/ice.md
-        stated_fingerprint: sha256:01bbfe25700849b61f01cc3d0ee6390e2578db62c704560ea22831e01cea3ac8
-        computed: sha256:01bbfe25700849b61f01cc3d0ee6390e2578db62c704560ea22831e01cea3ac8
-        match: true
-      - file: core/components/plays/refactor/reference/ice.md
-        stated_fingerprint: sha256:34b5741606ac28b74d43f0410ebdd2fe49d9b0c4be109ec336532a2b73601498
-        computed: sha256:34b5741606ac28b74d43f0410ebdd2fe49d9b0c4be109ec336532a2b73601498
-        match: true
-      - file: core/components/plays/fix-bug/reference/ice.md
-        stated_fingerprint: sha256:f696433dbaed99d09b8c2623acf2c30123ceb70821f052cf81ba44a5e950ed4a
-        computed: sha256:f696433dbaed99d09b8c2623acf2c30123ceb70821f052cf81ba44a5e950ed4a
-        match: true
-      - file: core/components/plays/implement/reference/ice.md
-        stated_fingerprint: sha256:69654aa990e9517e1f446db00b3cb7f31ef277e9b63bcda7eb112278ec3aae88
-        computed: sha256:69654aa990e9517e1f446db00b3cb7f31ef277e9b63bcda7eb112278ec3aae88
-        match: true
-    verdict: "conforms"
+findings:
+  - id: P-1
+    title: "Fingerprint mechanically verified — recompile is real, not a hand-edit"
+    principle: >
+      An intent change to a play must be made in reference/ice.md and recompiled by
+      play-editor; the fingerprint recorded in SKILL.md must be sha256 of the edited
+      ice.md. A stale or mismatched fingerprint is a play-pipeline-rules violation
+      (hand-edited compiled file / recompile drift).
+    committed_source: "CLAUDE.md Play Pipeline Rules (project instructions); play-creator's own fingerprint contract (SKILL.md `## Compilation Record` field)"
+    check: >
+      shasum -a 256 core/components/plays/merge-change/reference/ice.md ==
+      74cc886071b058a80a76c3a0ba215091d6a2790c306c80dafe3540ca30bed4c1
+      SKILL.md `fingerprint` field records exactly that hash.
+    verdict: PASS
     severity: null
+    file: core/components/plays/merge-change/SKILL.md
 
-  - id: P2
-    check: "The 'off' discipline per gate-config.md: each gate turned off in the SAME
-      change that adds its named replacement check; skip recorded; checkpoint machinery
-      kept (config-reversible), not removed."
-    per_play:
-      - play: validate
-        gate_config: "gates.plays.validate: off (same diff)"
-        replacement_check: "Step 4 gate governs only the human review; the manifest's
-          KB-grounding wall (check-choices.yaml — every check traces to stack-detection +
-          a KB-grounded tool choice, C12/F12 pre-existing) is the machine precondition;
-          new F15/SE-16/REC15 hard-halt an ungrounded, unrecorded pick"
-        skip_recorded: "'gate skipped by config (gates.plays.validate)' as a Checkpoint
-          Decisions row — SKILL.md Step 4"
-        reversible: "flipping gates.plays.validate back to on restores the human
-          plan-review wait, unchanged"
-        verdict: "conforms"
-      - play: fix-bug
-        gate_config: "gates.plays.fix-bug: off (same diff)"
-        replacement_check: "rca.yaml with a traced root cause (pre-existing SE-2), design.yaml
-          with >=1 weighed alternative (pre-existing SE-3), and the regression test proven
-          red before the fix (pre-existing SE-5, TDD red-before-green, 'never gated'); new
-          F13/SE-14/REC13 hard-halt if any of the three is missing"
-        skip_recorded: "'gate skipped by config (gates.plays.fix-bug)' as a Checkpoint
-          Decisions row — SKILL.md Step 5"
-        reversible: "flipping gates.plays.fix-bug back to on restores the inline summary +
-          typed-response wait, unchanged"
-        verdict: "conforms"
-      - play: implement
-        gate_config: "gates.plays.implement: off (same diff)"
-        replacement_check: "plan lints clean (pre-existing validate_plan.py / SE-4), spec
-          passes check_spec.py incl. surface gate (pre-existing SE-16/SE-20), steelman
-          evals exist (pre-existing Step 6), and NO unresolved open_questions; new
-          F17/SE-22/REC17 hard-halt the first three, open_questions always halts to a
-          human regardless of the switch"
-        skip_recorded: "'gate skipped by config (gates.plays.implement)' as a Checkpoint
-          Decisions row — SKILL.md Step 7"
-        reversible: "flipping gates.plays.implement back to on restores the spec-inline +
-          typed-approval wait, unchanged"
-        verdict: "conforms"
-      - play: refactor
-        gate_config: "gates.plays.refactor: off (same diff)"
-        replacement_check: "the behavior-pin (C3, pre-existing) — baseline-verdict.yaml
-          GREEN before the refactor (pre-existing SE-2), preservation.yaml.
-          behavior_preserved:true after (pre-existing SE-9, green before AND after, no
-          test weakened); new F8/SE-10/REC8 hard-halt (never gated) if the pin breaks at
-          either point"
-        skip_recorded: "'gate skipped by config (gates.plays.refactor)' as a Checkpoint
-          Decisions row — SKILL.md Step 5"
-        reversible: "flipping gates.plays.refactor back to on restores the plan-inline +
-          typed Tether/Vanish wait, unchanged"
-        verdict: "conforms"
-    verdict: "conforms"
+  - id: P-2
+    title: "Pinned mechanism itself conforms to the committed pinned-gate definition"
+    principle: >
+      "A pinned gate NEVER resolves off — no config value can disable it... Unpinning is
+      an intent change to that play, never a config edit" (gate-config.md). The
+      mechanism the diff implements — Step 2 declares `class: one-way-door, pinned`,
+      C7 states no config value/policy/ledger can turn it off, and the play drops its
+      own `gates.plays.merge-change` config key rather than leaving a dead switch — is a
+      correct, literal implementation of that committed definition.
+    committed_source: "core/components/memory/standards/rules/gate-config.md, '## Behaviour of the switch' + 'Pinned gates' section"
+    verdict: PASS
     severity: null
+    file: core/components/plays/merge-change/reference/ice.md
 
-  - id: P3
-    check: "UNPIN correctness: fix-bug and implement were pinned at base_sha; the #467
-      ruling (issue comment + committed Stage-4 design doc's gate taxonomy + Part 2 table)
-      explicitly authorizes moving them into the 'off, machine-checks-carry-it' kind; the
-      pin removal is done in the ICE (intent change via play-editor), not a hand-edit of
-      the compiled SKILL.md or a bare config flip."
-    evidence: "Base_sha fix-bug ice.md C4 read 'never skippable and always presented'
-      (SKILL.md declared Step 5 '(class: standard, pinned)'); base_sha implement ice.md
-      C15 read 'mandatory ... never skipped' (SKILL.md declared Step 7 '(class: standard,
-      pinned)'). This diff edits fix-bug/reference/ice.md C4 and implement/reference/ice.md
-      C15 directly, removing the pinned language and stating the gate 'resolves per
-      gate-config.md ... is no longer pinned'. The design doc's gate taxonomy table
-      ('Off — machine checks carry it': ...validate, fix-bug, implement (spec approval),
-      refactor...') and the issue-467 ruling comment both name fix-bug and implement in
-      the off set alongside plays that were never pinned — the committed ruling is the
-      authorization; the branch does the mechanical unpin correctly (ICE edit, matching
-      fingerprint recompile per P1)."
-    verdict: "conforms"
+  - id: P-3
+    title: "Pinned-set taxonomy drifts from its own committed enumeration — merge-change added without updating the canonical list"
+    principle: >
+      gate-config.md, the committed config.yaml top-of-block comment, and the #467
+      issue-ruling comment all independently and explicitly enumerate the pinned set as
+      a CLOSED list — {grill, launch, learn} — and separately place merge-change in the
+      "off with replacement machine checks" bucket. This PR re-pins merge-change in the
+      play's own ICE (which gate-config.md explicitly allows: "Unpinning is an intent
+      change to that play" — the reverse, re-pinning, is symmetric), but does not touch
+      gate-config.md's pinned-set enumeration, nor the config.yaml top comment ("Pinned
+      gates (grill, launch, learn) ignore this block entirely" — still reads this way
+      after the diff, still committed-source-accurate as of HEAD), nor post a
+      countervailing ruling comment on #467 updating the closed list. A future reader of
+      gate-config.md (human or agent resolving `gates.plays.<name>` per its own
+      documented precedence order) is told a false thing: that grill/launch/learn are
+      the only plays a config value cannot disable. merge-change is now also such a
+      play, and the canonical source of that fact is silent about it.
+    committed_source: >
+      core/components/memory/standards/rules/gate-config.md ("the pinned set is: grill
+      ... launch ... and learn"); .garura/core/config.yaml top-of-block comment
+      (unchanged pre/post diff); gh issue 467 ruling comment (2026-07-04, external,
+      "pinned HITL: grill, launch, learn").
+    verdict: FINDING
+    severity: P2
+    file: core/components/memory/standards/rules/gate-config.md
+    note: >
+      Not a defect in merge-change's own play files — those are internally correct and
+      match the pinned mechanics. The gap is coherence between this diff and the three
+      independent committed statements of the pinned-set taxonomy, none of which this
+      diff amends. Recommend the same PR (or an immediate follow-up) update
+      gate-config.md's pinned-set line and the config.yaml top comment to read
+      "{grill, launch, learn, merge-change}", and/or post a ruling comment on #467
+      recording the re-scope, so the taxonomy's committed sources stay in sync with the
+      play behavior they document.
+
+  - id: P-4
+    title: "Three preconditions preserved as a machine wall verified before the human beat"
+    principle: >
+      Per gate-config.md's hard boundary, "Pre-flight halts, sensitive-file blocks,
+      stop-condition gates, and eval failures are never gated by this [human-checkpoint]
+      block — they are the machine's walls, not human courtesies." A pinned human
+      checkpoint does not preclude machine preconditions running first; it only means
+      the human beat itself cannot be config-disabled. The base-ref ICE (Batch C,
+      9c880ea) already established the three named preconditions (approved, mergeable,
+      no failing required checks) as the thing standing between merge-gate.json (Step 1)
+      and the merge (Step 3).
+    committed_source: >
+      core/components/memory/standards/rules/gate-config.md ("Hard boundaries" — machine
+      walls are distinct from human-checkpoint gating); core/components/plays/
+      merge-change/reference/ice.md at base_sha 9c880ea (C4/F4: "the merge happens only
+      when the PR is mergeable"; C1/F1: only after an approval verdict).
+    check: >
+      Step 2 in the diff: "Machine wall first (verified before presenting)... If any is
+      false, HALT exactly as pre-flight does (REC7), naming the failed precondition —
+      there is nothing to approve, so the human is not asked." then "Then the human
+      beat... With all three true, present... wait for a typed approval."
+    verdict: PASS
     severity: null
+    file: core/components/plays/merge-change/SKILL.md
 
-  - id: P4
-    check: "The ruled table respected: exactly validate/fix-bug/implement/refactor turned
-      off in this diff; launch/grill/learn (pinned) and the eleven conditional plays
-      untouched."
-    method: "Enumerated every play directory touched in the diff
-      (grep 'diff --git.*plays/' pr.diff): fix-bug, implement, refactor, validate only —
-      no grill/launch/learn/vision/understand/shape/roadmap/ux/agentic/marketing/arch/
-      quality/run/measure directory appears. config.yaml's gates.plays block after the
-      diff carries the 5 Batch-C keys (untouched by this diff) plus exactly these 4 new
-      keys, all 'off'; gates.classes.one-way-door remains 'on'; no 'deploy' key added
-      (consistent with 'deploy unruled/held as-is' from both the design doc and the
-      issue ruling)."
-    verdict: "conforms"
+  - id: P-5
+    title: "F7/REC7/SE-7 updated in step with C7 — no dangling off-path reference"
+    principle: >
+      CLAUDE.md's play-pipeline rule and gate-config.md both treat a play's
+      constraint/failure/recovery/eval set as one coherent unit describing a single
+      resolved behavior; a failure condition or recovery entry that still describes a
+      retired resolution path (here, "an off-gate merge proceeded without...") after the
+      constraint changes is an orphan reference the compiled play's own internal
+      consistency check (lint_play.py, run by quality-auditor, not this agent) would
+      flag, but design-grounding also checks it against what C7 now says.
+    committed_source: >
+      core/components/plays/merge-change/reference/ice.md at base_sha 9c880ea (F7:
+      "An off-gate merge proceeded without all three machine preconditions true"; REC7
+      matching trigger) — the "before" text this diff must not leave dangling.
+    check: >
+      Diff updates F7 ("a merge would proceed without the pinned human approval, or a
+      precondition ... was not verified true before presenting"), REC7 (same reframing),
+      and SE-7 in SKILL.md ("the merge proceeded only on the pinned human approval, AND
+      the Step 2 record shows all three machine preconditions true ... verified before
+      the human was presented"). No remaining "off-gate" language in the current C7/F7/
+      REC7/SE-7 text.
+    verdict: PASS
     severity: null
+    file: core/components/plays/merge-change/reference/ice.md
 
-  - id: P5
-    check: "implement's open_question hard-halt-to-human is preserved as the one human
-      beat that stays, regardless of the gate switch."
-    evidence: "implement/reference/ice.md C15 (new text): 'any open_questions entry in the
-      plan remains a HARD HALT to a human — an open question IS a genuine human need, and
-      it is the one human beat that stays, as a machine-detected halt rather than a
-      blanket gate.' SKILL.md Step 7 off-branch: 'An open_questions entry HALTS to a human
-      regardless of the switch — present it one at a time, plainly, and dispatch nothing
-      until it is answered.' New F17/REC17 handoff is explicitly 'mixed (open_question ->
-      human; the rest autonomous)', not fully autonomous. This matches the Stage-4 design
-      doc's Part 2 row for implement verbatim ('open_questions in the plan still halt — a
-      question IS a human need') and the base_sha ice.md's pre-existing open_questions
-      mechanism (line 242, unchanged in kind by this diff, only re-anchored to the gate's
-      off path)."
-    verdict: "conforms"
+  - id: P-6
+    title: "Scope conforms — only merge-change touched; the other eight off-gates, the eleven conditional, and launch/grill/learn are untouched"
+    principle: >
+      A Stage-4 gate-kind change to one play should not silently alter another play's
+      gate kind; gate-config.md's pinned set (grill, launch, learn) and the #467 ruling's
+      off-list (the other eight plays: start-change, commit-change, propose-change,
+      review-change, validate, fix-bug, implement, refactor) are each independent
+      per-play decisions.
+    committed_source: >
+      gh issue 467 ruling comment (2026-07-04): full per-play taxonomy list; base_sha
+      9c880ea config.yaml (the eight other `gates.plays.<name>: off` keys, all present
+      and unchanged in this diff).
+    check: >
+      The diff touches exactly four files: .garura/core/config.yaml (one key removed,
+      one comment added), .garura/project/issues/467/context/branch.json (STM run
+      record), and merge-change's SKILL.md + reference/ice.md. No other play file
+      (validate, fix-bug, implement, refactor, start-change, commit-change,
+      propose-change, review-change, launch, grill, learn, or any of the eleven
+      conditional plays) appears in the diff; the other eight `off` keys in config.yaml
+      are present unchanged.
+    verdict: PASS
     severity: null
-
-findings: []
-# No violations found. Every check above conforms to committed grounding: gate-config.md's
-# pre-existing three-kind rule and unpin discipline, ADR 025's Stage-4 framing, the #467
-# issue ruling, and the committed Stage-4 design doc's gate taxonomy + Part 2 per-play
-# replacement-check table + Batch D rollout line. Nothing in this diff was grounded from
-# the branch's own new SKILL.md/ice.md prose — every cited principle, replacement-check
-# requirement, and pinned/off classification predates this branch (committed at base_sha
-# or in the issue thread before Batch D's branch point).
+    file: .garura/core/config.yaml
 
 summary:
-  category: harness
-  checks_run: 5
-  checks_conforming: 5
-  findings_emitted: 0
-  grounding_gaps: 0
+  total_findings: 6
+  pass: 5
+  findings_requiring_action: 1
+  worst_severity: P2

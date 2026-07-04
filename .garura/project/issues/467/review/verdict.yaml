@@ -1,7 +1,7 @@
 {
   "verdict": "approve",
   "decided_by": "harness",
-  "reason": "gate off; recommendation became recorded decision \u2014 0 P1/P2/P3, design 5/5 conform",
+  "reason": "gate off; grounding found a P2 source-of-truth desync, fixed in-PR; 0 P1/P2/P3 remaining",
   "blocking": [],
   "counts": {
     "P4": 1
