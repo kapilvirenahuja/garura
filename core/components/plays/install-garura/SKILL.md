@@ -152,3 +152,7 @@ Keep it short. The detail lives in the manifest; your job is the human summary.
 **Direct-edit deviation note (#434):** this bootstrap meta-play is hand-authored (no
 `intent.yaml`); the adapter split, the `--tool` parameter, and the Codex adapter were added by
 direct edit to this SKILL.md and `scripts/`.
+
+Level 3 note (#466): bootstrap meta-play — exempt from the goal-loop recompile (no ICE
+source, like play-creator); runs are session-stamped by the host play when invoked through
+the pipeline.

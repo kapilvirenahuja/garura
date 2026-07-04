@@ -17,6 +17,10 @@ deterministic file work. The mechanical removal lives in
 [`scripts/uninstall.py`](scripts/uninstall.py). Don't re-implement deletions in prose — call
 the script and reason about its result.
 
+Level 3 note (#466): bootstrap meta-play — exempt from the goal-loop recompile (no ICE
+source, like play-creator); runs are session-stamped by the host play when invoked through
+the pipeline.
+
 ## What makes this safe: the manifest
 
 `sud:install-garura` writes `.garura/install-manifest.json` in the target, recording the exact set
