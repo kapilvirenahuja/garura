@@ -1,0 +1,9 @@
+Stage 5 (#468) of epic #460 — Parallel epics and checks under one parent run.
+
+Let independent work run side by side instead of strictly sequential: independent
+epics build in parallel under one parent run, independent verify checks run
+concurrently. Safety rule from the field: read-only work runs freely concurrent;
+writing work runs isolated in git worktrees or not in parallel at all. The
+parent/child evidence model already supports this structurally (parent_run_id).
+Sequenced last because parallelism multiplies whatever one loop does — the Stage 1b
+spend caps must hold first.
