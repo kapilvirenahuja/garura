@@ -247,7 +247,7 @@ Run the cut validator over the draft before any grilling:
 
 ```
 python3 scripts/validate_epics.py --draft <working>/draft \
-        --product-base <product_base> --slice-file <slice_file>
+        --product-base <product_base> --slice-ref <slice_id>
 ```
 
 **SE-2 (F1/C2):** every epic carries a non-empty, distinct `user_check` and at least one
@@ -337,7 +337,7 @@ file instead:
 
 ```
 python3 scripts/validate_epics.py --draft <working>/draft \
-        --product-base <product_base> --slice-file <slice_file> \
+        --product-base <product_base> --slice-ref <slice_id> \
         --rounds-dir <working>/rounds \
         --out <working>/write-gate.yaml
 ```
@@ -661,3 +661,9 @@ aligned to the actual reworked scripts (the spine hub-resolution emitting
 index; `check_epics.py --manifest --spine-before/after --slice-ref` doing the before/after spine
 diff) and `check_realized.py` was deleted. Execution-mechanism only — no constraint, failure,
 scenario, or eval changed; the ICE (`reference/ice.md`) and the fingerprint are unchanged.
+
+**Direct-edit deviation note (#466):** SKILL invocation flag corrected to match
+`validate_epics.py`'s real interface — the two Step 2/write-gate invocations said
+`--slice-file <slice_file>` but the script (like `check_epics.py`) accepts `--slice-ref`
+and matches the bare spine slice id, so they now read `--slice-ref <slice_id>`.
+Surface-prose only; no constraint, failure, scenario, or eval changed.
