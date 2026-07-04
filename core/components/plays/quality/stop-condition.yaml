@@ -1,0 +1,18 @@
+# quality stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Paths are relative to the run's working root ({stm_base}_realize/quality/).
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the drafted quality lens exists"
+      check: { type: artifact_exists, path: "draft/product-os/*/slices/*/lens/quality.md" }
+    - id: D2
+      says: "the grounding manifest exists"
+      check: { type: artifact_exists, path: "draft/quality-manifest.yaml" }
+    - id: D3
+      says: "the quality lens landed in the model tree — machine-recorded by the apply"
+      check: { type: field_equals, file: "apply-manifest.json", field: "lens_applied", equals: true }
+    - id: D4
+      says: "the machine sibling quality-gates.yaml landed beside it (#462)"
+      check: { type: field_equals, file: "apply-manifest.json", field: "gates_machine_applied", equals: true }

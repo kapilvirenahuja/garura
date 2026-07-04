@@ -1,84 +1,73 @@
-# Self-Review — #466 Batch B (execute-pipe plays on the Level 3 model)
+# Self-Review — #466 Batch C (strategy + lens plays on the Level 3 model)
 
 Rules resolved from: `/Users/kapilahuja/.garura/core/memory/standards/rules/self-review.md`
-(base, no project override — same resolution as Batch A, re-verified for this run).
+(base, no project override — same resolution as Batch A and Batch B, re-verified for this run).
 
 ## Scope checks
 
-- **Matches the issue.** PASS. All 38 changed files are: the six execute-pipe plays
-  (implement, validate, launch, fix-bug, refactor, deploy) — each SKILL.md + reference/ice.md
-  + a new stop-condition.yaml + a new scripts/check_stop_condition.py + a new
-  scripts/session_stamp.py; four existing play scripts extended to write machine fields
-  (refactor's check_behavior_preserved.py, validate's stamp_epic.py, launch's
-  check_close_gate.py — deploy's verify-capture is new work in this batch, not a
-  pre-existing file); one standards addition (gate-config.md's pinned-gates section);
-  and STM context/run-record artifacts for #466 itself. Nothing outside this footprint.
+- **Matches the issue.** PASS. All 80 changed files are: the 13 strategy + lens plays
+  (agentic, arch, grill, learn, marketing, measure, quality, roadmap, run, shape,
+  understand, ux, vision) — each `SKILL.md` + `reference/ice.md` recompiled, plus a new
+  `stop-condition.yaml`, `scripts/check_stop_condition.py`, and `scripts/session_stamp.py`;
+  a handful of existing apply/stamp scripts extended with machine fields (see below); and
+  STM context artifacts for #466 itself (`analysis.yaml`, `branch.json`, `commits.yaml`,
+  `porcelain.txt`). Nothing outside this footprint.
 - **No scope creep.** PASS. No unrelated files touched.
-- **Reasonable size.** PASS with note. 2,421 insertions across 38 files is large for one
-  sitting, but the bulk is mechanical repetition: six structurally-identical
-  stop-condition additions (checker + stamp script + manifest, byte-identical checker
-  across all six plays — verified below), not six independent designs.
-- **No stray artifacts.** PASS. No commented-out blocks or debug prints. STM context files
-  (analysis.yaml, commits.yaml, branch.json, porcelain.txt) are the expected run-record
-  artifacts for this issue; `__pycache__` directories are gitignored and not in the diff.
+- **Reasonable size.** PASS with note. 5,219 insertions across 80 files is large for one
+  sitting, but the bulk is mechanical repetition: 13 structurally-identical
+  stop-condition additions (checker + stamp script, byte-identical across all 13 plays —
+  verified below), not 13 independent designs.
+- **No stray artifacts.** PASS. No commented-out blocks, debug prints, or scratch files.
 
 ## Quality checks
 
 - **Tests present.** PASS (mechanical verification in place of unit tests — this is a
-  play/recipe change). Ran `lint_play.py` against all 11 plays now on the Level 3
-  pattern (the 5 Batch A pipeline plays plus these 6 Batch B execute-pipe plays):
-  start-change, commit-change, propose-change, review-change, merge-change, deploy,
-  fix-bug, implement, launch, refactor, validate — all 11 return
-  `VERDICT: PASS (0 gap(s))` (required sections present, failure/scenario/constraint
-  coverage complete, 1:1 recovery mapping, no orphans, pipeline position/next-command
-  resolves, stop-condition manifest + checker present and valid, fingerprint present).
-- **Checker copies byte-identical.** PASS — verified via `md5` across all six plays'
+  play/recipe change). Ran `lint_play.py` against all 24 plays now on the Level 3 model
+  (5 Batch A end-sequence + 6 Batch B execute-pipe + these 13 Batch C strategy/lens
+  plays) — every one returns `VERDICT: PASS (0 gap(s))` (required sections present,
+  failure/scenario/constraint coverage complete, 1:1 recovery mapping, no orphans,
+  fingerprint present).
+- **Checker copies byte-identical.** PASS — verified via `md5` across all 13 plays'
   `scripts/check_stop_condition.py` (single hash `86ffdf2f...`) and
   `scripts/session_stamp.py` (single hash `d9ab6944...`): no differences across any pair.
-- **Gates classed correctly.** PASS. Verified each play's mandated gate carries
-  `pinned` per its own intent: implement's spec-approval checkpoint (C15, "class:
-  standard, pinned"), fix-bug's human approval gate (C4, "class: standard, pinned"),
-  launch's scenario-walk gate (#436 sign-off, "class: one-way-door, pinned"). deploy
-  gained a NEW checkpoint not present before this batch — "Confirm Deploy (class:
-  one-way-door)" — config-switched (not pinned; deploy's confirm is a config-gated
-  standard checkpoint, distinct from the three pinned gates above).
-- **gate-config.md pinned-gates rule.** PASS. Confirmed the new section: a checkpoint
-  whose play's own intent mandates it declares `(class: <class>, pinned)`; a pinned
-  gate cannot be resolved off by any config value; unpinning requires an intent change
-  via play-editor, never a config edit.
-- **Machine-field script extensions verified by diff:**
-  - `refactor/scripts/check_behavior_preserved.py` — new `--out` writes
-    `{behavior_preserved, baseline_green, post_green, failures}` as machine YAML for the
-    stop-condition gate (was prose-only before).
-  - `validate/scripts/stamp_epic.py` — new `--record` marks the verdict artifact
-    `stamped: true` in place on a successful stamp (Done means D4).
-  - `launch/scripts/check_close_gate.py` — now always writes `resolved` +
-    `outcome: release|fix_required` on both real outcomes (was decision-only before).
-  - deploy's verify-capture is new work in this batch (no pre-existing script to diff
-    against); its stop-condition checker reads `health.status`, `secrets_source`,
-    `prior_state_left` per its own new `deploy-checks.json` contract.
-- **Commits are clean.** PASS. All 4 commits on this branch are conventional format and
-  reference #466: `feat(components): recompile execute-pipe plays...`,
-  `docs(standards): document pinned-gates section...`,
-  `chore(stm): update STM context for batch B execute-pipe rollout...`,
-  `chore(stm): record commit-change run artifacts...`.
+- **Machine-field extensions verified by diff:**
+  - `quality/scripts/apply_quality.py` — allowlist now admits `lens/quality-gates.yaml`
+    (the #462 machine sibling) alongside `lens/quality.md`; the out-manifest carries
+    `lens_applied` / `gates_machine_applied` for the close's stop-condition gate to read.
+    This is the described latent-bug fix (the allowlist previously would have refused the
+    gates file), not scope creep.
+  - `measure/scripts/stamp_slice.py` — extended for the dual-outcome stamp record noted
+    in the batch summary.
+  - `grill/scripts/validate_epics.py`, `roadmap/scripts/compute_plan.py`, and the
+    `apply_*.py` scripts for learn, marketing, shape, ux, vision, agentic all carry small
+    machine-field additions consistent with each play's own stop-condition gate reading
+    structured output instead of prose.
+- **Mid-flight checkpoints are config-gated switches.** PASS. Consistent with the
+  approved intent change for this batch — vision's brief-approval checkpoint is pinned,
+  grill's human loop is uncapped (mandatory, not config-switchable), and the remaining
+  mandatory checkpoints across the 13 plays resolve through the same config-gated switch
+  pattern as Batch A/B, defaulted ON.
+- **Commits are clean.** PASS. One `feat(components): roll out batch C stop-condition
+  machinery and machine fields across the 13 strategy and lens plays (#466)` commit plus
+  three `chore(stm): record commit-change run artifacts (#466)` commits — conventional
+  format, each referencing #466.
 - **No secrets.** PASS. Grepped the full diff for api-key/secret/password/token
-  patterns — only legitimate prose hits (failure-condition descriptions about secret
-  handling in deploy's own intent, and pre-existing token-burn-dash doc comments carried
-  in unrelated session_stamp.py boilerplate). No credential values.
-- **Docs in step.** PASS. `gate-config.md` is the standards doc accompanying the new
-  pinned-gates behavior it describes — updated in the same commit set as the behavior.
+  patterns — no credential values.
+- **Docs in step.** PASS. Each play's `reference/ice.md` was recompiled alongside its
+  `SKILL.md` in the same commit, keeping the ICE source and the compiled output in sync
+  per the play pipeline rule (intent changes go through ICE → recompile, never a hand
+  edit).
 - **Nothing obviously broken.** PASS. No TODOs or known-failing paths introduced. Lint
   and md5 verification above stand as the mechanical evidence.
 
-### Provenance note
+## Loop note
 
-This branch's four commits were produced by the pilot loop itself (the Level-3-converted
-commit-change play), matching the record in `.garura/project/issues/466/context/commits.yaml`
-— held 4/4, converged round 1.
+This batch's own commit converged in 3 rounds: two executor re-entry defects were found
+and logged during the build loop, and the verdict held 4/4 before the batch was accepted
+as done.
 
 ## Verdict
 
 **PASS — 0 FAIL, 0 blocking findings.** 1 non-blocking note (size, explained by
-structural repetition across six plays, same pattern accepted for Batch A). Cleared to
-raise as a PR.
+structural repetition across 13 plays, same pattern accepted for Batch A and Batch B).
+Cleared to raise as a PR.

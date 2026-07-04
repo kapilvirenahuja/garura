@@ -5,10 +5,15 @@ apply_quality.py — persist /quality's quality lens, on a fixed allowlist.
 Run only AFTER the human approves the checkpoint. It writes exactly two kinds of thing
 and NOTHING else:
 
-  1. The quality lens — `lens/quality.md` (a grounding doc) for the slice, written from
-     the draft. This is the re-derive, so it overwrites a prior quality lens.
+  1. The quality lens — `lens/quality.md` (a grounding doc) AND its machine sibling
+     `lens/quality-gates.yaml` (#462 — one binding card per gate) for the slice, written
+     from the draft. This is the re-derive, so it overwrites a prior quality lens.
   2. Decisions — `decisions/*.yaml`, copied skip-if-exists, so an accepted decision is
      never edited in place; a re-run adds only new ones.
+
+The out-manifest carries the machine applied fields the close's stop-condition gate reads
+(#464/#466 Batch C): `lens_applied` (quality.md landed) and `gates_machine_applied`
+(quality-gates.yaml landed).
 
 The script is handed only the draft, which holds only the quality lens + decisions, so it
 physically cannot touch the hub (functionality grounding), the spine, another lens, the
@@ -49,7 +54,8 @@ def main(argv=None):
         for fn in files:
             rel = os.path.normpath(os.path.join(rel_dir, fn))
             parts = rel.split(os.sep)
-            is_lens = (len(parts) >= 2 and parts[-2] == "lens" and parts[-1] == "quality.md")
+            is_lens = (len(parts) >= 2 and parts[-2] == "lens"
+                       and parts[-1] in ("quality.md", "quality-gates.yaml"))
             is_decision = ("decisions" in parts and fn.endswith(".yaml"))
             if not (is_lens or is_decision):
                 refused.append(rel)            # defensive: draft should hold only these
@@ -62,7 +68,11 @@ def main(argv=None):
             shutil.copy2(os.path.join(dirpath, fn), dst)
             written.append(rel)
 
-    out = {"written": sorted(written), "skipped": sorted(skipped), "refused": sorted(refused)}
+    out = {"written": sorted(written), "skipped": sorted(skipped), "refused": sorted(refused),
+           # machine applied fields — read by the close's stop-condition gate (#464)
+           "lens_applied": any(w.endswith(os.sep.join(["lens", "quality.md"])) for w in written),
+           "gates_machine_applied": any(w.endswith(os.sep.join(["lens", "quality-gates.yaml"]))
+                                        for w in written)}
     with open(args.out_manifest, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=2)
     print(json.dumps(out, indent=2))

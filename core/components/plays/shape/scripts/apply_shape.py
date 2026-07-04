@@ -130,7 +130,10 @@ def main(argv=None):
         yaml.safe_dump(live, fh, sort_keys=False, allow_unicode=True)
     written.append("spine:_spine.yaml")
 
-    out = {"written": sorted(written), "skipped": sorted(skipped), "status_flips": status_flips}
+    # applied: the machine field the baked stop condition asserts (#466 Batch C) —
+    # written only on a completed persist, so its presence+truth proves the apply landed.
+    out = {"applied": True, "written": sorted(written), "skipped": sorted(skipped),
+           "status_flips": status_flips}
     with open(args.out_manifest, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=2)
     print(json.dumps(out, indent=2))

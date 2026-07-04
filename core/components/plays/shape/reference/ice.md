@@ -77,11 +77,20 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
 - C12 — There is exactly one human checkpoint, presenting the domain's selection bundle —
   kept and pruned capabilities, selected functionalities, personas, journeys, and the
   vertical slices (each with its surface and bundled functionalities) plus the `_deferred`
-  bucket. Nothing is persisted before the checkpoint is approved.
+  bucket. Nothing is persisted before the checkpoint resolves. The checkpoint is a
+  **default-on config gate** per `gate-config.md`, declared `(class: standard)` and NOT
+  pinned (#466 — the Stage 4 lever): when config resolves it off, the play does not wait —
+  it records the skip as a Checkpoint Decisions row in the evidence and proceeds. It
+  defaults on, so behaviour is unchanged until evidence retires it.
 - C13 — Non-destructive allowlist: the run writes only capability `status` flips, the new
   slices, personas, journeys, and decisions, and their refs onto the capabilities. It never
   changes a functionality, a domain, or the profile. Stable ids (from name/slug) written
   skip-if-exists mean a re-run never duplicates.
+- C14 — The play ends by proving its Done means at close (gated, #464): the allowlisted
+  applied record exists (the selection bundle — the slice records, the persona/journey
+  records, the decisions, and the status flips — was persisted), the applied record stamps
+  `applied: true`, and the captured post-apply verification reads ok. The close never
+  reads COMPLETED with the stop-condition verdict unmet.
 
 ### Failure conditions
 
@@ -110,6 +119,9 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
 - F12 — The selection was persisted without the human approving the checkpoint.
 - F13 — Allowlist breach: a functionality, a domain, or the profile changed during the run;
   or a re-run duplicated a persona, journey, or slice.
+- F14 — The run closed COMPLETED without the Done means held (no applied record, the
+  record not stamped `applied: true`, or the post-apply verification not captured or not
+  ok).
 
 ## Expectation
 
@@ -121,7 +133,8 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
   the personas and journeys are created — all schema-valid, and no functionality is created
   or changed. Measure: each kept capability is `status: active`; each selected functionality
   already existed in the spine and is referenced by a slice; persona and journey records
-  exist and validate; no functionality entry or doc changed.
+  exist and validate; no functionality entry or doc changed; the stop-condition verdict
+  reads held.
 - S2 — (architect, grounding) Given the selection is drafted, when it is inspected, then each
   kept capability and selected functionality traces to a KB shelf or a recorded proposal.
   Measure: the shape manifest names, for every kept capability and selected functionality, a
@@ -154,6 +167,27 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
   journeys, and slices (with the deferred bucket) inline before any write; and a re-run adds
   no duplicates. Measure: each section is present in the checkpoint and no product-model file
   was written before approval; on a re-run, every persona/journey/slice id already existed.
+
+### Done means
+
+Paths are relative to the run's working root (`{stm_base}_shaping/shape/<domain>/`).
+`apply-manifest.json` is the applied record `apply_shape.py` writes after the approved
+checkpoint (its contract: `applied: true`, `written`, `skipped`, `status_flips`) — the
+persisted selection bundle: the slice records, the persona/journey/decision records, and
+the spine merge; `shape-checks.json` is the verify step's captured `check_shape.py` output
+— the play always writes it, and its `ok` field is the mechanical proof that the profile
+is untouched, capabilities changed status-only, slices were only added, and every declared
+decision is on disk.
+
+- D1 — says: "the applied record exists — the selection bundle (slices, personas,
+  journeys, decisions, status flips) was persisted through the allowlisted apply"
+  check: { type: artifact_exists, path: "apply-manifest.json" }
+- D2 — says: "the apply stamped its applied-record field — the spine merge and the record
+  copies landed"
+  check: { type: field_equals, file: "apply-manifest.json", field: "applied", equals: true }
+- D3 — says: "the post-apply verification held — profile untouched, status-only capability
+  changes, slices added-only, decisions on disk"
+  check: { type: field_equals, file: "shape-checks.json", field: "ok", equals: true }
 
 ### Recovery (one per failure condition)
 
@@ -196,3 +230,8 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
   record. direction: restore the changed artifact and re-run writing only /shape's allowlist
   (status flips, new slices/personas/journeys/decisions), de-duplicating by stable id, after
   a human confirms the restore. handoff: human.
+- REC14 (F14) — trigger: the run is about to close COMPLETED with the Done means unmet.
+  direction: close HALTED with `exit_reason: stop_condition_unmet` and the unmet clauses
+  named; fix the state — re-run the allowlisted persist or re-capture the post-apply
+  verification — and re-evaluate; the close stays HALTED until the verdict reads held.
+  handoff: autonomous.

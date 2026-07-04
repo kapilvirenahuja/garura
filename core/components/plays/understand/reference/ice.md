@@ -54,11 +54,20 @@ Pipeline position: **none**. /understand is a MIDDLE play of the strategy pipeli
 - C9 — Exactly one human checkpoint, presenting the detailed capability, its
   functionalities, the per-capability NFR needs, and the profile changes — every box-move
   as its own line item (dimension, from→to, the decision it creates). Nothing is persisted
-  before the checkpoint is approved.
+  before the checkpoint resolves. The checkpoint is a **default-on config gate** per
+  `gate-config.md`, declared `(class: standard)` and NOT pinned (#466 — the Stage 4
+  lever): when config resolves it off, the play does not wait — it records the skip as a
+  Checkpoint Decisions row in the evidence and proceeds; box-move approvals ride this same
+  gate. It defaults on, so behaviour is unchanged until evidence retires it.
 - C10 — Non-destructive to the rest of the model (allowlist): the run writes only the
   target capability (its doc + spine entry), its new functionalities (docs + entries), the
   firmed profile, and the box-move decisions. No other capability, functionality, or domain
   is changed; the monotonic-up roll-up guarantees no other capability's need is undercut.
+- C11 — The play ends by proving its Done means at close (gated, #464): the allowlisted
+  applied record exists (the detailed capability grounding, its functionality docs, and the
+  profile roll-up were persisted), the applied record stamps the roll-up as written, and
+  the captured post-apply verification reads ok. The close never reads COMPLETED with the
+  stop-condition verdict unmet.
 
 ### Failure conditions
 
@@ -81,6 +90,9 @@ Pipeline position: **none**. /understand is a MIDDLE play of the strategy pipeli
   its new functionalities) was changed during the run.
 - F10 — Over-reach into prioritization: a slice or an epic was written, or the target
   capability's status was flipped to active — that is /shape's job.
+- F11 — The run closed COMPLETED without the Done means held (no applied record, the
+  profile roll-up not stamped as persisted, or the post-apply verification not captured or
+  not ok).
 
 ## Expectation
 
@@ -93,7 +105,7 @@ Pipeline position: **none**. /understand is a MIDDLE play of the strategy pipeli
   templates and clearing the content-quality eval. Measure: the capability entry is
   `detail: detailed` and carries `nfr_needs`; at least one functionality entry exists with
   `capability` set to the target and its doc present; the linter is clean; the content eval
-  gate passes for every grounding doc.
+  gate passes for every grounding doc; the stop-condition verdict reads held.
 - S2 — (product strategist, first firm-up) Given a still-directional profile, when
   /understand runs and is approved, then the roll-up establishes the box and firms it to
   `set` with no per-dimension ADR. Measure: the profile `state` is `set`; no decision
@@ -116,6 +128,27 @@ Pipeline position: **none**. /understand is a MIDDLE play of the strategy pipeli
   naming the dimension, the from→to levels, and the ADR it will create — rendered inline,
   before any write. Measure: each box-move appears as its own line item; no product-model
   file is written before the approval.
+
+### Done means
+
+Paths are relative to the run's working root (`{stm_base}_shaping/understand/<capability>/`).
+`apply-manifest.json` is the applied record `apply_understand.py` writes after the approved
+checkpoint (its contract: `written`, `capability_ref`, `changed.{capability,
+functionalities_added, profile, decisions}`, `box_moves`) — the persisted detailed
+capability grounding, its functionality docs, and the profile roll-up; `apply-checks.json`
+is the verify step's captured `check_apply.py` output — the play always writes it, and its
+`ok` field is the mechanical proof that the allowlist held, the target was promoted with
+concrete needs, the box moved monotonic-up to `set`, and every box-move carries its
+accepted decision.
+
+- D1 — says: "the applied record exists — the detailed capability grounding, its
+  functionality docs, and the roll-up were persisted through the allowlisted apply"
+  check: { type: artifact_exists, path: "apply-manifest.json" }
+- D2 — says: "the profile roll-up was persisted — the applied record stamps the firmed box"
+  check: { type: field_equals, file: "apply-manifest.json", field: "changed.profile", equals: true }
+- D3 — says: "the post-apply verification held — allowlist, promotion, monotonic box,
+  box-move decisions all ok"
+  check: { type: field_equals, file: "apply-checks.json", field: "ok", equals: true }
 
 ### Recovery (one per failure condition)
 
@@ -150,3 +183,8 @@ Pipeline position: **none**. /understand is a MIDDLE play of the strategy pipeli
 - REC10 (F10) — trigger: a slice, an epic, or a capability status flip was written.
   direction: strip the prioritization over-reach — remove the slice/epic, reset the status —
   leaving only /understand's detailing scope. handoff: autonomous.
+- REC11 (F11) — trigger: the run is about to close COMPLETED with the Done means unmet.
+  direction: close HALTED with `exit_reason: stop_condition_unmet` and the unmet clauses
+  named; fix the state — re-run the allowlisted persist or re-capture the post-apply
+  verification — and re-evaluate; the close stays HALTED until the verdict reads held.
+  handoff: autonomous.

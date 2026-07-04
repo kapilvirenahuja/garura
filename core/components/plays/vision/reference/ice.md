@@ -55,6 +55,9 @@ Pipeline position: **start**. /vision OPENS the strategy pipeline (vision → un
 - C7 — Exactly one human checkpoint, presenting the domain, the directional
   capabilities, and the directional profile. Nothing is persisted to the product model
   before that checkpoint is approved.
+- C8 — The play ends by proving its Done means at close (gated, #464): the goal was
+  grounded, the seed drafted, and the approved seed applied to the product model —
+  never by its step list running out.
 
 ### Failure conditions
 
@@ -71,6 +74,8 @@ Pipeline position: **start**. /vision OPENS the strategy pipeline (vision → un
   proposal.
 - F5 — An existing spine entry or grounding doc was overwritten or redrawn.
 - F6 — The product model was written before the human approved the checkpoint.
+- F7 — The close proves nothing — the play closes COMPLETED without the Done means
+  held.
 
 ## Expectation
 
@@ -100,6 +105,22 @@ Pipeline position: **start**. /vision OPENS the strategy pipeline (vision → un
   sections is present in the checkpoint; no product-model file's modification time falls
   between the run start and the checkpoint approval.
 
+### Done means
+
+Paths are relative to the run's working folder (`<working>`, under
+`{stm_base}_shaping/vision/`). Derived from the artifacts every completed run writes —
+a re-run over an existing domain drafts only absent pieces, so the clauses assert the
+always-written records, not per-node docs.
+
+- D1 — says: "the KB grounding for the goal is recorded"
+  check: { type: artifact_exists, path: "grounding.yaml" }
+- D2 — says: "the drafted spine entries record exists"
+  check: { type: artifact_exists, path: "draft/product-os/_spine.yaml" }
+- D3 — says: "the seed manifest exists and records the profile decision"
+  check: { type: artifact_exists, path: "draft/seed-manifest.yaml" }
+- D4 — says: "the approved seed was applied to the product model"
+  check: { type: field_equals, file: "apply-manifest.json", field: "applied", equals: true }
+
 ### Recovery (one per failure condition)
 
 - REC1 (F1) — trigger: a grounding doc fails the linter's shape check, or a spine entry
@@ -124,3 +145,6 @@ Pipeline position: **start**. /vision OPENS the strategy pipeline (vision → un
 - REC6 (F6) — trigger: a product-model file was written before the checkpoint was
   approved. direction: revert the premature write and re-present the checkpoint; persist
   only after the human approves. handoff: human.
+- REC7 (F7) — trigger: the close would report COMPLETED without the Done means held.
+  direction: evaluate the stop condition and surface the unmet clauses; the run closes
+  HALTED until state is fixed. handoff: autonomous.

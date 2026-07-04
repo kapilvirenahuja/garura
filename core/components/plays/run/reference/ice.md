@@ -79,10 +79,18 @@ per environment — each a small model-only change riding the same end sequence.
   the other slices stay byte-unchanged.
 - C10 — Exactly one human checkpoint, presenting the target environment's definition plus the
   slice-level design and any decision, before anything is written. Nothing persists before approval.
+  The checkpoint is a config switch per `standards/rules/gate-config.md` (class: standard, unpinned):
+  the agent never skips it on its own judgment; a config-resolved skip is recorded in the evidence,
+  never silent (#466 Batch C).
 - C11 — Two artifacts in step: `run.yaml` (the machine-readable facts) and `run.md` (the narrative)
   describe the same environments with the same facts — same names, tiers, providers, and postures.
 - C12 — Secrets never in the repo: every environment's secrets are bound via a secrets manager; no
   secret value is written into `run.yaml`, `run.md`, or the repo.
+- C13 — The play ends by proving its Done means at close (gated, #464): the drafted `run.md` AND the
+  machine-readable environment definition `run.yaml` exist, and the verify step's captured record
+  confirms the approved lens was applied surgically (status untouched — no realized stamp). A run
+  that never applied — checkpoint cancelled, validation failed — closes HALTED, never COMPLETED
+  with the stop-condition verdict unmet.
 
 ### Failure conditions
 
@@ -110,6 +118,8 @@ per environment — each a small model-only change riding the same end sequence.
 - F12 — The lens was persisted before the human approved the checkpoint.
 - F13 — A secret value was written into `run.yaml`, `run.md`, or the repo instead of bound via a
   secrets manager.
+- F14 — The run closed COMPLETED without the Done means held — a missing `run.md` or `run.yaml`
+  draft, or no captured verify record proving the approved lens was applied.
 
 ## Expectation
 
@@ -151,6 +161,22 @@ per environment — each a small model-only change riding the same end sequence.
   environment's definition plus the slice-level design and any decision, before any write. Measure: the
   checkpoint shows the lens inline; no product-model file is written before approval.
 
+### Done means
+
+Paths are relative to the run's working root (`{stm_base}_realize/run/`). The draft dir holds the
+authored lens bundle — the slice's `run.md` (the narrative) AND `run.yaml` (the machine-readable
+per-environment definition) under its lens path; `run-checks.json` is the verify step's captured
+`check_run.py` output — the play always captures it, and its `ok` field is the mechanical proof
+that the approved lens was applied surgically (only this slice's `run.md` and `run.yaml` and new
+decisions changed; the spine — and with it the slice's status — byte-identical, no realized stamp).
+
+- D1 — says: "the run narrative draft exists (run.md)"
+  check: { type: artifact_exists, path: "draft/product-os/*/slices/*/lens/run.md" }
+- D2 — says: "the machine-readable environment definition exists (run.yaml)"
+  check: { type: artifact_exists, path: "draft/product-os/*/slices/*/lens/run.yaml" }
+- D3 — says: "the approved lens was applied and verified surgical (status untouched)"
+  check: { type: field_equals, file: "run-checks.json", field: "ok", equals: true }
+
 ### Recovery (one per failure condition)
 
 - REC1 (F1) — trigger: the slice is absent, a functionality does not resolve, the profile is not
@@ -187,3 +213,7 @@ per environment — each a small model-only change riding the same end sequence.
 - REC13 (F13) — trigger: a secret value was written into the lens or the repo. direction: strip the
   secret, replace it with a secrets-manager binding, and re-verify no secret literal remains. handoff:
   autonomous.
+- REC14 (F14) — trigger: the run is about to close COMPLETED with the Done means unmet. direction:
+  close HALTED with `exit_reason: stop_condition_unmet` and the unmet clauses named; fix the state —
+  re-run the verify capture, or complete the missing draft/apply step — and re-evaluate; the close
+  stays HALTED until the verdict reads held. handoff: autonomous.

@@ -15,8 +15,9 @@ the product profile (read from the spine). The lens is two things and only two: 
 each a dimension, the bar, and how it is checked — drawn from the product profile's NFR gates that
 apply to this slice and from the slice's functionalities' own rules made checkable). The gates are
 grounded, never invented: each traces to a profile gate that applies or to a functionality's rule;
-any material choice is recorded as a decision. It writes only this slice's `quality.md` (and any
-decision) — never the spine, the slice record, the profile, another lens, or another slice. One
+any material choice is recorded as a decision. It writes only this slice's `quality.md`, its machine
+sibling `quality-gates.yaml` (#462 — the per-gate binding cards run-quality-gates executes), and any
+decision — never the spine, the slice record, the profile, another lens, or another slice. One
 slice per run; one human checkpoint before anything persists. The lens is gated by the structural
 linter (shape) and the content-quality eval (a judge).
 
@@ -33,9 +34,10 @@ lens. (#437; 3-pipe realize 2026-06-25)
   functionality it bundles resolves through the spine to a `functionality.md` grounding doc, and the
   product profile is firmed (`set`). If not, halt — /quality realizes a shaped slice; it does not
   shape one.
-- C2 — Writes only this slice's `quality.md` (and any decision), in the slice's lens folder. Never
-  the spine, the slice record, the profile, another lens, the node tree, personas, journeys, or
-  other slices.
+- C2 — Writes only this slice's `quality.md`, its machine sibling `quality-gates.yaml` (#462 — one
+  binding card per gate, part of the lens's contract), and any decision, in the slice's lens folder.
+  Never the spine, the slice record, the profile, another lens, the node tree, personas, journeys,
+  or other slices.
 - C3 — Shape: `quality.md` conforms to the Quality lens template — the sections "Intent" and "Gates"
   (Gates a table: dimension, bar, how checked) — and the structural linter passes. No content
   outside those two sections.
@@ -50,12 +52,19 @@ lens. (#437; 3-pipe realize 2026-06-25)
   profile — never from another realize lens (ux/agentic/architecture/run/measure/marketing).
 - C8 — Concrete gates: every gate is a checkable bar — a value or a named standard plus how it is
   checked — never a vague adjective ("fast", "secure"). A gate that cannot be checked is not a gate.
-- C9 — Additive and non-destructive: the run changes only this slice's `quality.md` (and any new
-  decision); the spine, the slice record, the profile, the other lenses, and the other slices are
-  byte-unchanged. Re-running re-derives the lens; accepted decisions are superseded, never edited in
-  place.
+- C9 — Additive and non-destructive: the run changes only this slice's `quality.md` and its machine
+  sibling `quality-gates.yaml` (and any new decision); the spine, the slice record, the profile, the
+  other lenses, and the other slices are byte-unchanged. Re-running re-derives the lens; accepted
+  decisions are superseded, never edited in place.
 - C10 — Exactly one human checkpoint, presenting the intent and the gates, plus any decision, before
-  anything is written. Nothing persists before approval.
+  anything is written. The checkpoint is a **default-on config gate** (`gate-config.md`, class:
+  standard, not pinned): it fires unless config resolves it off, and a config skip is always recorded
+  in evidence — nothing persists before the gate resolves (a typed approval, or a recorded skip).
+- C11 — The play ends by proving its Done means at close (gated, #464): the drafted lens and its
+  grounding manifest exist in the run's workspace, and the apply manifest carries the MACHINE fields
+  `lens_applied: true` and `gates_machine_applied: true` (the lens and its machine sibling landed in
+  the model tree) — never prose claims. A close whose Done means does not hold reads HALTED, never
+  COMPLETED.
 
 ### Failure conditions
 
@@ -71,9 +80,13 @@ lens. (#437; 3-pipe realize 2026-06-25)
 - F6 — A functionality of the slice is left unconsidered by the gates.
 - F7 — /quality read or depended on another lens.
 - F8 — A gate is not checkable — a vague adjective with no value, standard, or check.
-- F9 — A product-model file other than this slice's `quality.md` or a new decision changed, or an
-  accepted decision was edited in place rather than superseded.
-- F10 — The lens was persisted before the human approved the checkpoint.
+- F9 — A product-model file other than this slice's `quality.md`, its machine sibling
+  `quality-gates.yaml`, or a new decision changed, or an accepted decision was edited in place rather
+  than superseded.
+- F10 — The lens was persisted before the checkpoint gate resolved — no typed approval and no
+  recorded config skip.
+- F11 — The run closed COMPLETED without the Done means held — a missing draft lens or grounding
+  manifest, or an apply manifest without the machine applied fields true.
 
 ## Expectation
 
@@ -101,6 +114,17 @@ lens. (#437; 3-pipe realize 2026-06-25)
   gates, plus any decision, before any write. Measure: the checkpoint shows the lens inline; no
   product-model file is written before approval.
 
+### Done means
+
+- D1 — says: "the drafted quality lens exists"
+  check: { type: artifact_exists, path: "draft/product-os/*/slices/*/lens/quality.md" }
+- D2 — says: "the grounding manifest exists"
+  check: { type: artifact_exists, path: "draft/quality-manifest.yaml" }
+- D3 — says: "the quality lens landed in the model tree — machine-recorded by the apply"
+  check: { type: field_equals, file: "apply-manifest.json", field: "lens_applied", equals: true }
+- D4 — says: "the machine sibling quality-gates.yaml landed beside it (#462)"
+  check: { type: field_equals, file: "apply-manifest.json", field: "gates_machine_applied", equals: true }
+
 ### Recovery (one per failure condition)
 
 - REC1 (F1) — trigger: the slice is absent, a functionality does not resolve, or the profile is not
@@ -124,5 +148,11 @@ lens. (#437; 3-pipe realize 2026-06-25)
 - REC9 (F9) — trigger: a non-lens/non-decision file changed, or an accepted decision was edited in
   place. direction: restore it and re-apply only the `quality.md` (and the new decision), after a
   human confirms the restore. handoff: human.
-- REC10 (F10) — trigger: the lens was persisted before the checkpoint was approved. direction: revert
-  the premature write and re-present the checkpoint; persist only after approval. handoff: human.
+- REC10 (F10) — trigger: the lens was persisted before the checkpoint gate resolved. direction: revert
+  the premature write and re-present the checkpoint; persist only after the gate resolves (approval,
+  or a recorded config skip). handoff: human.
+- REC11 (F11) — trigger: the run is about to close COMPLETED with the Done means unmet (a missing
+  draft or manifest artifact, or an apply manifest without the machine applied fields). direction:
+  produce the missing artifact — re-run the failed step, or re-run `apply_quality.py` so the apply
+  manifest carries the machine fields — then re-evaluate the stop condition; the close stays HALTED
+  until the verdict reads held. handoff: autonomous.

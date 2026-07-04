@@ -1,57 +1,105 @@
 pr:
-  number: 475
-  head: feature/466-batch-b-execute-pipe
-  base: main
-  url: null # see pr.json for canonical url/state fields
-
+  number: 476
+  title: "feat(components): Batch C \u2014 strategy and lens plays on the Level 3\
+    \ model (#466)"
+  url: https://github.com/kapilvirenahuja/garura/pull/476
+  state: OPEN
+  mergeable: MERGEABLE
+head: feature/466-batch-c-strategy-lenses
+base: main
 standards_order:
-  - id: kb
-    root: ~/.garura/core/memory/knowledge/
-  - id: ltm
-    root: ./.garura/core/memory/
-  - id: stm
-    root: .garura/project/issues/
-
+- kb
+- ltm
+- stm
+standards_set:
+  kb: ~/.garura/core/memory/knowledge/quality/
+  ltm: ./.garura/core/memory/knowledge/quality/
+  stm: .garura/project/issues/466/specs/quality/
+severity_taxonomy_path: ./core/components/memory/standards/rules/pr.md
+changed_paths_count: 83
 changed_paths:
-  - .garura/project/issues/466/context/analysis.yaml
-  - .garura/project/issues/466/context/branch.json
-  - .garura/project/issues/466/context/commits.yaml
-  - .garura/project/issues/466/context/porcelain.txt
-  - .garura/project/issues/466/context/pr.json
-  - .garura/project/issues/466/context/self-review.md
-  - core/components/memory/standards/rules/gate-config.md
-  - core/components/plays/deploy/SKILL.md
-  - core/components/plays/deploy/reference/ice.md
-  - core/components/plays/deploy/scripts/check_stop_condition.py
-  - core/components/plays/deploy/scripts/session_stamp.py
-  - core/components/plays/deploy/stop-condition.yaml
-  - core/components/plays/fix-bug/SKILL.md
-  - core/components/plays/fix-bug/reference/ice.md
-  - core/components/plays/fix-bug/scripts/check_stop_condition.py
-  - core/components/plays/fix-bug/scripts/session_stamp.py
-  - core/components/plays/fix-bug/stop-condition.yaml
-  - core/components/plays/implement/SKILL.md
-  - core/components/plays/implement/reference/ice.md
-  - core/components/plays/implement/scripts/check_stop_condition.py
-  - core/components/plays/implement/scripts/session_stamp.py
-  - core/components/plays/implement/stop-condition.yaml
-  - core/components/plays/launch/SKILL.md
-  - core/components/plays/launch/reference/ice.md
-  - core/components/plays/launch/scripts/check_close_gate.py
-  - core/components/plays/launch/scripts/check_stop_condition.py
-  - core/components/plays/launch/scripts/session_stamp.py
-  - core/components/plays/launch/stop-condition.yaml
-  - core/components/plays/refactor/SKILL.md
-  - core/components/plays/refactor/reference/ice.md
-  - core/components/plays/refactor/scripts/check_behavior_preserved.py
-  - core/components/plays/refactor/scripts/check_stop_condition.py
-  - core/components/plays/refactor/scripts/session_stamp.py
-  - core/components/plays/refactor/stop-condition.yaml
-  - core/components/plays/validate/SKILL.md
-  - core/components/plays/validate/reference/ice.md
-  - core/components/plays/validate/scripts/check_stop_condition.py
-  - core/components/plays/validate/scripts/session_stamp.py
-  - core/components/plays/validate/scripts/stamp_epic.py
-  - core/components/plays/validate/stop-condition.yaml
-
+- .garura/project/issues/466/context/analysis.yaml
+- .garura/project/issues/466/context/branch.json
+- .garura/project/issues/466/context/commits.yaml
+- .garura/project/issues/466/context/porcelain.txt
+- .garura/project/issues/466/context/pr.json
+- .garura/project/issues/466/context/resolved-rules.json
+- .garura/project/issues/466/context/self-review.md
+- core/components/plays/agentic/SKILL.md
+- core/components/plays/agentic/reference/ice.md
+- core/components/plays/agentic/scripts/apply_agentic.py
+- core/components/plays/agentic/scripts/check_stop_condition.py
+- core/components/plays/agentic/scripts/session_stamp.py
+- core/components/plays/agentic/stop-condition.yaml
+- core/components/plays/arch/SKILL.md
+- core/components/plays/arch/reference/ice.md
+- core/components/plays/arch/scripts/check_stop_condition.py
+- core/components/plays/arch/scripts/session_stamp.py
+- core/components/plays/arch/stop-condition.yaml
+- core/components/plays/grill/SKILL.md
+- core/components/plays/grill/reference/ice.md
+- core/components/plays/grill/scripts/check_stop_condition.py
+- core/components/plays/grill/scripts/session_stamp.py
+- core/components/plays/grill/scripts/validate_epics.py
+- core/components/plays/grill/stop-condition.yaml
+- core/components/plays/learn/SKILL.md
+- core/components/plays/learn/reference/ice.md
+- core/components/plays/learn/scripts/apply_learn.py
+- core/components/plays/learn/scripts/check_stop_condition.py
+- core/components/plays/learn/scripts/session_stamp.py
+- core/components/plays/learn/stop-condition.yaml
+- core/components/plays/marketing/SKILL.md
+- core/components/plays/marketing/reference/ice.md
+- core/components/plays/marketing/scripts/apply_marketing.py
+- core/components/plays/marketing/scripts/check_stop_condition.py
+- core/components/plays/marketing/scripts/session_stamp.py
+- core/components/plays/marketing/stop-condition.yaml
+- core/components/plays/measure/SKILL.md
+- core/components/plays/measure/reference/ice.md
+- core/components/plays/measure/scripts/check_stop_condition.py
+- core/components/plays/measure/scripts/session_stamp.py
+- core/components/plays/measure/scripts/stamp_slice.py
+- core/components/plays/measure/stop-condition.yaml
+- core/components/plays/quality/SKILL.md
+- core/components/plays/quality/reference/ice.md
+- core/components/plays/quality/scripts/apply_quality.py
+- core/components/plays/quality/scripts/check_quality.py
+- core/components/plays/quality/scripts/check_stop_condition.py
+- core/components/plays/quality/scripts/session_stamp.py
+- core/components/plays/quality/stop-condition.yaml
+- core/components/plays/roadmap/SKILL.md
+- core/components/plays/roadmap/reference/ice.md
+- core/components/plays/roadmap/scripts/check_stop_condition.py
+- core/components/plays/roadmap/scripts/compute_plan.py
+- core/components/plays/roadmap/scripts/session_stamp.py
+- core/components/plays/roadmap/stop-condition.yaml
+- core/components/plays/run/SKILL.md
+- core/components/plays/run/reference/ice.md
+- core/components/plays/run/scripts/check_stop_condition.py
+- core/components/plays/run/scripts/session_stamp.py
+- core/components/plays/run/stop-condition.yaml
+- core/components/plays/shape/SKILL.md
+- core/components/plays/shape/reference/ice.md
+- core/components/plays/shape/scripts/apply_shape.py
+- core/components/plays/shape/scripts/check_stop_condition.py
+- core/components/plays/shape/scripts/session_stamp.py
+- core/components/plays/shape/stop-condition.yaml
+- core/components/plays/understand/SKILL.md
+- core/components/plays/understand/reference/ice.md
+- core/components/plays/understand/scripts/check_stop_condition.py
+- core/components/plays/understand/scripts/session_stamp.py
+- core/components/plays/understand/stop-condition.yaml
+- core/components/plays/ux/SKILL.md
+- core/components/plays/ux/reference/ice.md
+- core/components/plays/ux/scripts/apply_ux.py
+- core/components/plays/ux/scripts/check_stop_condition.py
+- core/components/plays/ux/scripts/session_stamp.py
+- core/components/plays/ux/stop-condition.yaml
+- core/components/plays/vision/SKILL.md
+- core/components/plays/vision/reference/ice.md
+- core/components/plays/vision/scripts/apply_seed.py
+- core/components/plays/vision/scripts/check_stop_condition.py
+- core/components/plays/vision/scripts/session_stamp.py
+- core/components/plays/vision/stop-condition.yaml
 diff_path: .garura/project/issues/466/review/pr.diff
+generated_at: '2026-07-04T06:34:04Z'

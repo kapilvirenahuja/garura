@@ -63,7 +63,9 @@ def main(argv=None):
             shutil.copy2(os.path.join(dirpath, fn), dst)
             written.append(rel)
 
-    out = {"written": sorted(written), "skipped": sorted(skipped), "refused": sorted(refused)}
+    out = {"written": sorted(written), "skipped": sorted(skipped), "refused": sorted(refused),
+           # machine applied field — read by the close's stop-condition gate (#464)
+           "lens_applied": any(w.endswith(os.sep.join(["lens", "ux.md"])) for w in written)}
     with open(args.out_manifest, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=2)
     print(json.dumps(out, indent=2))

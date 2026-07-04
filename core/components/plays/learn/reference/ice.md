@@ -65,9 +65,17 @@ merge-change`, merging the refreshed model to main. (#434 ProductOS command mode
   edited in place and nothing is removed.
 - C11 — Exactly one human checkpoint, presenting every proposed update (spine meaning fields,
   doc-section rewrites, new decisions) with its outcome citation — high-confidence batched,
-  low-confidence surfaced one by one. Nothing is persisted before approval.
+  low-confidence surfaced one by one. The checkpoint is a **default-on config gate**
+  (`standards/rules/gate-config.md`, #466), declared `(class: standard)`, not pinned: when it
+  resolves on (the default), it waits for typed approval and nothing is persisted before that
+  approval; when config resolves it off, the skip is recorded in evidence (`gate skipped by
+  config`) and the play proceeds on the validated draft.
 - C12 — Learnings are outcome-grounded, not invented: the link from outcome to model change is
   explicit and traceable; a proposed change with no outcome citation is rejected.
+- C13 — The play ends by proving its Done means at close (gated, #464): the proposed learnings
+  manifest exists and the applied model-update record exists with its MACHINE `applied` field
+  true — the persist recorded as machine fields, never as prose. A close whose Done means does
+  not hold reads HALTED, never COMPLETED.
 
 ### Failure conditions
 
@@ -83,8 +91,12 @@ merge-change`, merging the refreshed model to main. (#434 ProductOS command mode
 - F8 — A status was advanced without proving evidence, or a `fix_required` was silently advanced.
 - F9 — The spine write changed more than the allowlisted fields on the manifest-named nodes.
 - F10 — A non-allowlisted file changed, or an accepted decision was edited in place.
-- F11 — A model update was persisted before the checkpoint was approved.
+- F11 — A model update was persisted before the checkpoint completed — before the human
+  approved it, or (when the gate resolved off by config) before the skip was recorded in
+  evidence.
 - F12 — A learning with no traceable link to an outcome.
+- F13 — The run closed COMPLETED without the Done means held — a missing learnings manifest or
+  apply record, or a persist asserted done in prose with no machine `applied` field.
 
 ## Expectation
 
@@ -114,6 +126,18 @@ merge-change`, merging the refreshed model to main. (#434 ProductOS command mode
   then it shows every proposed change with its citation, tiered by confidence, and nothing is
   written before approval. Measure: no product-model file changed before the approval.
 
+### Done means
+
+- D1 — says: "the proposed learnings manifest exists"
+  check: { type: artifact_exists, path: "context/draft/learn-manifest.yaml" }
+- D2 — says: "the applied model-update record exists"
+  check: { type: artifact_exists, path: "context/apply-manifest.json" }
+- D3 — says: "the approved updates were applied — machine-recorded"
+  check: { type: field_equals, file: "context/apply-manifest.json", field: "applied", equals: true }
+
+(Paths are relative to the run's STM root, `{stm_base}{issue}/`; `<working>` is its
+`context/` dir.)
+
 ### Recovery (one per failure condition)
 
 - REC1 (F1) — trigger: the unit is absent or nothing has delivered. direction: halt and route to
@@ -141,7 +165,13 @@ merge-change`, merging the refreshed model to main. (#434 ProductOS command mode
 - REC10 (F10) — trigger: a non-allowlisted file changed, or a decision edited in place. direction:
   restore it and re-apply only the allowlisted writes, after a human confirms the restore.
   handoff: human.
-- REC11 (F11) — trigger: a model update persisted before approval. direction: revert the premature
-  write and re-present the checkpoint; persist only after approval. handoff: human.
+- REC11 (F11) — trigger: a model update persisted before the checkpoint completed (no approval,
+  and no recorded config skip). direction: revert the premature write and re-present the
+  checkpoint; persist only after the gate completes. handoff: human.
 - REC12 (F12) — trigger: a learning with no traceable outcome link. direction: trace it to an
   outcome signal or drop it. handoff: autonomous.
+- REC13 (F13) — trigger: the run is about to close COMPLETED with the Done means unmet (a
+  missing learnings manifest or apply record, or `applied` not true). direction: produce the
+  missing artifact — re-run `apply_learn.py` over the approved manifest so the apply record
+  carries the machine `applied` field — then re-evaluate the stop condition; the close stays
+  HALTED until the verdict reads held. handoff: autonomous.

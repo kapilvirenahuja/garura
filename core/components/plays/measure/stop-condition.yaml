@@ -1,0 +1,21 @@
+# measure stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Paths are relative to the run's working root ({stm_base}_realize/measure/). D4 counts BOTH
+# stamp outcomes as done: stamped realized on lines-up, or explicitly not-stamped with the
+# missing lenses recorded — an UNRESOLVED stamp (no record) leaves D4 unmet and the run closes
+# HALTED, never COMPLETED.
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the measure lens draft exists"
+      check: { type: artifact_exists, path: "draft/product-os/*/slices/*/lens/measure.md" }
+    - id: D2
+      says: "the grounding manifest exists"
+      check: { type: artifact_exists, path: "draft/measure-manifest.yaml" }
+    - id: D3
+      says: "the approved lens was applied and verified surgical"
+      check: { type: field_equals, file: "measure-checks.json", field: "ok", equals: true }
+    - id: D4
+      says: "the realized-stamp question was resolved — stamped, or explicitly not-stamped with the missing lenses recorded"
+      check: { type: field_equals, file: "stamp-record.json", field: "stamp_resolved", equals: true }

@@ -49,7 +49,15 @@ Pipeline position: **end**. /roadmap CLOSES the strategy pipeline: after the ord
   schema (an integer `order`, `status: planned`, `depends_on` resolving to real slices).
 - C8 — Exactly one human checkpoint, presenting the plan — the ordered slices with their
   effort and resolved dependencies, plus any cycle anomalies — before any plan is written.
-  Nothing persists before approval.
+  The checkpoint is a **default-on config gate** (`standards/rules/gate-config.md`, #466),
+  declared `(class: standard)`, not pinned: when it resolves on (the default), it waits for
+  typed approval and nothing persists before that approval; when config resolves it off, the
+  skip is recorded in evidence (`gate skipped by config`) and the play proceeds on the
+  computed plan.
+- C9 — The play ends by proving its Done means at close (gated, #464): the plan draft
+  exists and the computed plan record exists with its order fields — every slice ordered,
+  the orders coherent, no cycle persisted — recorded as MACHINE fields, never as prose. A
+  close whose Done means does not hold reads HALTED, never COMPLETED.
 
 ### Failure conditions
 
@@ -65,7 +73,10 @@ Pipeline position: **end**. /roadmap CLOSES the strategy pipeline: after the ord
 - F6 — A non-plan part of the model changed during the run: a slice's non-plan field, or
   any product-model file other than the spine.
 - F7 — A written slice spine entry violates the spine schema.
-- F8 — A plan was persisted before the human approved the checkpoint.
+- F8 — A plan was persisted before the checkpoint completed — before the human approved
+  it, or (when the gate resolved off by config) before the skip was recorded in evidence.
+- F9 — The run closed COMPLETED without the Done means held — a missing plan draft or
+  computed plan record, or an incoherent order asserted done with no machine record.
 
 ## Expectation
 
@@ -96,6 +107,18 @@ Pipeline position: **end**. /roadmap CLOSES the strategy pipeline: after the ord
   any write. Measure: the checkpoint lists the ordered slices, each with effort and resolved
   dependencies, plus the anomaly list; no slice's plan fields changed before approval.
 
+### Done means
+
+- D1 — says: "the plan draft exists"
+  check: { type: artifact_exists, path: "plan-draft.yaml" }
+- D2 — says: "the computed plan record exists"
+  check: { type: artifact_exists, path: "plan.json" }
+- D3 — says: "the computed plan's orders are coherent — every slice ordered 1..N with its
+  order fields, no cycle persisted"
+  check: { type: field_equals, file: "plan.json", field: "orders_coherent", equals: true }
+
+(Paths are relative to the run's STM working root, `{stm_base}_shaping/roadmap/`.)
+
 ### Recovery (one per failure condition)
 
 - REC1 (F1) — trigger: a plan was written onto a non-slice artifact. direction: revert it;
@@ -116,6 +139,11 @@ Pipeline position: **end**. /roadmap CLOSES the strategy pipeline: after the ord
   confirms the restore. handoff: human.
 - REC7 (F7) — trigger: a written slice spine entry fails the spine schema. direction:
   re-emit the failing entry to conform before the play completes. handoff: autonomous.
-- REC8 (F8) — trigger: a plan was persisted before the checkpoint was approved. direction:
-  revert the premature write and re-present the checkpoint; persist only after the human
-  approves. handoff: human.
+- REC8 (F8) — trigger: a plan was persisted before the checkpoint completed (no approval,
+  and no recorded config skip). direction: revert the premature write and re-present the
+  checkpoint; persist only after the gate completes. handoff: human.
+- REC9 (F9) — trigger: the run is about to close COMPLETED with the Done means unmet (a
+  missing plan draft or computed plan record, or `orders_coherent` not true). direction:
+  produce the missing artifact — re-run the draft and `compute_plan.py` so the plan record
+  carries the machine order fields — then re-evaluate the stop condition; the close stays
+  HALTED until the verdict reads held. handoff: autonomous.

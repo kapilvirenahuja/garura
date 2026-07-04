@@ -52,9 +52,18 @@ merge-change`, merging the realized slice to main. (#437; 3-pipe realize 2026-06
 - C10 — Non-destructive: a re-run re-derives only `measure.md`; an accepted decision is never edited
   in place; the only spine change the run may make is the realized stamp.
 - C11 — Exactly one human checkpoint, presenting the measure lens and the realized stamp it will make
-  (or the missing lenses if it cannot). Nothing is persisted or stamped before approval.
+  (or the missing lenses if it cannot). Nothing is persisted or stamped before approval. The
+  checkpoint is a config switch per `standards/rules/gate-config.md` (class: standard, unpinned):
+  the agent never skips it on its own judgment; a config-resolved skip is recorded in the evidence,
+  never silent (#466 Batch C).
 - C12 — Measurement frames are KB-grounded: the metric frame choices (the triangle and any industry
   translation) trace to a KB learning or a recorded KB-node proposal — never invented.
+- C13 — The play ends by proving its Done means at close (gated, #464): the lens draft and its
+  grounding manifest exist, the verify step's captured record confirms the approved lens was applied
+  surgically, AND the realized-stamp question is explicitly resolved — the stamp step always writes a
+  stamp record (`{stamp_resolved: true, stamped: <bool>}`); stamped-on-lines-up and
+  not-stamped-with-the-missing-lenses-recorded BOTH count as done. A run that never applied or never
+  resolved the stamp closes HALTED, never COMPLETED with the stop-condition verdict unmet.
 
 ### Failure conditions
 
@@ -72,6 +81,9 @@ merge-change`, merging the realized slice to main. (#437; 3-pipe realize 2026-06
 - F10 — A non-lens/non-decision file changed, or an accepted decision was edited in place.
 - F11 — The lens or the stamp was persisted before the checkpoint was approved.
 - F12 — A measurement frame choice with no KB learning and no recorded proposal.
+- F13 — The run closed COMPLETED without the Done means held — a missing lens draft or grounding
+  manifest, no captured verify record proving the approved lens was applied, or the realized-stamp
+  question left unresolved (no stamp record naming either outcome).
 
 ## Expectation
 
@@ -97,6 +109,27 @@ merge-change`, merging the realized slice to main. (#437; 3-pipe realize 2026-06
 - S6 — (reviewer, the checkpoint) Given the lens and the stamp are ready, when the checkpoint is
   presented, then it shows the lens inline and the realized stamp it will make (or the missing lenses),
   and no product-model file is written before approval.
+
+### Done means
+
+Paths are relative to the run's working root (`{stm_base}_realize/measure/`). The draft dir holds
+the authored lens bundle — the slice's `measure.md` under its lens path plus
+`measure-manifest.yaml`, the grounding map; `measure-checks.json` is the verify step's captured
+`check_measure.py` output — the play always captures it, and its `ok` field is the mechanical
+proof that the approved lens was applied surgically. `stamp-record.json` is written by the stamp
+step (`stamp_slice.py --lines-up --record`) EVERY run: `{stamp_resolved: true, stamped: true}`
+when the lines-up gate passed and the slice was stamped realized, or `{stamp_resolved: true,
+stamped: false, missing: [...]}` when a lens doc was missing and the stamp was explicitly skipped
+with the reason recorded — both outcomes count as done.
+
+- D1 — says: "the measure lens draft exists"
+  check: { type: artifact_exists, path: "draft/product-os/*/slices/*/lens/measure.md" }
+- D2 — says: "the grounding manifest exists"
+  check: { type: artifact_exists, path: "draft/measure-manifest.yaml" }
+- D3 — says: "the approved lens was applied and verified surgical"
+  check: { type: field_equals, file: "measure-checks.json", field: "ok", equals: true }
+- D4 — says: "the realized-stamp question was resolved — stamped, or explicitly not-stamped with the missing lenses recorded"
+  check: { type: field_equals, file: "stamp-record.json", field: "stamp_resolved", equals: true }
 
 ### Recovery (one per failure condition)
 
@@ -126,4 +159,9 @@ merge-change`, merging the realized slice to main. (#437; 3-pipe realize 2026-06
   premature write and re-present the checkpoint; persist only after approval. handoff: human.
 - REC12 (F12) — trigger: a measurement frame with no KB learning and no recorded proposal. direction:
   search the KB via kb-search and ground the frame, or raise a KB-learning-gap proposal. handoff:
+  autonomous.
+- REC13 (F13) — trigger: the run is about to close COMPLETED with the Done means unmet. direction:
+  close HALTED with `exit_reason: stop_condition_unmet` and the unmet clauses named; fix the state —
+  re-run the verify capture, or re-run the stamp step so the stamp record names one of the two
+  outcomes — and re-evaluate; the close stays HALTED until the verdict reads held. handoff:
   autonomous.

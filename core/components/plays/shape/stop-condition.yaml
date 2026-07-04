@@ -1,0 +1,17 @@
+# shape stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Paths are relative to the run's working root ({stm_base}_shaping/shape/<domain>/).
+# A run whose persist or post-apply verification did not land leaves a clause unmet —
+# the close reads HALTED, never COMPLETED.
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the applied record exists — the selection bundle (slices, personas, journeys, decisions, status flips) was persisted through the allowlisted apply"
+      check: { type: artifact_exists, path: "apply-manifest.json" }
+    - id: D2
+      says: "the apply stamped its applied-record field — the spine merge and the record copies landed"
+      check: { type: field_equals, file: "apply-manifest.json", field: "applied", equals: true }
+    - id: D3
+      says: "the post-apply verification held — profile untouched, status-only capability changes, slices added-only, decisions on disk"
+      check: { type: field_equals, file: "shape-checks.json", field: "ok", equals: true }

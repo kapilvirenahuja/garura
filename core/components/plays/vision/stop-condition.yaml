@@ -1,0 +1,18 @@
+# vision stop condition — baked from reference/ice.md "### Done means" (#464/#466 Batch C).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Paths are relative to the run's working folder (<working>, under {stm_base}_shaping/vision/).
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the KB grounding for the goal is recorded"
+      check: { type: artifact_exists, path: "grounding.yaml" }
+    - id: D2
+      says: "the drafted spine entries record exists"
+      check: { type: artifact_exists, path: "draft/product-os/_spine.yaml" }
+    - id: D3
+      says: "the seed manifest exists and records the profile decision"
+      check: { type: artifact_exists, path: "draft/seed-manifest.yaml" }
+    - id: D4
+      says: "the approved seed was applied to the product model"
+      check: { type: field_equals, file: "apply-manifest.json", field: "applied", equals: true }

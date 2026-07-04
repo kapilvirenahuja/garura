@@ -109,7 +109,10 @@ def main(argv=None):
                      "depends_on": sorted({b for a, b in deps if a == sid})})
 
     out = {"plan": plan, "anomalies": {"cycles": sorted(cycle)},
-           "order": [p["id"] for p in plan]}
+           "order": [p["id"] for p in plan],
+           # machine field for the play's stop condition (#464/#466 Batch C):
+           # true iff every slice is ordered 1..N with an effort and no cycle persisted
+           "orders_coherent": not errors}
     with open(args.out, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=2)
 

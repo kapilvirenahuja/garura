@@ -1,6 +1,6 @@
 {
-  "branch_name": "feature/466-batch-b-execute-pipe",
-  "base_sha": "c8865870d6bfff6fdfeabb09e04e70c19dc0df7e",
+  "branch_name": "feature/466-batch-c-strategy-lenses",
+  "base_sha": "9d58125f35cef7238a62d33c0fa74be9310a8b49",
   "on_default_branch": false,
   "worktree_path": null
 }

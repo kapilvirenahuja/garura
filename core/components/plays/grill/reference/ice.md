@@ -100,8 +100,13 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
   reason before writing.
 - C8 — Epics are ordered: dependencies among them are explicit and acyclic, and the first
   epic is independently deliverable.
-- C9 — The full cut is written only after explicit human approval, atomically — all epics
-  or none.
+- C9 — The full cut is written only after the approval checkpoint resolves, atomically —
+  all epics or none. The checkpoint is a config switch of class `standard` per
+  `gate-config.md` — NOT pinned: a config off-switch may skip its firing, recorded in
+  evidence, never silent. The switch touches ONLY this close-side checkpoint — the
+  grilling loop's per-question HITL discipline (C12/C13: one question at a time, typed
+  answers, never self-resolved) is the loop's interior, not a close gate, and no config
+  value touches it.
 - C10 — Epics are created at the start of their lifecycle; their later pickup, delivery,
   and deletion belong to the delivery plays, which this play never performs.
 - C11 — The play writes only epics; it never modifies the slice record, the lenses, the
@@ -142,6 +147,16 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
   eval — its intent, constraints, failures, expectations, context, outcome, user check,
   surface, delivered functionalities, and acceptance are self-explaining at delivery
   altitude, not thin. A thin or off-template epic doc fails the gate and is not written.
+- C17 — The play ends by proving its Done means at close, gated (#464): the cut is
+  written only after the grilling converged — a clean tension report (zero live tensions,
+  zero open decision questions at the write-gate) — and the checkpoint resolved. The
+  grilling loop is HUMAN-PACED and UNCAPPED — a natural human loop whose only exit is the
+  clean tension report; an iteration cap is NEVER applied to human rounds; the cap
+  concept does not apply to grilling. The proof is machine-readable: the write-gate
+  writes its verdict (`write-gate.yaml` — ok, live-tension and open-question counts; the
+  round reports are a closed schema and never carry machine fields), the checkpoint's
+  resolution lands in an approval marker, and the persist's all-or-none manifest closes
+  the chain.
 
 ### Failure conditions
 
@@ -184,6 +199,9 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
   thin, off-altitude, or label-only `epic.md`), or its spine `epics` entry fails the spine
   schema or names a functionality the spine does not have — so a degraded epic reaches
   delivery.
+- F18 — The run closes COMPLETED without the Done means holding — the write-gate verdict
+  missing or unclean, a live tension or open decision question surviving, the approval
+  marker absent, or the apply manifest not ok: the close was asserted, never proven.
 
 ## Expectation
 
@@ -228,6 +246,25 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
   `questions:` list aliased to `decision_questions:` and held to the same rules and
   counted); the write-gate fails any off-schema evidence key, so the decision-question
   count reflects every round question and never reports a clean pass over unchecked ones.
+
+### Done means
+
+Paths are relative to the run's grill working base (`{stm_base}_grill/<slice-id>/`).
+The grilling loop that produces these artifacts is human-paced and uncapped — its exit
+is the clean tension report, never an iteration count; the Done means proves that exit.
+
+- D1 — says: "the final write-gate verdict exists — the grilling was checked, not assumed"
+  check: { type: artifact_exists, path: "write-gate.yaml" }
+- D2 — says: "the write-gate reads clean — the validator passed against the rounds"
+  check: { type: field_equals, file: "write-gate.yaml", field: "ok", equals: true }
+- D3 — says: "the grilling converged — zero live tensions in the final tension report"
+  check: { type: field_equals, file: "write-gate.yaml", field: "counts.live_tensions", equals: 0 }
+- D4 — says: "every delivery-method decision question carries the human's answer — zero open"
+  check: { type: field_equals, file: "write-gate.yaml", field: "counts.decision_questions_open", equals: 0 }
+- D5 — says: "the checkpoint resolved — the approval marker reads approved"
+  check: { type: field_equals, file: "approval.json", field: "approved", equals: true }
+- D6 — says: "the epic cut records exist — the persist was all-or-none, nothing refused"
+  check: { type: field_equals, file: "apply-manifest.json", field: "ok", equals: true }
 
 ### Recovery (one per failure condition)
 
@@ -291,3 +328,11 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
   `epic.md` to its template and rewrite to the judge's cited fixes (re-judge until the gate
   passes), and fix the spine entry to resolve; never write a degraded epic. handoff:
   autonomous.
+- REC18 (F18) — trigger: the run is about to close COMPLETED with the stop-condition
+  verdict missing, unmet, or unevaluable. direction: close HALTED with exit_reason
+  stop_condition_unmet and the unmet clauses named; resume at whatever is open — the live
+  tension, the unanswered decision question, the unresolved checkpoint, or the unpersisted
+  cut — and re-run the write-gate and the stop-condition check. There is no
+  loop_cap_exhausted here: the grilling rounds are human-paced and uncapped, so an
+  unconverged grilling simply holds the run open until the human's answers converge it.
+  handoff: autonomous.

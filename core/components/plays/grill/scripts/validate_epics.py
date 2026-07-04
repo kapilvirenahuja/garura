@@ -14,9 +14,14 @@ is the eval's. THIS script does the cut-level checks lint_grounding cannot:
            decision_question answered, and a CLOSED schema — only `tensions` /
            `decision_questions` (legacy `questions` aliased); any other top-level key fails.
 
-    python3 validate_epics.py --draft <dir> --product-base <pb> --slice-ref <id> [--rounds-dir <dir>]
+    python3 validate_epics.py --draft <dir> --product-base <pb> --slice-ref <id> \
+        [--rounds-dir <dir>] [--out <write-gate.yaml>]
 
-Prints {ok, errors[], counts} JSON. Exit 0 clean, 1 gaps, 2 usage error.
+Prints {ok, errors[], counts} JSON. With --out, also writes that verdict as YAML —
+the machine-readable write-gate verdict (#466 Batch C): the round reports are a CLOSED
+schema (C13/F14) so machine fields never go into them; the stop condition (#464) reads
+this file instead (counts.live_tensions, counts.decision_questions_open, ok).
+Exit 0 clean, 1 gaps, 2 usage error.
 """
 
 import argparse
@@ -60,6 +65,9 @@ def main(argv=None):
     ap.add_argument("--product-base", required=True)
     ap.add_argument("--slice-ref", required=True)
     ap.add_argument("--rounds-dir", default=None)
+    ap.add_argument("--out", default=None,
+                    help="write the verdict as YAML (the write-gate verdict the "
+                         "stop condition reads)")
     args = ap.parse_args(argv)
 
     errors = []
@@ -113,7 +121,7 @@ def main(argv=None):
         errors.append("two epics share a user_check — each must be distinct (C2)")
 
     # --- rounds write-gate (C12/F11, C13/F14) ---
-    live_tensions = decision_qs = 0
+    live_tensions = decision_qs = open_qs = 0
     if args.rounds_dir and os.path.isdir(args.rounds_dir):
         for rf in sorted(glob.glob(os.path.join(args.rounds_dir, "*.yaml"))):
             doc = load(rf)
@@ -128,11 +136,18 @@ def main(argv=None):
             for q in (doc.get("decision_questions") or []) + (doc.get("questions") or []):
                 decision_qs += 1
                 if not (q.get("human_response") or {}):
+                    open_qs += 1
                     errors.append(f"decision_question '{q.get('question_id')}' unanswered (C13/F12)")
 
     counts = {"epics": len(epics), "covered": len(covered), "deferred": len(deferred),
-              "live_tensions": live_tensions, "decision_questions": decision_qs}
-    print(json.dumps({"ok": not errors, "errors": errors, "counts": counts}, indent=2))
+              "live_tensions": live_tensions, "decision_questions": decision_qs,
+              "decision_questions_open": open_qs}
+    verdict = {"ok": not errors, "errors": errors, "counts": counts}
+    if args.out:
+        os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
+        with open(args.out, "w", encoding="utf-8") as fh:
+            yaml.safe_dump(verdict, fh, sort_keys=False)
+    print(json.dumps(verdict, indent=2))
     return 0 if not errors else 1
 
 

@@ -178,7 +178,10 @@ def main(argv=None):
     out = {"written": written, "changed": changed,
            "nodes_named": sorted({c["ref"] for c in changed["nodes"]} |
                                  {d.get("node_ref") for d in (manifest.get("decisions") or [])
-                                  if d.get("node_ref")})}
+                                  if d.get("node_ref")}),
+           # machine field for the play's stop condition (#464/#466 Batch C):
+           # the approved updates were applied — the persist completed
+           "applied": True}
     with open(args.out_manifest, "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=2)
     print(json.dumps(out, indent=2))
