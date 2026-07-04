@@ -3,5 +3,6 @@
   "mergeable": true,
   "already_merged": false,
   "pr_merged": true,
-  "branch_deleted": true
+  "branch_deleted": true,
+  "gate": "off (gates.plays.merge-change); three-boolean precondition verified true; human authorized the land"
 }
