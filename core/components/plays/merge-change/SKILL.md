@@ -314,8 +314,9 @@ the updated ICE.
 
 Pre-flight resolution moved from orchestrator inference to the bundled `scripts/preflight.py`
 (harness-led: config/branch/issue/changeset resolution is a script returning JSON facts; the
-play keeps only the halt policy; the live open-PR/`gh`/approval/mergeability/already-merged
-checks stay in the table, resolved through repo-orchestrator). The script is the canonical
+play keeps only the halt policy; the live open-PR/`gh` checks are in the table, and the
+approval/mergeability/already-merged reads now run in `read_merge_state.py` (#484, was
+repo-orchestrator). The script is the canonical
 resolver stamped from `play-creator/references/preflight.py`; a rebuild reproduces it
 (play-creator step 4). Non-intent change — no constraint, failure, scenario, eval, or
 `reference/ice.md` touched, so the fingerprint stands and no recompile is required. Direct

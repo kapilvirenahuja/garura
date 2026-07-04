@@ -156,13 +156,16 @@ by its nature — this split is where the token savings live:
   count, validate, transform, hash, format, threshold/precedence logic). The step calls
   the script; the script does the work. Prefer a script for anything a script can do
   reliably. **Two hard rules for scripts:**
-  - **Layer boundary — a script computes/asserts over state already captured to disk; it
-    NEVER shells out to git/gh/network or any external system.** Live VCS/host/issue/PR
-    work belongs to a skill invoked through an agent (the worker layer). The pattern is:
-    the skill/agent step captures the live state to a file, then a later script asserts
-    over that file. If an assertion needs state no prior step captured, either have the
-    capturing step record it, or leave that check as prose — do not bolt git/gh into a
-    script.
+  - **Layer boundary — the split is JUDGMENT vs MECHANICAL, not git-vs-non-git (#484).**
+    Mechanical git/gh/host work — a *fixed command sequence with zero judgment* (cut a
+    branch, push, open/merge a PR, fetch a diff, post a comment, read merge state) — runs
+    in a bundled script via the code-host adapter (`references/platform_adapter.py`), NOT an
+    agent dispatch. Booting an agent to run a fixed git sequence is the bug #484 fixed
+    (~10× the wall-clock for the same commands). What stays with a skill/agent is genuine
+    **judgment** about VCS/host state: grouping a changeset by concern, matching an issue
+    from a description, assessing review categories, design-grounding. Rule of thumb: if you
+    could write the exact commands ahead of time, it is a script; if it needs a decision,
+    it is an agent. Scripts still never do judgment — that half of the boundary is unchanged.
   - **Don't put deterministic logic on an LLM.** If a step's work is a fixed rule — a
     threshold verdict, a precedence/most-specific-wins resolution, a table-driven
     classification, a count or a diff-scope check — it is a script, not an agent or
@@ -217,10 +220,25 @@ status --porcelain`) and passes them in (`--branch`, `--porcelain-file`); the sc
 shells out to git/gh (layer rule). The Pre-flight **table keeps only the policy** — which
 fact maps to a hard halt / graceful exit / hard block, which differs per play (e.g.
 `changes_present == false` is a graceful exit for `commit-change` but a *clean-tree*
-precondition for `propose-change`). Live host checks that need git/gh state (open-PR,
-mergeability, worktree presence) stay in the skill/agent layer, never the resolver. A
+precondition for `propose-change`). Live host reads that need git/gh state (open-PR,
+mergeability, worktree presence) run through the **code-host adapter script**, not an agent
+(#484) — see the adapter-stamping note below; `preflight.py` itself stays offline. A
 purely interactive play with no environmental pre-flight may omit it; anything that resolves
 config/branch/issue/changeset must use it.
+
+**Code-host adapter + operation scripts (harness-led — emit them, #484).** A play whose
+mechanical work is git/gh — the chain plays (`start-change`, `propose-change`,
+`review-change`, `merge-change`) and any play that cuts a branch, pushes, opens/merges a PR,
+fetches a diff, posts a comment, or reads merge state — stamps
+[`references/platform_adapter.py`](references/platform_adapter.py) (the 16-verb, config-driven
+code-host adapter) into its `scripts/`, verbatim, the same discipline as `preflight.py`, and
+its steps call the bundled **operation scripts** built on it (`setup_branch.py`,
+`submit_pr.py`, `read_merge_state.py`, `merge_pr.py`, `fetch_pr_context.py`,
+`post_verdict.py` — all canonical in `references/`). The step runs the script; NO agent boots
+for the fixed command sequence. Reserve agent dispatch for the judgment that remains
+(changeset grouping, issue-match, category assessment, design-grounding). This is what makes
+the scripted chain durable — a rebuild reproduces the scripts instead of reverting to the
+slow agent-dispatch pattern.
 
 ### 4b — Pipeline position (D2)
 Read the play's declared `position` (frontmatter: `start | end | both | none`, default

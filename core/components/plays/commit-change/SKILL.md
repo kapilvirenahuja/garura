@@ -364,6 +364,18 @@ start with no marker begins at round 1 and creates the marker.
 | scenario_evals | 6 (SCE-1…SCE-6) |
 | recovery_entries | 9 (one per failure condition; 6 autonomous / 3 human) |
 
+## Compiled note (#484, scripted chain — already compliant)
+
+commit-change already embodies the #484 tool-first rule and needs no rewiring: C8 mandates
+"mechanical work runs as bundled scripts, not model inference" — the changeset scan
+(`analyze_changeset.py`), a trivial changeset's whole analysis, and commit execution
+(`execute_commits.py`) all run as scripts, and an agent is dispatched ONLY when the script
+classifies the changeset multi-concern, i.e. when grouping genuinely requires judgment. That
+is exactly #484's principle (mechanical git/gh in scripts; agents only for judgment). Unlike
+the four sibling chain plays, no operation here was an agent wrapper over a fixed git
+sequence, so no ICE constraint changed and the fingerprint stands. This note records the
+audit; the play is unchanged.
+
 ## Compiled note (#467 Batch C)
 
 The loop's conditional checkpoint went **off by config** for this project
