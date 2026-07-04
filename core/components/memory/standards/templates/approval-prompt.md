@@ -52,6 +52,22 @@ The play parses the user response with this protocol:
 
 **Do NOT use `AskUserQuestion` for checkpoints.** Output the prompt text and wait for the typed response. `AskUserQuestion` is for structured single-choice interactions, not for Tether/Orbit/Vanish gates. This is a global rule from CLAUDE.md.
 
+## Gate switch (#466)
+
+Before rendering, resolve the checkpoint's switch per `standards/rules/gate-config.md`
+(first match wins): `gates.plays.<play>` → `gates.classes.<the class this checkpoint
+declares>` → `gates.default` → absent ⇒ on. Each checkpoint declares its risk class in
+the compiled play (`class: docs-only | standard | one-way-door`; undeclared ⇒ standard).
+
+- **on** → render and wait, exactly as above. (Everything defaults on — behaviour today
+  is unchanged everywhere.)
+- **off** → do NOT wait: record `gate skipped by config (<resolution path>)` as a
+  Checkpoint Decisions row in the evidence file and proceed. A skip is always visible in
+  evidence — never silent.
+
+The switch gates human checkpoints ONLY. Pre-flight halts, sensitive-file blocks,
+stop-condition gates, and eval failures are machine walls and never resolve here.
+
 ## Examples
 
 ### Stage 1 market review (specify)

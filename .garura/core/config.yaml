@@ -150,3 +150,12 @@ product:
     architecture: architecture/
     experience: experience/
     research: research/
+
+# gate switches (#466) — every human checkpoint resolves here; see standards/rules/gate-config.md
+gates:
+  default: on
+  classes:
+    docs-only: on
+    standard: on
+    one-way-door: on
+  plays: {}
