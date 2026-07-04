@@ -1,0 +1,37 @@
+pr:
+  number: 471
+  url: https://github.com/kapilvirenahuja/garura/pull/471
+  head: feature/463-spend-meter-budget-caps
+  base: main
+
+standards_order:
+  - tier: kb
+    root: ~/.garura/core/memory/
+  - tier: ltm
+    root: ./.garura/core/memory/
+  - tier: stm
+    root: .garura/project/issues/463/
+
+changed_paths:
+  - .garura/project/issues/463/context/analysis.yaml
+  - .garura/project/issues/463/context/branch.json
+  - .garura/project/issues/463/context/commits.yaml
+  - .garura/project/issues/463/context/issue.json
+  - .garura/project/issues/463/context/porcelain.txt
+  - .garura/project/issues/463/context/work-description.txt
+  - core/components/memory/standards/rules/play-close.md
+  - core/components/memory/standards/templates/evidence-file.md
+  - core/components/plays/commit-change/SKILL.md
+  - core/components/plays/commit-change/scripts/session_stamp.py
+  - core/components/plays/merge-change/SKILL.md
+  - core/components/plays/merge-change/scripts/session_stamp.py
+  - core/components/plays/play-creator/SKILL.md
+  - core/components/plays/play-creator/references/session_stamp.py
+  - core/components/plays/propose-change/SKILL.md
+  - core/components/plays/propose-change/scripts/session_stamp.py
+  - core/components/plays/review-change/SKILL.md
+  - core/components/plays/review-change/scripts/session_stamp.py
+  - core/components/plays/start-change/SKILL.md
+  - core/components/plays/start-change/scripts/session_stamp.py
+
+diff_path: .garura/project/issues/463/review/pr.diff

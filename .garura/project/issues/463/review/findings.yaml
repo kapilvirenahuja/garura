@@ -1,0 +1,62 @@
+meta:
+  generated_at: "2026-07-04T00:00:00Z"
+  diff_path: ".garura/project/issues/463/review/pr.diff"
+  changed_paths_count: 20
+  scan_coverage: 1.0
+  taxonomy_path: "core/components/memory/standards/rules/pr.md"
+  standards_relevant: 0
+findings: []
+counts:
+  P1: 0
+  P2: 0
+  P3: 0
+  P4: 0
+evaluation_notes:
+  artifact_classification:
+    garura-prose:
+      glob: "core/components/**"
+      files:
+        - core/components/memory/standards/rules/play-close.md
+        - core/components/memory/standards/templates/evidence-file.md
+        - core/components/plays/commit-change/SKILL.md
+        - core/components/plays/commit-change/scripts/session_stamp.py
+        - core/components/plays/merge-change/SKILL.md
+        - core/components/plays/merge-change/scripts/session_stamp.py
+        - core/components/plays/play-creator/SKILL.md
+        - core/components/plays/play-creator/references/session_stamp.py
+        - core/components/plays/propose-change/SKILL.md
+        - core/components/plays/propose-change/scripts/session_stamp.py
+        - core/components/plays/review-change/SKILL.md
+        - core/components/plays/review-change/scripts/session_stamp.py
+        - core/components/plays/start-change/SKILL.md
+        - core/components/plays/start-change/scripts/session_stamp.py
+      grep_rules: "ineligible (SEC-*, CODE-2x, ARCH-07, DEBT-* keyword rows do not fire)"
+      path_only_rules: "eligible (CODE-09/10/11/12/13, ARCH-02/03/08 — shape checks on the 6 session_stamp.py copies)"
+    stm-evidence:
+      glob: ".garura/project/**"
+      files:
+        - .garura/project/issues/463/context/analysis.yaml
+        - .garura/project/issues/463/context/branch.json
+        - .garura/project/issues/463/context/commits.yaml
+        - .garura/project/issues/463/context/issue.json
+        - .garura/project/issues/463/context/porcelain.txt
+        - .garura/project/issues/463/context/work-description.txt
+      grep_rules: "ineligible"
+      path_only_rules: "no taxonomy path-rule targets .yaml/.json/.txt, so none fire"
+  shape_check_results:
+    subject: "session_stamp.py (identical 129-line file, verified byte-identical md5=d9ab6944291712d91ca5ada941b10137 across all 6 copies incl. play-creator/references canonical)"
+    file_line_count: "129 lines — within normal file-size limits"
+    functions:
+      - {name: cwd_slug, lines: 2}
+      - {name: last_line, lines: 10}
+      - {name: resolve_ledger, lines: 15}
+      - {name: phase_start, lines: 11}
+      - {name: phase_close, lines: 16}
+      - {name: main, lines: 12}
+    max_function_lines: 16
+    complexity: "no branching depth beyond 2, no nested loops beyond 1 — low cyclomatic complexity throughout"
+    naming: "no single-letter or Hungarian-notation identifiers outside idiomatic short-lived loop vars (p, l, fh, ch) — no violation"
+    compiles: "py_compile succeeds, no syntax errors"
+    verdict: "no CODE-09/10/11/12/13 or ARCH-02/03/08 violation found — no finding emitted"
+  prose_files: "SKILL.md / play-close.md / evidence-file.md changes are wiring/doc edits to garura's own framework; no taxonomy path-rule targets core/components/**, so no rows fire regardless of prose-scoping"
+overall_confidence: "high"

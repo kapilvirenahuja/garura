@@ -1,0 +1,1297 @@
+diff --git a/.garura/project/issues/463/context/analysis.yaml b/.garura/project/issues/463/context/analysis.yaml
+new file mode 100644
+index 00000000..a8ba44be
+--- /dev/null
++++ b/.garura/project/issues/463/context/analysis.yaml
+@@ -0,0 +1,52 @@
++---
++# analyze_changeset.py output (C8 fast path) — grouped by analyze agent
++# issue: 463
++needs_judgment: false
++
++change_groups:
++  - id: session-identity-stamp
++    commit_type: feat
++    scope: components
++    subject: session identity stamp
++    files:
++      - core/components/plays/play-creator/references/session_stamp.py
++      - core/components/plays/play-creator/SKILL.md
++      - core/components/plays/commit-change/scripts/session_stamp.py
++      - core/components/plays/commit-change/SKILL.md
++      - core/components/plays/merge-change/scripts/session_stamp.py
++      - core/components/plays/merge-change/SKILL.md
++      - core/components/plays/propose-change/scripts/session_stamp.py
++      - core/components/plays/propose-change/SKILL.md
++      - core/components/plays/review-change/scripts/session_stamp.py
++      - core/components/plays/review-change/SKILL.md
++      - core/components/plays/start-change/scripts/session_stamp.py
++      - core/components/plays/start-change/SKILL.md
++      - core/components/memory/standards/rules/play-close.md
++      - core/components/memory/standards/templates/evidence-file.md
++
++  - id: stm-context
++    commit_type: chore
++    scope: stm
++    subject: record work context for issue 463
++    files:
++      - .garura/project/issues/463/context/work-description.txt
++      - .garura/project/issues/463/context/issue.json
++      - .garura/project/issues/463/context/branch.json
++      - .garura/project/issues/463/context/porcelain.txt
++
++exclusions:
++  - path: ".garura/project/issues/463/context/analysis.yaml"
++    reason: "run-state file for this play — not part of the committed changeset"
++
++risks:
++  sensitive_files:
++    []
++  breaking_changes:
++    []
++  ambiguous_types:
++    []
++  hotfix_branch: false
++
++eval_gates:
++  SE-1: {status: PASS, evidence: "2 groups by concern: feat(components) session identity stamp, chore(stm) context files"}
++  SE-5: {status: PASS, evidence: "no sensitive patterns matched"}
+diff --git a/.garura/project/issues/463/context/branch.json b/.garura/project/issues/463/context/branch.json
+new file mode 100644
+index 00000000..dd7be6f9
+--- /dev/null
++++ b/.garura/project/issues/463/context/branch.json
+@@ -0,0 +1,6 @@
++{
++  "branch_name": "feature/463-spend-meter-budget-caps",
++  "base_sha": "7253033f15b368e0fd3f48175dcf3be2f0f3ff73",
++  "on_default_branch": false,
++  "worktree_path": null
++}
+diff --git a/.garura/project/issues/463/context/commits.yaml b/.garura/project/issues/463/context/commits.yaml
+new file mode 100644
+index 00000000..76d1aeeb
+--- /dev/null
++++ b/.garura/project/issues/463/context/commits.yaml
+@@ -0,0 +1,32 @@
++commits:
++  - sha: 684f6cc
++    message: "feat(components): session identity stamp (#463)"
++    files:
++      - core/components/plays/play-creator/references/session_stamp.py
++      - core/components/plays/play-creator/SKILL.md
++      - core/components/plays/commit-change/scripts/session_stamp.py
++      - core/components/plays/commit-change/SKILL.md
++      - core/components/plays/merge-change/scripts/session_stamp.py
++      - core/components/plays/merge-change/SKILL.md
++      - core/components/plays/propose-change/scripts/session_stamp.py
++      - core/components/plays/propose-change/SKILL.md
++      - core/components/plays/review-change/scripts/session_stamp.py
++      - core/components/plays/review-change/SKILL.md
++      - core/components/plays/start-change/scripts/session_stamp.py
++      - core/components/plays/start-change/SKILL.md
++      - core/components/memory/standards/rules/play-close.md
++      - core/components/memory/standards/templates/evidence-file.md
++    branch: feature/463-spend-meter-budget-caps
++  - sha: 3ff24d5
++    message: "chore(stm): record work context for issue 463 (#463)"
++    files:
++      - .garura/project/issues/463/context/work-description.txt
++      - .garura/project/issues/463/context/issue.json
++      - .garura/project/issues/463/context/branch.json
++      - .garura/project/issues/463/context/porcelain.txt
++    branch: feature/463-spend-meter-budget-caps
++excluded_files:
++  - path: ".garura/project/issues/463/context/analysis.yaml"
++    reason: "run-state file for this play — not part of the committed changeset"
++clean_after: true
++push: false
+diff --git a/.garura/project/issues/463/context/issue.json b/.garura/project/issues/463/context/issue.json
+new file mode 100644
+index 00000000..fe78e65c
+--- /dev/null
++++ b/.garura/project/issues/463/context/issue.json
+@@ -0,0 +1,7 @@
++{
++  "resolved": true,
++  "issue_number": 463,
++  "title": "[ENH] Stage 1b: Token spend meter and hard budget caps on every play run",
++  "state": "OPEN",
++  "created": false
++}
+diff --git a/.garura/project/issues/463/context/porcelain.txt b/.garura/project/issues/463/context/porcelain.txt
+new file mode 100644
+index 00000000..87aee04d
+--- /dev/null
++++ b/.garura/project/issues/463/context/porcelain.txt
+@@ -0,0 +1,15 @@
++ M core/components/memory/standards/rules/play-close.md
++ M core/components/memory/standards/templates/evidence-file.md
++ M core/components/plays/commit-change/SKILL.md
++ M core/components/plays/merge-change/SKILL.md
++ M core/components/plays/play-creator/SKILL.md
++ M core/components/plays/propose-change/SKILL.md
++ M core/components/plays/review-change/SKILL.md
++ M core/components/plays/start-change/SKILL.md
++?? .garura/project/issues/463/
++?? core/components/plays/commit-change/scripts/session_stamp.py
++?? core/components/plays/merge-change/scripts/session_stamp.py
++?? core/components/plays/play-creator/references/session_stamp.py
++?? core/components/plays/propose-change/scripts/session_stamp.py
++?? core/components/plays/review-change/scripts/session_stamp.py
++?? core/components/plays/start-change/scripts/session_stamp.py
+diff --git a/.garura/project/issues/463/context/work-description.txt b/.garura/project/issues/463/context/work-description.txt
+new file mode 100644
+index 00000000..b600467b
+--- /dev/null
++++ b/.garura/project/issues/463/context/work-description.txt
+@@ -0,0 +1 @@
++Stage 1b of the IDSD Level 3 epic (#460): Token spend meter and hard budget caps on every play run. Every play run records its actual token spend and run identity in the evidence file at close; every loop gets a turn cap and token/cost cap it cannot cross — enforcement that halts, not a dashboard that reports. Measure first, cap second. Makes token-burn-dash attribution exact. Tracked issue: #463.
+diff --git a/core/components/memory/standards/rules/play-close.md b/core/components/memory/standards/rules/play-close.md
+index 26482dc6..25afa8af 100644
+--- a/core/components/memory/standards/rules/play-close.md
++++ b/core/components/memory/standards/rules/play-close.md
+@@ -59,6 +59,16 @@ This is what lets a pilot tell the block worked even when evidence is off.
+ Policy (who may record — plays only, never agents or skills) lives in
+ `evidence-recording.md`; this block is the mechanism it switches.
+ 
++**Session identity stamp (#463).** Every run binds itself to the Claude Code
++session ledger that produced it via `scripts/session_stamp.py` (canonical copy:
++`play-creator/references/session_stamp.py`, stamped into each play's `scripts/`
++like `preflight.py`). Start phase runs at pre-flight (records session id,
++ledger file, byte offset into the play's status dir); close phase reads the
++marker and adds the end offset. The stamp costs one directory listing, one
++line read, and two file sizes — no parsing, no token summing (measure offline
++from the ledger slice; that is deliberate, see #463's re-scope). Soft-fail:
++an unresolved ledger yields null fields, never a blocked close.
++
+ **`started_at` source (defined precedence, never fabricate).** In order:
+ (1) the timestamp the play recorded at its own pre-flight, if it records one;
+ (2) else the earliest checkpoint or evidence-file timestamp written this run;
+@@ -87,6 +97,12 @@ delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-repor
+ ts=$(date -u +%Y%m%d-%H%M%S)
+ evidence_dest="${evidence_base}${ts}.md"
+ mkdir -p "$(dirname "$evidence_dest")"
++# Session identity stamp (#463) — close phase; start phase ran at pre-flight:
++#   python3 scripts/session_stamp.py --phase start \
++#       --marker "${stm_base}${issue}/status/session-stamp-{play-name}.json" \
++#       --cwd "$(pwd)" --branch "$(git branch --show-current)"
++session_stamp=$(python3 scripts/session_stamp.py --phase close \
++    --marker "${stm_base}${issue}/status/session-stamp-{play-name}.json")
+ ```
+ 
+ **Step C1 — Write evidence file.** Gated by `evidence.record` (skip the write,
+@@ -95,7 +111,13 @@ Otherwise fill the `evidence-file.md` slots; write the filled result to
+ `$evidence_dest`. Do NOT hand-author the body — fill slots:
+ - frontmatter: `play: {play-name}`, run_id `{play-name}-${ts}`, issue or
+   product_slug, started_at / completed_at, status
+-  (`COMPLETED` | `HALTED` | `ABORTED`), exit_reason.
++  (`COMPLETED` | `HALTED` | `ABORTED`), exit_reason, and the session identity
++  stamp fields from `$session_stamp` (#463): `session_id`, `ledger_file`,
++  `ledger_start_offset`, `ledger_end_offset`. The stamp is soft — when the
++  ledger could not be resolved the fields are null; the close never blocks on
++  it. These four fields are the offline join key: spend and behavior for this
++  exact run are computable later from that ledger slice (token-burn-dash),
++  with zero in-run summing.
+ - Artifacts Produced: every artifact this run wrote (from `$evidence_base`,
+   the play's output paths, and any commit SHAs).
+ - Step Eval Results / Scenario Eval Results: list every eval the play
+diff --git a/core/components/memory/standards/templates/evidence-file.md b/core/components/memory/standards/templates/evidence-file.md
+index 1e77c747..c3c4817c 100644
+--- a/core/components/memory/standards/templates/evidence-file.md
++++ b/core/components/memory/standards/templates/evidence-file.md
+@@ -32,6 +32,10 @@ started_at: {ISO-8601}
+ completed_at: {ISO-8601}
+ status: COMPLETED | HALTED | ABORTED
+ exit_reason: success | validation_failed | user_vanish | pre_flight_failed | recovery_exhausted | {other}
++session_id: {Claude Code session UUID from session_stamp.py, or null}
++ledger_file: {path to the session's JSONL ledger, or null}
++ledger_start_offset: {ledger byte size at play pre-flight, or null}
++ledger_end_offset: {ledger byte size at play close, or null}
+ ---
+ 
+ # {Play Title} Evidence — {slug or issue}
+@@ -123,6 +127,7 @@ the close chain follows acceptance".}
+ | `run_id` | Unique per run. Timestamp-based (`{play}-{YYYYMMDD-HHMMSS}`) is fine. |
+ | `status` | `COMPLETED` on normal close; `HALTED` on explicit user Vanish; `ABORTED` on unrecoverable failure. |
+ | `exit_reason` | Short token describing why the run ended. Specific values are per-play. |
++| `session_id` / `ledger_*` | The session identity stamp (#463), copied verbatim from `session_stamp.py --phase close`. The offline join key for spend attribution — a run's exact token cost is computable later from the ledger slice `[start_offset, end_offset)`. Null when the ledger was unresolved; never fabricate. |
+ | Step Eval Results | Must list EVERY SE-n defined in the compiled play — no silent skips. PASS / FAIL only; DEFERRED / N-A are allowed if the corresponding step was not reached (e.g., Vanish cleanup path). |
+ | Scenario Eval Results | Must list EVERY SCE-n defined in the compiled play. |
+ | Checkpoint Decisions | One row per checkpoint cycle. Orbit retries produce multiple rows for the same stage. |
+diff --git a/core/components/plays/commit-change/SKILL.md b/core/components/plays/commit-change/SKILL.md
+index 6e43c707..9e28b35d 100644
+--- a/core/components/plays/commit-change/SKILL.md
++++ b/core/components/plays/commit-change/SKILL.md
+@@ -72,6 +72,14 @@ python3 scripts/preflight.py --play commit-change \
+     --porcelain-file <working>/porcelain.txt
+ ```
+ 
++Right after the resolver, record the session identity stamp's start marker (#463 — soft-fail, never a halt):
++
++```
++python3 scripts/session_stamp.py --phase start \
++    --marker "{stm_base}{issue}/status/session-stamp-commit-change.json" \
++    --cwd "$(pwd)" --branch "$(git branch --show-current)"
++```
++
+ It returns one JSON object of facts: `stm_base`, `ltm_project_target`, `evidence_record`,
+ `platform`, `branch`, `issue`, `on_default_branch`, `changes_present`. The orchestrator reads
+ those and applies the **policy** in the table above (the script resolves facts, the play
+@@ -215,6 +223,10 @@ delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-repor
+ ts=$(date -u +%Y%m%d-%H%M%S)
+ evidence_dest="${evidence_base}${ts}.md"
+ mkdir -p "$(dirname "$evidence_dest")"
++
++# Session identity stamp (#463) — close phase; start phase ran at pre-flight
++session_stamp=$(python3 scripts/session_stamp.py --phase close \
++    --marker "${stm_base}${issue}/status/session-stamp-commit-change.json")
+ ```
+ 
+ **Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag (global +
+@@ -223,8 +235,10 @@ skip the write and record `evidence skipped (record=false)` in the report's poin
+ Otherwise fill the `evidence-file.md` slots (play `commit-change`, run_id
+ `commit-change-${ts}`, issue, started_at/completed_at, status, artifacts produced:
+ `analysis.yaml`, `issue-mappings.yaml`, `commits.yaml`; step/scenario eval results;
+-checkpoint decision from Step 3; commit reference = the created commit SHAs) and write to
+-`$evidence_dest`. `analysis.yaml` and `issue-mappings.yaml` are written unconditionally in
++checkpoint decision from Step 3; commit reference = the created commit SHAs; and the
++session identity stamp fields from $session_stamp (#463): session_id, ledger_file,
++ledger_start_offset, ledger_end_offset (null when unresolved — never blocks the close)) and
++write to `$evidence_dest`. `analysis.yaml` and `issue-mappings.yaml` are written unconditionally in
+ Steps 1–2. Do NOT hand-author the body.
+ 
+ **Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
+@@ -290,3 +304,7 @@ matches and content matches in runtime/config paths still hard-block. C6's guara
+ unchanged: actual secrets never commit. The SKILL policy lines above were updated to
+ read the scanner's per-entry `blocking` flag; `reference/ice.md` and the fingerprint are
+ untouched.
++
++## Direct-edit deviation note (#463, session identity stamp)
++
++Non-intent change: the Standard Play Close gained the session identity stamp — `scripts/session_stamp.py` (canonical copy: `play-creator/references/session_stamp.py`) runs `--phase start` at pre-flight and `--phase close` in the close block; the evidence frontmatter carries session_id / ledger_file / ledger_start_offset / ledger_end_offset. Source of truth: `standards/rules/play-close.md`; play-creator emits the same lines so a rebuild converges. No constraint, failure, scenario, or eval changed; the fingerprint stands.
+diff --git a/core/components/plays/commit-change/scripts/session_stamp.py b/core/components/plays/commit-change/scripts/session_stamp.py
+new file mode 100644
+index 00000000..dd9171e6
+--- /dev/null
++++ b/core/components/plays/commit-change/scripts/session_stamp.py
+@@ -0,0 +1,129 @@
++#!/usr/bin/env python3
++"""
++session_stamp.py — the session identity stamp (#463).
++
++Binds a play run to the exact slice of the Claude Code session ledger that
++produced it, so spend and behavior are computable OFFLINE (token-burn-dash)
++with zero in-run cost. No parsing, no summing: one directory listing, one
++line read, one file size.
++
++The ledger: Claude Code writes one JSONL per session under
++~/.claude/projects/<cwd-slug>/<session-id>.jsonl. Every line carries
++sessionId and gitBranch; assistant lines carry token usage. This script
++never reads more than the last line of a candidate file.
++
++Phases (mirrors the status-marker lifecycle):
++    --phase start  → resolve the live session (prefer the ledger whose last
++                     line's gitBranch matches --branch, else newest mtime),
++                     write {session_id, ledger_file, start_offset, started_at}
++                     to --marker.
++    --phase close  → read --marker, take the ledger's current size as
++                     end_offset, emit the stamp JSON to stdout (the play close
++                     copies the fields into the evidence frontmatter).
++
++Canonical copy: play-creator/references/session_stamp.py — stamped into each
++play's scripts/ by play-creator (Standard Play Close, G12), same discipline
++as preflight.py. Failures are soft: a missing ledger yields a stamp with
++nulls and "ledger_resolved": false — the close never blocks on the stamp.
++"""
++
++import argparse
++import json
++import sys
++import time
++from pathlib import Path
++
++
++def cwd_slug(cwd):
++    return "".join(ch if ch.isalnum() else "-" for ch in str(cwd))
++
++
++def last_line(path, max_tail=65536):
++    """Read the final line of a (possibly large) file without loading it."""
++    try:
++        with open(path, "rb") as fh:
++            fh.seek(0, 2)
++            size = fh.tell()
++            fh.seek(max(0, size - max_tail))
++            tail = fh.read().decode("utf-8", errors="replace")
++        lines = [l for l in tail.strip().splitlines() if l.strip()]
++        return json.loads(lines[-1]) if lines else None
++    except Exception:
++        return None
++
++
++def resolve_ledger(projects_dir, cwd, branch):
++    """The live session's ledger: prefer last-line gitBranch == branch,
++    fall back to newest mtime. Returns (path, session_id) or (None, None)."""
++    slug_dir = Path(projects_dir) / cwd_slug(cwd)
++    if not slug_dir.is_dir():
++        return None, None
++    candidates = sorted(slug_dir.glob("*.jsonl"),
++                        key=lambda p: p.stat().st_mtime, reverse=True)
++    newest = None
++    for p in candidates[:10]:  # only recent files can be the live session
++        rec = last_line(p)
++        if rec is None:
++            continue
++        sid = rec.get("sessionId")
++        if newest is None and sid:
++            newest = (p, sid)
++        if branch and rec.get("gitBranch") == branch and sid:
++            return p, sid
++    return newest if newest else (None, None)
++
++
++def phase_start(args):
++    ledger, session_id = resolve_ledger(args.projects_dir, args.cwd, args.branch)
++    marker = {
++        "ledger_resolved": ledger is not None,
++        "session_id": session_id,
++        "ledger_file": str(ledger) if ledger else None,
++        "start_offset": ledger.stat().st_size if ledger else None,
++        "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
++    }
++    Path(args.marker).parent.mkdir(parents=True, exist_ok=True)
++    with open(args.marker, "w", encoding="utf-8") as fh:
++        json.dump(marker, fh, indent=2)
++    print(json.dumps(marker, indent=2))
++
++
++def phase_close(args):
++    try:
++        with open(args.marker, "r", encoding="utf-8") as fh:
++            marker = json.load(fh)
++    except Exception:
++        marker = {"ledger_resolved": False, "session_id": None,
++                  "ledger_file": None, "start_offset": None}
++    ledger = marker.get("ledger_file")
++    end_offset = None
++    if ledger and Path(ledger).exists():
++        end_offset = Path(ledger).stat().st_size
++    stamp = {
++        "ledger_resolved": bool(marker.get("ledger_resolved") and end_offset is not None),
++        "session_id": marker.get("session_id"),
++        "ledger_file": ledger,
++        "ledger_start_offset": marker.get("start_offset"),
++        "ledger_end_offset": end_offset,
++    }
++    print(json.dumps(stamp, indent=2))
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--phase", required=True, choices=["start", "close"])
++    ap.add_argument("--marker", required=True,
++                    help="status-marker path for the stamp (per play run)")
++    ap.add_argument("--cwd", default=str(Path.cwd()),
++                    help="project root the session runs in")
++    ap.add_argument("--branch", default=None,
++                    help="current git branch (start phase; ledger match hint)")
++    ap.add_argument("--projects-dir",
++                    default=str(Path.home() / ".claude" / "projects"))
++    args = ap.parse_args()
++    phase_start(args) if args.phase == "start" else phase_close(args)
++
++
++if __name__ == "__main__":
++    main()
++    sys.exit(0)
+diff --git a/core/components/plays/merge-change/SKILL.md b/core/components/plays/merge-change/SKILL.md
+index 3fdc3bb2..88c11b9d 100644
+--- a/core/components/plays/merge-change/SKILL.md
++++ b/core/components/plays/merge-change/SKILL.md
+@@ -62,6 +62,14 @@ python3 scripts/preflight.py --play merge-change \
+     --config .garura/core/config.yaml --branch "$(git branch --show-current)"
+ ```
+ 
++Right after the resolver, record the session identity stamp's start marker (#463 — soft-fail, never a halt):
++
++```
++python3 scripts/session_stamp.py --phase start \
++    --marker "{stm_base}{issue}/status/session-stamp-merge-change.json" \
++    --cwd "$(pwd)" --branch "$(git branch --show-current)"
++```
++
+ The open-PR check, `gh` availability, the approval verdict, mergeability, and the
+ already-merged check are live host state resolved through repo-orchestrator (kept in the
+ table), not the resolver. If the PR is already merged, exit cleanly as a no-op (C5).
+@@ -144,6 +152,10 @@ delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-repor
+ ts=$(date -u +%Y%m%d-%H%M%S)
+ evidence_dest="${evidence_base}${ts}.md"
+ mkdir -p "$(dirname "$evidence_dest")"
++
++# Session identity stamp (#463) — close phase; start phase ran at pre-flight
++session_stamp=$(python3 scripts/session_stamp.py --phase close \
++    --marker "${stm_base}${issue}/status/session-stamp-merge-change.json")
+ ```
+ 
+ **Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag (global +
+@@ -152,7 +164,9 @@ skip the write and record `evidence skipped (record=false)` in the report's poin
+ Otherwise fill the `evidence-file.md` slots (play `merge-change`, run_id
+ `merge-change-${ts}`, issue, started_at/completed_at, status, artifacts produced:
+ `merge-gate.json`, the merge commit SHA; step/scenario eval results; checkpoint decision
+-from Step 2; commit reference = the merge commit SHA) and write to `$evidence_dest`. Do
++from Step 2; commit reference = the merge commit SHA; and the session identity stamp fields
++from $session_stamp (#463): session_id, ledger_file, ledger_start_offset, ledger_end_offset
++(null when unresolved — never blocks the close)) and write to `$evidence_dest`. Do
+ NOT hand-author the body.
+ 
+ **Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
+@@ -216,3 +230,7 @@ resolver stamped from `play-creator/references/preflight.py`; a rebuild reproduc
+ (play-creator step 4). Non-intent change — no constraint, failure, scenario, eval, or
+ `reference/ice.md` touched, so the fingerprint stands and no recompile is required. Direct
+ edit; no recompile needed.
++
++## Direct-edit deviation note (#463, session identity stamp)
++
++Non-intent change: the Standard Play Close gained the session identity stamp — `scripts/session_stamp.py` (canonical copy: `play-creator/references/session_stamp.py`) runs `--phase start` at pre-flight and `--phase close` in the close block; the evidence frontmatter carries session_id / ledger_file / ledger_start_offset / ledger_end_offset. Source of truth: `standards/rules/play-close.md`; play-creator emits the same lines so a rebuild converges. No constraint, failure, scenario, or eval changed; the fingerprint stands.
+diff --git a/core/components/plays/merge-change/scripts/session_stamp.py b/core/components/plays/merge-change/scripts/session_stamp.py
+new file mode 100644
+index 00000000..dd9171e6
+--- /dev/null
++++ b/core/components/plays/merge-change/scripts/session_stamp.py
+@@ -0,0 +1,129 @@
++#!/usr/bin/env python3
++"""
++session_stamp.py — the session identity stamp (#463).
++
++Binds a play run to the exact slice of the Claude Code session ledger that
++produced it, so spend and behavior are computable OFFLINE (token-burn-dash)
++with zero in-run cost. No parsing, no summing: one directory listing, one
++line read, one file size.
++
++The ledger: Claude Code writes one JSONL per session under
++~/.claude/projects/<cwd-slug>/<session-id>.jsonl. Every line carries
++sessionId and gitBranch; assistant lines carry token usage. This script
++never reads more than the last line of a candidate file.
++
++Phases (mirrors the status-marker lifecycle):
++    --phase start  → resolve the live session (prefer the ledger whose last
++                     line's gitBranch matches --branch, else newest mtime),
++                     write {session_id, ledger_file, start_offset, started_at}
++                     to --marker.
++    --phase close  → read --marker, take the ledger's current size as
++                     end_offset, emit the stamp JSON to stdout (the play close
++                     copies the fields into the evidence frontmatter).
++
++Canonical copy: play-creator/references/session_stamp.py — stamped into each
++play's scripts/ by play-creator (Standard Play Close, G12), same discipline
++as preflight.py. Failures are soft: a missing ledger yields a stamp with
++nulls and "ledger_resolved": false — the close never blocks on the stamp.
++"""
++
++import argparse
++import json
++import sys
++import time
++from pathlib import Path
++
++
++def cwd_slug(cwd):
++    return "".join(ch if ch.isalnum() else "-" for ch in str(cwd))
++
++
++def last_line(path, max_tail=65536):
++    """Read the final line of a (possibly large) file without loading it."""
++    try:
++        with open(path, "rb") as fh:
++            fh.seek(0, 2)
++            size = fh.tell()
++            fh.seek(max(0, size - max_tail))
++            tail = fh.read().decode("utf-8", errors="replace")
++        lines = [l for l in tail.strip().splitlines() if l.strip()]
++        return json.loads(lines[-1]) if lines else None
++    except Exception:
++        return None
++
++
++def resolve_ledger(projects_dir, cwd, branch):
++    """The live session's ledger: prefer last-line gitBranch == branch,
++    fall back to newest mtime. Returns (path, session_id) or (None, None)."""
++    slug_dir = Path(projects_dir) / cwd_slug(cwd)
++    if not slug_dir.is_dir():
++        return None, None
++    candidates = sorted(slug_dir.glob("*.jsonl"),
++                        key=lambda p: p.stat().st_mtime, reverse=True)
++    newest = None
++    for p in candidates[:10]:  # only recent files can be the live session
++        rec = last_line(p)
++        if rec is None:
++            continue
++        sid = rec.get("sessionId")
++        if newest is None and sid:
++            newest = (p, sid)
++        if branch and rec.get("gitBranch") == branch and sid:
++            return p, sid
++    return newest if newest else (None, None)
++
++
++def phase_start(args):
++    ledger, session_id = resolve_ledger(args.projects_dir, args.cwd, args.branch)
++    marker = {
++        "ledger_resolved": ledger is not None,
++        "session_id": session_id,
++        "ledger_file": str(ledger) if ledger else None,
++        "start_offset": ledger.stat().st_size if ledger else None,
++        "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
++    }
++    Path(args.marker).parent.mkdir(parents=True, exist_ok=True)
++    with open(args.marker, "w", encoding="utf-8") as fh:
++        json.dump(marker, fh, indent=2)
++    print(json.dumps(marker, indent=2))
++
++
++def phase_close(args):
++    try:
++        with open(args.marker, "r", encoding="utf-8") as fh:
++            marker = json.load(fh)
++    except Exception:
++        marker = {"ledger_resolved": False, "session_id": None,
++                  "ledger_file": None, "start_offset": None}
++    ledger = marker.get("ledger_file")
++    end_offset = None
++    if ledger and Path(ledger).exists():
++        end_offset = Path(ledger).stat().st_size
++    stamp = {
++        "ledger_resolved": bool(marker.get("ledger_resolved") and end_offset is not None),
++        "session_id": marker.get("session_id"),
++        "ledger_file": ledger,
++        "ledger_start_offset": marker.get("start_offset"),
++        "ledger_end_offset": end_offset,
++    }
++    print(json.dumps(stamp, indent=2))
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--phase", required=True, choices=["start", "close"])
++    ap.add_argument("--marker", required=True,
++                    help="status-marker path for the stamp (per play run)")
++    ap.add_argument("--cwd", default=str(Path.cwd()),
++                    help="project root the session runs in")
++    ap.add_argument("--branch", default=None,
++                    help="current git branch (start phase; ledger match hint)")
++    ap.add_argument("--projects-dir",
++                    default=str(Path.home() / ".claude" / "projects"))
++    args = ap.parse_args()
++    phase_start(args) if args.phase == "start" else phase_close(args)
++
++
++if __name__ == "__main__":
++    main()
++    sys.exit(0)
+diff --git a/core/components/plays/play-creator/SKILL.md b/core/components/plays/play-creator/SKILL.md
+index 34a801ed..72d85eb9 100644
+--- a/core/components/plays/play-creator/SKILL.md
++++ b/core/components/plays/play-creator/SKILL.md
+@@ -188,7 +188,11 @@ check with an action-on-failure (hard halt, graceful exit, or hard block).
+ not orchestrator inference. Stamp the canonical resolver into the compiled play at
+ `scripts/preflight.py`, copied verbatim from
+ [`references/preflight.py`](references/preflight.py), and have the Pre-flight phase **call
+-it** instead of resolving facts in prose. It parses config for the path tokens + the
++it** instead of resolving facts in prose. Stamp `scripts/session_stamp.py` the same way
++(verbatim from [`references/session_stamp.py`](references/session_stamp.py), #463) and have
++the Pre-flight phase run its `--phase start` right after the resolver — the close block's
++stamp step (play-close.md) reads the marker it writes. Soft-fail by design; never a
++pre-flight halt condition. It parses config for the path tokens + the
+ resolved `evidence_record` (per-play override → global → true), extracts the issue from the
+ branch, and reports `on_default_branch` and `changes_present` — returning one JSON object.
+ The orchestrator captures the only two live reads (`git branch --show-current` and `git
+diff --git a/core/components/plays/play-creator/references/session_stamp.py b/core/components/plays/play-creator/references/session_stamp.py
+new file mode 100644
+index 00000000..dd9171e6
+--- /dev/null
++++ b/core/components/plays/play-creator/references/session_stamp.py
+@@ -0,0 +1,129 @@
++#!/usr/bin/env python3
++"""
++session_stamp.py — the session identity stamp (#463).
++
++Binds a play run to the exact slice of the Claude Code session ledger that
++produced it, so spend and behavior are computable OFFLINE (token-burn-dash)
++with zero in-run cost. No parsing, no summing: one directory listing, one
++line read, one file size.
++
++The ledger: Claude Code writes one JSONL per session under
++~/.claude/projects/<cwd-slug>/<session-id>.jsonl. Every line carries
++sessionId and gitBranch; assistant lines carry token usage. This script
++never reads more than the last line of a candidate file.
++
++Phases (mirrors the status-marker lifecycle):
++    --phase start  → resolve the live session (prefer the ledger whose last
++                     line's gitBranch matches --branch, else newest mtime),
++                     write {session_id, ledger_file, start_offset, started_at}
++                     to --marker.
++    --phase close  → read --marker, take the ledger's current size as
++                     end_offset, emit the stamp JSON to stdout (the play close
++                     copies the fields into the evidence frontmatter).
++
++Canonical copy: play-creator/references/session_stamp.py — stamped into each
++play's scripts/ by play-creator (Standard Play Close, G12), same discipline
++as preflight.py. Failures are soft: a missing ledger yields a stamp with
++nulls and "ledger_resolved": false — the close never blocks on the stamp.
++"""
++
++import argparse
++import json
++import sys
++import time
++from pathlib import Path
++
++
++def cwd_slug(cwd):
++    return "".join(ch if ch.isalnum() else "-" for ch in str(cwd))
++
++
++def last_line(path, max_tail=65536):
++    """Read the final line of a (possibly large) file without loading it."""
++    try:
++        with open(path, "rb") as fh:
++            fh.seek(0, 2)
++            size = fh.tell()
++            fh.seek(max(0, size - max_tail))
++            tail = fh.read().decode("utf-8", errors="replace")
++        lines = [l for l in tail.strip().splitlines() if l.strip()]
++        return json.loads(lines[-1]) if lines else None
++    except Exception:
++        return None
++
++
++def resolve_ledger(projects_dir, cwd, branch):
++    """The live session's ledger: prefer last-line gitBranch == branch,
++    fall back to newest mtime. Returns (path, session_id) or (None, None)."""
++    slug_dir = Path(projects_dir) / cwd_slug(cwd)
++    if not slug_dir.is_dir():
++        return None, None
++    candidates = sorted(slug_dir.glob("*.jsonl"),
++                        key=lambda p: p.stat().st_mtime, reverse=True)
++    newest = None
++    for p in candidates[:10]:  # only recent files can be the live session
++        rec = last_line(p)
++        if rec is None:
++            continue
++        sid = rec.get("sessionId")
++        if newest is None and sid:
++            newest = (p, sid)
++        if branch and rec.get("gitBranch") == branch and sid:
++            return p, sid
++    return newest if newest else (None, None)
++
++
++def phase_start(args):
++    ledger, session_id = resolve_ledger(args.projects_dir, args.cwd, args.branch)
++    marker = {
++        "ledger_resolved": ledger is not None,
++        "session_id": session_id,
++        "ledger_file": str(ledger) if ledger else None,
++        "start_offset": ledger.stat().st_size if ledger else None,
++        "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
++    }
++    Path(args.marker).parent.mkdir(parents=True, exist_ok=True)
++    with open(args.marker, "w", encoding="utf-8") as fh:
++        json.dump(marker, fh, indent=2)
++    print(json.dumps(marker, indent=2))
++
++
++def phase_close(args):
++    try:
++        with open(args.marker, "r", encoding="utf-8") as fh:
++            marker = json.load(fh)
++    except Exception:
++        marker = {"ledger_resolved": False, "session_id": None,
++                  "ledger_file": None, "start_offset": None}
++    ledger = marker.get("ledger_file")
++    end_offset = None
++    if ledger and Path(ledger).exists():
++        end_offset = Path(ledger).stat().st_size
++    stamp = {
++        "ledger_resolved": bool(marker.get("ledger_resolved") and end_offset is not None),
++        "session_id": marker.get("session_id"),
++        "ledger_file": ledger,
++        "ledger_start_offset": marker.get("start_offset"),
++        "ledger_end_offset": end_offset,
++    }
++    print(json.dumps(stamp, indent=2))
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--phase", required=True, choices=["start", "close"])
++    ap.add_argument("--marker", required=True,
++                    help="status-marker path for the stamp (per play run)")
++    ap.add_argument("--cwd", default=str(Path.cwd()),
++                    help="project root the session runs in")
++    ap.add_argument("--branch", default=None,
++                    help="current git branch (start phase; ledger match hint)")
++    ap.add_argument("--projects-dir",
++                    default=str(Path.home() / ".claude" / "projects"))
++    args = ap.parse_args()
++    phase_start(args) if args.phase == "start" else phase_close(args)
++
++
++if __name__ == "__main__":
++    main()
++    sys.exit(0)
+diff --git a/core/components/plays/propose-change/SKILL.md b/core/components/plays/propose-change/SKILL.md
+index b800bd3b..503719b9 100644
+--- a/core/components/plays/propose-change/SKILL.md
++++ b/core/components/plays/propose-change/SKILL.md
+@@ -62,6 +62,14 @@ python3 scripts/preflight.py --play propose-change \
+     --config .garura/core/config.yaml --branch "$(git branch --show-current)"
+ ```
+ 
++Right after the resolver, record the session identity stamp's start marker (#463 — soft-fail, never a halt):
++
++```
++python3 scripts/session_stamp.py --phase start \
++    --marker "{stm_base}{issue}/status/session-stamp-propose-change.json" \
++    --cwd "$(pwd)" --branch "$(git branch --show-current)"
++```
++
+ The resolver does NOT pick the self-review standards file (that stays with
+ `resolve_standard.py` below — live precedence) and does NOT run the clean-tree or open-PR
+ checks (live git/gh, kept in the table). Resolve the self-review rules path mechanically:
+@@ -168,6 +176,10 @@ delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-repor
+ ts=$(date -u +%Y%m%d-%H%M%S)
+ evidence_dest="${evidence_base}${ts}.md"
+ mkdir -p "$(dirname "$evidence_dest")"
++
++# Session identity stamp (#463) — close phase; start phase ran at pre-flight
++session_stamp=$(python3 scripts/session_stamp.py --phase close \
++    --marker "${stm_base}${issue}/status/session-stamp-propose-change.json")
+ ```
+ 
+ **Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag (global +
+@@ -176,8 +188,10 @@ skip the write and record `evidence skipped (record=false)` in the report's poin
+ Otherwise fill the `evidence-file.md` slots (play `propose-change`, run_id
+ `propose-change-${ts}`, issue, started_at/completed_at, status, artifacts produced:
+ `self-review.md`, `resolved-rules.json`, the PR number/URL; step/scenario eval results;
+-checkpoint decision from Step 2; commit reference `N/A — no commit step`) and write to
+-`$evidence_dest`. Do NOT hand-author the body.
++checkpoint decision from Step 2; commit reference `N/A — no commit step`; and the
++session identity stamp fields from $session_stamp (#463): session_id, ledger_file,
++ledger_start_offset, ledger_end_offset (null when unresolved — never blocks the close)) and
++write to `$evidence_dest`. Do NOT hand-author the body.
+ 
+ **Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
+ report: `## propose-change Delivered — #${issue}`, the Run Summary table, the Pipeline
+@@ -249,3 +263,7 @@ policy). It does NOT resolve the self-review standards file (that stays with
+ canonical resolver stamped from `play-creator/references/preflight.py`; a rebuild reproduces
+ it (play-creator step 4). `reference/ice.md` and the fingerprint are unchanged. Direct edit —
+ recompiling would clobber this play's hand-added scripts, so the wiring is hand-added here.
++
++## Direct-edit deviation note (#463, session identity stamp)
++
++Non-intent change: the Standard Play Close gained the session identity stamp — `scripts/session_stamp.py` (canonical copy: `play-creator/references/session_stamp.py`) runs `--phase start` at pre-flight and `--phase close` in the close block; the evidence frontmatter carries session_id / ledger_file / ledger_start_offset / ledger_end_offset. Source of truth: `standards/rules/play-close.md`; play-creator emits the same lines so a rebuild converges. No constraint, failure, scenario, or eval changed; the fingerprint stands.
+diff --git a/core/components/plays/propose-change/scripts/session_stamp.py b/core/components/plays/propose-change/scripts/session_stamp.py
+new file mode 100644
+index 00000000..dd9171e6
+--- /dev/null
++++ b/core/components/plays/propose-change/scripts/session_stamp.py
+@@ -0,0 +1,129 @@
++#!/usr/bin/env python3
++"""
++session_stamp.py — the session identity stamp (#463).
++
++Binds a play run to the exact slice of the Claude Code session ledger that
++produced it, so spend and behavior are computable OFFLINE (token-burn-dash)
++with zero in-run cost. No parsing, no summing: one directory listing, one
++line read, one file size.
++
++The ledger: Claude Code writes one JSONL per session under
++~/.claude/projects/<cwd-slug>/<session-id>.jsonl. Every line carries
++sessionId and gitBranch; assistant lines carry token usage. This script
++never reads more than the last line of a candidate file.
++
++Phases (mirrors the status-marker lifecycle):
++    --phase start  → resolve the live session (prefer the ledger whose last
++                     line's gitBranch matches --branch, else newest mtime),
++                     write {session_id, ledger_file, start_offset, started_at}
++                     to --marker.
++    --phase close  → read --marker, take the ledger's current size as
++                     end_offset, emit the stamp JSON to stdout (the play close
++                     copies the fields into the evidence frontmatter).
++
++Canonical copy: play-creator/references/session_stamp.py — stamped into each
++play's scripts/ by play-creator (Standard Play Close, G12), same discipline
++as preflight.py. Failures are soft: a missing ledger yields a stamp with
++nulls and "ledger_resolved": false — the close never blocks on the stamp.
++"""
++
++import argparse
++import json
++import sys
++import time
++from pathlib import Path
++
++
++def cwd_slug(cwd):
++    return "".join(ch if ch.isalnum() else "-" for ch in str(cwd))
++
++
++def last_line(path, max_tail=65536):
++    """Read the final line of a (possibly large) file without loading it."""
++    try:
++        with open(path, "rb") as fh:
++            fh.seek(0, 2)
++            size = fh.tell()
++            fh.seek(max(0, size - max_tail))
++            tail = fh.read().decode("utf-8", errors="replace")
++        lines = [l for l in tail.strip().splitlines() if l.strip()]
++        return json.loads(lines[-1]) if lines else None
++    except Exception:
++        return None
++
++
++def resolve_ledger(projects_dir, cwd, branch):
++    """The live session's ledger: prefer last-line gitBranch == branch,
++    fall back to newest mtime. Returns (path, session_id) or (None, None)."""
++    slug_dir = Path(projects_dir) / cwd_slug(cwd)
++    if not slug_dir.is_dir():
++        return None, None
++    candidates = sorted(slug_dir.glob("*.jsonl"),
++                        key=lambda p: p.stat().st_mtime, reverse=True)
++    newest = None
++    for p in candidates[:10]:  # only recent files can be the live session
++        rec = last_line(p)
++        if rec is None:
++            continue
++        sid = rec.get("sessionId")
++        if newest is None and sid:
++            newest = (p, sid)
++        if branch and rec.get("gitBranch") == branch and sid:
++            return p, sid
++    return newest if newest else (None, None)
++
++
++def phase_start(args):
++    ledger, session_id = resolve_ledger(args.projects_dir, args.cwd, args.branch)
++    marker = {
++        "ledger_resolved": ledger is not None,
++        "session_id": session_id,
++        "ledger_file": str(ledger) if ledger else None,
++        "start_offset": ledger.stat().st_size if ledger else None,
++        "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
++    }
++    Path(args.marker).parent.mkdir(parents=True, exist_ok=True)
++    with open(args.marker, "w", encoding="utf-8") as fh:
++        json.dump(marker, fh, indent=2)
++    print(json.dumps(marker, indent=2))
++
++
++def phase_close(args):
++    try:
++        with open(args.marker, "r", encoding="utf-8") as fh:
++            marker = json.load(fh)
++    except Exception:
++        marker = {"ledger_resolved": False, "session_id": None,
++                  "ledger_file": None, "start_offset": None}
++    ledger = marker.get("ledger_file")
++    end_offset = None
++    if ledger and Path(ledger).exists():
++        end_offset = Path(ledger).stat().st_size
++    stamp = {
++        "ledger_resolved": bool(marker.get("ledger_resolved") and end_offset is not None),
++        "session_id": marker.get("session_id"),
++        "ledger_file": ledger,
++        "ledger_start_offset": marker.get("start_offset"),
++        "ledger_end_offset": end_offset,
++    }
++    print(json.dumps(stamp, indent=2))
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--phase", required=True, choices=["start", "close"])
++    ap.add_argument("--marker", required=True,
++                    help="status-marker path for the stamp (per play run)")
++    ap.add_argument("--cwd", default=str(Path.cwd()),
++                    help="project root the session runs in")
++    ap.add_argument("--branch", default=None,
++                    help="current git branch (start phase; ledger match hint)")
++    ap.add_argument("--projects-dir",
++                    default=str(Path.home() / ".claude" / "projects"))
++    args = ap.parse_args()
++    phase_start(args) if args.phase == "start" else phase_close(args)
++
++
++if __name__ == "__main__":
++    main()
++    sys.exit(0)
+diff --git a/core/components/plays/review-change/SKILL.md b/core/components/plays/review-change/SKILL.md
+index f33ab9dc..f8ef2ebf 100644
+--- a/core/components/plays/review-change/SKILL.md
++++ b/core/components/plays/review-change/SKILL.md
+@@ -73,6 +73,14 @@ python3 scripts/preflight.py --play review-change \
+     --config .garura/core/config.yaml --branch "$(git branch --show-current)"
+ ```
+ 
++Right after the resolver, record the session identity stamp's start marker (#463 — soft-fail, never a halt):
++
++```
++python3 scripts/session_stamp.py --phase start \
++    --marker "{stm_base}{issue}/status/session-stamp-review-change.json" \
++    --cwd "$(pwd)" --branch "$(git branch --show-current)"
++```
++
+ The open-PR check, `gh` availability, the standards set, the review-knowledge shelf path, and
+ the PR diff/`changed_paths`/base ref are live host state resolved through repo-orchestrator
+ (kept in the table), not the resolver. Record the resolved shelf path, the standards set, the
+@@ -245,6 +253,10 @@ delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-repor
+ ts=$(date -u +%Y%m%d-%H%M%S)
+ evidence_dest="${evidence_base}${ts}.md"
+ mkdir -p "$(dirname "$evidence_dest")"
++
++# Session identity stamp (#463) — close phase; start phase ran at pre-flight
++session_stamp=$(python3 scripts/session_stamp.py --phase close \
++    --marker "${stm_base}${issue}/status/session-stamp-review-change.json")
+ ```
+ 
+ **Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag (global +
+@@ -255,7 +267,9 @@ Otherwise fill the `evidence-file.md` slots (play `review-change`, run_id
+ `context.yaml`, `categories.yaml`, `quality-findings.yaml`, `design-findings.yaml`,
+ `findings.yaml`, `recommended_verdict.yaml`, `decision.yaml`, the PR comment URL; step/scenario
+ eval results; the human decision as the terminal status; commit reference `N/A — no commit
+-step`) and write to `$evidence_dest`. Do NOT hand-author the body.
++step`; and the session identity stamp fields from $session_stamp (#463): session_id,
++ledger_file, ledger_start_offset, ledger_end_offset (null when unresolved — never blocks the
++close)) and write to `$evidence_dest`. Do NOT hand-author the body.
+ 
+ **Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
+ report: `## review-change Delivered — #${issue}` (lead with the human's decision), the Run
+@@ -333,3 +347,7 @@ cite a basis, and ends at one mandatory human gate that owns the approve/reject
+ `preflight.py` is unchanged. New domain agent `change-reviewer` added (categorization +
+ design-grounding); `quality-auditor` reused for the standards linter. The fingerprint reflects
+ the rewritten `reference/ice.md`.
++
++## Direct-edit deviation note (#463, session identity stamp)
++
++Non-intent change: the Standard Play Close gained the session identity stamp — `scripts/session_stamp.py` (canonical copy: `play-creator/references/session_stamp.py`) runs `--phase start` at pre-flight and `--phase close` in the close block; the evidence frontmatter carries session_id / ledger_file / ledger_start_offset / ledger_end_offset. Source of truth: `standards/rules/play-close.md`; play-creator emits the same lines so a rebuild converges. No constraint, failure, scenario, or eval changed; the fingerprint stands.
+diff --git a/core/components/plays/review-change/scripts/session_stamp.py b/core/components/plays/review-change/scripts/session_stamp.py
+new file mode 100644
+index 00000000..dd9171e6
+--- /dev/null
++++ b/core/components/plays/review-change/scripts/session_stamp.py
+@@ -0,0 +1,129 @@
++#!/usr/bin/env python3
++"""
++session_stamp.py — the session identity stamp (#463).
++
++Binds a play run to the exact slice of the Claude Code session ledger that
++produced it, so spend and behavior are computable OFFLINE (token-burn-dash)
++with zero in-run cost. No parsing, no summing: one directory listing, one
++line read, one file size.
++
++The ledger: Claude Code writes one JSONL per session under
++~/.claude/projects/<cwd-slug>/<session-id>.jsonl. Every line carries
++sessionId and gitBranch; assistant lines carry token usage. This script
++never reads more than the last line of a candidate file.
++
++Phases (mirrors the status-marker lifecycle):
++    --phase start  → resolve the live session (prefer the ledger whose last
++                     line's gitBranch matches --branch, else newest mtime),
++                     write {session_id, ledger_file, start_offset, started_at}
++                     to --marker.
++    --phase close  → read --marker, take the ledger's current size as
++                     end_offset, emit the stamp JSON to stdout (the play close
++                     copies the fields into the evidence frontmatter).
++
++Canonical copy: play-creator/references/session_stamp.py — stamped into each
++play's scripts/ by play-creator (Standard Play Close, G12), same discipline
++as preflight.py. Failures are soft: a missing ledger yields a stamp with
++nulls and "ledger_resolved": false — the close never blocks on the stamp.
++"""
++
++import argparse
++import json
++import sys
++import time
++from pathlib import Path
++
++
++def cwd_slug(cwd):
++    return "".join(ch if ch.isalnum() else "-" for ch in str(cwd))
++
++
++def last_line(path, max_tail=65536):
++    """Read the final line of a (possibly large) file without loading it."""
++    try:
++        with open(path, "rb") as fh:
++            fh.seek(0, 2)
++            size = fh.tell()
++            fh.seek(max(0, size - max_tail))
++            tail = fh.read().decode("utf-8", errors="replace")
++        lines = [l for l in tail.strip().splitlines() if l.strip()]
++        return json.loads(lines[-1]) if lines else None
++    except Exception:
++        return None
++
++
++def resolve_ledger(projects_dir, cwd, branch):
++    """The live session's ledger: prefer last-line gitBranch == branch,
++    fall back to newest mtime. Returns (path, session_id) or (None, None)."""
++    slug_dir = Path(projects_dir) / cwd_slug(cwd)
++    if not slug_dir.is_dir():
++        return None, None
++    candidates = sorted(slug_dir.glob("*.jsonl"),
++                        key=lambda p: p.stat().st_mtime, reverse=True)
++    newest = None
++    for p in candidates[:10]:  # only recent files can be the live session
++        rec = last_line(p)
++        if rec is None:
++            continue
++        sid = rec.get("sessionId")
++        if newest is None and sid:
++            newest = (p, sid)
++        if branch and rec.get("gitBranch") == branch and sid:
++            return p, sid
++    return newest if newest else (None, None)
++
++
++def phase_start(args):
++    ledger, session_id = resolve_ledger(args.projects_dir, args.cwd, args.branch)
++    marker = {
++        "ledger_resolved": ledger is not None,
++        "session_id": session_id,
++        "ledger_file": str(ledger) if ledger else None,
++        "start_offset": ledger.stat().st_size if ledger else None,
++        "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
++    }
++    Path(args.marker).parent.mkdir(parents=True, exist_ok=True)
++    with open(args.marker, "w", encoding="utf-8") as fh:
++        json.dump(marker, fh, indent=2)
++    print(json.dumps(marker, indent=2))
++
++
++def phase_close(args):
++    try:
++        with open(args.marker, "r", encoding="utf-8") as fh:
++            marker = json.load(fh)
++    except Exception:
++        marker = {"ledger_resolved": False, "session_id": None,
++                  "ledger_file": None, "start_offset": None}
++    ledger = marker.get("ledger_file")
++    end_offset = None
++    if ledger and Path(ledger).exists():
++        end_offset = Path(ledger).stat().st_size
++    stamp = {
++        "ledger_resolved": bool(marker.get("ledger_resolved") and end_offset is not None),
++        "session_id": marker.get("session_id"),
++        "ledger_file": ledger,
++        "ledger_start_offset": marker.get("start_offset"),
++        "ledger_end_offset": end_offset,
++    }
++    print(json.dumps(stamp, indent=2))
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--phase", required=True, choices=["start", "close"])
++    ap.add_argument("--marker", required=True,
++                    help="status-marker path for the stamp (per play run)")
++    ap.add_argument("--cwd", default=str(Path.cwd()),
++                    help="project root the session runs in")
++    ap.add_argument("--branch", default=None,
++                    help="current git branch (start phase; ledger match hint)")
++    ap.add_argument("--projects-dir",
++                    default=str(Path.home() / ".claude" / "projects"))
++    args = ap.parse_args()
++    phase_start(args) if args.phase == "start" else phase_close(args)
++
++
++if __name__ == "__main__":
++    main()
++    sys.exit(0)
+diff --git a/core/components/plays/start-change/SKILL.md b/core/components/plays/start-change/SKILL.md
+index 6ee5f8c6..7d9026bc 100644
+--- a/core/components/plays/start-change/SKILL.md
++++ b/core/components/plays/start-change/SKILL.md
+@@ -144,6 +144,14 @@ agents' on-disk outputs, confirming the work went through the reused skills, not
+ `gh`/`git` commands in play prose.
+ 
+ **Step 5 — Initialize STM Workspace** · Owner: play · Depends on: Step 4
++Record the session identity stamp's start marker first (#463 — soft-fail, never a halt); the stamp start runs here rather than at pre-flight because pre-flight has no issue yet:
++
++```
++python3 scripts/session_stamp.py --phase start \
++    --marker "{stm_base}{issue}/status/session-stamp-start-change.json" \
++    --cwd "$(pwd)" --branch "$(git branch --show-current)"
++```
++
+ Run the mechanical script (it creates the five permitted structure keys idempotently):
+ 
+ ```
+@@ -185,6 +193,10 @@ delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-repor
+ ts=$(date -u +%Y%m%d-%H%M%S)
+ evidence_dest="${evidence_base}${ts}.md"
+ mkdir -p "$(dirname "$evidence_dest")"
++
++# Session identity stamp (#463) — close phase; start phase ran at Step 5
++session_stamp=$(python3 scripts/session_stamp.py --phase close \
++    --marker "${stm_base}${issue}/status/session-stamp-start-change.json")
+ ```
+ 
+ **Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag
+@@ -193,7 +205,9 @@ When it resolves false, skip the write and record `evidence skipped (record=fals
+ the delivery report's pointer line. Otherwise fill the `evidence-file.md` slots (play
+ `start-change`, run_id `start-change-${ts}`, issue, started_at/completed_at, status,
+ artifacts produced: `issue.json`, `branch.json`, the STM workspace; step/scenario eval
+-results; checkpoint decisions from Step 2; commit reference `N/A — no commit step`) and
++results; checkpoint decisions from Step 2; commit reference `N/A — no commit step`; and
++the session identity stamp fields from $session_stamp (#463): session_id, ledger_file,
++ledger_start_offset, ledger_end_offset (null when unresolved — never blocks the close)) and
+ write to `$evidence_dest`. Do NOT hand-author the body.
+ 
+ **Step C2 — Render delivery report.** Also render the **Next** line: resolve this play in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run /next to see all recommended actions.` (only /next pointer, or omit, when the mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and output the
+@@ -260,3 +274,7 @@ table). The script is the canonical resolver stamped from
+ `play-creator/references/preflight.py`; a rebuild reproduces it (play-creator step 4).
+ Non-intent change — no constraint, failure, scenario, eval, or `reference/ice.md` touched, so
+ the fingerprint stands and no recompile is required. Direct edit; no recompile needed.
++
++## Direct-edit deviation note (#463, session identity stamp)
++
++Non-intent change: the Standard Play Close gained the session identity stamp — `scripts/session_stamp.py` (canonical copy: `play-creator/references/session_stamp.py`) runs `--phase start` at pre-flight and `--phase close` in the close block; the evidence frontmatter carries session_id / ledger_file / ledger_start_offset / ledger_end_offset. Source of truth: `standards/rules/play-close.md`; play-creator emits the same lines so a rebuild converges. No constraint, failure, scenario, or eval changed; the fingerprint stands.
+diff --git a/core/components/plays/start-change/scripts/session_stamp.py b/core/components/plays/start-change/scripts/session_stamp.py
+new file mode 100644
+index 00000000..dd9171e6
+--- /dev/null
++++ b/core/components/plays/start-change/scripts/session_stamp.py
+@@ -0,0 +1,129 @@
++#!/usr/bin/env python3
++"""
++session_stamp.py — the session identity stamp (#463).
++
++Binds a play run to the exact slice of the Claude Code session ledger that
++produced it, so spend and behavior are computable OFFLINE (token-burn-dash)
++with zero in-run cost. No parsing, no summing: one directory listing, one
++line read, one file size.
++
++The ledger: Claude Code writes one JSONL per session under
++~/.claude/projects/<cwd-slug>/<session-id>.jsonl. Every line carries
++sessionId and gitBranch; assistant lines carry token usage. This script
++never reads more than the last line of a candidate file.
++
++Phases (mirrors the status-marker lifecycle):
++    --phase start  → resolve the live session (prefer the ledger whose last
++                     line's gitBranch matches --branch, else newest mtime),
++                     write {session_id, ledger_file, start_offset, started_at}
++                     to --marker.
++    --phase close  → read --marker, take the ledger's current size as
++                     end_offset, emit the stamp JSON to stdout (the play close
++                     copies the fields into the evidence frontmatter).
++
++Canonical copy: play-creator/references/session_stamp.py — stamped into each
++play's scripts/ by play-creator (Standard Play Close, G12), same discipline
++as preflight.py. Failures are soft: a missing ledger yields a stamp with
++nulls and "ledger_resolved": false — the close never blocks on the stamp.
++"""
++
++import argparse
++import json
++import sys
++import time
++from pathlib import Path
++
++
++def cwd_slug(cwd):
++    return "".join(ch if ch.isalnum() else "-" for ch in str(cwd))
++
++
++def last_line(path, max_tail=65536):
++    """Read the final line of a (possibly large) file without loading it."""
++    try:
++        with open(path, "rb") as fh:
++            fh.seek(0, 2)
++            size = fh.tell()
++            fh.seek(max(0, size - max_tail))
++            tail = fh.read().decode("utf-8", errors="replace")
++        lines = [l for l in tail.strip().splitlines() if l.strip()]
++        return json.loads(lines[-1]) if lines else None
++    except Exception:
++        return None
++
++
++def resolve_ledger(projects_dir, cwd, branch):
++    """The live session's ledger: prefer last-line gitBranch == branch,
++    fall back to newest mtime. Returns (path, session_id) or (None, None)."""
++    slug_dir = Path(projects_dir) / cwd_slug(cwd)
++    if not slug_dir.is_dir():
++        return None, None
++    candidates = sorted(slug_dir.glob("*.jsonl"),
++                        key=lambda p: p.stat().st_mtime, reverse=True)
++    newest = None
++    for p in candidates[:10]:  # only recent files can be the live session
++        rec = last_line(p)
++        if rec is None:
++            continue
++        sid = rec.get("sessionId")
++        if newest is None and sid:
++            newest = (p, sid)
++        if branch and rec.get("gitBranch") == branch and sid:
++            return p, sid
++    return newest if newest else (None, None)
++
++
++def phase_start(args):
++    ledger, session_id = resolve_ledger(args.projects_dir, args.cwd, args.branch)
++    marker = {
++        "ledger_resolved": ledger is not None,
++        "session_id": session_id,
++        "ledger_file": str(ledger) if ledger else None,
++        "start_offset": ledger.stat().st_size if ledger else None,
++        "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
++    }
++    Path(args.marker).parent.mkdir(parents=True, exist_ok=True)
++    with open(args.marker, "w", encoding="utf-8") as fh:
++        json.dump(marker, fh, indent=2)
++    print(json.dumps(marker, indent=2))
++
++
++def phase_close(args):
++    try:
++        with open(args.marker, "r", encoding="utf-8") as fh:
++            marker = json.load(fh)
++    except Exception:
++        marker = {"ledger_resolved": False, "session_id": None,
++                  "ledger_file": None, "start_offset": None}
++    ledger = marker.get("ledger_file")
++    end_offset = None
++    if ledger and Path(ledger).exists():
++        end_offset = Path(ledger).stat().st_size
++    stamp = {
++        "ledger_resolved": bool(marker.get("ledger_resolved") and end_offset is not None),
++        "session_id": marker.get("session_id"),
++        "ledger_file": ledger,
++        "ledger_start_offset": marker.get("start_offset"),
++        "ledger_end_offset": end_offset,
++    }
++    print(json.dumps(stamp, indent=2))
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--phase", required=True, choices=["start", "close"])
++    ap.add_argument("--marker", required=True,
++                    help="status-marker path for the stamp (per play run)")
++    ap.add_argument("--cwd", default=str(Path.cwd()),
++                    help="project root the session runs in")
++    ap.add_argument("--branch", default=None,
++                    help="current git branch (start phase; ledger match hint)")
++    ap.add_argument("--projects-dir",
++                    default=str(Path.home() / ".claude" / "projects"))
++    args = ap.parse_args()
++    phase_start(args) if args.phase == "start" else phase_close(args)
++
++
++if __name__ == "__main__":
++    main()
++    sys.exit(0)
