@@ -1,0 +1,127 @@
+meta:
+  generated_at: "2026-07-04T00:00:00Z"
+  diff_path: ".garura/project/issues/466/review/pr.diff"
+  changed_paths_count: 19
+  scan_coverage: 1.0
+  taxonomy_path: "./core/components/memory/standards/rules/pr.md"
+  standards_relevant: 15
+  artifact_type_map:
+    garura-prose:
+      - core/components/plays/commit-change/scripts/execute_commits.py
+      - core/components/plays/grill/SKILL.md
+      - core/components/plays/grill/scripts/test_validate_epics.py
+      - core/components/plays/install-garura/SKILL.md
+      - core/components/plays/next/SKILL.md
+      - core/components/plays/next/reference/ice.md
+      - core/components/plays/next/scripts/check_stop_condition.py
+      - core/components/plays/next/scripts/session_stamp.py
+      - core/components/plays/next/stop-condition.yaml
+      - core/components/plays/play-creator/scripts/lint_play.py
+      - core/components/plays/play-editor/scripts/lint_play.py
+      - core/components/plays/uninstall-garura/SKILL.md
+      - core/components/plays/validate/scripts/stamp_epic.py
+    stm-evidence:
+      - .garura/project/issues/466/context/analysis.yaml
+      - .garura/project/issues/466/context/branch.json
+      - .garura/project/issues/466/context/commits.yaml
+      - .garura/project/issues/466/context/porcelain.txt
+      - .garura/project/issues/466/context/pr.json
+      - .garura/project/issues/466/context/self-review.md
+  classification_note: >
+    Every changed path falls under core/components/** or .garura/project/**,
+    both of which match the garura-prose / stm-evidence rows in the taxonomy's
+    Artifact-Type Scoping table BEFORE the tests/runtime-code rows are reached
+    (first-match-wins, top-to-bottom). Per the Eligibility rule, grep and
+    grep+path rules never fire on this diff (no file classifies as
+    runtime-code, deployable-config, or tests). Only pure path: rules were
+    evaluated. test_validate_epics.py is not reclassified to `tests` because
+    its directory segment is `scripts`, not `test`/`tests`/`__tests__`/`spec`
+    (the tests glob requires a directory match, not a filename prefix).
+  standards_evaluated_no_violation:
+    - ARCH-02   # no circular deps -- no cross-imports among the 7 changed .py files (stdlib/yaml only)
+    - ARCH-03   # no file > 500 lines -- max is 372 (lint_play.py x2)
+    - ARCH-08   # module boundaries -- each script is single-purpose under its own play's scripts/
+    - CODE-03   # linter runs clean -- no linter (flake8/pylint/ruff) installed or configured; evidence unobtainable, finding dropped per F3
+    - CODE-04   # formatter zero-diff -- no formatter (black) installed or configured; evidence unobtainable, finding dropped per F3
+    - CODE-13   # single responsibility -- no distinct mixed-concern violation beyond what CODE-09/10/11/12 already capture
+    - CODE-14   # no circular deps (JS/Go-oriented rule, same evidence as ARCH-02) -- no violation
+    - CODE-15   # cognitive complexity -- no SonarQube available; lizard CCN used as proxy already reported under CODE-09, no separate cognitive-complexity tool run
+    - CODE-17   # naming case convention -- spot-checked, all snake_case, no violations found
+    - CODE-19   # SCREAMING_SNAKE_CASE constants -- no module-level consts found violating convention
+    - CODE-20   # file/directory naming convention -- all files kebab-case dirs / snake_case files, no violations
+  test_execution:
+    command: "python3 core/components/plays/grill/scripts/test_validate_epics.py"
+    file: core/components/plays/grill/scripts/test_validate_epics.py
+    result: PASS
+    tests_passed: 6
+    tests_total: 6
+    exit_code: 0
+    evidence: "VERDICT: PASS (6/6 passed)"
+    note: >
+      Executed per explicit instruction. Not tied to a taxonomy standard_id:
+      no TEST-* row's path glob fires on this file (the tests artifact-type
+      glob requires a directory literally named test/tests/__tests__/spec;
+      this file lives under a scripts/ directory), so no findings.yaml entry
+      is emitted for it (F3 -- no matching standard_id to attach it to).
+findings:
+  - standard_id: CODE-09
+    severity: P3
+    file: core/components/plays/commit-change/scripts/execute_commits.py
+    line: 50
+    evidence: "fallback_parse() cyclomatic complexity CCN=15 (threshold <=10, measured via lizard)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-09
+  - standard_id: CODE-09
+    severity: P3
+    file: core/components/plays/commit-change/scripts/execute_commits.py
+    line: 135
+    evidence: "main() cyclomatic complexity CCN=33 (threshold <=10, measured via lizard)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-09
+  - standard_id: CODE-10
+    severity: P3
+    file: core/components/plays/commit-change/scripts/execute_commits.py
+    line: 135
+    evidence: "main() length=163 lines (threshold <=50, measured via lizard)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-10
+  - standard_id: CODE-11
+    severity: P3
+    file: core/components/plays/commit-change/scripts/execute_commits.py
+    line: 135
+    evidence: "main() nesting depth=5 (threshold <=4, measured via AST walk over If/For/While/With/Try nodes)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-11
+  - standard_id: CODE-12
+    severity: P3
+    file: core/components/plays/commit-change/scripts/execute_commits.py
+    line: 301
+    evidence: "file line count=301 (threshold <=300, measured via wc -l)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-12
+  - standard_id: CODE-09
+    severity: P3
+    file: core/components/plays/next/scripts/check_stop_condition.py
+    line: 67
+    evidence: "eval_clause() cyclomatic complexity CCN=12 (threshold <=10, measured via lizard)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-09
+  - standard_id: CODE-12
+    severity: P3
+    file: core/components/plays/play-creator/scripts/lint_play.py
+    line: 372
+    evidence: "file line count=372 (threshold <=300, measured via wc -l)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-12
+  - standard_id: CODE-12
+    severity: P3
+    file: core/components/plays/play-editor/scripts/lint_play.py
+    line: 372
+    evidence: "file line count=372 (threshold <=300, measured via wc -l)"
+    artifact_type: garura-prose
+    taxonomy_rule_id: CODE-12
+counts:
+  P1: 0
+  P2: 0
+  P3: 8
+  P4: 0

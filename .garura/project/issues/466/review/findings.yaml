@@ -1,62 +1,118 @@
 meta:
-  generated_at: '2026-07-04T06:35:00Z'
-  diff_path: .garura/project/issues/466/review/pr.diff
-  changed_paths_count: 83
-  scan_coverage: 1.0
-  taxonomy_path: ./core/components/memory/standards/rules/pr.md
-  standards_relevant: 1
-  notes:
-  - All 83 changed paths classify as garura-prose (core/components/**, 76 files) or stm-evidence (.garura/project/**,
-    7 files) per the Artifact-Type Scoping table. No path classifies as runtime-code, deployable-config,
-    or tests — grep-based security/injection/auth rules (SEC-*, BE-*, ARCH-07, etc.) are ineligible on
-    every changed path; zero grep findings emitted, per rule.
-  - 26 files (check_stop_condition.py + session_stamp.py across the 13 recompiled plays) are byte-identical
-    (sha256) to the canonical copies at core/components/plays/play-creator/references/{check_stop_condition,session_stamp}.py
-    — confirmed by direct hash comparison. No re-findings emitted for these; they carry no new content
-    to review.
-  - 11 extended apply/stamp/compute scripts (apply_agentic, apply_marketing, apply_ux, apply_quality,
-    check_quality, apply_learn, apply_shape, apply_seed, compute_plan, stamp_slice, validate_epics) were
-    measured with lizard against their pre-diff (main) versions. All additions are small, mechanical dict-field
-    appends or (stamp_slice, validate_epics) a bounded new code path. CCN deltas are 0 or +1 across the
-    board; no function crossed a new threshold as a result of this diff. Four main() functions already
-    exceed common CCN/length bars pre-existing (validate_epics 42, apply_learn 34, compute_plan 27, apply_shape
-    24) — flagged below as CODE-09 P3, explicitly marked pre-existing/not diff-introduced so the reviewer
-    can weigh them as tech debt rather than a regression.
+  pr: 477
+  issue: 466
+  sources: [quality-findings.yaml, design-findings.yaml]
+  categories_covered: [harness, executable_code, tests]
+
 findings:
-- standard_id: CODE-09
-  severity: P3
-  file: core/components/plays/grill/scripts/validate_epics.py
-  line: 62
-  evidence: 'main(): CCN 42, NLOC 77 (base: CCN 41, NLOC 67 — delta +1 CCN from one added open_qs branch;
-    pre-existing complexity, not introduced by this diff)'
-  artifact_type: garura-prose
-  taxonomy_rule_id: CODE-09
-- standard_id: CODE-09
-  severity: P3
-  file: core/components/plays/learn/scripts/apply_learn.py
-  line: 63
-  evidence: 'main(): CCN 34, NLOC 110 (base: CCN 34, NLOC 109 — unchanged CCN, +1 NLOC from the appended
-    applied:true field; pre-existing complexity, not introduced by this diff)'
-  artifact_type: garura-prose
-  taxonomy_rule_id: CODE-09
-- standard_id: CODE-09
-  severity: P3
-  file: core/components/plays/roadmap/scripts/compute_plan.py
-  line: 58
-  evidence: 'main(): CCN 27, NLOC 55 (base: CCN 27, NLOC 54 — unchanged CCN, +1 NLOC from the appended
-    orders_coherent field; pre-existing complexity, not introduced by this diff)'
-  artifact_type: garura-prose
-  taxonomy_rule_id: CODE-09
-- standard_id: CODE-09
-  severity: P3
-  file: core/components/plays/shape/scripts/apply_shape.py
-  line: 57
-  evidence: 'main(): CCN 24, NLOC 70 (base: CCN 24, NLOC 69 — unchanged CCN, +1 NLOC from the appended
-    applied:true field; pre-existing complexity, not introduced by this diff)'
-  artifact_type: garura-prose
-  taxonomy_rule_id: CODE-09
+  # -- quality-auditor layer (executable_code, Layer 1) --
+  - standard_id: CODE-09
+    severity: P3
+    category: executable_code
+    file: core/components/plays/commit-change/scripts/execute_commits.py
+    line: 50
+    evidence: "fallback_parse() cyclomatic complexity CCN=15 (threshold <=10, measured via lizard)"
+    basis: "core/components/memory/standards/rules/pr.md CODE-09"
+  - standard_id: CODE-09
+    severity: P3
+    category: executable_code
+    file: core/components/plays/commit-change/scripts/execute_commits.py
+    line: 135
+    evidence: "main() cyclomatic complexity CCN=33 (threshold <=10, measured via lizard)"
+    basis: "core/components/memory/standards/rules/pr.md CODE-09"
+  - standard_id: CODE-10
+    severity: P3
+    category: executable_code
+    file: core/components/plays/commit-change/scripts/execute_commits.py
+    line: 135
+    evidence: "main() length=163 lines (threshold <=50, measured via lizard)"
+    basis: "core/components/memory/standards/rules/pr.md CODE-10"
+  - standard_id: CODE-11
+    severity: P3
+    category: executable_code
+    file: core/components/plays/commit-change/scripts/execute_commits.py
+    line: 135
+    evidence: "main() nesting depth=5 (threshold <=4)"
+    basis: "core/components/memory/standards/rules/pr.md CODE-11"
+  - standard_id: CODE-12
+    severity: P3
+    category: executable_code
+    file: core/components/plays/commit-change/scripts/execute_commits.py
+    line: 301
+    evidence: "file line count=301 (threshold <=300)"
+    basis: "core/components/memory/standards/rules/pr.md CODE-12"
+  - standard_id: CODE-09
+    severity: P3
+    category: executable_code
+    file: core/components/plays/next/scripts/check_stop_condition.py
+    line: 67
+    evidence: "eval_clause() cyclomatic complexity CCN=12 (threshold <=10) -- pre-existing canonical script, byte-identical copy across all 26 plays, not introduced by this PR's own new logic"
+    basis: "core/components/memory/standards/rules/pr.md CODE-09"
+  - standard_id: CODE-12
+    severity: P3
+    category: executable_code
+    file: core/components/plays/play-creator/scripts/lint_play.py
+    line: 372
+    evidence: "file line count=372 (threshold <=300) -- note: the PR's own target metric, main() complexity, is now 8 (was ~75), confirmed PASS; this is a separate whole-file-length guideline, not the targeted debt"
+    basis: "core/components/memory/standards/rules/pr.md CODE-12"
+  - standard_id: CODE-12
+    severity: P3
+    category: executable_code
+    file: core/components/plays/play-editor/scripts/lint_play.py
+    line: 372
+    evidence: "file line count=372 (threshold <=300) -- same note as play-creator's copy"
+    basis: "core/components/memory/standards/rules/pr.md CODE-12"
+
+  # -- debt-paydown verification (targeted claims, confirmed) --
+  - standard_id: DEBT-VERIFIED
+    severity: informational
+    category: executable_code
+    file: core/components/plays/play-creator/scripts/lint_play.py
+    evidence: "main() complexity 75->8: VERIFIED. stdout byte-identical pre/post refactor across 9 sampled plays (propose-change, review-change, merge-change, next, grill, validate, learn, measure, quality)."
+    basis: "measured directly by repo-orchestrator during self-review + independently by quality-auditor (CODE-09 not flagged on this function)"
+  - standard_id: DEBT-VERIFIED
+    severity: informational
+    category: executable_code
+    file: core/components/plays/play-editor/scripts/lint_play.py
+    evidence: "main() complexity 75->8: VERIFIED (identical copy to play-creator's, same measurement)."
+    basis: "measured directly by repo-orchestrator during self-review"
+  - standard_id: DEBT-VERIFIED
+    severity: informational
+    category: executable_code
+    file: core/components/plays/validate/scripts/stamp_epic.py
+    evidence: "main() complexity now ~6, well under the <=10 bar: VERIFIED. Decomposed into load_verdict/load_epic/check_transition/apply_stamp/record_stamp, each independently low-complexity. Not flagged by quality-auditor's CODE-09/10/11 checks."
+    basis: "measured directly by repo-orchestrator during self-review; quality-auditor's findings confirm no complexity flag on this file"
+  - standard_id: DEBT-VERIFIED
+    severity: informational
+    category: tests
+    file: core/components/plays/grill/scripts/test_validate_epics.py
+    evidence: "Flag drift fix + rebuilt regression test: VERIFIED. Suite executed twice independently (once by repo-orchestrator, once by quality-auditor) -- VERDICT: PASS (6/6 passed) both times."
+    basis: "python3 core/components/plays/grill/scripts/test_validate_epics.py, exit 0"
+
+  # -- change-reviewer layer (harness, Layer 2 design-grounding) --
+  # See design-findings.yaml for the full grounded-source citations; all 7 harness
+  # files conformed, zero violations. Summarized here for the consolidated record.
+  - standard_id: HARNESS-CONFORMANCE
+    severity: informational
+    category: harness
+    file: "core/components/plays/next/{SKILL.md,reference/ice.md,stop-condition.yaml}"
+    evidence: "Conforms to ADR 025 (Level 3 skeleton+loop), play-close.md (Step C0 before self-clean; session identity stamp), gate-config.md (checkpoint-free play correctly declares no gates to class), and CLAUDE.md's Play Pipeline Rules (intent change traced to reference/ice.md, recompiled by play-editor, fingerprint updated)."
+    basis: "docs/adr/025-level-3-redefined-skeleton-and-loop.md; core/components/memory/standards/rules/play-close.md; core/components/memory/standards/rules/gate-config.md; CLAUDE.md Play Pipeline Rules -- all committed on main prior to this branch"
+  - standard_id: HARNESS-CONFORMANCE
+    severity: informational
+    category: harness
+    file: "core/components/plays/install-garura/SKILL.md, core/components/plays/uninstall-garura/SKILL.md"
+    evidence: "Exemption notes verified true against actual on-disk structure (no reference/ice.md, no stop-condition.yaml in either play) -- not asserted from the branch's own prose."
+    basis: "directory listing of install-garura/ and uninstall-garura/ (pre-existing repo state)"
+  - standard_id: HARNESS-CONFORMANCE
+    severity: informational
+    category: harness
+    file: core/components/plays/grill/SKILL.md
+    evidence: "The --slice-file -> --slice-ref fix is a genuine non-intent correction (matches validate_epics.py's real argparse interface), properly marked as a Direct-edit deviation note (#466) -- does not violate the hand-edit-prohibition on compiled plays."
+    basis: "CLAUDE.md Play Pipeline Rules; core/components/plays/grill/scripts/validate_epics.py's own argparse definition"
+
 counts:
   P1: 0
   P2: 0
-  P3: 4
+  P3: 8
   P4: 0
