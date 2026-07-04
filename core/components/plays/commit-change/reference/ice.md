@@ -17,9 +17,16 @@ play declared `position: end`. Positions are start and end only — there is no 
 
 - C1 — Work is committed on a feature branch, never on main.
 - C2 — Changes are grouped by concern; each commit holds one coherent concern.
-- C3 — Each commit uses conventional format and references the tracked issue.
+- C3 — Each commit uses conventional format and references the tracked issue. The
+  formatting is owned by exactly one party: the plan carries a BARE subject (no type
+  prefix, no scope, no issue reference — those live in separate fields), and the executor
+  renders the conventional message — defensively normalizing a subject that arrives
+  pre-formatted rather than doubling the prefix (#465 defect 1).
 - C4 — Every changed file lands in a commit or has a stated exclusion reason; the working
-  tree is clean afterward.
+  tree is clean afterward — including the play's own run artifacts, which the play commits
+  as its final chore group so the tree handed to propose-change is genuinely clean
+  (#465 defect 2). A path the repository's ignore rules exclude is pre-checked and becomes
+  a recorded exclusion, never a mid-plan failure (#465 defect 3).
 - C5 — When there is nothing to commit, the play exits cleanly without committing.
 - C6 — Sensitive files (secrets, credentials, keys) are never committed; their presence
   blocks the commit.
@@ -29,6 +36,12 @@ play declared `position: end`. Positions are start and end only — there is no 
   analyzed entirely by script; commit execution is always a script over the decided plan.
   The analyze agent is dispatched only when the script classifies the changeset as
   multi-concern, i.e. when grouping genuinely requires judgment.
+- C9 — The interior is a goal-loop, not a baked step sequence (#460 Level 3): the play
+  ends by PROVING its Done means, never by a step list running out. Each round the agent
+  decides its own moves (scan, group, checkpoint when policy demands, execute, re-check);
+  between rounds the stop condition is evaluated. The loop is bounded by an iteration cap
+  of 5 — hitting the cap without the Done means holding halts the run with the
+  stop-condition verdict recorded; the cap is a circuit breaker, never a target.
 
 ### Failure conditions
 
@@ -42,6 +55,8 @@ play declared `position: end`. Positions are start and end only — there is no 
 - F7 — The fast path swallows a judgment call: the script analyzes a changeset it should
   have classified as multi-concern, or an agent is dispatched for a changeset the script
   already analyzed.
+- F8 — The loop exhausts its iteration cap without the Done means holding — the run must
+  halt with the stop-condition verdict recorded, never silently close as completed.
 
 ## Expectation
 
@@ -49,9 +64,11 @@ play declared `position: end`. Positions are start and end only — there is no 
 
 - S1 — (developer, multi-concern changes) Given uncommitted changes spanning more than one
   concern on a feature branch, when commit-change runs, then each concern becomes a
-  separate conventional commit referencing the issue, the tree is left clean, and nothing
-  is pushed. Measure: commits are grouped one-concern-each; each is conventional and
-  references the issue; `git status` is clean; the remote branch tip is unchanged.
+  separate conventional commit referencing the issue, the play's own run artifacts land in
+  a final chore commit, the tree is left clean, and nothing is pushed. Measure: commits are
+  grouped one-concern-each; each is conventional and references the issue with no doubled
+  type prefix; the run artifacts are committed; `git status` is clean; the remote branch
+  tip is unchanged.
 - S2 — (developer, nothing to commit) Given a clean working tree, when commit-change runs,
   then it exits cleanly without creating a commit. Measure: no commit is created; the run
   exits gracefully.
@@ -66,6 +83,23 @@ play declared `position: end`. Positions are start and end only — there is no 
   sub-agent spawned for analysis or commit execution. Measure: analysis.yaml and
   commits.yaml are script-emitted; zero analyze/commit agent dispatches occurred; the
   commit satisfies the same C2–C4 guarantees as the agent path.
+- S6 — (developer, loop convergence) Given a round whose execution leaves the Done means
+  unmet (leftover files, an ignored path surfacing, a failed group), when the loop
+  continues, then the next round consumes the stop-condition verdict as its work list and
+  the run either converges within the cap or halts with the verdict recorded. Measure: the
+  run's stop-condition verdict reads held on convergence, or the run closes HALTED with
+  the unmet clauses named and rounds ≤ 5.
+
+### Done means
+
+- D1 — says: "the commit record exists"
+  check: { type: artifact_exists, path: "context/commits.yaml" }
+- D2 — says: "every change is committed or excluded with a recorded reason"
+  check: { type: field_equals, file: "context/commits.yaml", field: "leftover_count", equals: 0 }
+- D3 — says: "the working tree ended clean"
+  check: { type: field_equals, file: "context/commits.yaml", field: "tree_clean", equals: true }
+- D4 — says: "nothing was pushed"
+  check: { type: field_equals, file: "context/commits.yaml", field: "pushed", equals: false }
 
 ### Recovery (one per failure condition)
 
@@ -88,3 +122,7 @@ play declared `position: end`. Positions are start and end only — there is no 
   script-classified-trivial changeset). direction: discard the fast-path analysis and
   re-run Step 1 through the analyze agent (or, for a needless dispatch, record the
   redundancy); the agent's grouping wins. handoff: autonomous.
+- REC8 (F8) — trigger: the loop hit its iteration cap with the Done means still unmet.
+  direction: halt HALTED with exit_reason loop_cap_exhausted and the stop-condition
+  verdict recorded; a human inspects the unmet clauses and either fixes the underlying
+  state and re-runs, or raises the cap knowingly. handoff: human.
