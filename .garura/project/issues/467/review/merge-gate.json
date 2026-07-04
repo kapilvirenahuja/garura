@@ -4,5 +4,5 @@
   "already_merged": false,
   "pr_merged": true,
   "branch_deleted": true,
-  "gate": "off; three-boolean precondition true; human authorized the land"
+  "gate": "pinned land \u2014 human authorized"
 }
