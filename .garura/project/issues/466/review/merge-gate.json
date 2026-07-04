@@ -1,10 +1,10 @@
 {
   "approved": true,
   "mergeable": true,
-  "already_merged": false,
+  "already_merged": true,
   "verdict_comment_url": "https://github.com/kapilvirenahuja/garura/pull/475#issuecomment-4880882299",
-  "merged": false,
-  "merge_sha": null,
-  "pr_merged": false,
-  "branch_deleted": false
+  "merged": true,
+  "merge_sha": "08b2ca97c1d5e10a10055b5be281c6dc6a6fe39c",
+  "pr_merged": true,
+  "branch_deleted": true
 }
