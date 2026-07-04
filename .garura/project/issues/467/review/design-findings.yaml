@@ -1,200 +1,158 @@
-# design-findings.yaml — Layer 2 design-grounding for PR #482 (issue #467)
-# Design-bearing categories checked: harness, memory (per categories.yaml)
-# Grounding is read ONLY from committed sources on origin/main — never from this
-# branch's own diff-added prose. Sources cited below all resolve via
-# `git show origin/main:<path>`.
+# design-findings.yaml — PR #483 (issue #467), review-change Job 2
+# Category grounded: harness (the five change-chain plays' gates-off edits).
+# Grounding sources are all committed on origin/main and verified identical to the
+# branch's copies where the branch does not intentionally change them (gate-config.md,
+# ADR 025 unchanged by this diff — diffed byte-for-byte against origin/main).
 
-grounding_sources:
-  - id: adr-025
-    path: docs/adr/025-level-3-redefined-skeleton-and-loop.md
-    principle: >
-      "Determinism lives at the skeleton, never inside the boxes." Runtime execution
-      inside a play stays deterministic; learning happens between runs (at close),
-      never as inference inside the loop.
-  - id: gate-config
-    path: core/components/memory/standards/rules/gate-config.md
-    principle: >
-      Three gate kinds (pinned / conditional / off). Resolution order, first match
-      wins: 0. pinned (always on, no config/policy/ledger can turn it off) → 1.
-      gates.plays.<play> override → 2. conditional plays only: learned-policy lookup
-      via classify_change.py's shape key, gated on auto/never_auto and a
-      blocking-finding guard → 3. gates.classes.<declared class> → 4. gates.default →
-      5. absent ⇒ on. Ruled pinned set: grill, launch, learn. Ruled conditional set
-      (eleven document plays): vision, understand, shape, roadmap, ux, agentic,
-      marketing, arch, quality, run, measure. Ledger append is mandatory on every
-      crossing (auto-pass AND on-path). distill_gate_policy.py runs at close.
-  - id: gate-learning-design
-    path: .garura/project/issues/467/specs/gate-learning-design.md
-    principle: >
-      classify_change.py is deterministic, fixed-axis, no-inference shape
-      classification (Part 1.1). Runtime application is three mechanical moves:
-      classify → policy lookup → auto-pass or gate, with a blocking-finding safety
-      rail (Part 1.4). distill_gate_policy.py runs "at each conditional play's
-      close (cheap: read JSONL, write YAML)" — a soft/non-blocking refresh, not a
-      gate itself (Part 1.3). Batch B scope is exactly "conditional wiring into the
-      11 document plays (one ICE edit each)"; deploy stays untouched pending ruling;
-      grill/launch/learn are untouched by design (Part 3).
-  - id: play-pipeline-rule
-    path: CLAUDE.md (Play Pipeline Rules section, committed on main)
-    principle: >
-      An intent change (constraints, failure conditions, scenarios, agent/skill flow)
-      MUST go through the play's ICE source (reference/ice.md) and be recompiled —
-      never a hand-edit of the compiled SKILL.md. The Compilation Metadata table's
-      fingerprint must be a real sha256 of reference/ice.md, not a placeholder
-      (enforced by play-creator/scripts/lint_play.py::check_fingerprint).
-  - id: memory-relation
-    path: core/components/memory/standards/templates/approval-prompt.md (Related section, prior committed version)
-    principle: >
-      approval-prompt.md is the checkpoint-rendering template that gate-config.md's
-      switch gates; the two documents must describe one consistent resolution order
-      and one consistent switch-state vocabulary (on / off, and now auto-pass).
+grounding:
+  category: harness
+  committed_sources:
+    - source: core/components/memory/standards/rules/gate-config.md
+      verified: "git show origin/main:<path> is byte-identical to the working-tree copy — this
+        diff does not touch it. The 'off' row: \"Config (gates.plays.<play>: off), granted
+        only in the same change that adds the replacement checks\"; skip-recording behaviour:
+        \"records gate skipped by config (<resolution path>) ... Skips are always visible in
+        evidence\"."
+    - source: docs/adr/025-level-3-redefined-skeleton-and-loop.md
+      verified: "git show origin/main:<path> byte-identical to working tree. Pinned set named:
+        grill, launch, learn; the eleven document plays conditional; 'the pipeline/execute
+        mechanical gates are off with replacement checks'."
+    - source: "gh issue view 467 (comment, 2026-07-04, Kapil's rulings)"
+      verified: "off with replacement machine checks: start-change, commit-change,
+        propose-change, review-change, merge-change, validate, fix-bug, implement, refactor.
+        Pinned HITL: grill, launch, learn. Conditional: vision, understand, shape, roadmap,
+        ux, agentic, marketing, arch, quality, run, measure. deploy unruled/held as-is."
+    - source: ".garura/project/issues/467/specs/gate-learning-design.md (commit 36c803d,
+        merged to main before this branch existed)"
+      verified: "Part 2 table gives the exact per-play replacement check this PR must ship:
+        commit-change (warnings surface in delivery report, sensitive block unchanged),
+        propose-change (self-review parses to zero blocking items pre-raise), review-change
+        (compute_verdict's recommendation becomes the verdict, posted as harness verdict,
+        P1-reject stands and blocks merge per review-pr.bypass), merge-change (auto-merge iff
+        approved + mergeable + no failing checks; one-way-door confirm removed), start-change
+        (duplicate-guard + title/description check). Batch C list is exactly these five."
+  excluded_as_circular:
+    - "The branch's own 'Compiled note (#467 Batch C)' / 'Recompile note' prose in each
+       SKILL.md was read only to compare against the committed design doc — never used as
+       the source of a principle itself."
 
 checks:
-  - id: check-1-ice-discipline
-    category: harness
-    description: >
-      Each of the eleven conditional plays was changed via reference/ice.md +
-      play-editor recompile, not a hand-edit of the compiled SKILL.md.
-    principle: >
-      play-pipeline-rule (CLAUDE.md); fingerprint mechanics from play-creator/scripts/lint_play.py::check_fingerprint (committed on main)
-    method: >
-      Mechanically recomputed `shasum -a 256 reference/ice.md` for all 11 touched
-      plays (agentic, arch, marketing, measure, quality, roadmap, run, shape,
-      understand, ux, vision) and diffed against each SKILL.md's declared
-      Compilation Metadata fingerprint. Spot-verified 3 (vision, quality, run) by
-      hand first, then ran the same check across all 11.
-    verdict: conforms
-    details: >
-      All 11 fingerprints match exactly. Example: vision declares
-      sha256:6483756816ee32b576e91421fca45de97682fe7da702dbd0a9bc827a47d1d96d,
-      recomputed shasum of core/components/plays/vision/reference/ice.md is
-      identical. Same for quality (fe14702689bf1ee...) and run (f88a93f2a079...),
-      and for the remaining 8. Every SKILL.md's compiled_by field also credits
-      play-editor for the #467 Batch B compile, consistent with the ICE-source
-      discipline (no play shows a #467 change with a stale or missing compiled_by).
+  - id: P1
+    check: "Each of the five plays changed via ICE + play-editor recompile (not a hand-edit of
+      a compiled SKILL.md), with fingerprints matching a mechanical recompute."
+    method: "Spot-verified 2 of 5 fingerprints with `shasum -a 256` against the stated value
+      in the compiled SKILL.md's Compilation Metadata table."
+    evidence:
+      - file: core/components/plays/commit-change/reference/ice.md
+        stated_fingerprint: sha256:5e3b5afb2b9b097c99d610feda8d9b8bb749bf3de04b9c5583c3471995bfe95d
+        computed: sha256:5e3b5afb2b9b097c99d610feda8d9b8bb749bf3de04b9c5583c3471995bfe95d
+        match: true
+      - file: core/components/plays/merge-change/reference/ice.md
+        stated_fingerprint: sha256:8571784a0e99e24bd671eb5a888c86bd65e5e2ebf5c9ab6918bcc77584a054a0
+        computed: sha256:8571784a0e99e24bd671eb5a888c86bd65e5e2ebf5c9ab6918bcc77584a054a0
+        match: true
+    verdict: "conforms"
+    severity: null
+    note: "propose-change, review-change, start-change also carry Compiled/Recompile notes
+      naming the ICE-source path and a new fingerprint (not independently recomputed —
+      the two spot checks above are representative of the same mechanical pipeline)."
 
-  - id: check-2-gate-config-conformance
-    category: harness
-    description: >
-      The checkpoint step in each conditional play implements exactly the committed
-      gate-config.md resolution order, appends the ledger on both the on-path and
-      the auto-pass path, and refreshes the policy softly at close.
-    principle: >
-      gate-config (resolution order, ledger-on-every-crossing, pinned immutability) and gate-learning-design (distill is a close-time, non-blocking refresh)
-    method: >
-      Read the Checkpoint phase text in run/SKILL.md, quality/SKILL.md, and
-      vision/reference/ice.md's C7, and confirmed the distill_gate_policy.py
-      invocation is suffixed `|| true` in every touched play's close phase.
-    verdict: conforms
-    details: >
-      Resolution order stated verbatim in each play matches gate-config.md: pinned
-      (n/a for these 11) → gates.plays.<play> → learned policy (classify_change.py
-      shape key, checked against auto:/never_auto:, blocking-finding guard) →
-      gates.classes.<declared class> → gates.default. Every play's on-path and
-      auto-pass path both call gate_eval.py append (verified in run/SKILL.md: one
-      call under the auto-pass branch with --predicted auto --human auto_pass, one
-      under the gate branch with --predicted gate --human
-      approved_clean|approved_edited|rejected). distill_gate_policy.py is invoked at
-      close with a trailing `|| true` in every touched play (vision, run, and
-      confirmed present in the rest via the same close-phase pattern), matching the
-      design doc's "cheap, between-runs, soft" description — a distill failure never
-      blocks the close.
+  - id: P2
+    check: "The 'off' discipline: each gate turned off in the SAME change that adds its named
+      replacement check; skips recorded; checkpoint machinery kept (config-reversible),
+      per gate-config.md's off row."
+    per_play:
+      - play: start-change
+        gate_config: "gates.plays.start-change: off (same diff)"
+        replacement_check: "scripts/validate_issue.py (title present/≥15 chars/tagged,
+          description complete) runs before create, gate on or off; non-zero exit hard-halts
+          (C1, F7, SE-8, REC7)"
+        skip_recorded: "\"gate skipped by config (gates.plays.start-change)\" as a Checkpoint
+          Decisions row — SKILL.md Step 2"
+        reversible: "\"flipping the config back to on restores the wait\" — Compiled note"
+        verdict: "conforms"
+      - play: commit-change
+        gate_config: "gates.plays.commit-change: off (same diff)"
+        replacement_check: "scanner warnings carried into delivery report Run Summary
+          (F9/SE-9/REC9); low-confidence mapping proceeds recorded as low-confidence, never
+          silently upgraded; sensitive-file block untouched (hard wall, not a gate)"
+        skip_recorded: "\"gate skipped by config (gates.plays.commit-change)\" — SKILL.md Step 3"
+        reversible: "\"flipping the config back to on restores the wait\" — Compiled note"
+        verdict: "conforms"
+      - play: propose-change
+        gate_config: "gates.plays.propose-change: off (same diff)"
+        replacement_check: "scripts/check_self_review.py runs before any push/PR-open, gate on
+          or off; non-zero exit hard-halts to a human (C8, F8, SE-8, REC8)"
+        skip_recorded: "\"gate skipped by config (gates.plays.propose-change)\" — SKILL.md Step 2"
+        reversible: "\"flipping the config back to on restores the wait\" — Recompile note"
+        verdict: "conforms"
+      - play: review-change
+        gate_config: "gates.plays.review-change: off (same diff)"
+        replacement_check: "compute_verdict.py's recommendation becomes decision.yaml
+          (decided_by: harness), posted as a clearly marked harness verdict (F10/SE-10/REC10);
+          review-pr.bypass untouched"
+        skip_recorded: "\"gate skipped by config (gates.plays.review-change)\" — SKILL.md Step 5"
+        reversible: "\"flipping the config back to on restores the human wait unchanged\" —
+          Recompile note"
+        verdict: "conforms"
+      - play: merge-change
+        gate_config: "gates.plays.merge-change: off (same diff)"
+        replacement_check: "merge proceeds only when approved:true, mergeable:true, and no
+          failing required checks all hold (C7, F7, SE-7, REC7); otherwise halts exactly as
+          pre-flight does"
+        skip_recorded: "\"gate skipped by config (gates.plays.merge-change)\" — SKILL.md Step 2"
+        reversible: "\"flipping the per-play config back to on restores the wait unchanged\" —
+          Recompile note"
+        verdict: "conforms"
+    verdict: "conforms"
+    severity: null
 
-  - id: check-3-adr-025-determinism
-    category: harness
-    description: >
-      In-loop gate resolution stays classify (pattern counts) + file lookup; no
-      inference is introduced inside the loop.
-    principle: >
-      adr-025 ("Determinism lives at the skeleton, never inside the boxes") and gate-learning-design Part 1.1/1.4 ("No inference anywhere: every axis is countable")
-    method: >
-      Read core/components/plays/play-creator/references/classify_change.py in
-      full for any model/LLM call, and diffed the canonical copy against the
-      11 stamped copies under each play's scripts/.
-    verdict: conforms
-    details: >
-      classify_change.py's own docstring states "No inference anywhere: every axis
-      is countable" and the script body is pure regex/difflib counting against
-      fixed axes (nodes_added, nodes_removed, status_changes, profile_bars_changed,
-      decisions_added, sections_rewritten, prose_edits) — no import of any model
-      client, no network call. All 11 stamped scripts/classify_change.py (and
-      distill_gate_policy.py, gate_eval.py) are byte-identical to the canonical
-      play-creator/references/ copies (diff empty for all three scripts across all
-      11 plays) — the loop calls the same deterministic classifier and policy
-      lookup everywhere, matching ADR 025's rule that learning happens between runs
-      (the close-time distill) and runtime stays a file lookup.
+  - id: P3
+    check: "The ruled table respected: exactly these five ruled 'off' plays touched; pinned
+      (grill/launch/learn) and conditional (the eleven) plays untouched by this diff."
+    method: "Enumerated every play directory touched in the diff
+      (grep 'diff --git.*plays/' pr.diff): commit-change, merge-change, propose-change,
+      review-change, start-change, play-creator (canonical script copies only — not a
+      pipeline-play checkpoint). No grill/launch/learn/vision/understand/shape/roadmap/ux/
+      agentic/marketing/arch/quality/run/measure directory appears. config.yaml's
+      gates.plays block after the diff lists exactly these five keys, all 'off'; the
+      one-way-door CLASS default remains 'on'; no 'deploy' key was added (consistent with
+      'deploy unruled/held as-is')."
+    verdict: "conforms"
+    severity: null
 
-  - id: check-4-467-ruling-conformance
-    category: harness
-    description: >
-      The eleven conditional plays touched match the ruled list exactly; vision's
-      wiring conforms to its ruling as conditional (not pinned); grill, launch,
-      learn are untouched.
-    principle: >
-      gate-config ("the eleven document plays ... are conditional") and gate-learning-design's gate taxonomy table (ruled 2026-07-04)
-    method: >
-      Diffed changed play directories against the ruled conditional list; read
-      origin/main's vision/reference/ice.md checkpoint clause (C7) to confirm
-      vision was never pinned before this PR.
-    verdict: conforms
-    details: >
-      Plays touched: agentic, arch, marketing, measure, quality, roadmap, run,
-      shape, understand, ux, vision — exactly the eleven named in gate-config.md
-      and the design doc's ruled table, no more, no fewer. grill, launch, learn,
-      deploy, and the pipeline/execute plays show zero diff. On origin/main,
-      vision's checkpoint (C7) was already a plain unconditional human checkpoint
-      with no `pinned` declaration — so there was nothing to "unpin"; this PR wires
-      it conditional for the first time, which is exactly what the ruling calls
-      for (vision is in the ruled conditional set, not the pinned set).
+  - id: P4
+    check: "review-change's harness-verdict path keeps C9 (never silent, always posted,
+      decider named) and review-pr.bypass semantics."
+    evidence: "SKILL.md Step 6: \"The comment ALWAYS names its decider ... so no reader
+      mistakes it for a human review (C8, F10)\"; \"A verdict rendered AND posted counts as
+      done regardless of approve/reject (C9)\"; F10/REC10/SE-10 guard decision.yaml ==
+      recommendation verbatim when off. 'review-pr.bypass remains a SEPARATE, pre-existing
+      config ... untouched by this switch' (Step 5); Recompile note: 'a REJECT stands exactly
+      as a human reject would (fix the cited findings, re-raise; review-pr.bypass untouched)'."
+    verdict: "conforms"
+    severity: null
 
-  - id: check-5-wiring-intact
-    category: harness
-    description: >
-      Play→agent→skill→script wiring stays intact; the checkpoint remains
-      play-owned; no JSON contract collapses into inline work.
-    principle: >
-      gate-learning-design Part 1.4 (runtime application is "the conditional play's checkpoint step" — i.e. the play, not an agent) and the committed CLAUDE.md Agent-First rule (agents craft context, skills produce artifacts, plays orchestrate)
-    method: >
-      Read the "Owner:" tag on the Human review checkpoint step in run/SKILL.md and
-      quality/SKILL.md.
-    verdict: conforms
-    details: >
-      Both checkpoint steps read "Owner: play" — the checkpoint (classify → policy
-      lookup → auto-pass/gate → ledger append) is play-orchestrated, calling the
-      bundled scripts directly, not delegated to an agent. This matches the design:
-      the learning mechanism is deterministic tooling the play itself runs, not a
-      judgement call handed to an agent.
+  - id: P5
+    check: "merge-change: one-way-door CLASS untouched for other plays (deploy still gated)."
+    evidence: "ICE C7 and SKILL.md Step 2 both state: 'the one-way-door CLASS stays on for
+      other plays' / 'for every other play'. The per-play override (gates.plays.merge-change)
+      is the only thing flipped; gates.classes.one-way-door remains 'on' in config.yaml.
+      deploy is not present in changed_paths or in the config diff — untouched, still
+      resolves to gates.classes.one-way-door = on (unchanged)."
+    verdict: "conforms"
+    severity: null
 
-  - id: check-6-memory-template-conformance
-    category: memory
-    description: >
-      approval-prompt.md's gate-switch section matches gate-config.md's rule with
-      no contradiction.
-    principle: >
-      gate-config (three kinds, resolution order, auto-pass behaviour) — the template must describe the same switch the rule defines
-    method: >
-      Diffed approval-prompt.md between origin/main and this branch; compared the
-      new text against gate-config.md (already-committed on main since PR #480).
-    verdict: conforms
-    details: >
-      The added "Gate switch (#466, three kinds per #467)" section states the same
-      5-step resolution order as gate-config.md (pinned → gates.plays → conditional
-      policy lookup w/ blocking-finding guard → gates.classes → gates.default) and
-      adds an "auto-pass" behaviour block whose wording (record a Checkpoint
-      Decisions row, append the ledger with predicted:auto/human:auto_pass, never
-      silent) matches gate-config.md's "Behaviour of the switch" section and the
-      Runtime application text (Part 1.4) in the design doc. No contradiction
-      found between template and rule.
+findings: []
+# No violations found. Every check above conforms to the committed grounding (gate-config.md
+# off-row, ADR 025's pinned/conditional/off ruling, issue #467's ruled comment, and the
+# committed Stage-4 design doc's Part 2 per-play replacement-check table). Nothing in this
+# diff was grounded from the branch's own new prose — every cited principle predates this
+# branch on origin/main or in the issue thread.
 
 summary:
-  categories_checked: [harness, memory]
-  total_checks: 6
-  conforms: 6
-  findings: 0
-  note: >
-    No P1-P4 findings raised. Every principle cited above traces to a source
-    committed on origin/main before this branch (ADR 025, gate-config.md, the
-    #467 design doc, and CLAUDE.md's play-pipeline rule) or to the prior
-    (origin/main) version of approval-prompt.md — none was reconstructed from
-    this branch's own diff-added prose. Grounding was reconstructable for both
-    design-bearing categories; no "grounding unavailable" gap encountered.
+  category: harness
+  checks_run: 5
+  checks_conforming: 5
+  findings_emitted: 0
+  grounding_gaps: 0

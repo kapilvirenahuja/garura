@@ -1,109 +1,66 @@
-# categories.yaml — work categories present in PR #482 (issue #467)
-# Derived from diff content + changed_paths, judged against
-# /Users/kapilahuja/.garura/core/memory/knowledge/review/_index.md and its playbooks.
-# Total changed paths: 66
+# categories.yaml — PR #483 (issue #467), review-change Job 1
+# Derived from actual diff content, not a presumed list.
 
 categories:
   - category: harness
     description: >
-      The eleven document plays' compiled SKILL.md + ICE (reference/ice.md), and the
-      stamped gate-learning scripts (classify_change.py, distill_gate_policy.py,
-      gate_eval.py) under each play's scripts/ directory, plus the canonical (non-test)
-      copies of those three scripts in play-creator/references/. This is the MD-defined
-      "code" of the agentic system — plays wiring conditional-gate resolution.
+      Play definitions (SKILL.md + ICE source) for five plays in the propose→commit→
+      review→merge chain, edited to turn off human confirm-gates and route to the new
+      replacement machine checks.
+    evidence:
+      - core/components/plays/commit-change/SKILL.md
+      - core/components/plays/commit-change/reference/ice.md
+      - core/components/plays/merge-change/SKILL.md
+      - core/components/plays/merge-change/reference/ice.md
+      - core/components/plays/propose-change/SKILL.md
+      - core/components/plays/propose-change/reference/ice.md
+      - core/components/plays/review-change/SKILL.md
+      - core/components/plays/review-change/reference/ice.md
+      - core/components/plays/start-change/SKILL.md
+      - core/components/plays/start-change/reference/ice.md
     playbook: knowledge/review/harness.md
-    evidence:
-      - core/components/plays/agentic/SKILL.md
-      - core/components/plays/agentic/reference/ice.md
-      - core/components/plays/agentic/scripts/classify_change.py
-      - core/components/plays/agentic/scripts/distill_gate_policy.py
-      - core/components/plays/agentic/scripts/gate_eval.py
-      - core/components/plays/arch/SKILL.md
-      - core/components/plays/arch/reference/ice.md
-      - core/components/plays/arch/scripts/classify_change.py
-      - core/components/plays/arch/scripts/distill_gate_policy.py
-      - core/components/plays/arch/scripts/gate_eval.py
-      - core/components/plays/marketing/SKILL.md
-      - core/components/plays/marketing/reference/ice.md
-      - core/components/plays/marketing/scripts/classify_change.py
-      - core/components/plays/marketing/scripts/distill_gate_policy.py
-      - core/components/plays/marketing/scripts/gate_eval.py
-      - core/components/plays/measure/SKILL.md
-      - core/components/plays/measure/reference/ice.md
-      - core/components/plays/measure/scripts/classify_change.py
-      - core/components/plays/measure/scripts/distill_gate_policy.py
-      - core/components/plays/measure/scripts/gate_eval.py
-      - core/components/plays/play-creator/references/classify_change.py
-      - core/components/plays/play-creator/references/distill_gate_policy.py
-      - core/components/plays/play-creator/references/gate_eval.py
-      - core/components/plays/quality/SKILL.md
-      - core/components/plays/quality/reference/ice.md
-      - core/components/plays/quality/scripts/classify_change.py
-      - core/components/plays/quality/scripts/distill_gate_policy.py
-      - core/components/plays/quality/scripts/gate_eval.py
-      - core/components/plays/roadmap/SKILL.md
-      - core/components/plays/roadmap/reference/ice.md
-      - core/components/plays/roadmap/scripts/classify_change.py
-      - core/components/plays/roadmap/scripts/distill_gate_policy.py
-      - core/components/plays/roadmap/scripts/gate_eval.py
-      - core/components/plays/run/SKILL.md
-      - core/components/plays/run/reference/ice.md
-      - core/components/plays/run/scripts/classify_change.py
-      - core/components/plays/run/scripts/distill_gate_policy.py
-      - core/components/plays/run/scripts/gate_eval.py
-      - core/components/plays/shape/SKILL.md
-      - core/components/plays/shape/reference/ice.md
-      - core/components/plays/shape/scripts/classify_change.py
-      - core/components/plays/shape/scripts/distill_gate_policy.py
-      - core/components/plays/shape/scripts/gate_eval.py
-      - core/components/plays/understand/SKILL.md
-      - core/components/plays/understand/reference/ice.md
-      - core/components/plays/understand/scripts/classify_change.py
-      - core/components/plays/understand/scripts/distill_gate_policy.py
-      - core/components/plays/understand/scripts/gate_eval.py
-      - core/components/plays/ux/SKILL.md
-      - core/components/plays/ux/reference/ice.md
-      - core/components/plays/ux/scripts/classify_change.py
-      - core/components/plays/ux/scripts/distill_gate_policy.py
-      - core/components/plays/ux/scripts/gate_eval.py
-      - core/components/plays/vision/SKILL.md
-      - core/components/plays/vision/reference/ice.md
-      - core/components/plays/vision/scripts/classify_change.py
-      - core/components/plays/vision/scripts/distill_gate_policy.py
-      - core/components/plays/vision/scripts/gate_eval.py
-    note: >
-      Every SKILL.md/ice.md pair changed together, consistent with the play-pipeline rule
-      that an intent-bearing change must trace to reference/ice.md and not be a hand-edit of
-      the compiled SKILL.md alone — confirm this at Layer 2, don't presume it from the count.
+    playbook_present: true
 
-  - category: memory
+  - category: executable_code
     description: >
-      The standards template describing three-kind gate resolution (pinned/conditional/off)
-      shown at approval time. Shapes what every downstream play believes about gate
-      resolution, so it carries the same depth as harness code.
-    playbook: knowledge/review/memory.md
+      Deterministic python scripts that mechanically replace three human confirm-gates
+      (validate the new-issue title/description, scan the self-review for blockers).
+      Canonical copies live under play-creator/references; per-play copies are deployed
+      under propose-change/scripts and start-change/scripts.
     evidence:
-      - core/components/memory/standards/templates/approval-prompt.md
+      - core/components/plays/play-creator/references/check_self_review.py
+      - core/components/plays/play-creator/references/validate_issue.py
+      - core/components/plays/propose-change/scripts/check_self_review.py
+      - core/components/plays/start-change/scripts/validate_issue.py
+    playbook: knowledge/review/code.md
+    playbook_present: true
 
   - category: tests
     description: >
-      The canonical fixture-test suite for the gate-learning spine — asserts against
-      classify_change.py, gate_eval.py, and distill_gate_policy.py using tempdirs, no test
-      framework. Judged by content (an executable test suite with asserts), not by its
-      play-creator/references/ path, which otherwise looks like harness scripting.
-    playbook: knowledge/review/tests.md
+      Fixture/subprocess tests (plain asserts, tempdirs) exercising validate_issue.py and
+      check_self_review.py end to end.
     evidence:
-      - core/components/plays/play-creator/references/test_gate_learning.py
+      - core/components/plays/play-creator/references/test_chain_checks.py
+    playbook: knowledge/review/tests.md
+    playbook_present: true
+    note: "tests.md requires the tool to RUN the suite, not just read it — flag for the linter/eval stage."
 
-  - category: generated-stm-run-records
+  - category: config_maps
     description: >
-      Machine-generated context/evidence artifacts written by the review-change and
-      self-review plays themselves (branch metadata, PR metadata, commit log, working-tree
-      porcelain snapshot, and the self-review report) — not authored design or knowledge
-      content. Same shape flagged as an unplaybooked category in the prior reviews for
-      #478/PR479 and #467/PR480; not force-fit into an existing playbook here either.
-    playbook: null
-    playbook_status: "playbook missing — recurring category, not yet seeded on the review shelf"
+      Project config.yaml path-wiring change (garura's own path map).
+    evidence:
+      - .garura/core/config.yaml
+    playbook: knowledge/review/config-maps.md
+    playbook_present: true
+
+  - category: generated_stm_run_records
+    description: >
+      Machine-generated per-issue run artifacts written by the propose/commit pipeline
+      itself for this branch: branch metadata, commit log, a git-porcelain snapshot, PR
+      metadata, an analysis grouping, and the self-review notes. Not authored design,
+      not code, not knowledge — a byproduct of running the play chain on issue #467.
+      Consistent with prior reviews on this repo: generated STM run-records have no
+      governing playbook on the review shelf.
     evidence:
       - .garura/project/issues/467/context/analysis.yaml
       - .garura/project/issues/467/context/branch.json
@@ -111,12 +68,12 @@ categories:
       - .garura/project/issues/467/context/porcelain.txt
       - .garura/project/issues/467/context/pr.json
       - .garura/project/issues/467/context/self-review.md
+    playbook: null
+    playbook_present: false
+    note: "playbook missing — same gap flagged on prior reviews; follow-up task raised to seed a generated-artifact/STM-record playbook on the review shelf."
 
-categories_absent:
-  - "Decision records (adrs.md) — no docs/adr/** paths in the diff."
-  - "Documentation (docs.md) — no docs/** prose paths in the diff."
-  - "Executable code (code.md) — no application source outside the harness/test files above."
-  - "Config maps (config-maps.md) — no wiring/config files in the diff."
-
-changed_path_count: 66
-evidence_path_count_check: "6 (stm-run-records) + 1 (memory) + 58 (harness) + 1 (tests) = 66"
+summary:
+  total_changed_paths: 22
+  categories_present: 5
+  categories_with_playbook: 4
+  categories_without_playbook: 1

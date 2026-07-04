@@ -1,245 +1,57 @@
 meta:
-  generated_at: "2026-07-04T11:28:18Z"
+  generated_at: "2026-07-04T13:51:54Z"
   diff_path: ".garura/project/issues/467/review/pr.diff"
-  changed_paths_count: 16
+  changed_paths_count: 5
+  scope_note: >
+    Scoped run per orchestrator instruction — evaluates only the CODE category
+    (4 files: check_self_review.py + validate_issue.py, canonical copies under
+    play-creator/references/ and their stamped deploy copies under
+    propose-change/scripts/ and start-change/scripts/) and the config category
+    (.garura/core/config.yaml). The other 17 changed paths in PR #483
+    (harness SKILL.md/ice.md prose, test_chain_checks.py, generated STM run
+    records) belong to other review categories per categories.yaml and were
+    NOT evaluated here.
   scan_coverage: 1.0
   taxonomy_path: "./core/components/memory/standards/rules/pr.md"
-  standards_relevant: 16
-  standards_with_findings: 6
-  note: >
-    All 16 changed paths classify as either `stm-evidence` (.garura/core/**,
-    .garura/project/**) or `garura-prose` (core/components/**) per the
-    Artifact-Type Scoping table (#438) — first-match-wins glob order puts
-    `core/components/**` ahead of `tests`/`runtime-code`, so the four new
-    play-creator reference scripts (including test_gate_learning.py) all
-    classify as garura-prose despite being executable Python. This makes
-    every grep: and grep+path: rule in the taxonomy ineligible on this diff
-    (no security/injection/error-handling rows can fire). Only pure path:
-    rules are unaffected by artifact type and remain eligible. Of the 16
-    path: rows whose glob matched a changed path, 10 were verified against
-    their KB check definition (Step 4) and produced zero genuine violations
-    (no threshold breach, no manual-review signal, no tool available) — they
-    are NOT emitted as findings per F3 (no fabricated findings). The 6 rows
-    below produced real, tool-verified evidence (ruff check + ruff format
-    --diff + AST-measured complexity/length/nesting against
-    quality/code/complexity-structure.md and quality/code/linting-formatting.md
-    thresholds) and are emitted.
+  standards_relevant: 12
+  standards_with_findings: 0
+  artifact_type_note: >
+    All 4 python files classify as `garura-prose` (core/components/** wins
+    first-match in the Artifact-Type Scoping table, #438) despite being real
+    executable scripts — this makes every grep: and grep+path: taxonomy row
+    ineligible (no SEC-*/BE-*/ARCH-* row can fire regardless of content).
+    .garura/core/config.yaml classifies as `stm-evidence`
+    (.garura/core/** in the same table) for the same reason. Only pure
+    path: rows remain eligible; those were evaluated for real using ruff
+    (default ruleset + format --diff), radon (cyclomatic complexity), and an
+    AST-based nesting/line-count pass against the KB thresholds in
+    quality/code/complexity-structure.md and quality/code/linting-formatting.md.
+  tool_evidence:
+    - "ruff check (default ruleset): All checks passed! — 0 warnings on all 4 files"
+    - "ruff format --diff: 4 files already formatted — 0 diff"
+    - "black --check --diff: 4 files would be left unchanged — 0 diff (cross-check)"
+    - "radon cc -s: check_self_review.py main()=6, fail()=1; validate_issue.py main()=10, read_description()=5, fail()=1 — all ≤10 (CODE-09 threshold)"
+    - "AST line/depth scan: longest function 38 lines (≤50, CODE-10); max nesting depth 2 (≤4, CODE-11); largest file 88 lines (≤300, CODE-12)"
   dropped_no_violation:
-    - {standard_id: CODE-20, reason: "file-naming convention check (KB) — all touched files already snake_case/kebab-case, no violation"}
-    - {standard_id: FE-16, reason: "KB check is design-system component reuse — inapplicable to Python scripts; glob only fired on 'core/components/**' path-name collision"}
-    - {standard_id: ARCH-02, reason: "no circular dependencies — new scripts call each other via subprocess, not import"}
-    - {standard_id: ARCH-03, reason: "KB threshold is 500 lines/file — largest new file is 194 lines"}
-    - {standard_id: ARCH-08, reason: "module boundaries match functional boundaries (classifier/ledger/distiller are each single-purpose) — no automatable evidence of mismatch"}
-    - {standard_id: CODE-12, reason: "KB threshold is 300 lines/file — largest new file is 194 lines"}
-    - {standard_id: CODE-13, reason: "Single Responsibility is a manual-review-gate check — no automatable evidence"}
-    - {standard_id: CODE-14, reason: "no circular dependencies found"}
-    - {standard_id: CODE-15, reason: "cognitive-complexity check requires SonarQube — tool unavailable, no fabricated score"}
-    - {standard_id: CODE-19, reason: "no mixed-case constants found — HERE, PY, AXES, STRUCTURAL etc. already SCREAMING_SNAKE_CASE"}
-  scan_gap: >
-    test_gate_learning.py is functionally a test file (categories.yaml calls
-    it out as the "tests" category) but the TEST-* taxonomy rows all require
-    a path segment literally named test/tests/__tests__/spec — the file
-    lives in references/, not a tests/ directory, so no TEST-* row's path:
-    glob matches it. It was still audited under the CODE-* rows (extension-
-    based, directory-agnostic), so no coverage was actually missed — flagging
-    for visibility since categories.yaml and the taxonomy disagree on where
-    test-file rules attach.
+    - {standard_id: CODE-01, reason: "no linter config file (.eslintrc/.pyproject.toml[pylint]/ruff.toml) changed in diff — row does not match any of the 5 scoped paths"}
+    - {standard_id: CODE-02, reason: "no formatter config file changed in diff — row does not match"}
+    - {standard_id: CODE-03, reason: "ruff check (default ruleset) clean — 0 warnings on all 4 files"}
+    - {standard_id: CODE-04, reason: "ruff format --diff and black --check both produce zero diff on all 4 files"}
+    - {standard_id: CODE-09, reason: "cyclomatic complexity ≤10 in every function (radon), threshold not breached"}
+    - {standard_id: CODE-10, reason: "longest function is 38 lines, threshold ≤50 not breached"}
+    - {standard_id: CODE-11, reason: "max nesting depth 2, threshold ≤4 not breached"}
+    - {standard_id: CODE-12, reason: "largest file is 88 lines, threshold ≤300 not breached"}
+    - {standard_id: CODE-13, reason: "Single Responsibility is a manual-review-gate check (KB) — each script does exactly one job (validate an issue / scan a self-review); no automatable evidence of violation"}
+    - {standard_id: CODE-14, reason: "no circular dependencies — the two scripts do not import each other or any local module"}
+    - {standard_id: CODE-15, reason: "cognitive-complexity check requires SonarQube (KB tool reference) — tool unavailable in this environment, no fabricated score"}
+    - {standard_id: CODE-17, reason: "ruff (default ruleset, which includes E741 ambiguous-name) found no naming violations — identifiers are clear (title, desc, problems, verdict, blockers)"}
+    - {standard_id: CODE-19, reason: "no case-convention violations — all constants/identifiers already consistent snake_case"}
+    - {standard_id: CODE-20, reason: "catch-all path:**/* row (P4, evidence=file only) fired on all 5 scoped files but carries no computable violation signal; logged for audit, not emitted as a finding"}
 
-findings:
-  - standard_id: CODE-04
-    severity: P2
-    file: core/components/plays/play-creator/references/classify_change.py
-    line: 1
-    evidence: "ruff format --diff produces a non-empty diff (multi-line collection literals not wrapped per Black-style formatting)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-04
-
-  - standard_id: CODE-09
-    severity: P3
-    file: core/components/plays/play-creator/references/classify_change.py
-    line: 83
-    evidence: "classify_pair(): cyclomatic complexity 39 (threshold ≤10, quality/code/complexity-structure.md CODE-09)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-09
-
-  - standard_id: CODE-10
-    severity: P3
-    file: core/components/plays/play-creator/references/classify_change.py
-    line: 83
-    evidence: "classify_pair(): 57 lines (threshold ≤50, CODE-10)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-10
-
-  - standard_id: CODE-11
-    severity: P3
-    file: core/components/plays/play-creator/references/classify_change.py
-    line: 83
-    evidence: "classify_pair(): max nesting depth 5 (threshold ≤4, CODE-11)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-11
-
-  - standard_id: CODE-17
-    severity: P3
-    file: core/components/plays/play-creator/references/classify_change.py
-    line: 86
-    evidence: "ruff E741: ambiguous variable name `l` in `minus = [l[1:] for l in diff if l.startswith(\"-\")...]`"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-17
-
-  - standard_id: CODE-17
-    severity: P3
-    file: core/components/plays/play-creator/references/classify_change.py
-    line: 87
-    evidence: "ruff E741: ambiguous variable name `l` in `plus = [l[1:] for l in diff if l.startswith(\"+\")...]`"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-17
-
-  - standard_id: CODE-09
-    severity: P3
-    file: core/components/plays/play-creator/references/classify_change.py
-    line: 146
-    evidence: "main(): cyclomatic complexity 18 (threshold ≤10, CODE-09)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-09
-
-  - standard_id: CODE-04
-    severity: P2
-    file: core/components/plays/play-creator/references/distill_gate_policy.py
-    line: 1
-    evidence: "ruff format --diff produces a non-empty diff (multi-line dict/call literals not wrapped per Black-style formatting)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-04
-
-  - standard_id: CODE-09
-    severity: P3
-    file: core/components/plays/play-creator/references/distill_gate_policy.py
-    line: 52
-    evidence: "read_existing_policy(): cyclomatic complexity 14 (threshold ≤10, CODE-09)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-09
-
-  - standard_id: CODE-11
-    severity: P3
-    file: core/components/plays/play-creator/references/distill_gate_policy.py
-    line: 52
-    evidence: "read_existing_policy(): max nesting depth 5 (threshold ≤4, CODE-11)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-11
-
-  - standard_id: CODE-09
-    severity: P3
-    file: core/components/plays/play-creator/references/distill_gate_policy.py
-    line: 81
-    evidence: "distill(): cyclomatic complexity 16 (threshold ≤10, CODE-09)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-09
-
-  - standard_id: CODE-11
-    severity: P3
-    file: core/components/plays/play-creator/references/distill_gate_policy.py
-    line: 81
-    evidence: "distill(): max nesting depth 5 (threshold ≤4, CODE-11)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-11
-
-  - standard_id: CODE-04
-    severity: P2
-    file: core/components/plays/play-creator/references/gate_eval.py
-    line: 1
-    evidence: "ruff format --diff produces a non-empty diff (multi-line dict literal not wrapped per Black-style formatting)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-04
-
-  - standard_id: CODE-04
-    severity: P2
-    file: core/components/plays/play-creator/references/test_gate_learning.py
-    line: 1
-    evidence: "ruff format --diff produces a non-empty diff (semicolon-joined statements split across lines)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-04
-
-  - standard_id: CODE-09
-    severity: P3
-    file: core/components/plays/play-creator/references/test_gate_learning.py
-    line: 43
-    evidence: "test_classifier(): cyclomatic complexity 12 (threshold ≤10, CODE-09)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-09
-
-  - standard_id: CODE-10
-    severity: P3
-    file: core/components/plays/play-creator/references/test_gate_learning.py
-    line: 43
-    evidence: "test_classifier(): 58 lines (threshold ≤50, CODE-10)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-10
-
-  - standard_id: CODE-03
-    severity: P2
-    file: core/components/plays/play-creator/references/test_gate_learning.py
-    line: 55
-    evidence: "ruff E702: multiple statements on one line (semicolon) — `shutil.rmtree(t); os.makedirs(t)`"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-03
-
-  - standard_id: CODE-03
-    severity: P2
-    file: core/components/plays/play-creator/references/test_gate_learning.py
-    line: 63
-    evidence: "ruff E702: multiple statements on one line (semicolon) — `shutil.rmtree(t); os.makedirs(t)`"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-03
-
-  - standard_id: CODE-03
-    severity: P2
-    file: core/components/plays/play-creator/references/test_gate_learning.py
-    line: 71
-    evidence: "ruff E702: multiple statements on one line (semicolon) — `shutil.rmtree(t); os.makedirs(t)`"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-03
-
-  - standard_id: CODE-03
-    severity: P2
-    file: core/components/plays/play-creator/references/test_gate_learning.py
-    line: 78
-    evidence: "ruff E702: multiple statements on one line (semicolon) — `shutil.rmtree(t); os.makedirs(t)`"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-03
-
-  - standard_id: CODE-03
-    severity: P2
-    file: core/components/plays/play-creator/references/test_gate_learning.py
-    line: 85
-    evidence: "ruff E702: multiple statements on one line (semicolon) — `shutil.rmtree(t); os.makedirs(t)`"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-03
-
-  - standard_id: CODE-03
-    severity: P2
-    file: core/components/plays/play-creator/references/test_gate_learning.py
-    line: 92
-    evidence: "ruff E702: multiple statements on one line (semicolon) — `shutil.rmtree(t); os.makedirs(t)`"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-03
-
-  - standard_id: CODE-09
-    severity: P3
-    file: core/components/plays/play-creator/references/test_gate_learning.py
-    line: 117
-    evidence: "test_learner(): cyclomatic complexity 16 (threshold ≤10, CODE-09)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-09
-
-  - standard_id: CODE-10
-    severity: P3
-    file: core/components/plays/play-creator/references/test_gate_learning.py
-    line: 117
-    evidence: "test_learner(): 63 lines (threshold ≤50, CODE-10)"
-    artifact_type: garura-prose
-    taxonomy_rule_id: CODE-10
+findings: []
 
 counts:
   P1: 0
-  P2: 10
-  P3: 14
+  P2: 0
+  P3: 0
   P4: 0
