@@ -1,0 +1,42 @@
+# analyze_changeset.py output (C8 fast path) + agent grouping pass
+# issue: 465
+needs_judgment: false
+
+change_groups:
+  - id: recompile-commit-change-loop
+    issue: 465
+    commit_type: feat
+    scope: components
+    subject: "recompile commit-change play with loop workflow and stop-condition manifest"
+    files:
+      - core/components/plays/commit-change/reference/ice.md
+      - core/components/plays/commit-change/SKILL.md
+      - core/components/plays/commit-change/scripts/execute_commits.py
+      - core/components/plays/commit-change/stop-condition.yaml
+      - core/components/plays/commit-change/scripts/check_stop_condition.py
+  - id: commit-change-pilot-context
+    issue: 465
+    commit_type: chore
+    scope: stm
+    subject: "record commit-change pilot context for #465"
+    files:
+      - .garura/project/issues/465/context/work-description.txt
+      - .garura/project/issues/465/context/issue.json
+      - .garura/project/issues/465/context/branch.json
+      - .garura/project/issues/465/context/porcelain.txt
+
+exclusions:
+  - path: ".garura/project/issues/465/status/session-stamp-commit-change.json"
+    reason: "play run-state directory — mutated by the running play itself; committed later by an stm chore commit, never by its own run"
+    blocking: false
+  - path: ".garura/project/issues/465/status/session-stamp-start-change.json"
+    reason: "play run-state directory — mutated by the running play itself; committed later by an stm chore commit, never by its own run"
+    blocking: false
+
+risks:
+  sensitive_files:
+    []
+
+eval_gates:
+  SE-1: {status: PASS, evidence: "grouped by concern: components recompile (feat) vs STM pilot context (chore); single-issue branch #465, no unrelated issues present"}
+  SE-5: {status: PASS, evidence: "no sensitive patterns matched; no credentials/keys/secrets in changed files"}
