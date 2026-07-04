@@ -71,6 +71,15 @@ decisions 20 + 24; ADR 019, #439)
   opens it, never by one that runs `python3 -m unittest`. A scenario whose verb does not
   match the surface is a semantic mismatch and is rejected before the walk — the scenario
   set is rebuilt to preserve the surface's verbs.
+- C12 — The play ends by proving its Done means at close (gated, #464): the sign-off gate
+  resolved either way — `release` with zero rejections, or `fix_required` with the defect
+  recorded — counts as done; an unresolved walk does not. The HITL walk is a NATURAL
+  loop — one scenario at a time until every scenario carries the human's typed answer —
+  and its exit is the complete sign-off (or a rejection recorded), NEVER an iteration
+  cap: a human's scenarios are never capped; the cap concept does not apply to a HITL
+  walk. The gate always writes its final resolution — `gate.json` carries
+  `{resolved: true, outcome: release|fix_required}` on BOTH outcomes; a blocked record
+  leaves it unresolved and the run open.
 
 ### Failure conditions
 
@@ -94,6 +103,9 @@ decisions 20 + 24; ADR 019, #439)
 - F10 — A HITL scenario covered a `must_open` artifact with the wrong user verb — a
   unit-test run stood in for an "open" check — and the walk presented it anyway instead of
   rejecting the verb mismatch before the human ever saw it.
+- F11 — COMPLETED without the gate resolved — `gate.json` missing or its `resolved` field
+  not true: the walk never finished, or the record stayed blocked, and the run closed as
+  done anyway.
 
 ## Expectation
 
@@ -120,6 +132,15 @@ decisions 20 + 24; ADR 019, #439)
 - S5 — (operator, safe environment) Given the deploy, then only the declared local
   environment was touched. Measure: the deploy record's environment matches the lens's
   declared local environment; no cloud-tier target appears anywhere in the run.
+
+### Done means
+
+- D1 — says: "the HITL scenario set exists"
+  check: { type: artifact_exists, path: "launch/scenarios.yaml" }
+- D2 — says: "the sign-off gate produced its record"
+  check: { type: artifact_exists, path: "launch/gate.json" }
+- D3 — says: "the gate resolved either way — release or fix_required"
+  check: { type: field_equals, file: "launch/gate.json", field: "resolved", equals: true }
 
 ### Recovery (one per failure condition)
 
@@ -151,3 +172,9 @@ decisions 20 + 24; ADR 019, #439)
   artifact's user verb — a unit-test run covering an "open" check. direction: reject before
   the walk; rebuild the scenario set so each scenario preserves the surface's verb for the
   artifact it covers, then re-run the coverage and verb gate. handoff: autonomous.
+- REC11 (F11) — trigger: the run is about to close COMPLETED with the gate unresolved —
+  `gate.json` missing or `resolved` not true. direction: return to the open scenarios (or
+  fix the blocked record per its errors), re-run the close gate so `gate.json` carries its
+  final resolution, then re-evaluate the stop condition; the close stays HALTED until the
+  verdict reads held. The walk is never capped — the only exit is the resolved gate.
+  handoff: autonomous.

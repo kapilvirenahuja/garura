@@ -16,7 +16,11 @@ Refusals:
   - epic `delivered` or `ready` → refuse, always
 
     python3 stamp_epic.py --product-base <pb> --epic <epic-id> --verdict-file <verdict.json>
-        [--dry-run]
+        [--record <verdict.json>] [--dry-run]
+
+--record (#464, Done means D4): on a successful stamp, mark the named verdict
+artifact `stamped: true` in place — the stop-condition gate reads that field at
+close. A refused or dry-run stamp never records.
 
 Prints {ok, changed, epic_id, status, errors[]}. Exit 0 ok, 1 refuse, 2 usage.
 """
@@ -38,6 +42,8 @@ def main():
     ap.add_argument("--product-base", required=True)
     ap.add_argument("--epic", required=True, help="epic id")
     ap.add_argument("--verdict-file", required=True)
+    ap.add_argument("--record",
+                    help="verdict JSON to mark stamped: true on success (#464 D4)")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -101,8 +107,17 @@ def main():
         meta["version"] = int(meta.get("version") or 1) + 1
         with open(spine_path, "w", encoding="utf-8") as fh:
             yaml.safe_dump(spine, fh, sort_keys=False, allow_unicode=True)
+        if args.record:
+            # #464 Done means D4: the stamp happened — either way — so the verdict
+            # artifact records it. The stop-condition gate reads `stamped` at close.
+            with open(args.record, "r", encoding="utf-8") as fh:
+                rec = json.load(fh)
+            rec["stamped"] = True
+            with open(args.record, "w", encoding="utf-8") as fh:
+                json.dump(rec, fh, indent=2)
     out.update({"ok": True, "changed": not args.dry_run, "status": new_status,
-                "surface_verified": new_status == "validated"})
+                "surface_verified": new_status == "validated",
+                "stamped_recorded": bool(args.record) and not args.dry_run})
     print(json.dumps(out, indent=2))
     sys.exit(0)
 

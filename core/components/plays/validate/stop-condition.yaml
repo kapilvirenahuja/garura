@@ -1,0 +1,21 @@
+# validate stop condition — baked from reference/ice.md "### Done means" (#464/#466 Batch B).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Single-pass play: the Done means is proven once, at the gated close — the implement ↔
+# validate fix loop lives ACROSS runs. A verdict stamped either way (validated or
+# fix_required) counts as done; an unstamped run does not. Paths are relative to the
+# run's STM root ({stm_base}{issue}/).
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the captured check summary exists"
+      check: { type: artifact_exists, path: "context/results/summary.json" }
+    - id: D2
+      says: "the judge's findings record exists"
+      check: { type: artifact_exists, path: "context/findings.yaml" }
+    - id: D3
+      says: "the verdict record exists"
+      check: { type: artifact_exists, path: "context/verdict.json" }
+    - id: D4
+      says: "the verdict was stamped on the epic — either way"
+      check: { type: field_equals, file: "context/verdict.json", field: "stamped", equals: true }

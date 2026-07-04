@@ -39,6 +39,11 @@ injected as the closing chain. This source never hand-rolls issue/branch/PR/merg
   its own sake.
 - C6 — Exactly one human checkpoint on the refactor plan (what improves, why, and how behavior is
   held) before any code changes; after approval no further human approval is requested.
+- C7 — The play ends by proving its Done means at close (gated, #464): the refactor plan exists,
+  the pre-refactor behavior baseline record exists, and behavior preservation is recorded as
+  MACHINE fields — the behavior guard writes a preservation record whose `behavior_preserved`
+  field is true (tests green before AND after, no test weakened) — never as prose in a report.
+  A close whose Done means does not hold reads HALTED, never COMPLETED.
 
 ### Failure conditions
 
@@ -50,6 +55,8 @@ injected as the closing chain. This source never hand-rolls issue/branch/PR/merg
   deviation justification.
 - F5 — Cosmetic churn with no real quality improvement, passed off as a refactor.
 - F6 — The refactor landed (any code change was made) without the single human checkpoint.
+- F7 — The run closed COMPLETED without the Done means held — a missing plan or baseline
+  artifact, or behavior preservation asserted in prose with no machine preservation record.
 
 ## Expectation
 
@@ -78,6 +85,15 @@ injected as the closing chain. This source never hand-rolls issue/branch/PR/merg
   file's assertion count dropped. Measure: `check_behavior_preserved.py` finds no removed or
   weakened test between the before/after test manifests.
 
+### Done means
+
+- D1 — says: "the refactor plan exists"
+  check: { type: artifact_exists, path: "evidence/refactor/refactor-plan.yaml" }
+- D2 — says: "the pre-refactor behavior baseline record exists"
+  check: { type: artifact_exists, path: "evidence/refactor/baseline-verdict.yaml" }
+- D3 — says: "behavior preservation is machine-recorded: green before AND after, no test weakened"
+  check: { type: field_equals, file: "evidence/refactor/preservation.yaml", field: "behavior_preserved", equals: true }
+
 ### Recovery (one per failure condition)
 
 - REC1 (F1) — trigger: a product-model file changed. direction: revert the product-model write and
@@ -96,3 +112,8 @@ injected as the closing chain. This source never hand-rolls issue/branch/PR/merg
 - REC6 (F6) — trigger: a code change was made with no completed checkpoint preceding it. direction:
   hold for the single human approval before any implementation step runs; revert any premature
   edit. handoff: human.
+- REC7 (F7) — trigger: the run is about to close COMPLETED with the Done means unmet (a missing
+  plan or baseline artifact, or preservation asserted in prose with no machine record). direction:
+  produce the missing artifact — re-run the behavior guard with `--out` so the preservation
+  record carries the machine fields — then re-evaluate the stop condition; the close stays HALTED
+  until the verdict reads held. handoff: autonomous.

@@ -20,11 +20,16 @@ absent) AND `passed`/`total` is > 0. A missing baseline or a non-green either si
 
 Usage:
   python3 check_behavior_preserved.py --baseline <yaml> --post <yaml> \
-          --tests-before <yaml> --tests-after <yaml>
+          --tests-before <yaml> --tests-after <yaml> [--out <preservation.yaml>]
 Exit:  0 = behavior proven preserved, 1 = not preserved / a test was weakened, 2 = unreadable.
+
+With --out, the verdict is also written as MACHINE fields (#464 / C7) — the play's
+preservation record consumed by the stop-condition gate:
+  { behavior_preserved: bool, baseline_green: bool, post_green: bool, failures: [str] }
 """
 
 import argparse
+import os
 import sys
 
 try:
@@ -63,6 +68,7 @@ def main(argv=None):
     ap.add_argument("--post", required=True)
     ap.add_argument("--tests-before", required=True)
     ap.add_argument("--tests-after", required=True)
+    ap.add_argument("--out", help="write the machine preservation record (YAML) here (#464/C7)")
     args = ap.parse_args(argv)
 
     try:
@@ -74,11 +80,14 @@ def main(argv=None):
         print(f"check_behavior_preserved: cannot read input: {exc}", file=sys.stderr)
         return 2
 
+    baseline_green = _is_green(baseline)
+    post_green = _is_green(post)
+
     failures = []
-    if not _is_green(baseline):
+    if not baseline_green:
         failures.append("baseline test verdict is not green (behavior was never pinned before "
                         "the refactor)")
-    if not _is_green(post):
+    if not post_green:
         failures.append("post-refactor test verdict is not green (behavior changed or is "
                          "unproven)")
 
@@ -87,6 +96,18 @@ def main(argv=None):
             failures.append(f"test removed: {path}")
         elif after[path] < count:
             failures.append(f"test weakened: {path} ({count} -> {after[path]} assertions)")
+
+    if args.out:
+        record = {
+            "behavior_preserved": not failures,
+            "baseline_green": baseline_green,
+            "post_green": post_green,
+            "failures": failures,
+        }
+        out_dir = os.path.dirname(os.path.abspath(args.out))
+        os.makedirs(out_dir, exist_ok=True)
+        with open(args.out, "w", encoding="utf-8") as fh:
+            yaml.safe_dump(record, fh, sort_keys=False)
 
     if failures:
         print("BEHAVIOR CHECK: FAIL")

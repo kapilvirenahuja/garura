@@ -73,6 +73,10 @@ write is the surgical epic stamp. (#434, decisions 20 + 24)
   type. A required surface the run did not measure is `fix_required`, never `validated` —
   "no browser/API probes available" does not waive the check the surface requires, it fails
   it.
+- C14 — The play ends by proving its Done means at close (gated, #464): a verdict stamped
+  either way — `validated` or `fix_required` — counts as done; an unstamped run does not.
+  The run is SINGLE-PASS: the implement ↔ validate fix loop lives ACROSS runs, never
+  inside one.
 
 ### Failure conditions
 
@@ -94,6 +98,8 @@ write is the surgical epic stamp. (#434, decisions 20 + 24)
   browser/API/CLI promise passed on code-level checks alone (the surface-mapped check was
   never planned, never ran, or the captured surface result did not match the declared
   `surface.type`).
+- F14 — The close proves nothing — COMPLETED without the Done means held (e.g. the checks
+  ran but no verdict was stamped).
 
 ## Expectation
 
@@ -121,6 +127,17 @@ write is the surgical epic stamp. (#434, decisions 20 + 24)
   and a human receives the full round history instead of a fourth round. Measure: after
   the third fail no further automated round exists; the escalation record lists each
   round's findings and fixes.
+
+### Done means
+
+- D1 — says: "the captured check summary exists"
+  check: { type: artifact_exists, path: "context/results/summary.json" }
+- D2 — says: "the judge's findings record exists"
+  check: { type: artifact_exists, path: "context/findings.yaml" }
+- D3 — says: "the verdict record exists"
+  check: { type: artifact_exists, path: "context/verdict.json" }
+- D4 — says: "the verdict was stamped on the epic — either way"
+  check: { type: field_equals, file: "context/verdict.json", field: "stamped", equals: true }
 
 ### Recovery (one per failure condition)
 
@@ -157,3 +174,7 @@ write is the surgical epic stamp. (#434, decisions 20 + 24)
   `fix_required` naming the unmeasured or mismatched surface (the `surface.type` and the
   `must_open`/`human_run_target` it owed), and re-admit /implement to restore the surface so
   the next round can measure it. handoff: autonomous.
+- REC14 (F14) — trigger: the close would stamp COMPLETED without the stop-condition
+  verdict held. direction: evaluate the stop condition, surface the unmet clauses, and
+  close HALTED (`stop_condition_unmet`) until they are fixed — an unevaluable verdict is
+  never a pass. handoff: autonomous.
