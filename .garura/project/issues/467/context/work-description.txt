@@ -1,0 +1,5 @@
+Stage 4 of the IDSD Level 3 epic (#460): reduce human gates on evidence, one risk class at a time.
+
+Using recorded checker-vs-human evidence from Stages 2-3, turn approval gates off per risk class only where the runner has proven it catches what the human was catching. Add a fresh-context reviewer that can auto-approve low-risk change classes. Target ~4 human gates per slice (brief approval, spec approval, acceptance sign-off, one-way-door merges). Bar: zero missed-defect regressions traced to a removed gate.
+
+Tracked issue: #467 (existing — resolve, do not create).

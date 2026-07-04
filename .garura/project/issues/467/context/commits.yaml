@@ -1,0 +1,26 @@
+commits:
+  - sha: 5e3971f
+    message: "feat(play-creator): add the gate-learning spine — deterministic classifier, live-eval ledger, and policy distiller (#467)"
+    files:
+      - core/components/plays/play-creator/references/classify_change.py
+      - core/components/plays/play-creator/references/gate_eval.py
+      - core/components/plays/play-creator/references/distill_gate_policy.py
+      - core/components/plays/play-creator/references/test_gate_learning.py
+    branch: feature/467-reduce-human-gates
+  - sha: b009929
+    message: "docs(standards): document the three gate kinds and the conditional resolution and live-eval loop (#467)"
+    files:
+      - core/components/memory/standards/rules/gate-config.md
+    branch: feature/467-reduce-human-gates
+  - sha: 03c16f9
+    message: "chore(config): wire the conditional gate block — streak, ledger path, and policy path (#467)"
+    files:
+      - .garura/core/config.yaml
+    branch: feature/467-reduce-human-gates
+excluded_files:
+  - path: ".garura/project/issues/467/context/porcelain.txt"
+    reason: "run scratch artifact from the executor's own scan step, not part of the feature"
+leftover_count: 0
+tree_clean: true
+pushed: false
+run_state_committed: true

@@ -1,0 +1,183 @@
+# Layer-2 design-grounding — PR #480 (issue #467), memory category
+# (core/components/memory/standards/rules/gate-config.md rewrite).
+# Grounding sources are ALL committed on origin/main or GitHub; the branch's own
+# gate-learning-design.md is explicitly excluded per the category assessment note.
+
+grounded_principles:
+
+  - id: P-DETERMINISM
+    statement: >
+      Run-time execution stays deterministic; learning/adaptation happens between
+      runs, never as inference inside a play's loop. The interior of a box may loop
+      freely but self-checks only the deterministic slice (linters/checks), never
+      subjective judgment.
+    committed_source: docs/adr/025-level-3-redefined-skeleton-and-loop.md (Decision,
+      "The determinism rule"; "The boundary of self-checking")
+
+  - id: P-PRIOR-RULE
+    statement: >
+      Pre-#467 gate-config.md already established the two-kind switch (on/off),
+      first-match resolution (plays -> classes -> default -> absent=on), pinned
+      gates that no config value can disable, and the invariant that a skip is
+      always recorded as a Checkpoint Decisions row (never silent).
+    committed_source: "git show origin/main:core/components/memory/standards/rules/gate-config.md"
+
+  - id: P-EPIC-STAGE4
+    statement: >
+      Stage 4 (#467) exists to reduce human gates "one risk class at a time,"
+      "only where the runner has proven it catches what the human was catching,"
+      with acceptance criterion "Gate-off decisions backed by recorded
+      checker-vs-human evidence per risk class."
+    committed_source: "GitHub issue #467 (gh issue view 467), Description + Acceptance Criteria"
+
+  - id: P-EPIC-460
+    statement: >
+      Human gates become configuration and are "reduced only on recorded evidence
+      that the runner catches what the human was catching" (epic #460, Stage 3-4).
+    committed_source: "GitHub issue #460 (gh issue view 460), Consequences"
+
+  - id: P-TRINITIES
+    statement: >
+      /grill is the bridge from product model to delivery (a wrong cut poisons
+      everything downstream); /launch is the implement trinity's HITL acceptance
+      check; /learn trues the model after any lane closes and is the only place
+      the product model itself is re-taught.
+    committed_source: docs/adr/023-three-execution-trinities.md (Decision table,
+      point 4)
+
+  - id: P-APPROVAL-PROMPT
+    statement: >
+      The checkpoint's render-time resolution of the gate switch is authoritative
+      in templates/approval-prompt.md: "Gate switch (#466)" section states the
+      lookup order as gates.plays -> gates.classes -> gates.default -> absent=on,
+      with no mention of any policy/conditional step.
+    committed_source: core/components/memory/standards/templates/approval-prompt.md
+      (section "Gate switch (#466)")
+
+  - id: P-PLAY-CLOSE
+    statement: >
+      Checkpoint Decisions rows (Tether/Orbit/Vanish + timestamp) come from the
+      checkpoint files the run wrote; `none` if the play has no gates.
+    committed_source: core/components/memory/standards/rules/play-close.md
+      (Step C1 field list, line ~154)
+
+checks:
+
+  - id: C1-adr025-determinism
+    question: >
+      Does the conditional-gate mechanism (policy lookup in-loop, learning
+      between runs) keep run-time deterministic, and does the rewritten rule
+      put any inference inside a play loop?
+    verdict: conforms
+    severity: null
+    details: >
+      The rewritten gate-config.md states explicitly: "Learning happens BETWEEN
+      runs (the distill at close); inside the loop the policy is a file lookup.
+      Run-time stays deterministic per ADR 025." This matches P-DETERMINISM. The
+      three scripts back this up as committed, non-branch-authored implementation
+      evidence (not grounding, but corroboration): classify_change.py is a pure
+      pattern-count classifier ("No inference anywhere: every axis is a pattern
+      count"), gate_eval.py append requires a caller-supplied --ts ("the script
+      stays replay-deterministic (no wall-clock reads here)"), and
+      distill_gate_policy.py is described as "Pure rule, no inference,
+      replay-deterministic" and runs only at a play's close, not inside its loop.
+      No inference is inserted into the resolution path itself: step 2 of the new
+      resolution order is a lookup against a policy file already on disk.
+
+  - id: C2-resolution-order-guarantees
+    question: >
+      Does the new resolution order (pinned -> plays -> policy -> classes ->
+      default) preserve the two committed guarantees — pinned never off, skips
+      always recorded — and stay consistent with the file that actually renders
+      the checkpoint (approval-prompt.md)?
+    verdict: finding
+    severity: P2
+    details: >
+      Within gate-config.md itself the two guarantees hold: pinned resolves
+      "always on ... before any config read" (step 0), and the off-behaviour
+      section is untouched ("records `gate skipped by config ...` ... a skip is
+      always visible in evidence"). That part conforms to P-PRIOR-RULE.
+      But templates/approval-prompt.md — the committed, NOT-touched-by-this-diff
+      file that gate-config.md's own "Related" section names as "the checkpoint
+      rendering this switch gates" — still documents the OLD two-tier order
+      (plays -> classes -> default -> absent=on) with no mention of the new
+      conditional/policy step. A checkpoint author implementing strictly from
+      approval-prompt.md (the render-time spec, per P-APPROVAL-PROMPT) has no way
+      to know a policy lookup belongs between "plays" and "classes." As shipped,
+      the conditional-gate mechanism this PR adds has no committed render-time
+      consumer that reads it — the feature is inert until approval-prompt.md is
+      updated to match. This is a real cross-file inconsistency, not a hypothetical:
+      gate-config.md and its own named dependent disagree on the resolution order.
+    finding:
+      file: core/components/memory/standards/templates/approval-prompt.md
+      principle_violated: >
+        A rule and the file it names as its render-time consumer must state the
+        same resolution order; approval-prompt.md's "Gate switch (#466)" section
+        was not updated alongside gate-config.md's #467 rewrite.
+      committed_source: core/components/memory/standards/templates/approval-prompt.md
+        (unchanged on this branch; still describes pre-#467 order)
+      recommendation: >
+        Update approval-prompt.md's "Gate switch" section in the same PR (or a
+        fast-follow before this ships) to add the conditional/policy step, or the
+        conditional kind never actually fires at any real checkpoint.
+
+  - id: C3-epic-evidence-unit
+    question: >
+      Does the live-eval ledger design satisfy the epic's committed acceptance
+      criterion — "recorded evidence per risk class" (#467) — for reducing gates?
+    verdict: finding
+    severity: P2
+    details: >
+      P-EPIC-STAGE4 and P-EPIC-460 commit to evidence "per risk class" (the
+      existing docs-only / standard / one-way-door axis already wired in
+      config.yaml's `gates.classes`). The rewritten mechanism instead learns and
+      records evidence per "shape key" — a finer, structurally different axis
+      keyed on `<play>:<diff-axes>` (nodes/status/sections/prose changed),
+      entirely independent of the docs-only/standard/one-way-door class a
+      checkpoint declares. `gates.classes` remains in config unchanged and step 3
+      of the resolution order, but nothing in the new mechanism ever reduces a
+      *class's* switch on recorded evidence — auto-pass only ever applies within
+      the "conditional" gate kind, at the shape-key grain, for the eleven document
+      plays. The epic's acceptance criterion is written in terms of "risk class";
+      the shipped mechanism does not produce or consume risk-class-level evidence
+      at all. This is a definitional drift from what #467's own acceptance
+      criteria commit to, not merely a refinement — it should be reconciled
+      (either the epic's AC re-scoped to "per shape" via its own tracked update,
+      or the ledger evidence rolled up to a class-level rate) before the epic is
+      marked satisfying that AC.
+    finding:
+      file: core/components/memory/standards/rules/gate-config.md
+      principle_violated: >
+        Epic #460 / issue #467 commit to gate-reduction evidence keyed by risk
+        class; the rewritten rule's live-eval loop keys evidence by shape (play +
+        structural diff axes) instead, with no stated mapping back to risk class.
+      committed_source: "GitHub issue #467 Acceptance Criteria; GitHub issue #460 Consequences"
+      recommendation: >
+        Either add a class-level rollup of shape-level evidence to distill_gate_policy.py's
+        output, or explicitly amend #467's acceptance criteria to the shape-key
+        unit (a tracked decision, not a silent substitution).
+
+  - id: C4-related-standards-contradiction
+    question: >
+      Does the rewrite contradict any committed standard that references
+      gate-config (play-close.md, approval-prompt.md)?
+    verdict: finding
+    severity: P2
+    details: >
+      Same underlying issue as C2 — approval-prompt.md's Gate switch section is
+      stale relative to the new resolution order. play-close.md's Checkpoint
+      Decisions row description ("one row per checkpoint cycle ... `none` if the
+      play has no gates") is unaffected and still holds for both on/off and
+      conditional-auto crossings, since gate_eval.py's ledger append is separate
+      machinery from the evidence-file Checkpoint Decisions row. No contradiction
+      found in play-close.md itself.
+    finding:
+      file: core/components/memory/standards/templates/approval-prompt.md
+      principle_violated: same as C2
+      committed_source: core/components/memory/standards/templates/approval-prompt.md
+      recommendation: fold into the C2 fix — one PR, one section update.
+
+summary:
+  conforms: 1
+  findings: 3
+  severities: { P1: 0, P2: 3, P3: 0, P4: 0 }

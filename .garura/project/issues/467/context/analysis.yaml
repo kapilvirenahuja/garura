@@ -1,0 +1,63 @@
+---
+# analyze_changeset.py output (C8 fast path) + analyze-changes skill grouping
+# issue: 467
+needs_judgment: false
+branch: feature/467-reduce-human-gates
+issue: 467
+
+change_groups:
+  - id: feat-gate-learning-spine
+    issue: 467
+    commit_type: feat
+    scope: play-creator
+    subject: "add the gate-learning spine — deterministic classifier, live-eval ledger, and policy distiller"
+    confidence: high
+    files:
+      - core/components/plays/play-creator/references/classify_change.py
+      - core/components/plays/play-creator/references/gate_eval.py
+      - core/components/plays/play-creator/references/distill_gate_policy.py
+      - core/components/plays/play-creator/references/test_gate_learning.py
+    risks:
+      sensitive_files: []
+      breaking_changes: []
+    notes: "Four new files, one concern: the deterministic change-shape classifier, the live-eval ledger appender/reader, the policy learner, and its fixture tests (15 passing)."
+
+  - id: docs-gate-config-three-kinds
+    issue: 467
+    commit_type: docs
+    scope: standards
+    subject: "document the three gate kinds and the conditional resolution and live-eval loop"
+    confidence: high
+    files:
+      - core/components/memory/standards/rules/gate-config.md
+    risks:
+      sensitive_files: []
+      breaking_changes: []
+    notes: "Standards-rule update describing pinned/conditional/off gate kinds, conditional resolution order, and the live-eval loop. Split from the spine and from config wiring per plan contract — pure docs change, no runtime code."
+
+  - id: chore-conditional-gate-config
+    issue: 467
+    commit_type: chore
+    scope: config
+    subject: "wire the conditional gate block — streak, ledger path, and policy path"
+    confidence: high
+    files:
+      - .garura/core/config.yaml
+    risks:
+      sensitive_files: []
+      breaking_changes: []
+    notes: "Adds gates.conditional (streak threshold, ledger path, policy path) and clarifies that pinned gates ignore this block. No secrets in diff — reviewed directly."
+
+exclusions:
+  - path: ".garura/project/issues/467/context/porcelain.txt"
+    reason: "run scratch artifact from the executor's own scan step, not part of the feature"
+    blocking: false
+
+risks:
+  sensitive_files: []
+
+eval_gates:
+  SE-1:
+    status: PASS
+    evidence: "Changeset grouped into 3 concern-based groups (feat spine, docs gate-config, chore config wiring) per branch-issue #467; every changed file from git status --porcelain lands in exactly one group's files or in exclusions (porcelain.txt run scratch). No file appears in two groups or none."
+  SE-5: {status: PASS, evidence: "no sensitive patterns matched"}

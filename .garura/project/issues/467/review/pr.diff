@@ -1,0 +1,1301 @@
+diff --git a/.garura/core/config.yaml b/.garura/core/config.yaml
+index f78b47d7..de8b4b4d 100644
+--- a/.garura/core/config.yaml
++++ b/.garura/core/config.yaml
+@@ -151,7 +151,10 @@ product:
+     experience: experience/
+     research: research/
+ 
+-# gate switches (#466) — every human checkpoint resolves here; see standards/rules/gate-config.md
++# gate switches (#466, three kinds per #467) — every human checkpoint resolves here;
++# see standards/rules/gate-config.md. Pinned gates (grill, launch, learn) ignore this
++# block entirely. Conditional plays consult the learned policy before falling through
++# to classes/default.
+ gates:
+   default: on
+   classes:
+@@ -159,3 +162,7 @@ gates:
+     standard: on
+     one-way-door: on
+   plays: {}
++  conditional:
++    streak: 3                                # clean approvals a shape needs to earn auto
++    ledger: .garura/core/gate-evals.jsonl    # live-eval ledger (append-only, committed)
++    policy: .garura/core/gate-policy.yaml    # learned per-project policy (distilled)
+diff --git a/.garura/project/issues/467/context/analysis.yaml b/.garura/project/issues/467/context/analysis.yaml
+new file mode 100644
+index 00000000..26e34a89
+--- /dev/null
++++ b/.garura/project/issues/467/context/analysis.yaml
+@@ -0,0 +1,63 @@
++---
++# analyze_changeset.py output (C8 fast path) + analyze-changes skill grouping
++# issue: 467
++needs_judgment: false
++branch: feature/467-reduce-human-gates
++issue: 467
++
++change_groups:
++  - id: feat-gate-learning-spine
++    issue: 467
++    commit_type: feat
++    scope: play-creator
++    subject: "add the gate-learning spine — deterministic classifier, live-eval ledger, and policy distiller"
++    confidence: high
++    files:
++      - core/components/plays/play-creator/references/classify_change.py
++      - core/components/plays/play-creator/references/gate_eval.py
++      - core/components/plays/play-creator/references/distill_gate_policy.py
++      - core/components/plays/play-creator/references/test_gate_learning.py
++    risks:
++      sensitive_files: []
++      breaking_changes: []
++    notes: "Four new files, one concern: the deterministic change-shape classifier, the live-eval ledger appender/reader, the policy learner, and its fixture tests (15 passing)."
++
++  - id: docs-gate-config-three-kinds
++    issue: 467
++    commit_type: docs
++    scope: standards
++    subject: "document the three gate kinds and the conditional resolution and live-eval loop"
++    confidence: high
++    files:
++      - core/components/memory/standards/rules/gate-config.md
++    risks:
++      sensitive_files: []
++      breaking_changes: []
++    notes: "Standards-rule update describing pinned/conditional/off gate kinds, conditional resolution order, and the live-eval loop. Split from the spine and from config wiring per plan contract — pure docs change, no runtime code."
++
++  - id: chore-conditional-gate-config
++    issue: 467
++    commit_type: chore
++    scope: config
++    subject: "wire the conditional gate block — streak, ledger path, and policy path"
++    confidence: high
++    files:
++      - .garura/core/config.yaml
++    risks:
++      sensitive_files: []
++      breaking_changes: []
++    notes: "Adds gates.conditional (streak threshold, ledger path, policy path) and clarifies that pinned gates ignore this block. No secrets in diff — reviewed directly."
++
++exclusions:
++  - path: ".garura/project/issues/467/context/porcelain.txt"
++    reason: "run scratch artifact from the executor's own scan step, not part of the feature"
++    blocking: false
++
++risks:
++  sensitive_files: []
++
++eval_gates:
++  SE-1:
++    status: PASS
++    evidence: "Changeset grouped into 3 concern-based groups (feat spine, docs gate-config, chore config wiring) per branch-issue #467; every changed file from git status --porcelain lands in exactly one group's files or in exclusions (porcelain.txt run scratch). No file appears in two groups or none."
++  SE-5: {status: PASS, evidence: "no sensitive patterns matched"}
+diff --git a/.garura/project/issues/467/context/branch.json b/.garura/project/issues/467/context/branch.json
+new file mode 100644
+index 00000000..7d166ee5
+--- /dev/null
++++ b/.garura/project/issues/467/context/branch.json
+@@ -0,0 +1,6 @@
++{
++  "branch_name": "feature/467-reduce-human-gates",
++  "base_sha": "bd1ed1a8352c3f4dccdbcbfc6ef5c6bd63023c66",
++  "on_default_branch": false,
++  "worktree_path": null
++}
+diff --git a/.garura/project/issues/467/context/commits.yaml b/.garura/project/issues/467/context/commits.yaml
+new file mode 100644
+index 00000000..f1e3b939
+--- /dev/null
++++ b/.garura/project/issues/467/context/commits.yaml
+@@ -0,0 +1,26 @@
++commits:
++  - sha: 5e3971f
++    message: "feat(play-creator): add the gate-learning spine — deterministic classifier, live-eval ledger, and policy distiller (#467)"
++    files:
++      - core/components/plays/play-creator/references/classify_change.py
++      - core/components/plays/play-creator/references/gate_eval.py
++      - core/components/plays/play-creator/references/distill_gate_policy.py
++      - core/components/plays/play-creator/references/test_gate_learning.py
++    branch: feature/467-reduce-human-gates
++  - sha: b009929
++    message: "docs(standards): document the three gate kinds and the conditional resolution and live-eval loop (#467)"
++    files:
++      - core/components/memory/standards/rules/gate-config.md
++    branch: feature/467-reduce-human-gates
++  - sha: 03c16f9
++    message: "chore(config): wire the conditional gate block — streak, ledger path, and policy path (#467)"
++    files:
++      - .garura/core/config.yaml
++    branch: feature/467-reduce-human-gates
++excluded_files:
++  - path: ".garura/project/issues/467/context/porcelain.txt"
++    reason: "run scratch artifact from the executor's own scan step, not part of the feature"
++leftover_count: 0
++tree_clean: true
++pushed: false
++run_state_committed: true
+diff --git a/.garura/project/issues/467/context/issue.json b/.garura/project/issues/467/context/issue.json
+new file mode 100644
+index 00000000..25a8e8a7
+--- /dev/null
++++ b/.garura/project/issues/467/context/issue.json
+@@ -0,0 +1,6 @@
++{
++  "resolved": true,
++  "issue_number": 467,
++  "title": "[ENH] Stage 4: Reduce human gates on evidence, one risk class at a time",
++  "created": false
++}
+diff --git a/.garura/project/issues/467/context/porcelain.txt b/.garura/project/issues/467/context/porcelain.txt
+new file mode 100644
+index 00000000..fba71c0b
+--- /dev/null
++++ b/.garura/project/issues/467/context/porcelain.txt
+@@ -0,0 +1,7 @@
++ M .garura/core/config.yaml
++ M core/components/memory/standards/rules/gate-config.md
++?? .garura/project/issues/467/context/porcelain.txt
++?? core/components/plays/play-creator/references/classify_change.py
++?? core/components/plays/play-creator/references/distill_gate_policy.py
++?? core/components/plays/play-creator/references/gate_eval.py
++?? core/components/plays/play-creator/references/test_gate_learning.py
+diff --git a/.garura/project/issues/467/context/pr.json b/.garura/project/issues/467/context/pr.json
+new file mode 100644
+index 00000000..d9b0c418
+--- /dev/null
++++ b/.garura/project/issues/467/context/pr.json
+@@ -0,0 +1,7 @@
++{
++  "number": 480,
++  "url": "https://github.com/kapilvirenahuja/garura/pull/480",
++  "state": "open",
++  "title": "feat(play-creator): Stage 4 Batch A — the gate-learning spine (#467)",
++  "base": "main"
++}
+diff --git a/.garura/project/issues/467/context/resolved-rules.json b/.garura/project/issues/467/context/resolved-rules.json
+new file mode 100644
+index 00000000..70b8f431
+--- /dev/null
++++ b/.garura/project/issues/467/context/resolved-rules.json
+@@ -0,0 +1,6 @@
++{
++  "resolved": true,
++  "path": "/Users/kapilahuja/.garura/core/memory/standards/rules/self-review.md",
++  "source": "/Users/kapilahuja/.garura/core/memory/standards/rules",
++  "is_override": false
++}
+diff --git a/.garura/project/issues/467/context/self-review.md b/.garura/project/issues/467/context/self-review.md
+new file mode 100644
+index 00000000..2851faaf
+--- /dev/null
++++ b/.garura/project/issues/467/context/self-review.md
+@@ -0,0 +1,173 @@
++# Self-Review — Issue #467 (Stage 4 Batch A: gate-learning spine)
++
++- **Branch**: feature/467-reduce-human-gates
++- **Base**: main
++- **Branch pattern**: feature (standard priorities apply)
++- **Rules source**: `/Users/kapilahuja/.garura/core/memory/standards/rules/self-review.md` (base, no project override — see `resolved-rules.json`)
++- **Analysis mode**: branch-diff (`git diff main..HEAD`)
++
++## Change Summary
++
++- **Commits**: 7
++- **Files changed**: 13
++- **Additions**: +968 / **Deletions**: -16
++- **Commit types found**: feat (1), docs (2), chore/config (1), chore/stm (2), chore/sync (1)
++
++## Suggested PR Title
++
++```
++feat(play-creator): gate-learning spine — classifier, live-eval ledger, policy distiller (#467)
++```
++
++## Context Detected
++
++| Pattern | Files |
++|---|---|
++| Config (`.garura/core/config.yaml`) | 1 |
++| Docs/standards (`gate-config.md`, `gate-learning-design.md`) | 2 |
++| Runtime code under `core/components/**` (`classify_change.py`, `gate_eval.py`, `distill_gate_policy.py`, `test_gate_learning.py`) | 4 |
++| STM context/evidence files | 6 |
++
++## Scope Checks
++
++| Check | Status | Evidence |
++|---|---|---|
++| Matches the issue | PASS | All 13 files map to #467 (gate-learning spine, 3 scripts + tests + gate-config.md rewrite + config.yaml conditional block + design doc). No unrelated edits. |
++| No scope creep | PASS | Every file is either the spine implementation, its test, its standards doc, its config wiring, or the STM record of the run. |
++| Reasonable size | PASS | ~950 lines added but self-contained: 3 scripts + 1 test file account for ~650 lines; justified by the design doc's spine scope (classifier + ledger + distiller). |
++| No stray artifacts | PASS | No commented-out blocks or debug prints found in the diff. STM context files (`porcelain.txt`, `work-description.txt`, etc.) are the expected start-change/commit-change evidence trail, not accidental output. |
++
++## Quality Checks
++
++| Check | Status | Evidence |
++|---|---|---|
++| Tests present | PASS | `test_gate_learning.py` — 15 fixture tests, ran locally: `classifier: 7/7 pass`, `learner: 8/8 pass`, `ALL PASS`. |
++| Commits are clean | PASS | All 7 commits are conventional-format (`feat(play-creator):`, `docs(standards):`, `chore(config):`, `chore(stm):`) and each references `(#467)`. |
++| No secrets | PASS | `git diff main..HEAD` scanned for key/secret/token/password/BEGIN patterns — no hits. |
++| Docs in step | PASS | `gate-config.md` rewritten same-batch to describe the three gate kinds (pinned/conditional/off) that the scripts and config.yaml block implement. Design doc (`specs/gate-learning-design.md`) captures the full Stage 4 rationale. |
++| Nothing obviously broken | PASS | No TODOs found in the new scripts; `config.yaml` parses as valid YAML; `git merge-tree --write-tree main HEAD` produced a clean tree hash with no conflict markers. |
++
++## Additional Context-Triggered Checks
++
++| Item | Trigger | Status | Evidence |
++|---|---|---|---|
++| Configuration syntax valid | `.garura/core/config.yaml` changed | PASS | `python3 -c "yaml.safe_load(...)"` parsed without error. |
++| Configuration changes documented | `.garura/core/config.yaml` changed | PASS | `gates.conditional` block (streak/ledger/policy) is explained inline in the config comment and in full in `gate-config.md`. |
++| Feature documented | commit type `feat:` present | PASS | `gate-config.md` documents the new behavior the feature introduces. |
++| Significant feature has design record | commit type `feat:` present, spine-sized change | REVIEW | No formal ADR added; covered instead by `specs/gate-learning-design.md` (Stage 4 design doc) in the issue workspace — judged sufficient for a Batch A spine, but no ADR-numbered record exists if one is expected at this altitude. |
++| Components deployed from `core/components/` | `core/components/**` changed (classifier, ledger, distiller, test, gate-config.md) | REVIEW | Confirmed **not yet deployed**: `.claude/skills/play-creator/references/classify_change.py` does not exist yet, and the deployed copy of `gate-config.md` still has the pre-#467 (two-kind) wording. This is expected pre-merge — deployment happens via `install-garura` — but flagging so it isn't forgotten after merge. |
++
++## Blocking Issues
++
++None — no must-have item failed.
++
++## Readiness Assessment
++
++- **Ready**: yes
++- **Blocking count**: 0
++- **Review-required count**: 2 (both informational, non-blocking — see table above)
++- **Recommendation**: Create PR
++
++---
++
++## YAML Output
++
++```yaml
++analysis:
++  branch: feature/467-reduce-human-gates
++  base: main
++  branch_pattern: feature
++  commits: 7
++  changes:
++    files: 13
++    additions: 968
++    deletions: 16
++  suggested_title: "feat(play-creator): gate-learning spine — classifier, live-eval ledger, policy distiller (#467)"
++
++  context:
++    file_patterns_matched:
++      - name: "config"
++        files: 1
++        trigger: ".garura/core/config.yaml"
++      - name: "docs/standards"
++        files: 2
++        trigger: "gate-config.md, specs/gate-learning-design.md"
++      - name: "core-components-code"
++        files: 4
++        trigger: "core/components/plays/play-creator/references/*.py"
++      - name: "stm-evidence"
++        files: 6
++        trigger: ".garura/project/issues/467/context/*"
++    commit_types:
++      - type: "feat"
++        count: 1
++      - type: "docs"
++        count: 2
++      - type: "chore"
++        count: 4
++    branch_modifiers: []
++
++  checklist:
++    must_have:
++      - id: "no-conflicts"
++        item: "No merge conflicts"
++        trigger: "universal"
++        status: "PASS"
++        evidence: "git merge-tree --write-tree main HEAD produced a clean tree, no conflict markers"
++      - id: "no-secrets"
++        item: "No secrets committed"
++        trigger: "universal"
++        status: "PASS"
++        evidence: "pattern scan of diff for key/secret/token/password/BEGIN — no hits"
++      - id: "scope-matches-issue"
++        item: "Matches the issue, no scope creep"
++        trigger: "self-review.md scope checks"
++        status: "PASS"
++        evidence: "all 13 files map to #467 spine/tests/docs/config/STM"
++      - id: "tests-present"
++        item: "Tests present for behavior changes"
++        trigger: "self-review.md quality checks"
++        status: "PASS"
++        evidence: "test_gate_learning.py: classifier 7/7, learner 8/8, ALL PASS"
++      - id: "commits-clean"
++        item: "Conventional commits referencing the issue"
++        trigger: "self-review.md quality checks"
++        status: "PASS"
++        evidence: "7/7 commits conventional-format and reference (#467)"
++      - id: "docs-in-step"
++        item: "Docs updated alongside interface change"
++        trigger: "self-review.md quality checks"
++        status: "PASS"
++        evidence: "gate-config.md rewritten same batch as the scripts and config.yaml block"
++      - id: "config-valid"
++        item: "Configuration syntax valid"
++        trigger: ".garura/core/config.yaml changed"
++        status: "PASS"
++        evidence: "yaml.safe_load parsed config.yaml without error"
++      - id: "feat-documented"
++        item: "Feature documented"
++        trigger: "commit type feat: present"
++        status: "PASS"
++        evidence: "gate-config.md documents the three-gate-kind behavior"
++    nice_to_have:
++      - id: "config-documented"
++        item: "Configuration changes documented"
++        trigger: ".garura/core/config.yaml changed"
++        status: "PASS"
++        evidence: "gates.conditional block explained inline and in gate-config.md"
++      - id: "feat-adr"
++        item: "Significant feature has ADR"
++        trigger: "commit type feat: present, spine-sized change"
++        status: "REVIEW"
++        evidence: "no ADR added; specs/gate-learning-design.md carries the design record instead"
++      - id: "deploy-components"
++        item: "Components deployed from core/components/"
++        trigger: "core/components/** changed"
++        status: "REVIEW"
++        evidence: "deployed .claude/ copies not yet synced (expected pre-merge); flagged for post-merge install-garura run"
++
++  blocking_issues: []
++
++  ready: true
++  recommendation: "Create PR"
++```
+diff --git a/.garura/project/issues/467/context/work-description.txt b/.garura/project/issues/467/context/work-description.txt
+new file mode 100644
+index 00000000..ca8d6f43
+--- /dev/null
++++ b/.garura/project/issues/467/context/work-description.txt
+@@ -0,0 +1,5 @@
++Stage 4 of the IDSD Level 3 epic (#460): reduce human gates on evidence, one risk class at a time.
++
++Using recorded checker-vs-human evidence from Stages 2-3, turn approval gates off per risk class only where the runner has proven it catches what the human was catching. Add a fresh-context reviewer that can auto-approve low-risk change classes. Target ~4 human gates per slice (brief approval, spec approval, acceptance sign-off, one-way-door merges). Bar: zero missed-defect regressions traced to a removed gate.
++
++Tracked issue: #467 (existing — resolve, do not create).
+diff --git a/.garura/project/issues/467/specs/gate-learning-design.md b/.garura/project/issues/467/specs/gate-learning-design.md
+new file mode 100644
+index 00000000..a39b0bf1
+--- /dev/null
++++ b/.garura/project/issues/467/specs/gate-learning-design.md
+@@ -0,0 +1,144 @@
++# Stage 4 Design — Gates that learn (#467)
++
++## The idea in one paragraph
++
++Human gates stop being a fixed on/off config and become a **learned, per-project memory**.
++Every time a conditional gate fires, the harness records one line: what shape the change
++was, what it predicted the human would do, and what the human actually did. That stream is
++a set of **live evals** — the human's real decisions grading the harness's predictions. A
++deterministic learner distills them into a per-project **gate policy**: change shapes the
++human has repeatedly waved through become auto; any rejection or edit re-teaches instantly.
++The policy lives in garura's memory tree — this is the memory architecture doing the thing
++it was built for: the project's trust surface, learned from evidence, readable as a file.
++
++## Gate taxonomy (ruled 2026-07-04, session with Kapil)
++
++| Kind | Gates | Behavior |
++|---|---|---|
++| **Pinned HITL** | grill (epic cut), launch (acceptance walk), learn (model updates) | Always human. Never learnable, never config-off. A wrong epic cut, an unsigned acceptance, or a wrong model learning poisons everything downstream. |
++| **Conditional (learnable)** | vision, understand, shape, roadmap, ux, agentic, marketing, arch, quality, run, measure | Start fully gated. Auto-pass earned per change-shape per project via the live-eval loop. |
++| **Off — machine checks carry it** | start-change, commit-change, propose-change, review-change, merge-change, validate, fix-bug, implement (spec approval), refactor | Gate removed; each play's loop gains the deterministic checks that made the human redundant (per play, below). |
++| **Unruled** | deploy | Held as-is (one-way-door, on) until ruled. |
++
++Hard blocks are not gates and never move: commit-change's sensitive-file block, every
++stop-condition C0 bind, the loop iteration caps.
++
++## Part 1 — The learning mechanism (the spine)
++
++### 1.1 Change-shape classification (deterministic)
++
++A shared script `classify_change.py` (bundled with each conditional play, canonical copy in
++play-creator/references) reads the play's draft-vs-live-model diff and emits a **shape
++vector** — counts on fixed axes, no inference:
++
++- `nodes_added` / `nodes_removed` — spine entries created or deleted
++- `status_changes` — any status field transition
++- `profile_bars_changed` — NFR/compliance levels moved
++- `decisions_added` — decision records appended
++- `sections_rewritten` — grounding-doc sections with structural rewrites
++- `prose_edits` — wording-only changes (diff hunks touching no structure)
++
++The **shape key** is the tuple of axes that are non-zero (e.g. `prose_edits`,
++`prose_edits+sections_rewritten`, `nodes_added+decisions_added`). Play id is part of the
++key: `ux:prose_edits` learns separately from `vision:nodes_added`.
++
++### 1.2 The live-eval ledger (memory, write path)
++
++One JSONL line per conditional-gate crossing, appended to
++`.garura/core/gate-evals.jsonl` (committed; append-only; ~200 bytes/line — no play
++slowdown, no prose evidence files):
++
++```json
++{"ts":"...","play":"ux","issue":478,"shape":"prose_edits","predicted":"gate",
++ "human":"approved_clean","policy_version":3}
++```
++
++`human` ∈ `approved_clean` (typed approval, no changes asked) · `approved_edited`
++(approved after asking for changes) · `rejected`. When the gate auto-passes,
++`predicted:"auto"` and `human:"auto_pass"` — and if the human later reverts/corrects that
++artifact (detected at the next run on the same node, or reported via rejection on the
++follow-up), a correction line is appended pointing at the auto_pass line it refutes.
++
++### 1.3 The learner (deterministic, between runs)
++
++`distill_gate_policy.py` runs at each conditional play's close (cheap: read JSONL, write
++YAML). Rule, no inference:
++
++- A shape key becomes **auto** when its last **N consecutive** entries are
++  `approved_clean` (N configurable, default 3) AND it has no unresolved correction.
++- Any `rejected`, `approved_edited`, or correction **resets that shape to gated** and its
++  counter to zero.
++- Output: `.garura/core/gate-policy.yaml` — human-readable, versioned, with provenance
++  (which ledger lines earned each auto):
++
++```yaml
++version: 4
++project: garura
++auto:
++  ux:prose_edits:        {earned_by: [12,15,18], since: 2026-07-10}
++  quality:prose_edits:   {earned_by: [9,11,14],  since: 2026-07-12}
++never_auto: []   # human-pinned shapes — the human can force any shape here permanently
++```
++
++`never_auto` is the human override lever: edit the file, shape stays gated forever.
++
++### 1.4 Runtime application (in-loop, deterministic)
++
++The conditional play's checkpoint step becomes three mechanical moves:
++1. `classify_change.py` → shape key.
++2. Policy lookup: shape in `auto` and not in `never_auto` → **auto-pass**: record the skip
++   + the diff summary in the run record, append the ledger line, continue.
++3. Otherwise → present the document to the human exactly as today; record their action to
++   the ledger.
++
++Safety rail: a draft carrying ANY blocking finding (lint gap, grounding-eval fail,
++stop-condition risk) always gates, regardless of policy.
++
++### 1.5 Where it lives (memory placement)
++
++- Ledger + policy: `.garura/core/` (project-scoped memory, beside config.yaml — travels
++  with the project, committed, per-project learning as required).
++- The folder-structure whitelist (standards) gains these two files as permitted core/
++  entries — one-line standards edit, recorded as a decision.
++- KB (machine-global) gets nothing in Stage 4; cross-project distillation is a later idea,
++  explicitly out of scope here.
++
++## Part 2 — The gates that go: replacement checks per play
++
++Each is an intent change (ICE edit + play-editor recompile). The gate is removed only in
++the same change that adds its replacement checks to the loop/stop-condition.
++
++| Play | Replacement machine checks promoted into the loop |
++|---|---|
++| start-change | duplicate-issue guard as a stop-condition clause; title-convention + description-completeness check in the issue path |
++| commit-change | conditional checkpoint dropped; warnings surface in the delivery report instead; sensitive block unchanged (hard halt) |
++| propose-change | self-review must parse to zero blocking items (script check, pre-raise); tree-clean + issue-ref checks promoted from evals to pre-raise checker |
++| review-change | compute_verdict's recommendation becomes the verdict; posts as harness verdict citing every finding; P1 → reject stands as the outcome and blocks merge (review-pr.bypass unchanged) |
++| merge-change | auto-merge when: review verdict approve + mergeable + no failing checks; one-way-door confirm removed |
++| validate | plan-approval checkpoint removed — the check manifest is fully derived (stack detection + KB grounding); an ungroundable choice already halts as KB-gap, which stays |
++| fix-bug | design checkpoint removed; RCA + design + regression-test-red are the machine preconditions (all exist as artifacts); TDD red-before-green stays the hard invariant |
++| implement | spec approval unpinned and removed; build starts when the plan lints clean, every piece grounds into the box, and steelman evals exist; open_questions in the plan still halt (a question IS a human need) |
++| refactor | plan checkpoint removed; behavior-pin (characterization tests green before AND after, no test weakened) is the machine precondition — already the play's core invariant |
++
++Escape hatch on every one: the play halts to a human on any blocking state exactly as
++today — removing the approval never removes the halt paths.
++
++## Part 3 — Rollout (all on #467 through the change chain)
++
++- **Batch A** — the spine: classify_change.py + ledger + distill_gate_policy.py +
++  gate-config.md rule update (three gate kinds) + whitelist/standards edit + config schema
++  (`gates.conditional`, N).
++- **Batch B** — conditional wiring into the 11 document plays (one ICE edit each: the
++  checkpoint step gains the classify→policy→auto/gate logic).
++- **Batch C** — gates-off, pipeline chain: start-change, commit-change, propose-change,
++  review-change, merge-change (+ their replacement checks).
++- **Batch D** — gates-off, execute side: validate, fix-bug, implement, refactor.
++- deploy untouched pending ruling. grill/launch/learn untouched by design.
++
++Acceptance against #467 (reframed to the ruled direction):
++- Gate-off decisions carried by in-loop deterministic checks (Batch C/D shipped)
++- Conditional gates learning from live evals per project (Batches A/B shipped, ledger
++  accumulating)
++- Gates per slice measurably reduced (count before/after from the ledger itself)
++- Zero missed-defect regressions traced to a removed gate (correction lines in the ledger
++  are the tracer)
+diff --git a/core/components/memory/standards/rules/gate-config.md b/core/components/memory/standards/rules/gate-config.md
+index bb740c49..ceb82ec6 100644
+--- a/core/components/memory/standards/rules/gate-config.md
++++ b/core/components/memory/standards/rules/gate-config.md
+@@ -1,9 +1,17 @@
+ # Gate Configuration
+ 
+ Every human checkpoint in every play is a **config switch** (#466, epic #460 Stage 3).
+-The switches exist so gates can later be retired per risk class on recorded evidence
+-(Stage 4, #467) — without recompiling a single play. Until then, everything defaults ON
+-and behaviour is unchanged.
++Stage 4 (#467) gives the switch three kinds instead of two: a gate is **pinned** (always
++human), **conditional** (learned per project from live evals), or **off** (the play's own
++deterministic checks carry what the human was checking).
++
++## The three gate kinds (#467)
++
++| Kind | Meaning | Who decides |
++|---|---|---|
++| **pinned** | Always fires. No config value, policy, or ledger can turn it off. | The play's intent (unpinning = play-editor intent change) |
++| **conditional** | Fires unless the learned per-project policy says this change SHAPE is auto. Every crossing appends a live-eval line; the human's real action is the verdict that teaches the policy. | The gate policy, learned from the ledger |
++| **off** | Never waits. The checkpoint's judgment was replaced by named deterministic checks inside the play's loop; the skip is recorded. | Config (`gates.plays.<play>: off`), granted only in the same change that adds the replacement checks |
+ 
+ ## The config block
+ 
+@@ -12,32 +20,62 @@ and behaviour is unchanged.
+ ```yaml
+ gates:
+   default: on          # the fallback for anything unmatched
+-  classes:             # per-risk-class switches — Stage 4's lever
++  classes:             # per-risk-class switches
+     docs-only: on      #   prose/documentation-only changes
+     standard: on       #   normal code/component changes
+     one-way-door: on   #   irreversible or shared-state actions (merges, deletes, releases)
+   plays: {}            # per-play override, e.g. "commit-change: off" — first precedence
++  conditional:         # the learned-gate mechanism (#467)
++    streak: 3          #   consecutive clean approvals a shape needs to earn auto
++    ledger: .garura/core/gate-evals.jsonl   # live-eval ledger (append-only, committed)
++    policy: .garura/core/gate-policy.yaml   # learned policy (distilled, committed)
+ ```
+ 
+ ## Resolution (first match wins)
+ 
++0. Pinned (declared in the play) ⇒ **on**, always — before any config read
+ 1. `gates.plays.<play-name>` — explicit per-play override
+-2. `gates.classes.<declared class>` — the class the checkpoint DECLARES in its play
+-3. `gates.default`
+-4. Absent config block entirely ⇒ `on`
++2. **Conditional plays only:** the learned policy — `classify_change.py` emits the
++   change's shape key; a shape in the policy's `auto:` block (and not in `never_auto:`)
++   ⇒ auto-pass; anything else ⇒ on. A draft carrying ANY blocking finding (lint gap,
++   grounding-eval fail) ⇒ on, regardless of policy.
++3. `gates.classes.<declared class>` — the class the checkpoint DECLARES in its play
++4. `gates.default`
++5. Absent config block entirely ⇒ `on`
++
++## The live-eval loop (conditional gates)
++
++Scripts (canonical copies in `play-creator/references/`, stamped into conditional plays):
++
++- `classify_change.py` — deterministic draft-vs-live shape classifier. Fixed axes
++  (nodes added/removed, status changes, profile bars, decisions added, sections
++  rewritten, prose edits); the shape key is `<play>:<non-zero axes>`.
++- `gate_eval.py append` — one JSONL line per crossing: shape, predicted (gate|auto),
++  human action (`approved_clean` | `approved_edited` | `rejected` | `auto_pass`).
++  A later correction is a NEW line with `refutes: <line>` — the ledger is append-only.
++- `distill_gate_policy.py` — the learner, run at the play's close. Pure rule: a shape's
++  last `streak` consecutive entries all `approved_clean` (auto_pass extends a streak,
++  never starts one) and no unrefuted correction ⇒ `auto:`. Any rejection, requested
++  edit, or correction resets the shape to gated. `never_auto:` in the policy file is
++  the human's permanent pin — preserved verbatim across distills, never earnable.
++
++Learning happens BETWEEN runs (the distill at close); inside the loop the policy is a
++file lookup. Run-time stays deterministic per ADR 025.
+ 
+ Every checkpoint in a compiled play declares its risk class inline (e.g.
+ `Checkpoint (class: one-way-door)`). A checkpoint with no declared class resolves as
+ `standard`.
+ 
+-**Pinned gates (#466 Batch B).** A checkpoint whose play's own intent mandates it
+-("mandatory — never skipped", the #436 human-only sign-off) declares
+-`(class: <class>, pinned)`. A pinned gate NEVER resolves off — no config value can
+-disable it; the switch machinery records `pinned — config bypass refused` if an off
+-value would otherwise match. Unpinning is an intent change to that play (play-editor),
+-never a config edit. Stage 4 retires unpinned gates on evidence; pinned gates are the
+-edges the epic keeps human by design (brief approval, spec approval before autonomous
+-build, acceptance sign-off, one-way-door merges).
++**Pinned gates (#466 Batch B, re-ruled #467).** A checkpoint whose play's own intent
++mandates it declares `(class: <class>, pinned)`. A pinned gate NEVER resolves off — no
++config value can disable it; the switch machinery records `pinned — config bypass
++refused` if an off value would otherwise match. Unpinning is an intent change to that
++play (play-editor), never a config edit. Per the #467 ruling the pinned set is: **grill**
++(a wrong epic cut poisons everything downstream), **launch** (the one HITL gate of the
++implement trinity — the acceptance walk), and **learn** (a wrong model learning bends the
++product model). The eleven document plays (vision, understand, shape, roadmap, and the
++seven realize lenses) are **conditional**; the pipeline/execute mechanical gates are
++**off** with replacement checks.
+ 
+ ## Behaviour of the switch
+ 
+diff --git a/core/components/plays/play-creator/references/classify_change.py b/core/components/plays/play-creator/references/classify_change.py
+new file mode 100644
+index 00000000..723bd1a4
+--- /dev/null
++++ b/core/components/plays/play-creator/references/classify_change.py
+@@ -0,0 +1,194 @@
++#!/usr/bin/env python3
++"""
++classify_change.py — deterministic change-shape classifier for conditional gates (#467).
++
++The first mechanical move of a conditional play's checkpoint step: read the play's
++draft-vs-live diff and emit a SHAPE VECTOR — counts on fixed structural axes — plus the
++derived SHAPE KEY the gate policy is learned against. No inference anywhere: every axis
++is a pattern count over the file diffs.
++
++    python3 classify_change.py --play ux --draft <draft-dir> --live <live-dir> \
++        [--out shape.json]
++
++Axes (fixed; the shape key is `<play>:<sorted non-zero axes joined by '+'>`):
++
++  nodes_added        new model files, or added `- id:` / `id:` entries
++  nodes_removed      the inverse
++  status_changes     a `status:` value that differs between live and draft
++  profile_bars_changed   changed level-bearing lines in profile files (nfr_/compliance/level)
++  decisions_added    new decision files or appended decision entries
++  sections_rewritten markdown H2/H3 sections with >= SECTION_LINES changed lines
++  prose_edits        changed lines matching no structural pattern (md prose)
++
++A draft dir with no differences yields shape key `<play>:none`.
++Exit 0 always (classification never blocks); errors in inputs exit 2.
++"""
++
++import argparse
++import difflib
++import json
++import os
++import re
++import sys
++
++SECTION_LINES = 5  # changed lines under one heading to call the section rewritten
++
++STRUCTURAL = re.compile(
++    r"^\s*-?\s*(id|status|name|level|depends_on|order|effort|nfr_needs|nfr_[a-z_]+|"
++    r"compliance_needs|compliance_[a-z_]+)\s*:")
++STATUS = re.compile(r"^\s*status\s*:\s*(\S+)")
++NODE_ID = re.compile(r"^\s*-?\s*id\s*:\s*(\S+)")
++BAR = re.compile(r"^\s*(nfr_[a-z_]+|compliance_[a-z_]+|level)\s*:\s*(\S+)")
++HEADING = re.compile(r"^#{2,3}\s+(.*)$")
++DECISION_ENTRY = re.compile(r"^\s*-\s*(decision|id)\s*:", re.IGNORECASE)
++
++
++def fail(msg):
++    sys.stderr.write(f"classify_change.py: {msg}\n")
++    sys.exit(2)
++
++
++def read_lines(path):
++    try:
++        with open(path, encoding="utf-8") as fh:
++            return fh.read().splitlines()
++    except (OSError, UnicodeDecodeError):
++        return None  # binary or unreadable: ignored
++
++
++def walk(root):
++    out = {}
++    for base, dirs, files in os.walk(root):
++        dirs[:] = [d for d in dirs if not d.startswith((".", "_")) and d != "__pycache__"]
++        for f in files:
++            if f.startswith((".", "_")) or f.endswith((".pyc", ".bak")):
++                continue
++            full = os.path.join(base, f)
++            out[os.path.relpath(full, root)] = full
++    return out
++
++
++def is_decision_path(rel):
++    return "decision" in rel.replace(os.sep, "/").lower()
++
++
++def is_profile_path(rel):
++    return "profile" in os.path.basename(rel).lower()
++
++
++def count_node_ids(lines):
++    return {m.group(1) for ln in lines if (m := NODE_ID.match(ln))}
++
++
++def classify_pair(rel, old, new, axes):
++    """Update axes from one changed file's line diff."""
++    diff = list(difflib.unified_diff(old, new, lineterm="", n=0))
++    minus = [l[1:] for l in diff if l.startswith("-") and not l.startswith("---")]
++    plus = [l[1:] for l in diff if l.startswith("+") and not l.startswith("+++")]
++
++    # status transitions: value changed for the status key
++    old_status = [m.group(1) for ln in minus if (m := STATUS.match(ln))]
++    new_status = [m.group(1) for ln in plus if (m := STATUS.match(ln))]
++    axes["status_changes"] += sum(1 for a, b in zip(old_status, new_status) if a != b)
++
++    # profile bars
++    if is_profile_path(rel):
++        old_bars = {m.group(1): m.group(2) for ln in minus if (m := BAR.match(ln))}
++        new_bars = {m.group(1): m.group(2) for ln in plus if (m := BAR.match(ln))}
++        axes["profile_bars_changed"] += sum(
++            1 for k in set(old_bars) | set(new_bars) if old_bars.get(k) != new_bars.get(k))
++
++    # node ids added/removed inside an existing file (spine index entries)
++    old_ids, new_ids = count_node_ids(old), count_node_ids(new)
++    axes["nodes_added"] += len(new_ids - old_ids)
++    axes["nodes_removed"] += len(old_ids - new_ids)
++
++    # decisions appended inside an existing decisions file
++    if is_decision_path(rel):
++        axes["decisions_added"] += max(
++            0, sum(1 for ln in plus if DECISION_ENTRY.match(ln))
++            - sum(1 for ln in minus if DECISION_ENTRY.match(ln)))
++
++    if rel.endswith(".md"):
++        # sections rewritten: changed lines grouped under the nearest heading of NEW file
++        heading_for_line = {}
++        current = "(top)"
++        for i, ln in enumerate(new):
++            m = HEADING.match(ln)
++            if m:
++                current = m.group(1).strip()
++            heading_for_line[i] = current
++        sm = difflib.SequenceMatcher(a=old, b=new, autojunk=False)
++        changed_by_heading = {}
++        prose = 0
++        for tag, _i1, _i2, j1, j2 in sm.get_opcodes():
++            if tag == "equal":
++                continue
++            for j in range(j1, j2):
++                if j < len(new):
++                    h = heading_for_line.get(j, "(top)")
++                    changed_by_heading[h] = changed_by_heading.get(h, 0) + 1
++                    if not STRUCTURAL.match(new[j]) and not HEADING.match(new[j]):
++                        prose += 1
++        axes["sections_rewritten"] += sum(
++            1 for n in changed_by_heading.values() if n >= SECTION_LINES)
++        axes["prose_edits"] += prose
++    else:
++        # structured files: non-structural changed lines still count as prose edits
++        axes["prose_edits"] += sum(
++            1 for ln in plus if not STRUCTURAL.match(ln) and ln.strip())
++
++
++AXES = ["nodes_added", "nodes_removed", "status_changes", "profile_bars_changed",
++        "decisions_added", "sections_rewritten", "prose_edits"]
++
++
++def main(argv=None):
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--play", required=True)
++    ap.add_argument("--draft", required=True, help="the play's draft dir")
++    ap.add_argument("--live", required=True, help="the matching live-model dir")
++    ap.add_argument("--out", help="write the shape JSON here (also printed)")
++    args = ap.parse_args(argv)
++
++    if not os.path.isdir(args.draft):
++        fail(f"draft dir missing: {args.draft}")
++    live_files = walk(args.live) if os.path.isdir(args.live) else {}
++    draft_files = walk(args.draft)
++
++    axes = {a: 0 for a in AXES}
++
++    for rel in sorted(set(draft_files) | set(live_files)):
++        in_d, in_l = rel in draft_files, rel in live_files
++        if in_d and not in_l:  # new file
++            lines = read_lines(draft_files[rel])
++            if lines is None:
++                continue
++            ids = count_node_ids(lines)
++            if is_decision_path(rel):
++                axes["decisions_added"] += 1
++            elif ids:
++                axes["nodes_added"] += max(1, len(ids))
++            else:
++                classify_pair(rel, [], lines, axes)
++        elif in_l and not in_d:
++            # absent from draft = untouched by this play run, NOT a removal
++            continue
++        else:
++            old, new = read_lines(live_files[rel]), read_lines(draft_files[rel])
++            if old is None or new is None or old == new:
++                continue
++            classify_pair(rel, old, new, axes)
++
++    nonzero = sorted(a for a in AXES if axes[a] > 0)
++    shape_key = f"{args.play}:" + ("+".join(nonzero) if nonzero else "none")
++    result = {"play": args.play, "shape_key": shape_key, "axes": axes}
++    text = json.dumps(result, indent=2)
++    if args.out:
++        with open(args.out, "w", encoding="utf-8") as fh:
++            fh.write(text + "\n")
++    print(text)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/core/components/plays/play-creator/references/distill_gate_policy.py b/core/components/plays/play-creator/references/distill_gate_policy.py
+new file mode 100644
+index 00000000..65f2a020
+--- /dev/null
++++ b/core/components/plays/play-creator/references/distill_gate_policy.py
+@@ -0,0 +1,163 @@
++#!/usr/bin/env python3
++"""
++distill_gate_policy.py — the deterministic learner over the gate ledger (#467).
++
++Reads the live-eval ledger (gate-evals.jsonl) and writes the per-project gate policy
++(gate-policy.yaml). Pure rule, no inference, replay-deterministic (every output value
++derives from ledger content — no wall clock):
++
++  - a shape earns AUTO when its last `streak` consecutive entries are approved_clean
++    (auto_pass lines EXTEND an earned streak but never start one) and no unrefuted
++    correction stands against it;
++  - any rejected / approved_edited / correction line RESETS that shape to gated;
++  - shapes in `never_auto` (human-pinned, preserved verbatim from the existing policy)
++    are never emitted as auto regardless of the ledger.
++
++  python3 distill_gate_policy.py --ledger <gate-evals.jsonl> \
++      --policy <gate-policy.yaml> [--streak 3] [--project garura]
++
++Writes the policy file and prints a JSON summary. Exit 0 on success, 2 on bad input.
++"""
++
++import argparse
++import json
++import os
++import re
++import sys
++
++
++def fail(msg):
++    sys.stderr.write(f"distill_gate_policy.py: {msg}\n")
++    sys.exit(2)
++
++
++def read_ledger(path):
++    if not os.path.isfile(path):
++        return []
++    out = []
++    with open(path, encoding="utf-8") as fh:
++        for i, raw in enumerate(fh, 1):
++            raw = raw.strip()
++            if not raw:
++                continue
++            try:
++                rec = json.loads(raw)
++                rec["_line"] = i
++                out.append(rec)
++            except ValueError:
++                continue
++    return out
++
++
++def read_existing_policy(path):
++    """Minimal reader: version + never_auto list. No third-party YAML dep."""
++    version, never = 0, []
++    if not os.path.isfile(path):
++        return version, never
++    in_never = False
++    with open(path, encoding="utf-8") as fh:
++        for line in fh:
++            m = re.match(r"^version:\s*(\d+)", line)
++            if m:
++                version = int(m.group(1))
++            if re.match(r"^never_auto:", line):
++                stripped = line.split(":", 1)[1].strip()
++                if stripped and stripped != "[]":
++                    inner = stripped.strip("[]")
++                    never = [s.strip().strip("'\"") for s in inner.split(",") if s.strip()]
++                    in_never = False
++                else:
++                    in_never = stripped != "[]"
++                continue
++            if in_never:
++                m = re.match(r"^\s*-\s*(\S+)", line)
++                if m:
++                    never.append(m.group(1).strip("'\""))
++                elif line.strip() and not line.startswith(" "):
++                    in_never = False
++    return version, never
++
++
++def distill(records, streak, never_auto):
++    """Return {shape: {earned_by: [...], since: ts}} for shapes that earn auto."""
++    refuted = {r["refutes"] for r in records if r.get("refutes")}
++    by_shape = {}
++    for r in records:
++        if not r.get("shape"):
++            continue
++        by_shape.setdefault(r["shape"], []).append(r)
++
++    auto = {}
++    for shape, recs in sorted(by_shape.items()):
++        if shape in never_auto:
++            continue
++        run = []  # current trailing streak
++        for r in recs:
++            h = r.get("human")
++            if r["_line"] in refuted:
++                run = []  # a refuted line breaks the streak it sat in
++            elif h == "approved_clean":
++                run.append(r)
++            elif h == "auto_pass" and run:
++                run.append(r)  # extends an earned streak, never starts one
++            else:
++                # rejected / approved_edited / a correction line / anything unknown
++                run = []
++        clean = [r for r in run if r.get("human") == "approved_clean"]
++        if len(clean) >= streak:
++            earners = clean[-streak:]
++            auto[shape] = {"earned_by": [r["_line"] for r in earners],
++                           "since": earners[-1].get("ts", "")}
++    return auto
++
++
++def write_policy(path, project, version, auto, never_auto, streak):
++    lines = [
++        "# gate-policy.yaml — learned per-project gate policy (#467).",
++        "# Written by distill_gate_policy.py from gate-evals.jsonl — do not hand-edit",
++        "# the auto: block (it is re-derived). never_auto: IS yours to edit — a shape",
++        "# listed there stays gated forever regardless of the ledger.",
++        f"version: {version}",
++        f"project: {project}",
++        f"streak: {streak}",
++        "auto:",
++    ]
++    if auto:
++        for shape in sorted(auto):
++            e = auto[shape]
++            lines.append(f"  {shape}: {{earned_by: {e['earned_by']}, since: {e['since']}}}")
++    else:
++        lines[-1] = "auto: {}"
++    if never_auto:
++        lines.append("never_auto:")
++        lines.extend(f"  - {s}" for s in never_auto)
++    else:
++        lines.append("never_auto: []")
++    parent = os.path.dirname(path)
++    if parent:
++        os.makedirs(parent, exist_ok=True)
++    with open(path, "w", encoding="utf-8") as fh:
++        fh.write("\n".join(lines) + "\n")
++
++
++def main(argv=None):
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--ledger", required=True)
++    ap.add_argument("--policy", required=True)
++    ap.add_argument("--streak", type=int, default=3)
++    ap.add_argument("--project", default="project")
++    args = ap.parse_args(argv)
++
++    if args.streak < 1:
++        fail("--streak must be >= 1")
++    records = read_ledger(args.ledger)
++    version, never_auto = read_existing_policy(args.policy)
++    auto = distill(records, args.streak, never_auto)
++    write_policy(args.policy, args.project, version + 1, auto, never_auto, args.streak)
++    print(json.dumps({"policy": args.policy, "version": version + 1,
++                      "auto_shapes": sorted(auto), "never_auto": never_auto,
++                      "ledger_lines": len(records)}))
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/core/components/plays/play-creator/references/gate_eval.py b/core/components/plays/play-creator/references/gate_eval.py
+new file mode 100644
+index 00000000..37a65f65
+--- /dev/null
++++ b/core/components/plays/play-creator/references/gate_eval.py
+@@ -0,0 +1,108 @@
++#!/usr/bin/env python3
++"""
++gate_eval.py — append/read the live-eval gate ledger (#467).
++
++One JSONL line per conditional-gate crossing. The human's real action IS the eval
++verdict; this file is the write/read path every conditional play shares. Append-only:
++lines are never edited — a later correction is a NEW line pointing at the one it refutes.
++
++  append:  python3 gate_eval.py append --ledger <path> --play ux --issue 478 \
++              --shape "ux:prose_edits" --predicted gate --human approved_clean \
++              --ts 2026-07-04T10:00:00Z [--policy-version 3] [--refutes 12]
++  tail:    python3 gate_eval.py tail --ledger <path> --shape "ux:prose_edits" [-n 5]
++
++`--ts` is REQUIRED on append — the caller passes the run's own timestamp so the script
++stays replay-deterministic (no wall-clock reads here).
++
++human ∈ approved_clean | approved_edited | rejected | auto_pass
++predicted ∈ gate | auto
++"""
++
++import argparse
++import json
++import os
++import sys
++
++HUMAN = {"approved_clean", "approved_edited", "rejected", "auto_pass"}
++PREDICTED = {"gate", "auto"}
++
++
++def fail(msg):
++    sys.stderr.write(f"gate_eval.py: {msg}\n")
++    sys.exit(2)
++
++
++def read_ledger(path):
++    if not os.path.isfile(path):
++        return []
++    out = []
++    with open(path, encoding="utf-8") as fh:
++        for i, raw in enumerate(fh, 1):
++            raw = raw.strip()
++            if not raw:
++                continue
++            try:
++                rec = json.loads(raw)
++                rec["_line"] = i
++                out.append(rec)
++            except ValueError:
++                continue  # a corrupt line never breaks the ledger read
++    return out
++
++
++def cmd_append(args):
++    if args.human not in HUMAN:
++        fail(f"human must be one of {sorted(HUMAN)}")
++    if args.predicted not in PREDICTED:
++        fail(f"predicted must be one of {sorted(PREDICTED)}")
++    if (args.human == "auto_pass") != (args.predicted == "auto") and not args.refutes:
++        fail("auto_pass pairs with predicted=auto (and vice versa) except on corrections")
++    rec = {"ts": args.ts, "play": args.play, "issue": args.issue,
++           "shape": args.shape, "predicted": args.predicted, "human": args.human}
++    if args.policy_version is not None:
++        rec["policy_version"] = args.policy_version
++    if args.refutes is not None:
++        rec["refutes"] = args.refutes
++    parent = os.path.dirname(args.ledger)
++    if parent:
++        os.makedirs(parent, exist_ok=True)
++    with open(args.ledger, "a", encoding="utf-8") as fh:
++        fh.write(json.dumps(rec) + "\n")
++    print(json.dumps(rec))
++
++
++def cmd_tail(args):
++    recs = [r for r in read_ledger(args.ledger)
++            if not args.shape or r.get("shape") == args.shape]
++    for r in recs[-args.n:]:
++        print(json.dumps(r))
++
++
++def main(argv=None):
++    ap = argparse.ArgumentParser()
++    sub = ap.add_subparsers(dest="cmd", required=True)
++
++    a = sub.add_parser("append")
++    a.add_argument("--ledger", required=True)
++    a.add_argument("--play", required=True)
++    a.add_argument("--issue", required=True)
++    a.add_argument("--shape", required=True)
++    a.add_argument("--predicted", required=True)
++    a.add_argument("--human", required=True)
++    a.add_argument("--ts", required=True, help="run-provided timestamp (deterministic)")
++    a.add_argument("--policy-version", type=int)
++    a.add_argument("--refutes", type=int, help="ledger line this correction refutes")
++    a.set_defaults(fn=cmd_append)
++
++    t = sub.add_parser("tail")
++    t.add_argument("--ledger", required=True)
++    t.add_argument("--shape")
++    t.add_argument("-n", type=int, default=10)
++    t.set_defaults(fn=cmd_tail)
++
++    args = ap.parse_args(argv)
++    args.fn(args)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/core/components/plays/play-creator/references/test_gate_learning.py b/core/components/plays/play-creator/references/test_gate_learning.py
+new file mode 100644
+index 00000000..f20acf5d
+--- /dev/null
++++ b/core/components/plays/play-creator/references/test_gate_learning.py
+@@ -0,0 +1,185 @@
++#!/usr/bin/env python3
++"""
++test_gate_learning.py — fixture tests for the #467 gate-learning spine.
++
++Covers classify_change.py (shape axes from real file diffs), gate_eval.py (append/tail,
++validation), and distill_gate_policy.py (earn, reset, auto_pass extension, correction
++refutation, never_auto preservation). Plain asserts, tempdirs, no test framework.
++
++    python3 test_gate_learning.py
++"""
++
++import json
++import os
++import shutil
++import subprocess
++import sys
++import tempfile
++
++HERE = os.path.dirname(os.path.abspath(__file__))
++PY = sys.executable or "python3"
++
++
++def run(script, *args):
++    r = subprocess.run([PY, os.path.join(HERE, script), *args],
++                       capture_output=True, text=True)
++    if r.returncode != 0:
++        raise AssertionError(f"{script} {' '.join(args)} failed:\n{r.stderr}")
++    return r.stdout
++
++
++def write(root, rel, text):
++    p = os.path.join(root, rel)
++    os.makedirs(os.path.dirname(p), exist_ok=True)
++    with open(p, "w", encoding="utf-8") as fh:
++        fh.write(text)
++
++
++def classify(draft, live, play="ux"):
++    out = run("classify_change.py", "--play", play, "--draft", draft, "--live", live)
++    return json.loads(out)
++
++
++def test_classifier():
++    t = tempfile.mkdtemp(prefix="gl-")
++    live, draft = os.path.join(t, "live"), os.path.join(t, "draft")
++
++    # 1. prose-only edit -> prose_edits only
++    write(live, "ux.md", "## Screens\nThe list screen shows items.\n")
++    write(draft, "ux.md", "## Screens\nThe list screen shows items, newest first.\n")
++    r = classify(draft, live)
++    assert r["shape_key"] == "ux:prose_edits", r
++    assert r["axes"]["sections_rewritten"] == 0, r
++
++    # 2. status flip -> status_changes counted
++    shutil.rmtree(t); os.makedirs(t)
++    write(live, "spine.yaml", "- id: slice-1\n  status: shaped\n")
++    write(draft, "spine.yaml", "- id: slice-1\n  status: realized\n")
++    r = classify(draft, live, play="measure")
++    assert r["axes"]["status_changes"] == 1, r
++    assert "status_changes" in r["shape_key"], r
++
++    # 3. new node file -> nodes_added
++    shutil.rmtree(t); os.makedirs(t)
++    write(live, "spine.yaml", "- id: cap-1\n")
++    write(draft, "spine.yaml", "- id: cap-1\n- id: cap-2\n")
++    write(draft, "cap-2/capability.md", "# Cap 2\n\n## Boundary\nDoes X.\n")
++    r = classify(draft, live, play="understand")
++    assert r["axes"]["nodes_added"] >= 1, r
++
++    # 4. profile bar move
++    shutil.rmtree(t); os.makedirs(t)
++    write(live, "profile.yaml", "nfr_security: L2\nnfr_perf: L1\n")
++    write(draft, "profile.yaml", "nfr_security: L3\nnfr_perf: L1\n")
++    r = classify(draft, live, play="understand")
++    assert r["axes"]["profile_bars_changed"] == 1, r
++
++    # 5. decision appended
++    shutil.rmtree(t); os.makedirs(t)
++    write(live, "decisions/log.yaml", "- id: d1\n  decision: use X\n")
++    write(draft, "decisions/log.yaml", "- id: d1\n  decision: use X\n- id: d2\n  decision: use Y\n")
++    r = classify(draft, live, play="arch")
++    assert r["axes"]["decisions_added"] >= 1, r
++
++    # 6. section rewrite (>=5 changed lines under one heading)
++    shutil.rmtree(t); os.makedirs(t)
++    write(live, "ux.md", "## Screens\n" + "\n".join(f"old line {i}" for i in range(8)) + "\n")
++    write(draft, "ux.md", "## Screens\n" + "\n".join(f"new line {i}" for i in range(8)) + "\n")
++    r = classify(draft, live)
++    assert r["axes"]["sections_rewritten"] == 1, r
++
++    # 7. identical -> none; live file absent from draft is NOT a removal
++    shutil.rmtree(t); os.makedirs(t)
++    write(live, "a.md", "same\n")
++    write(live, "b.md", "untouched\n")
++    write(draft, "a.md", "same\n")
++    r = classify(draft, live)
++    assert r["shape_key"] == "ux:none", r
++
++    shutil.rmtree(t)
++    print("classifier: 7/7 pass")
++
++
++def ledger_line(ledger, play, shape, human, ts, predicted="gate", refutes=None):
++    args = ["append", "--ledger", ledger, "--play", play, "--issue", "478",
++            "--shape", shape, "--predicted", predicted, "--human", human, "--ts", ts]
++    if refutes:
++        args += ["--refutes", str(refutes)]
++    run("gate_eval.py", *args)
++
++
++def distill(ledger, policy, streak="3"):
++    out = run("distill_gate_policy.py", "--ledger", ledger, "--policy", policy,
++              "--streak", streak, "--project", "testproj")
++    return json.loads(out)
++
++
++def test_learner():
++    t = tempfile.mkdtemp(prefix="gl-")
++    ledger = os.path.join(t, "gate-evals.jsonl")
++    policy = os.path.join(t, "gate-policy.yaml")
++    S = "ux:prose_edits"
++
++    # 1. two cleans: not earned
++    ledger_line(ledger, "ux", S, "approved_clean", "t1")
++    ledger_line(ledger, "ux", S, "approved_clean", "t2")
++    r = distill(ledger, policy)
++    assert r["auto_shapes"] == [], r
++
++    # 2. third clean earns auto
++    ledger_line(ledger, "ux", S, "approved_clean", "t3")
++    r = distill(ledger, policy)
++    assert r["auto_shapes"] == [S], r
++    assert r["version"] == 2, r  # version bumps on every distill
++
++    # 3. auto_pass extends; still auto
++    ledger_line(ledger, "ux", S, "auto_pass", "t4", predicted="auto")
++    r = distill(ledger, policy)
++    assert r["auto_shapes"] == [S], r
++
++    # 4. a rejection resets the shape to gated
++    ledger_line(ledger, "ux", S, "rejected", "t5")
++    r = distill(ledger, policy)
++    assert r["auto_shapes"] == [], r
++
++    # 5. three fresh cleans re-earn
++    for ts in ("t6", "t7", "t8"):
++        ledger_line(ledger, "ux", S, "approved_clean", ts)
++    r = distill(ledger, policy)
++    assert r["auto_shapes"] == [S], r
++
++    # 6. a correction refuting an earning line resets
++    #    (line 8 = the t8 clean; a correction pointing at it breaks the streak)
++    ledger_line(ledger, "ux", S, "rejected", "t9", refutes=8)
++    r = distill(ledger, policy)
++    assert r["auto_shapes"] == [], r
++
++    # 7. never_auto survives distills and blocks earning
++    with open(policy, encoding="utf-8") as fh:
++        text = fh.read()
++    text = text.replace("never_auto: []", "never_auto:\n  - quality:prose_edits")
++    with open(policy, "w", encoding="utf-8") as fh:
++        fh.write(text)
++    for ts in ("t10", "t11", "t12"):
++        ledger_line(ledger, "quality", "quality:prose_edits", "approved_clean", ts)
++    r = distill(ledger, policy)
++    assert "quality:prose_edits" not in r["auto_shapes"], r
++    assert r["never_auto"] == ["quality:prose_edits"], r
++
++    # 8. approved_edited also resets (friction = not clean)
++    S2 = "arch:prose_edits"
++    for ts in ("u1", "u2"):
++        ledger_line(ledger, "arch", S2, "approved_clean", ts)
++    ledger_line(ledger, "arch", S2, "approved_edited", "u3")
++    ledger_line(ledger, "arch", S2, "approved_clean", "u4")
++    r = distill(ledger, policy)
++    assert S2 not in r["auto_shapes"], r
++
++    shutil.rmtree(t)
++    print("learner: 8/8 pass")
++
++
++if __name__ == "__main__":
++    test_classifier()
++    test_learner()
++    print("ALL PASS")

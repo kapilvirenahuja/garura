@@ -1,0 +1,13 @@
+decision: approve
+typed_input: "ok"
+decided_by: human (Kapil Viren Ahuja)
+decided_at: 2026-07-04
+recommendation_shown: approve ("no P1 findings; confidence acceptable")
+condition: >
+  Code-quality findings must be logged as tracked DEFECTS, not left as a PR-side
+  findings file. Satisfied this run: defect issue created before the verdict was
+  posted (see posted comment for the issue number).
+notes: >
+  Two P2 design findings accepted with routing: (1) approval-prompt template +
+  play wiring = Batch B scope on #467; (2) shape-vs-class evidence redirect to be
+  recorded as a comment on #467.

@@ -1,0 +1,34 @@
+pr:
+  number: 480
+  url: https://github.com/kapilvirenahuja/garura/pull/480
+  base: main
+  head: feature/467-reduce-human-gates
+
+standards_order: [kb, ltm, stm]
+
+standards:
+  pr-severity-taxonomy: ./core/components/memory/standards/rules/pr.md
+
+review_shelf: /Users/kapilahuja/.garura/core/memory/knowledge/review/
+
+base: main
+
+changed_paths:
+  - .garura/core/config.yaml
+  - .garura/project/issues/467/context/analysis.yaml
+  - .garura/project/issues/467/context/branch.json
+  - .garura/project/issues/467/context/commits.yaml
+  - .garura/project/issues/467/context/issue.json
+  - .garura/project/issues/467/context/porcelain.txt
+  - .garura/project/issues/467/context/pr.json
+  - .garura/project/issues/467/context/resolved-rules.json
+  - .garura/project/issues/467/context/self-review.md
+  - .garura/project/issues/467/context/work-description.txt
+  - .garura/project/issues/467/specs/gate-learning-design.md
+  - core/components/memory/standards/rules/gate-config.md
+  - core/components/plays/play-creator/references/classify_change.py
+  - core/components/plays/play-creator/references/distill_gate_policy.py
+  - core/components/plays/play-creator/references/gate_eval.py
+  - core/components/plays/play-creator/references/test_gate_learning.py
+
+changed_paths_count: 16

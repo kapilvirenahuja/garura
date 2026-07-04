@@ -1,0 +1,100 @@
+# Categorization of PR #480 (issue #467) diff — 16 changed paths
+# Derived from content, not a presumed list. Cross-checked against
+# /Users/kapilahuja/.garura/core/memory/knowledge/review/_index.md and its playbooks.
+
+categories:
+
+  - category: config-maps
+    description: >
+      The gate block in the global config map gained a `conditional` sub-key
+      (streak / ledger path / policy path) wiring the new learning loop into
+      the system by path.
+    evidence:
+      - .garura/core/config.yaml
+    playbook: knowledge/review/config-maps.md
+    playbook_status: seeded
+
+  - category: memory
+    description: >
+      Standards rule rewritten to document the three gate kinds (pinned /
+      conditional / off) and the conditional-resolution + live-eval loop —
+      this is long-term knowledge the harness and its agents read.
+    evidence:
+      - core/components/memory/standards/rules/gate-config.md
+    playbook: knowledge/review/memory.md
+    playbook_status: seeded
+
+  - category: executable code
+    description: >
+      Three new Python scripts implementing the gate-learning spine —
+      deterministic change-shape classifier, live-eval ledger writer, and
+      policy distiller. These are runtime scripts bundled in a play's
+      references/ dir (the same shape code.md names explicitly:
+      lint_play.py-style scripts), not MD-defined play/skill/agent behavior,
+      so they are judged as executable code, not harness.
+    evidence:
+      - core/components/plays/play-creator/references/classify_change.py
+      - core/components/plays/play-creator/references/distill_gate_policy.py
+      - core/components/plays/play-creator/references/gate_eval.py
+    playbook: knowledge/review/code.md
+    playbook_status: seeded
+
+  - category: tests
+    description: >
+      Automated test file for the classifier and learner (15 fixture tests,
+      per the branch's own self-review: 7/7 classifier, 8/8 learner).
+    evidence:
+      - core/components/plays/play-creator/references/test_gate_learning.py
+    playbook: knowledge/review/tests.md
+    playbook_status: seeded
+
+  - category: documentation
+    description: >
+      Stage 4 design write-up (rationale, gate taxonomy, the learning
+      mechanism) — human-facing prose. It is not shaped as an ADR (no
+      Status/Context/Decision/Consequences sections, not under docs/adr/),
+      so it is judged as documentation, not a decision record. Note for
+      Layer 2 (harness/memory grounding): this file is the branch's own new
+      content — it must NOT be cited as a grounding source when checking the
+      gate-config.md rewrite or the config.yaml wiring for conformance; doing
+      so would be circular. Any design-grounding for this PR has to come from
+      docs/philosophy/**, docs/adr/**, and the pre-branch gate-config.md.
+    evidence:
+      - .garura/project/issues/467/specs/gate-learning-design.md
+    playbook: knowledge/review/docs.md
+    playbook_status: seeded
+
+  - category: STM run records (generated evidence trail)
+    description: >
+      Auto-generated context/evidence files written by start-change,
+      commit-change, and propose-change as they ran on this issue (branch
+      metadata, issue/PR snapshots, resolved-rules pointer, porcelain
+      snapshot, work description, self-review report). None of these are
+      authored design or knowledge content — they are the play machinery's
+      own run records. This is the same shape a prior review (#478, PR #479)
+      already flagged as a category with no governing playbook on this shelf.
+      Flagging identically here rather than force-fitting into docs/config/
+      memory.
+    evidence:
+      - .garura/project/issues/467/context/analysis.yaml
+      - .garura/project/issues/467/context/branch.json
+      - .garura/project/issues/467/context/commits.yaml
+      - .garura/project/issues/467/context/issue.json
+      - .garura/project/issues/467/context/porcelain.txt
+      - .garura/project/issues/467/context/pr.json
+      - .garura/project/issues/467/context/resolved-rules.json
+      - .garura/project/issues/467/context/self-review.md
+      - .garura/project/issues/467/context/work-description.txt
+    playbook: null
+    playbook_status: "playbook missing — repeat finding, see #478/PR 479"
+
+notes:
+  - "Job 2 (Layer-2 design-grounding) applies to: memory (gate-config.md) and, arguably, the
+     config-maps wiring since it implements the same design. Executable code, tests, docs, and
+     the STM run-record category do not carry Layer-2 design-grounding per their playbooks
+     (code.md and tests.md ground in industry best-practice / suite pass, not garura-internal
+     design; docs.md and the unplaybooked STM category have no design-grounding requirement)."
+  - "No harness category (play/skill/agent MD, ICE, SKILL.md) is present in this diff — the
+     play-creator's SKILL.md/ICE source was not touched; only its bundled reference scripts
+     were added. If a future batch of #467 wires these scripts into play-creator's own
+     SKILL.md/ICE, that batch will trigger the harness category and its Layer-2 grounding."
