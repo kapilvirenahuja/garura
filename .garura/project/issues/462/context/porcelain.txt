@@ -1,0 +1,6 @@
+ M core/components/memory/standards/schemas/product-os/grounding/lens/quality.md
+ M core/components/memory/standards/templates/evidence-file.md
+ M core/components/skills/author-quality-lens/SKILL.md
+?? .garura/project/issues/462/
+?? core/components/memory/standards/schemas/product-os/lens/quality-gates.yaml
+?? core/components/skills/run-quality-gates/
