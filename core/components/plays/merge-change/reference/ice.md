@@ -38,6 +38,13 @@ play.
   false the run HALTS without asking (there is nothing to approve). Only when all three
   hold is the human confirmation presented; the merge proceeds solely on the typed
   approval.
+- C8 — The mechanical git/gh work runs in **bundled scripts** calling git/gh directly, not
+  through an agent dispatch (#484, tool-first rule + ADR 025). Reading the merge state —
+  approved (the review verdict), mergeable, and the required-checks result — runs in
+  `read_merge_state.py`; the merge + main sync + branch delete runs in `merge_pr.py`; both
+  reach the code host through the bundled `platform_adapter.py`. Agent dispatch is reserved
+  for genuine judgment — this play has none, so it dispatches **zero agents**. Running any
+  of these fixed command sequences through an agent is the bug #484 fixes.
 
 ### Failure conditions
 
@@ -51,6 +58,8 @@ play.
 - F7 — A merge proceeded without the pinned human approval on the land, or the three
   machine preconditions (approved, mergeable, no failing required checks) were not all
   verified true before the human was presented.
+- F8 — A mechanical git/gh operation (reading merge state, or the merge + sync + cleanup)
+  was run through an agent dispatch instead of its bundled script.
 
 ## Expectation
 
@@ -100,4 +109,8 @@ play.
   precondition (approved, mergeable, no-failing-required-checks) was not verified true
   before presenting. direction: halt the merge; if a precondition failed, surface which
   one and do not present; if the human beat was skipped, present and wait. handoff:
+  autonomous.
+- REC8 (F8) — trigger: a mechanical git/gh operation was run through an agent instead of
+  its bundled script. direction: route it through the script (`read_merge_state.py` /
+  `merge_pr.py`, via `platform_adapter.py`) and remove the agent dispatch. handoff:
   autonomous.
