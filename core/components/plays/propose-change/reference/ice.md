@@ -26,6 +26,9 @@ their order is enforced by each one's pre-flight, not by welding them into one p
 - C6 — The self-review's rules come from a standards file resolved for the current
   project (a project-level override wins over the base `standards/rules/self-review.md`);
   the review never runs on rules hardcoded in the play.
+- C7 — The play ends by proving its Done means at close (gated, #464), and commits its
+  own run artifacts (self-review.md, resolved-rules.json, pr.json) on the feature branch
+  BEFORE the push — the PR carries the play's own record and the tree stays clean.
 
 ### Failure conditions
 
@@ -36,6 +39,7 @@ their order is enforced by each one's pre-flight, not by welding them into one p
 - F5 — A second run opens a duplicate PR for the same branch.
 - F6 — The self-review runs on hardcoded rules, or ignores a project override of the
   rules file when one is present.
+- F7 — The close proves nothing — COMPLETED without the Done means held.
 
 ## Expectation
 
@@ -45,7 +49,8 @@ their order is enforced by each one's pre-flight, not by welding them into one p
   propose-change runs, then a self-review from the resolved rules file is produced, the
   branch is pushed, and a PR is opened against main carrying the self-review and the
   issue reference. Measure: a PR exists for the branch; its body contains the self-review
-  checklist; its body references the issue.
+  checklist; its body references the issue; the run artifacts are committed before the
+  push; the stop-condition verdict reads held.
 - S2 — (developer, project override) Given the project supplies its own self-review
   rules file, when propose-change runs, then the self-review uses the project's rules,
   not the base. Measure: the recorded resolved rules path is the project override, and
@@ -57,6 +62,15 @@ their order is enforced by each one's pre-flight, not by welding them into one p
 - S4 — (developer, dirty tree) Given uncommitted changes, when propose-change runs, then
   it halts before pushing or opening and asks for the change to be committed first.
   Measure: no push and no PR were made; the user is told to commit.
+
+### Done means
+
+- D1 — says: "the self-review exists"
+  check: { type: artifact_exists, path: "context/self-review.md" }
+- D2 — says: "the PR record exists"
+  check: { type: artifact_exists, path: "context/pr.json" }
+- D3 — says: "the PR targets main"
+  check: { type: field_equals, file: "context/pr.json", field: "base", equals: "main" }
 
 ### Recovery (one per failure condition)
 
@@ -74,3 +88,7 @@ their order is enforced by each one's pre-flight, not by welding them into one p
 - REC6 (F6) — trigger: the self-review ran on hardcoded rules or ignored a project
   override. direction: re-resolve the rules file via standards_order (project override →
   base) and re-run the self-review. handoff: autonomous.
+- REC7 (F7) — trigger: the close would stamp COMPLETED without the stop-condition
+  verdict held. direction: evaluate the stop condition, surface the unmet clauses, and
+  close HALTED (`stop_condition_unmet`) until they are fixed — an unevaluable verdict is
+  never a pass. handoff: autonomous.
