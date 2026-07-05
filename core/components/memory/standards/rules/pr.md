@@ -67,11 +67,14 @@ legitimately review documentation still fire.
 - `grep:` and `grep+path:` rules fire only when the matched file's artifact type is a code
   artifact type. On any prose artifact type they are ineligible — no finding, regardless of
   the keyword match.
-- `path:` and the `path` half of `grep+path:` rules fire on a matched file whose artifact
-  type is a **code** artifact type exactly as written. On a **prose** artifact type they fire
-  only if the specific glob that matched is a **docs-targeting glob** — otherwise the match is
-  dropped. This is per-glob, not per-rule: for a multi-glob rule, the glob that actually
-  matched decides.
+- `path:` rules fire on a matched file whose artifact type is a **code** artifact type
+  exactly as written. On a **prose** artifact type they fire only if the specific glob that
+  matched is a **docs-targeting glob** — otherwise the match is dropped. This is per-glob,
+  not per-rule: for a multi-glob rule, the glob that actually matched decides.
+- `grep+path:` rules need no separate path-half prose rule: the bullet above already makes
+  them ineligible on any prose artifact type (the grep half fires only on code types), so a
+  `grep+path:` rule never reaches a prose file regardless of its glob. The docs-targeting
+  exception applies to pure `path:` rules only.
 - A glob is **docs-targeting** (mechanical test on the glob string, case-insensitive) when it
   ends in a prose extension (`.md`, `.rst`, `.txt`), contains `docs/`, or names a known doc
   artifact (`readme`, `changelog`, `security`, `contributing`, `license`, `.env.example`,

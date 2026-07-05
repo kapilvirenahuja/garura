@@ -55,14 +55,20 @@ table was the old slow path AND the source of loose-substring false positives (a
 structurally impossible.
 
 ### Step 1 — Run the scan
+Write the contract's `changed_paths` (one path per line) to a file and pass it as `--paths`,
+so the scan is bounded by the contract's authoritative list — the Diff Scope Invariant, not a
+list the script re-derives:
 ```
+printf '%s\n' "${changed_paths[@]}" > "{working}/changed-paths.txt"
 python3 <skill-dir>/scripts/scan_taxonomy.py \
     --taxonomy "{severity_taxonomy_path}" \
     --diff "{diff_path}" \
+    --paths "{working}/changed-paths.txt" \
     --out "{output_path}"
 ```
-The script derives `changed_paths` + added lines from the diff (pass `--paths <file>` to
-override with the contract's `changed_paths`). In one pass it:
+`--paths` is authoritative when supplied; only when the caller omits it does the script fall
+back to deriving `changed_paths` from the diff's own file headers. The added lines used for
+`grep:` rules always come from the diff. In one pass the script:
 
 1. **Classifies** every changed path by artifact type — the taxonomy's Artifact-Type
    Scoping table, first-match glob (`garura-prose`, `productos-model`, `stm-evidence`,
