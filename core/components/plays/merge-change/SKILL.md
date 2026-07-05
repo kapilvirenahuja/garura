@@ -135,19 +135,23 @@ true (C5).*
 
 **Step 3 — Merge + Sync + Cleanup** · Owner: play (script) · Depends on: Step 2
 Run the bundled script — it merges the PR (via `platform_adapter.py`), switches to main and
-pulls, deletes the feature branch locally and on remote, and finalizes `merge-gate.json`'s
+pulls, deletes the feature branch locally and on remote, finalizes `merge-gate.json`'s
 two Done-means (`pr_merged: true`, `branch_deleted: true`) on both paths incl. the no-op
-(C6). No agent (C8):
+(C6), and **commits the run records on main itself** (#491) — `merge-gate.json` + the
+review dir, message `chore(stm): record merge-change run records (#<issue>)` (ADR 012,
+evidence self-commit). The script that writes the record commits it; its output carries
+`records_committed: true|false`, so a leftover is a visible failure, never silent litter.
+No agent (C8):
 
 ```
 python3 scripts/merge_pr.py --config .garura/core/config.yaml \
     --branch "$(git branch --show-current)" --base main \
-    --gate "{stm_base}{issue}/review/merge-gate.json"
+    --gate "{stm_base}{issue}/review/merge-gate.json" \
+    --issue <issue> --records-dir "{stm_base}{issue}/review/"
 ```
 
-Then commit the run records on main — `merge-gate.json` and the review dir if present —
-with message `chore(stm): record merge-change run records (#<issue>)` (ADR 012, evidence
-self-commit). NEVER push — report the push of that commit as owed to the human.
+NEVER push — report the push of the records commit as owed to the human. The tree is clean
+after the step; a `records_committed: false` output is a failed step, not a done one.
 **SE-3 (F2/C2):** after the step, the current branch is `main` and is up to date with
 `origin/main`.
 **SE-4 (F3/C3):** the feature branch no longer exists locally or on remote.
@@ -282,6 +286,18 @@ pending, and continue. A re-run on an already-merged PR is a clean no-op (C5, F5
 | step_evals | 8 (SE-1…SE-8) |
 | scenario_evals | 4 (SCE-1…SCE-4) |
 | recovery_entries | 8 (one per failure condition; 6 autonomous / 2 human) |
+
+## Direct-edit deviation note (#491, records self-commit)
+
+Non-intent executor move: C6 always required the run-records commit on main at close, but
+that duty lived in Step 3 PROSE and got skipped, leaving `merge-gate.json` uncommitted
+after runs (the observed leftover). `merge_pr.py` now performs the commit itself as its
+final act on both paths (fresh merge + already-merged no-op), staging the gate file + the
+review dir, standard message, never pushing; it reports `records_committed` so a leftover
+is a visible failure. No constraint, failure, scenario, or eval changed — the executor
+moved from prose to the script that is already standing on main at that moment.
+`reference/ice.md` and the fingerprint stand. Canonical copy:
+`play-creator/references/merge_pr.py`; a rebuild reproduces it.
 
 ## Recompile note (#484, scripted chain)
 
