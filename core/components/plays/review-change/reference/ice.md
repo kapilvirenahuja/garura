@@ -56,6 +56,13 @@ enforced by pre-flight (an open PR must exist).
   `review/posted.json` `{posted: true, comment_url}` and commits+pushes its run artifacts
   (`context.yaml`, `findings.yaml`, `verdict.yaml`, `posted.json`) to the feature branch —
   the open PR carries its own review record.
+- C10 — The mechanical PR/host I/O runs in bundled scripts calling git/gh directly (via
+  `platform_adapter.py`), not an agent dispatch (#484, tool-first + ADR 025): binding the PR
+  context (diff, changed paths, base, standards_order, review shelf) runs in
+  `fetch_pr_context.py`; posting the human's verdict comment + committing/pushing the run
+  artifacts runs in `post_verdict.py`. The `repo-orchestrator` dispatch is removed. The
+  category assessment and design-grounding (`change-reviewer`) and the standards linter
+  (`quality-auditor`) STAY agent-run — they are genuine judgment, not mechanical.
 
 ### Failure conditions
 
@@ -72,6 +79,8 @@ enforced by pre-flight (an open PR must exist).
 - F9 — COMPLETED without the Done means held (e.g. a verdict computed but never posted).
 - F10 — With the gate off, the recorded decision differs from the computed
   recommendation, or the posted comment does not identify the decider (harness vs human).
+- F11 — A mechanical PR/host operation (context bind, or verdict post + artifact
+  commit/push) was run through an agent dispatch instead of its bundled script.
 
 ## Expectation
 
@@ -143,3 +152,6 @@ enforced by pre-flight (an open PR must exist).
   `decision.yaml` from `recommended_verdict.yaml` (`decided_by: harness`, recommendation
   verbatim, citing findings) and re-post the comment with the decider named. handoff:
   autonomous.
+- REC10 (F11) — trigger: a mechanical PR/host op was run through an agent instead of its
+  script. direction: route it through the script (`fetch_pr_context.py` / `post_verdict.py`,
+  via `platform_adapter.py`) and remove the agent dispatch. handoff: autonomous.

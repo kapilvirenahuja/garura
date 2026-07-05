@@ -36,6 +36,11 @@ their order is enforced by each one's pre-flight, not by welding them into one p
   `self-review.md`: any blocking finding (non-zero exit) HALTS to a human. The raise
   precondition stands on three legs: this self-review blocker check, tree-clean (C3 —
   pre-flight machine wall), and the issue reference (C4 — eval machine wall).
+- C9 — The mechanical push + PR-open runs in the bundled `submit_pr.py` calling git/gh
+  directly (via `platform_adapter.py`), not an agent dispatch (#484, tool-first + ADR 025).
+  The `repo-orchestrator` → `submit-pr` dispatch is removed. The self-review (Step 1) stays
+  agent-run — it is genuine judgment, not mechanical — so this play keeps one agent for that
+  and none for the push/PR.
 
 ### Failure conditions
 
@@ -48,6 +53,8 @@ their order is enforced by each one's pre-flight, not by welding them into one p
   rules file when one is present.
 - F7 — The close proves nothing — COMPLETED without the Done means held.
 - F8 — A push or PR-open happened while the self-review carried a blocking finding.
+- F9 — The mechanical push or PR-open was run through an agent dispatch instead of the
+  bundled submit_pr.py.
 
 ## Expectation
 
@@ -104,3 +111,6 @@ their order is enforced by each one's pre-flight, not by welding them into one p
   self-review carried a blocking finding. direction: halt to a human — fix the blocking
   findings, then re-run the play so the check passes before any push or PR-open.
   handoff: human.
+- REC9 (F9) — trigger: the mechanical push or PR-open was run through an agent instead of
+  the script. direction: route it through submit_pr.py (via platform_adapter.py) and remove
+  the agent dispatch. handoff: autonomous.

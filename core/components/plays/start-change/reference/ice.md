@@ -28,8 +28,15 @@ the D2 pipeline-position rule injects into any other play declared `position: st
 - C3 — A git worktree is set up only when config calls for it (config-driven, not
   automatic).
 - C4 — The STM workspace for the issue is initialized before the play reports done.
-- C5 — Reuse garura's existing skills for issue and branch work (manage-issue,
-  setup-branch); do not reimplement issue or git logic inline.
+- C5 — Reuse garura's existing manage-issue skill for issue work (resolve/create); do not
+  reimplement issue or git logic inline in play prose. Issue work keeps an agent
+  (project-orchestrator) because the fresh-issue match from a description is genuine
+  judgment; the branch work does not (see C8).
+- C8 — The mechanical branch work — cut the feature branch off latest main, set up the
+  worktree per config, push — runs in the bundled `setup_branch.py` calling git directly,
+  not an agent dispatch (#484, tool-first + ADR 025). The `repo-orchestrator` → `setup-branch`
+  dispatch is removed; running the fixed branch sequence through an agent is the bug #484
+  fixes. (Issue work stays with `project-orchestrator` for the fresh-path judgment.)
 - C6 — Running it again for the same issue resumes the existing context; it does not
   create a second issue or branch.
 - C7 — The play ends by proving its Done means at close (gated, #464), and commits its
@@ -48,6 +55,8 @@ the D2 pipeline-position rule injects into any other play declared `position: st
   held.
 - F7 — An issue was created whose record fails validate_issue.py (missing/short/untagged
   title, or an empty work description).
+- F8 — The mechanical branch work (cut/worktree/push) was run through an agent dispatch
+  instead of the bundled setup_branch.py.
 
 ## Expectation
 
@@ -104,3 +113,6 @@ the D2 pipeline-position rule injects into any other play declared `position: st
   issue record. direction: a human fixes the title (present, ≥15 chars, tagged) and/or
   completes the work description, then re-runs; the play never creates over a failed
   validation. handoff: human.
+- REC8 (F8) — trigger: the branch work was run through an agent instead of the script.
+  direction: route the cut/worktree/push through setup_branch.py and remove the agent
+  dispatch. handoff: autonomous.
