@@ -1,0 +1,6 @@
+{
+  "resolved": true,
+  "issue_number": 454,
+  "title": "[BUG] PR severity taxonomy misfires on prose files — false P1 blockers from name globs",
+  "created": false
+}
