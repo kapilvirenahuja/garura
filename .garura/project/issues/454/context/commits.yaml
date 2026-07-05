@@ -1,0 +1,14 @@
+commits:
+  - sha: 7bc5908
+    message: "fix(review): exclude prose artifacts from PR severity taxonomy's pure-path rules (#454)"
+    files:
+      - core/components/memory/standards/rules/pr.md
+      - core/components/skills/quality-check-scoped/SKILL.md
+      - core/components/skills/quality-check-scoped/scripts/scan_taxonomy.py
+    branch: feature/454-pr-taxonomy-prose-false-positives
+excluded_files:
+  []
+leftover_count: 0
+tree_clean: true
+pushed: false
+run_state_committed: true

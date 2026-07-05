@@ -1,0 +1,28 @@
+---
+# analyze_changeset.py output (C8 fast path)
+# issue: 454
+needs_judgment: false
+
+change_groups:
+  - id: "pr-taxonomy-prose-false-positives"
+    issue: 454
+    commit_type: fix
+    scope: review
+    subject: "exclude prose artifacts from PR severity taxonomy's pure-path rules"
+    files:
+      - core/components/memory/standards/rules/pr.md
+      - core/components/skills/quality-check-scoped/SKILL.md
+      - core/components/skills/quality-check-scoped/scripts/scan_taxonomy.py
+
+exclusions:
+  []
+
+risks:
+  sensitive_files:
+    - path: "core/components/memory/standards/rules/pr.md"
+      match: 'password\s*=' # content in prose/standards artifact — warning, not a block (#438)
+      blocking: false
+
+eval_gates:
+  SE-1: {status: PASS, evidence: "single-issue branch feature/454-pr-taxonomy-prose-false-positives; all three files form one concern (script extraction + skill wiring + rule doc update) — one group, no split"}
+  SE-5: {status: PASS, evidence: "content matches in prose artifacts only — non-blocking warnings surfaced"}
