@@ -1,0 +1,8 @@
+decision: approve
+decided_by: harness
+gate: off (gates.plays.review-change)
+reason: >
+  Closes the leftover path mechanically: the script that writes merge-gate.json
+  now commits it, proven by the tree-clean fixture test (14/14). Non-intent
+  executor move; C6's guarantee unchanged; lint clean, fingerprint stands.
+blocking_findings: []
