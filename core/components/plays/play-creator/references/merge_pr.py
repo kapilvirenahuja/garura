@@ -7,9 +7,11 @@ remote), finalizes merge-gate.json's two Done-means booleans — and then COMMIT
 the run records on main itself (#491): the play's C6 always required that
 commit, but as prose it got skipped and left merge-gate.json littering the tree.
 The script that writes the record commits it, on BOTH paths (fresh merge and the
-already-merged no-op). Never pushes — the push of the records commit stays owed
-to the human (ADR 012). Zero judgment — a fixed sequence gated on the mergeable
-read.
+already-merged no-op) — and then PUSHES the records commit (#493): the pinned
+Confirm Merge approval already put the human on the outward act, so the
+bookkeeping push rides on that authorization, no second ask. A failed push is
+reported visibly (records_pushed: false) with the push left owed — never silent.
+Zero judgment — a fixed sequence gated on the mergeable read.
 
     python3 merge_pr.py --config .garura/core/config.yaml \
         --branch <feature-branch> --base main \
@@ -19,7 +21,8 @@ read.
 The records self-commit runs only when BOTH --issue and --records-dir are given
 (the compiled play always passes them; tests may omit). The printed result
 carries `records_committed: true|false|null` (null = self-commit not requested)
-so a leftover is a visible failure, never silent litter.
+and `records_pushed: true|false|null` (null = no commit to push / not requested)
+so a leftover or an unpushed record is a visible state, never silent.
 
 Idempotent: if the PR is already merged (gate.already_merged), it is a clean
 no-op — no second merge is attempted; the records commit still runs.
@@ -87,8 +90,9 @@ def main(argv=None):
     want_records = bool(ns.issue and ns.records_dir)
 
     def finalize(pr_merged, branch_deleted, extra=None):
-        """Write the final gate file, run the records self-commit (#491) when
-        requested, and print the result with records_committed."""
+        """Write the final gate file, run the records self-commit (#491) and the
+        records push (#493) when requested, and print the result with
+        records_committed + records_pushed."""
         gate["pr_merged"] = pr_merged
         gate["branch_deleted"] = branch_deleted
         if extra:
@@ -97,7 +101,18 @@ def main(argv=None):
             json.dump(gate, fh, indent=2)
         committed = (_commit_records(ns.gate, ns.records_dir, ns.issue)
                      if want_records else None)
-        print(json.dumps({**gate, "records_committed": committed}, indent=2))
+        pushed = None
+        if committed is True:
+            # #493: the pinned merge approval covers this push — no second ask.
+            # Soft-fail: a failed push is reported, the push stays owed, and the
+            # merge outcome still decides the exit code.
+            rc, _, perr = _git("push", "origin", ns.base)
+            pushed = rc == 0
+            if not pushed:
+                sys.stderr.write(f"merge_pr.py: records push failed (left owed): "
+                                 f"{perr}\n")
+        print(json.dumps({**gate, "records_committed": committed,
+                          "records_pushed": pushed}, indent=2))
         return committed
 
     # Clean no-op: already merged (C5/F5). Confirm the branch is gone; don't

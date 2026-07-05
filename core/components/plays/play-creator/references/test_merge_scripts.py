@@ -116,6 +116,10 @@ def test_records_selfcommit():
         check("tree is clean after the run — no leftover", status == "")
         check("records commit message references the issue",
               "record merge-change run records (#491)" in log)
+        # #493: push is attempted after the commit; with no origin remote it
+        # soft-fails VISIBLY (records_pushed false) without failing the run.
+        check("push soft-fails visibly with no remote (#493)",
+              out["records_pushed"] is False and proc.returncode == 0)
         # Second run on the same state: nothing to commit → still clean, still ok.
         proc2 = subprocess.run(
             [PY, os.path.join(HERE, "merge_pr.py"),
