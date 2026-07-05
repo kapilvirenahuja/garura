@@ -1,0 +1,9 @@
+decision: approve
+decided_by: harness
+gate: off (gates.plays.review-change)
+reason: >
+  Implements the 2026-07-05 ruling faithfully: one human approval covers the
+  merge and its bookkeeping push; Confirm Merge stays pinned; push failure is a
+  visible soft-fail. ICE-first intent change, fingerprint recomputed, lint
+  clean, 15/15 tests.
+blocking_findings: []

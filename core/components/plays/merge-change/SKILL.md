@@ -137,10 +137,12 @@ true (C5).*
 Run the bundled script — it merges the PR (via `platform_adapter.py`), switches to main and
 pulls, deletes the feature branch locally and on remote, finalizes `merge-gate.json`'s
 two Done-means (`pr_merged: true`, `branch_deleted: true`) on both paths incl. the no-op
-(C6), and **commits the run records on main itself** (#491) — `merge-gate.json` + the
+(C6), **commits the run records on main itself** (#491) — `merge-gate.json` + the
 review dir, message `chore(stm): record merge-change run records (#<issue>)` (ADR 012,
-evidence self-commit). The script that writes the record commits it; its output carries
-`records_committed: true|false`, so a leftover is a visible failure, never silent litter.
+evidence self-commit) — and **pushes that records commit** (#493): the pinned Confirm
+Merge approval (C7) already put the human on the outward act, so the bookkeeping push
+rides on that authorization, no second ask. Its output carries `records_committed` and
+`records_pushed`, so a leftover or an unpushed record is a visible state, never silent.
 No agent (C8):
 
 ```
@@ -150,8 +152,10 @@ python3 scripts/merge_pr.py --config .garura/core/config.yaml \
     --issue <issue> --records-dir "{stm_base}{issue}/review/"
 ```
 
-NEVER push — report the push of the records commit as owed to the human. The tree is clean
-after the step; a `records_committed: false` output is a failed step, not a done one.
+The tree is clean after the step and main is level with origin; a
+`records_committed: false` output is a failed step, and a `records_pushed: false` output
+leaves the push owed and visibly reported (soft-fail — offline or a host guard), never
+silent.
 **SE-3 (F2/C2):** after the step, the current branch is `main` and is up to date with
 `origin/main`.
 **SE-4 (F3/C3):** the feature branch no longer exists locally or on remote.
@@ -275,7 +279,7 @@ pending, and continue. A re-run on an already-merged PR is a clean no-op (C5, F5
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:ecbdf05a8530cc182ecca059e0aaa4a2e475c6908f1c9ed75a8d5459101b65a2 (of `reference/ice.md`) |
+| fingerprint | sha256:bc52977cd41e90484c267177bf38c6bb9b8004f9e478fd522a22440349b87632 (of `reference/ice.md`) |
 | compiled_by | play-editor (#466 Batch A; #467 Batch C; #484 scripted-chain) |
 | pipeline_position | end |
 | workflow_structure | B (fast execution flow, single-pass; stop-condition gated close) |
@@ -286,6 +290,16 @@ pending, and continue. A re-run on an already-merged PR is a clean no-op (C5, F5
 | step_evals | 8 (SE-1…SE-8) |
 | scenario_evals | 4 (SCE-1…SCE-4) |
 | recovery_entries | 8 (one per failure condition; 6 autonomous / 2 human) |
+
+## Recompile note (#493, records auto-push)
+
+Intent change via `reference/ice.md` → recompile. C6 rewritten: the play now PUSHES its
+records commit itself after the pinned Confirm Merge approval — the human authorized the
+outward irreversible act at the merge gate (C7, still pinned, untouched), and the records
+commit is bookkeeping about that approved merge, so no second human step is asked (ruled by
+Kapil 2026-07-05 on #493). `merge_pr.py` pushes after a successful records self-commit and
+reports `records_pushed`; a failed push (offline, host guard) is a visible soft-fail with
+the push left owed, never silent. Fingerprint recomputed over the edited ICE.
 
 ## Direct-edit deviation note (#491, records self-commit)
 

@@ -26,8 +26,11 @@ play.
   already-merged no-op path) and branch_deleted (true when the feature branch is gone
   locally and on origin; on the no-op path, true when it was already gone). At close, the
   play commits its run records (merge-gate.json, the review dir if present) on main per
-  the evidence self-commit rule (ADR 012) — the push of that commit is reported as owed
-  to the human, never performed by the play.
+  the evidence self-commit rule (ADR 012) — and then PUSHES that records commit itself
+  (#493): the pinned Confirm Merge approval (C7) already put the human on the outward
+  irreversible act, and the records commit is bookkeeping about that approved merge, so no
+  second human step is asked. A failed push (offline, host guard) is reported visibly with
+  the push left owed — never silent.
 - C7 — The Confirm Merge checkpoint is **pinned** (`class: one-way-door, pinned`;
   `standards/rules/gate-config.md`). The land on `main` is irreversible, so it always
   presents and waits for a typed human approval — no config value, policy, or ledger can
