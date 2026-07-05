@@ -1,0 +1,45 @@
+# categories.yaml — review-change Assessment (Job 1)
+# PR #495 / issue #454, base ref 95ac3c4
+# Scope note: per explicit task instruction, STM run artifacts under
+# .garura/project/issues/454/** are evidence (not design) and are excluded from
+# categorization — only the three substantive files are assessed.
+
+categories:
+  - id: memory
+    what_it_is: "A standards rule under memory/standards/rules/** — the PR severity
+      taxonomy every quality-check-scoped run reads. Shapes what every downstream
+      review believes about which findings are eligible."
+    evidence_paths:
+      - core/components/memory/standards/rules/pr.md
+    playbook: knowledge/review/memory.md
+    notes: "Change is additive/rewriting prose inside an existing standard (glob
+      semantics section, extended prose guard, CODE-20 catch-all note) — not a new
+      shelf file, but still a standards-rule change per memory.md's Recognise clause."
+
+  - id: harness
+    what_it_is: "The skill definition (SKILL.md) that is quality-check-scoped's
+      behavioural contract — execution steps, input/output contract, failure modes."
+    evidence_paths:
+      - core/components/skills/quality-check-scoped/SKILL.md
+    playbook: knowledge/review/harness.md
+
+  - id: executable-code
+    what_it_is: "A new bundled mechanical script inside a skill's scripts/ dir —
+      code.md's own Recognise text names exactly this shape ('the python scripts
+      inside plays/skills (lint_play.py, preflight.py, compute_verdict.py, search
+      scripts)') as the in-garura instance of this category."
+    evidence_paths:
+      - core/components/skills/quality-check-scoped/scripts/scan_taxonomy.py
+    playbook: knowledge/review/code.md
+    notes: "code.md marks this category design-grounding: no (industry best
+      practice, not garura-internal design) — Layer 1 only (language linter +
+      quality-check-scoped/pr.md severity checks), which is out of this agent's
+      Layer-2 scope. Its content was still read to verify the harness/memory
+      conformance claims (see design-findings.yaml) since the script IS the
+      mechanism the SKILL.md and pr.md describe."
+
+excluded_from_categorization:
+  - path: ".garura/project/issues/454/context/**"
+    reason: "STM run evidence per explicit task scope, not design-bearing content."
+
+playbook_gaps: []

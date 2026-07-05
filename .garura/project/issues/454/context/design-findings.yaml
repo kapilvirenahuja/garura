@@ -1,0 +1,139 @@
+# design-findings.yaml — review-change Design-Grounding (Job 2)
+# PR #495 / issue #454, base ref 95ac3c4
+# Categories checked: memory (pr.md), harness (SKILL.md). code.md marks
+# executable-code design-grounding: no, so scan_taxonomy.py itself carries no
+# Layer-2 finding — it was read only as evidence for the memory/harness checks below.
+
+conformance_checks:
+  - question: "Does moving mechanical matching into a bundled script conform to
+      garura's tool-first / mechanical-work-is-a-script principle?"
+    verdict: conforms
+    grounded_in:
+      - source: "docs/philosophy/architecture.md:350 (committed, unmodified by this diff)"
+        principle: "'What plays own directly: ... their own bundled scripts/ for
+          mechanical steps (play-creator compiles a play as a SKILL.md plus scripts
+          for its mechanical work).'"
+      - source: "core/components/skills/run-quality-gates/scripts/run_quality_gates.py
+          and core/components/skills/kb-search/scripts/kb_search.py, both present at
+          base ref 95ac3c4 (git show 95ac3c4:<path> succeeds)"
+        principle: "Committed precedent: skills already bundle deterministic
+          scripts for mechanical work; scan_taxonomy.py is the same pattern, not a
+          new one."
+    note: "Not grounded in the branch's own new prose about scan_taxonomy.py — the
+      precedent predates this branch."
+
+  - question: "Does the prose guard stay purely mechanical (no LLM judgment
+      introduced)?"
+    verdict: conforms
+    grounded_in:
+      - source: "core/components/memory/standards/rules/pr.md at base ref 95ac3c4
+          (git show 95ac3c4:core/components/memory/standards/rules/pr.md), section
+          'Determinism'"
+        principle: "'Match Rules are pure regex/glob — no probabilistic matching,
+          no LLM judgment. Two runs on the same diff produce identical findings.'
+          This principle predates and is unchanged in substance by #454; the branch
+          extends it, it does not invent it."
+    evidence: "scan_taxonomy.py contains no agent/LLM call — glob_to_regex,
+      is_docs_glob and the eligibility checks are pure string/regex logic. SKILL.md
+      Step 2 ('Do not re-derive, re-classify, or double-check any finding by
+      inference') closes a prior loophole where the agent hand-matched rows itself."
+
+findings:
+  - id: DF-1
+    severity: P3
+    category: memory
+    file: core/components/memory/standards/rules/pr.md
+    title: "Eligibility rule's two bullets contradict each other for grep+path on
+      a docs-targeting glob"
+    description: >
+      The Eligibility rule adds a bullet saying `path:` and 'the path half of
+      `grep+path:`' fire on a prose artifact type when the matched glob is
+      docs-targeting. But the preceding bullet already says `grep:` and
+      `grep+path:` rules are ineligible on ANY prose artifact type, unconditionally
+      — no exception. Since a `grep+path:` row requires both halves to fire, the
+      grep-half's blanket prose exclusion makes the path-half's docs-targeting
+      exception for `grep+path:` unreachable: it can never actually apply. The
+      implementation (scan_taxonomy.py) resolves the ambiguity by following the
+      first (stricter) bullet — `grep+path:` never fires on any prose type,
+      docs-targeting or not — but the standard's own prose describes a case its
+      own mechanism cannot produce. Since this taxonomy explicitly bills itself
+      as 'no LLM judgment' / mechanical, ambiguity in its own rule text is a real
+      defect in the standard, not a cosmetic one.
+    basis: "Internal contradiction between the diff's own two Eligibility-rule
+      bullets in core/components/memory/standards/rules/pr.md — flagged per the
+      explicit 'stay internally consistent' check, not an external-grounding
+      violation."
+    fix_suggestion: "Either drop the docs-targeting exception for grep+path's
+      path-half (since it can never fire), or explicitly state grep+path never
+      applies the prose guard's docs-targeting exception — pick one and say it
+      once."
+
+  - id: DF-2
+    severity: P2
+    category: harness
+    files:
+      - core/components/skills/quality-check-scoped/SKILL.md
+      - core/components/skills/quality-check-scoped/scripts/scan_taxonomy.py
+    title: "New output fields (meta.catchall, meta.errors) are not reflected in
+      the canonical findings.yaml schema or reference doc"
+    description: >
+      The change adds `meta.catchall.CODE-20` (required) and `meta.errors[]`
+      (optional) to the findings.yaml shape emitted by scan_taxonomy.py and
+      documented in SKILL.md's Output Schema table. Neither
+      core/components/memory/standards/schemas/pr-findings.yaml nor
+      core/components/skills/quality-check-scoped/reference/finding-schema.md —
+      both committed, both unmodified by this diff — were updated to include
+      these fields.
+    basis:
+      - source: "core/components/memory/standards/schemas/pr-findings.yaml
+          (unmodified by this diff, present at base ref 95ac3c4)"
+        principle: "File's own header: 'Every skill that writes a findings.yaml
+          MUST conform to this schema. Every validator that reads a findings.yaml
+          uses this as source of truth.' Its `meta:` block lists generated_at,
+          diff_path, changed_paths_count, scan_coverage, taxonomy_path,
+          standards_relevant only — no catchall, no errors."
+      - source: "core/components/skills/quality-check-scoped/reference/finding-schema.md
+          (unmodified by this diff, present at base ref 95ac3c4; still cited by
+          SKILL.md's own Reference section as 'Output schema')"
+        principle: "Its example findings.yaml and field-rules table likewise omit
+          catchall/errors — the skill's own pointed-to reference doc is now stale
+          against what the skill emits."
+    impact: "A consumer (review-pr, quality-check, or a future validator) that
+      checks findings.yaml against the canonical schema has no documented
+      contract for the new meta fields; the schema's own stated purpose
+      ('source of truth', 'MUST conform') is broken by this change without a
+      corresponding update."
+    fix_suggestion: "Add meta.catchall and meta.errors to
+      schemas/pr-findings.yaml and reference/finding-schema.md in the same PR
+      that introduces them, per the schema file's own stated authority."
+
+  - id: DF-3
+    severity: P4
+    category: harness
+    file: core/components/skills/quality-check-scoped/SKILL.md
+    title: "Contract's explicit changed_paths is now an optional override, not
+      wired by default"
+    description: >
+      The base-ref Input Contract (unchanged by this diff) passes `changed_paths`
+      as an explicit array — the mechanism that grounds the Diff Scope Invariant
+      ('NEVER reads files outside changed_paths'). The new Step 1 has the script
+      self-derive changed_paths by parsing the diff, and only honors the
+      contract's explicit list if the caller separately writes it to a file and
+      passes `--paths <file>` — which Step 1's prose does not mandate the calling
+      agent do. In the normal case the diff's own file headers and the contract's
+      changed_paths agree, so this does not currently misbehave, but the contract
+      field that is supposed to be authoritative is now optional plumbing.
+    basis: "core/components/skills/quality-check-scoped/SKILL.md's own unmodified
+      'Diff Scope Invariant' section (line ~137, untouched by this diff) and
+      unmodified Input Contract section, both committed/unchanged, establish
+      changed_paths as the scope-bounding mechanism."
+    fix_suggestion: "Have Step 1 always write the contract's changed_paths to a
+      temp file and pass --paths, rather than leaving it as an optional override
+      the agent may skip."
+
+summary:
+  categories_checked: [memory, harness]
+  layer2_result: "2 conformance checks pass (tool-first script pattern; mechanical
+    no-LLM-judgment determinism). 3 findings: 1 P2 (schema drift against two
+    committed reference docs), 1 P3 (internal contradiction in pr.md's own
+    eligibility-rule prose), 1 P4 (contract field made optional in practice)."
