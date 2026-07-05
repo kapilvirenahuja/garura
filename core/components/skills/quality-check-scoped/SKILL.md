@@ -1,6 +1,6 @@
 ---
 name: quality-check-scoped
-description: Diff-bounded single-pass quality evaluation for PR review. Classifies every changed path by ARTIFACT TYPE first (runtime code / deployable config / tests / docs-planning / garura prose / ProductOS model / STM evidence / wireframes — pure globs, first match wins), then evaluates standard-ID checks against the diff using mechanical match rules from the PR severity taxonomy — grep-based rules fire only on runtime-code/deployable-config/tests (a keyword in prose is not a security defect, #438); pure path rules fire as written. Every finding carries artifact_type. Reads KB standards from standards_order paths resolved from config, classifies findings deterministically, and emits findings.yaml. Reuses /quality-check KB data — NOT its 11-subagent execution model. Use only from review-change play; never invoke standalone for full-repo audits.
+description: Diff-bounded single-pass quality evaluation for PR review. Classifies every changed path by ARTIFACT TYPE first (runtime code / deployable config / tests / docs-planning / garura prose / ProductOS model / STM evidence / wireframes — pure globs, first match wins), then evaluates standard-ID checks against the diff using mechanical match rules from the PR severity taxonomy — grep-based rules fire only on runtime-code/deployable-config/tests (a keyword in prose is not a security defect, #438); pure path rules respect the same prose guard on prose artifacts unless the matched glob is docs-targeting (#454). Matching runs in a bundled deterministic script (scan_taxonomy.py) — real glob/regex, no inference. Every finding carries artifact_type. Emits findings.yaml. Reuses /quality-check KB data — NOT its 11-subagent execution model. Use only from review-change play; never invoke standalone for full-repo audits.
 user-invocable: false
 ---
 
@@ -13,7 +13,7 @@ Single-pass diff-bounded evaluation. Reuses the KB used by `/quality-check` but 
 | | `/quality-check` | `quality-check-scoped` |
 |---|---|---|
 | Scope | Full repo | Diff only |
-| Execution | 11 parallel subagents | Single pass |
+| Execution | 11 parallel subagents | Single deterministic script (`scan_taxonomy.py`) |
 | Output | Spider chart + scored audit | `findings.yaml` |
 | Invocable | User | Play only (review-pr) |
 | KB usage | All standards in all domains | Only standards whose taxonomy match rule fires on the diff |
@@ -47,61 +47,58 @@ output_path: "{stm_base}/{issue}/evidence/review-pr/findings.yaml"
 
 ## Execution
 
-### Step 1 — Load taxonomy
-Read `severity_taxonomy_path`. Parse the severity table into rows: `{standard_id, severity, match_rule, evidence_required}`. Build an in-memory index keyed by `standard_id`.
+The whole mechanical scan is one deterministic script — `scripts/scan_taxonomy.py` (#454).
+It is a real glob/regex engine, **not inference**: the agent runs it and returns its output,
+and never hand-matches rules against files. Hand-matching an 800-file diff against a 330-row
+table was the old slow path AND the source of loose-substring false positives (a name-glob
+`**/schema*` "matching" `finding-schema.md`); a real glob engine makes both problems
+structurally impossible.
 
-### Step 2 — Classify changed paths (artifact types)
-Classify every entry in `changed_paths[]` against the taxonomy's **Artifact-Type
-Scoping** table (first match wins, pure globs — no judgment). Hold the map
-`{path → artifact_type}` for Steps 3–6. Artifact types: `garura-prose`,
-`productos-model`, `stm-evidence`, `wireframe`, `tests`, `deployable-config`,
-`docs-planning`, `runtime-code` (default).
+### Step 1 — Run the scan
+```
+python3 <skill-dir>/scripts/scan_taxonomy.py \
+    --taxonomy "{severity_taxonomy_path}" \
+    --diff "{diff_path}" \
+    --out "{output_path}"
+```
+The script derives `changed_paths` + added lines from the diff (pass `--paths <file>` to
+override with the contract's `changed_paths`). In one pass it:
 
-### Step 3 — Filter taxonomy to relevant rows
-For each row, evaluate its `match_rule`:
-- `path:<glob>` — match against `changed_paths[]`.
-- `grep:<regex>` — match against added lines in `diff_path` (`^\+` excluding `^\+\+\+`),
-  **only in files whose artifact type is `runtime-code`, `deployable-config`, or
-  `tests`** — grep rules are ineligible on prose/model/evidence/wireframe/doc artifacts
-  (Artifact-Type Scoping).
-- `grep+path:<regex>|<glob>` — both must match; the grep half carries the same
-  eligibility restriction.
+1. **Classifies** every changed path by artifact type — the taxonomy's Artifact-Type
+   Scoping table, first-match glob (`garura-prose`, `productos-model`, `stm-evidence`,
+   `wireframe`, `tests`, `deployable-config`, `docs-planning`, `runtime-code` default).
+2. **Evaluates** every severity row's match rule with real glob/regex:
+   - `grep:` / `grep+path:` grep-half — eligible only on the CODE artifact types
+     (`runtime-code`, `deployable-config`, `tests`); dropped on any prose type (#438).
+   - `path:` / `grep+path:` path-half — on a prose artifact type it fires only when the
+     matched glob is docs-targeting; otherwise the match is dropped (#454 prose guard).
+   - `CODE-20` `**/*` catch-all — rolled into `meta.catchall.CODE-20` as a single count,
+     never per-file findings (#454).
+3. **Emits** `findings.yaml` (schema below), stable-sorted, byte-identical across runs.
 
-Drop rows with no match. The surviving set is the **relevant standard set** for this diff.
+### Step 2 — Verify and return
+Confirm the script exited `0` and `{output_path}` exists. If `meta.errors` is non-empty a
+taxonomy row failed to compile (FS-5) — surface it; do not work around it. Return the
+`findings.yaml` path to the caller. Do **not** re-derive, re-classify, or "double-check" any
+finding by inference — the script's output is authoritative and complete. KB description
+files are consulted (via `standards_order`) only when a human reads a finding back, not to
+gate emission — the taxonomy row IS the standard.
 
-### Step 4 — Load KB descriptions for relevant standards
-For each surviving `standard_id`, resolve its KB description file by walking `standards_order` (default `[kb, ltm, stm]`) and stopping at the first hit. Read ONLY the files needed — do NOT load the entire KB.
-
-### Step 5 — Evaluate each relevant standard against the diff
-For each surviving row:
-1. Apply the `match_rule` to the diff and collect every match site (`file`, `line`, matched substring or matched path) — a grep match site in a grep-ineligible file (Step 2's map) is discarded, never emitted.
-2. For each match site, emit a finding object:
-   ```yaml
-   - standard_id: SEC-19
-     severity: P1
-     file: src/config/secrets.ts
-     line: 14
-     evidence: 'const apiKey = "sk_live_abc..."'
-     artifact_type: runtime-code
-     taxonomy_rule_id: SEC-19
-   ```
-3. **F3 hard rule:** every finding MUST carry a `standard_id` that exists in the taxonomy. If the rule's evidence-required fields are missing, drop the finding and emit a skill-level error to STM evidence — NEVER fabricate a finding.
-4. **Artifact-type rule:** every finding carries `artifact_type` (from Step 2's map), so the reviewer can see why the rule applied; a grep-rule finding whose `artifact_type` is not `runtime-code`/`deployable-config`/`tests` is invalid — drop it and log to evidence.
-
-### Step 6 — Compute scan_coverage
-`scan_coverage = (count of changed_paths whose extension/path is covered by at least one taxonomy row OR classified grep-ineligible) / total changed_paths`. A consciously exempted file counts as covered, not missed. Persist in the output.
-
-### Step 7 — Emit `findings.yaml`
-Write to `output_path` with stable ordering (sort by `severity` then `file` then `line`):
+### Output ordering
+`findings.yaml` is written with a stable sort (`severity → file → line → standard_id`), so
+two invocations on the same `(diff, taxonomy)` produce byte-identical output bar
+`meta.generated_at`.
 
 ```yaml
 meta:
   generated_at: "{ISO-8601}"
   diff_path: "{diff_path}"
+  taxonomy_path: "{severity_taxonomy_path}"
   changed_paths_count: {N}
   scan_coverage: {0.0–1.0}
-  taxonomy_path: "{severity_taxonomy_path}"
   standards_relevant: {count}
+  catchall:
+    CODE-20: {count of files the **/*​ catch-all covered}   # count, not findings (#454)
 findings:
   - standard_id: SEC-19
     severity: P1
@@ -126,6 +123,8 @@ counts:
 | `meta.diff_path` | string | yes | echoed from input |
 | `meta.scan_coverage` | float | yes | 0.0–1.0 |
 | `meta.standards_relevant` | int | yes | count of taxonomy rows whose match rule fired |
+| `meta.catchall.CODE-20` | int | yes | count of files the `**/*` catch-all covered — a count, never per-file findings (#454) |
+| `meta.errors[]` | list | no | taxonomy rows that failed to compile (FS-5); empty/absent when clean |
 | `findings[].standard_id` | string | yes | MUST exist in taxonomy |
 | `findings[].severity` | enum P1\|P2\|P3\|P4 | yes | sourced from taxonomy, never inferred |
 | `findings[].file` | string | yes | repo-relative path from `changed_paths` |
@@ -145,7 +144,7 @@ The skill MUST NOT:
 
 ## Determinism
 
-Two back-to-back invocations on the same `(diff_path, changed_paths, taxonomy_path)` MUST produce a byte-identical `findings.yaml` (after stripping `meta.generated_at`). Stable sort order: `severity asc → file asc → line asc → standard_id asc`.
+Two back-to-back invocations on the same `(diff_path, changed_paths, taxonomy_path)` MUST produce a byte-identical `findings.yaml` (after stripping `meta.generated_at`). Stable sort order: `severity asc → file asc → line asc → standard_id asc`. This is guaranteed by `scan_taxonomy.py` being pure glob/regex — there is no inference step to vary between runs.
 
 ## Failure Modes
 
@@ -159,6 +158,7 @@ Two back-to-back invocations on the same `(diff_path, changed_paths, taxonomy_pa
 
 ## Reference
 
+- Scanner: `scripts/scan_taxonomy.py` (the deterministic match engine — #454)
 - Input contract: `reference/input-contract.md`
 - Output schema: `reference/finding-schema.md`
 - Taxonomy: `core/components/memory/standards/rules/pr.md`

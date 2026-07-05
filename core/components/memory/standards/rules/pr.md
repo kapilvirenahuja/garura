@@ -16,18 +16,34 @@
 - `grep+path:<regex>|<glob>` — both must match.
 - Match Rules are case-insensitive unless noted.
 
+**Glob semantics (real glob engine, not substring — #454).** Globs are matched by a real
+glob translator, never by loose substring/inference. `*` matches within one path segment,
+`**` spans segments, `{a,b,c}` expands alternatives, and `schema*` matches a **final
+segment that starts with** "schema" — so `**/schema*` matches `db/schema.sql` but NOT
+`finding-schema.md` (its basename does not start with "schema") and NOT `schemas-v1/x.yaml`
+(the matched segment is the basename, not a parent dir). A comma-separated glob list is an
+OR; a leading `!` on a glob is an **exclusion** — a path that matches any `!glob` is removed
+from that rule's matches (as already used by SEC-20, TEST-01).
+
 **Evidence Required:** every finding row in `findings.yaml` MUST carry the listed evidence fields (file + line + matched substring or path).
 
 ---
 
-## Artifact-Type Scoping (#438)
+## Artifact-Type Scoping (#438, #454)
 
 Runtime taxonomy applies to runtime artifacts. Keyword matches in prose are not security
 defects: `encrypt` in a skill's instructions, `authorized` in a product requirement, or
 `http://localhost` in a wireframe describe things — they don't implement them. So every
 changed path is classified BEFORE rules are applied, and **grep-based rules are eligible
-only on runtime artifact types**. Pure `path:` rules are unaffected — a path rule already
-names its target deliberately (`docs/security/**`, `README.md`, `**/migrations/**`).
+only on runtime artifact types**.
+
+**Prose is never a code/data defect (#454).** Pure `path:` rules used to fire as written on
+any matched path — but a name-glob aimed at a code/data artifact (`**/schema*`,
+`**/migrations/**`, `**/canary*`) also lands on prose that happens to share the name (a KB
+doc `schema-design.md`, a reference doc `finding-schema.md`), producing false findings up to
+false P1 blockers in a repo whose product IS prose. So the prose guard now covers `path:`
+rules too — but only for name-globs that do not themselves target docs, so rules that
+legitimately review documentation still fire.
 
 **Classification table — first match wins, top to bottom (pure globs, no judgment):**
 
@@ -42,16 +58,30 @@ names its target deliberately (`docs/security/**`, `README.md`, `**/migrations/*
 | `docs-planning` | `docs/**`, `**/*.md`, `**/*.rst`, `**/*.txt` |
 | `runtime-code` | everything else (the default) |
 
+**Prose artifact types:** `garura-prose`, `productos-model`, `stm-evidence`, `wireframe`,
+`docs-planning`. The other three — `runtime-code`, `deployable-config`, `tests` — are the
+**code artifact types**.
+
 **Eligibility rule (mechanical):**
 
-- `grep:` and `grep+path:` rules fire only when the matched file's artifact type is
-  `runtime-code`, `deployable-config`, or `tests`. On `garura-prose`,
-  `productos-model`, `stm-evidence`, `wireframe`, and `docs-planning` they are
-  ineligible — no finding, regardless of the keyword match.
-- `path:` rules are unaffected by artifact type — they fire exactly as written.
+- `grep:` and `grep+path:` rules fire only when the matched file's artifact type is a code
+  artifact type. On any prose artifact type they are ineligible — no finding, regardless of
+  the keyword match.
+- `path:` and the `path` half of `grep+path:` rules fire on a matched file whose artifact
+  type is a **code** artifact type exactly as written. On a **prose** artifact type they fire
+  only if the specific glob that matched is a **docs-targeting glob** — otherwise the match is
+  dropped. This is per-glob, not per-rule: for a multi-glob rule, the glob that actually
+  matched decides.
+- A glob is **docs-targeting** (mechanical test on the glob string, case-insensitive) when it
+  ends in a prose extension (`.md`, `.rst`, `.txt`), contains `docs/`, or names a known doc
+  artifact (`readme`, `changelog`, `security`, `contributing`, `license`, `.env.example`,
+  `.env.sample`, `openapi`, `swagger`, `api-spec`). So `docs/security/**`, `README.md`, and
+  `docs/adr/**` still fire on prose; `**/schema*`, `**/migrations/**`, and `**/canary*` do
+  not. `path:` rules whose target is inherently code/config (`.env`, `package.json`,
+  `.github/workflows/**`) are unaffected — those files are never a prose artifact type.
 - Every finding carries `artifact_type` (the matched file's classification) so a
   reviewer can see why the rule applied.
-- `scan_coverage` counts grep-ineligible files as covered (they were classified and
+- `scan_coverage` counts guard-exempted files as covered (they were classified and
   consciously exempted, not missed).
 
 ---
@@ -335,5 +365,13 @@ names its target deliberately (`docs/security/**`, `README.md`, `**/migrations/*
 
 - **P1 rationale:** every P1 row touches an invariant where a regression is non-recoverable in production: secrets in source, SQL/XSS injection vectors, broken auth/RBAC, missing FKs/indexes on data, non-zero-downtime migration patterns, plaintext PII, HTTP transport.
 - **F3 enforcement:** `quality-check-scoped` rejects any finding whose `standard_id` is not in this table.
-- **Determinism:** Match Rules are pure regex/glob — no probabilistic matching, no LLM judgment. Two runs on the same diff produce identical findings.
+- **CODE-20 catch-all (#454):** `CODE-20` (`path:**/*`, P4, suppressed-by-default) matches every
+  changed file by construction. It is NOT emitted as one finding per file — it is rolled into a
+  single count in `meta.catchall.CODE-20` (the number of changed files it covered). On PR #453
+  this collapses 861 individual findings into one number, so the signal in `findings.yaml` is not
+  buried. The count is informational only; CODE-20 never blocks (P4).
+- **Determinism:** Match Rules are pure regex/glob evaluated by the bundled
+  `scan_taxonomy.py` (a real glob/regex engine), not by inference — no probabilistic matching,
+  no LLM judgment, no loose substring matching. Two runs on the same diff produce byte-identical
+  findings.
 - **Adding a new standard:** add the KB rule first, then add a row here with severity + match rule. Never add a row without a corresponding KB rule.
