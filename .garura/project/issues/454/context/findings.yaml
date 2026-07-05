@@ -1,0 +1,27 @@
+# Consolidated review findings — PR #495 / issue #454
+# Quality layer (scan_taxonomy.py on the PR diff): 0 findings at every severity.
+# Design-grounding layer (change-reviewer): 3 findings, all addressed in commit 2ee582e.
+findings:
+  - id: DF-2
+    severity: P2
+    category: harness
+    basis: "committed schema pr-findings.yaml + reference finding-schema.md omit new meta fields"
+    status: fixed
+    fixed_in: 2ee582e
+  - id: DF-1
+    severity: P3
+    category: memory
+    basis: "internal contradiction in pr.md eligibility-rule bullets (grep+path)"
+    status: fixed
+    fixed_in: 2ee582e
+  - id: DF-3
+    severity: P4
+    category: harness
+    basis: "changed_paths made optional override vs Diff Scope Invariant"
+    status: fixed
+    fixed_in: 2ee582e
+counts:
+  P1: 0
+  P2: 1
+  P3: 1
+  P4: 1

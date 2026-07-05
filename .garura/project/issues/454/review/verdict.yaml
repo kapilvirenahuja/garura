@@ -1,0 +1,10 @@
+decision: approve
+decided_by: human
+reviewer_note: "Authorized full pipeline to merge; 3 findings (P2/P3/P4) fixed in-branch before approval."
+recommendation: approve
+recommendation_reason: "no P1 findings; confidence acceptable"
+findings:
+  P1: 0
+  P2: 1  # DF-2 fixed in 2ee582e
+  P3: 1  # DF-1 fixed in 2ee582e
+  P4: 1  # DF-3 fixed in 2ee582e

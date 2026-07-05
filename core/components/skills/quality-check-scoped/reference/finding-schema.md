@@ -10,6 +10,9 @@ meta:
   scan_coverage: 0.83
   taxonomy_path: "./core/components/memory/standards/rules/pr.md"
   standards_relevant: 7
+  catchall:            # catch-all rules rolled into a count, not per-file findings (#454)
+    CODE-20: 12
+  errors: []           # taxonomy rows that failed to compile (FS-5); absent/empty when clean
 
 findings:
   - standard_id: SEC-19
@@ -38,6 +41,13 @@ counts:
 | `evidence` | yes | Matched substring (`grep:`) or matched path (`path:`). Never empty. |
 | `artifact_type` | yes | From the taxonomy's Artifact-Type Scoping table (#438). A grep-rule finding is valid only on `runtime-code`, `deployable-config`, or `tests`. |
 | `taxonomy_rule_id` | yes | Equal to `standard_id` |
+
+## Meta fields
+
+| Field | Required | Constraint |
+|---|---|---|
+| `meta.catchall` | yes | Object keyed by `standard_id` → count of changed files a catch-all rule (`CODE-20`, `path:**/*`) covered. Recorded as a count, never per-file findings (#454). |
+| `meta.errors` | no | List of `{standard_id, error}` for taxonomy rows that failed to compile (FS-5). Absent or empty when the taxonomy is clean. |
 
 ## Sort order
 

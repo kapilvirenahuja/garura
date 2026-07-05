@@ -36,6 +36,19 @@ schema:
       type: integer
       description: Count of taxonomy standards applicable to this diff
       required: true
+    catchall:
+      type: object
+      description: Catch-all rules rolled into a count instead of per-file findings (#454). Keyed by standard_id → number of changed files the catch-all covered.
+      required: true
+      properties:
+        CODE-20: { type: integer, required: true }
+    errors:
+      type: array
+      description: Taxonomy rows that failed to compile (FS-5). Absent or empty when the taxonomy is clean.
+      required: false
+      items:
+        standard_id: { type: string, required: true }
+        error: { type: string, required: true }
 
   findings:
     type: array

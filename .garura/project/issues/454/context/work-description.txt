@@ -1,0 +1,13 @@
+Issue #454 — [BUG] PR severity taxonomy misfires on prose files — false P1 blockers from name globs
+
+The PR severity taxonomy (core/components/memory/standards/rules/pr.md) classifies findings by
+mechanical filename globs. In a repo whose product is prose (plays, KB shelves, standards,
+reference docs), pure path: rules aimed at code/data artifacts (DATA-*, OPS-*, PERF-23) fire on
+documentation files — including false P1 blockers (DATA-02 on schema-design.md). The artifact-type
+guard added in #438 only protects grep: rules, leaving pure path: rules unguarded. CODE-20's
+every-file catch-all also emits one finding per touched file (861 on PR #453).
+
+Fix scope (deeper, chosen by the user): make the pure-path code/data rules artifact-aware so they
+exclude prose; roll CODE-20 into a count; and move the whole mechanical scan out of an LLM agent
+into a deterministic bundled script (scan_taxonomy.py) inside quality-check-scoped, so glob/regex
+matching is enforced by real code — fixing both the false positives and the review-change slowness.

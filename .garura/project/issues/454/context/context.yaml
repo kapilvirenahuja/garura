@@ -1,0 +1,9 @@
+base: 95ac3c4b573391aeb08fec7d8047860dc8fd5c25
+standards_order: [kb, ltm, stm]
+review_shelf: core/components/memory/knowledge/review/
+severity_taxonomy_path: core/components/memory/standards/rules/pr.md
+changed_paths:
+  - core/components/memory/standards/rules/pr.md
+  - core/components/skills/quality-check-scoped/SKILL.md
+  - core/components/skills/quality-check-scoped/scripts/scan_taxonomy.py
+  - .garura/project/issues/454/context/*.{yaml,json,md,txt}
