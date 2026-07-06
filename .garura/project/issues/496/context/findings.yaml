@@ -1,0 +1,15 @@
+# Consolidated review findings — PR #497 / issue #496
+# Quality layer (scan_taxonomy.py): 0 findings at every severity (all harness/prose).
+# Design-grounding (change-reviewer): 1 finding, fixed in 42255ff9.
+findings:
+  - id: DF-1
+    severity: P2
+    category: harness
+    basis: "change-reviewer.md (committed) described whole-set grounding into one design-findings.yaml; play now dispatches per-category scoped grounding — play and agent disagreed"
+    status: fixed
+    fixed_in: 42255ff9
+counts:
+  P1: 0
+  P2: 1
+  P3: 0
+  P4: 0

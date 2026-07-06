@@ -1,0 +1,6 @@
+decision: approve
+decided_by: human
+reviewer_note: "Authorized full pipeline to merge; 1 P2 (change-reviewer/play disagreement) fixed in-branch (42255ff9) before approval."
+recommendation: approve
+recommendation_reason: "no P1 findings; confidence acceptable"
+findings: { P1: 0, P2: 1, P3: 0, P4: 0 }

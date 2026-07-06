@@ -1,0 +1,29 @@
+---
+# categories.yaml — issue #496 / PR #497
+# Scope: the two substantive files only (STM run artifacts in
+# .garura/project/issues/496/context/** are evidence, not design, and are excluded).
+categories:
+  - id: harness
+    what: >
+      The MD-defined "code" of the agentic system: a play's ICE source and its recompiled
+      SKILL.md.
+    evidence_paths:
+      - core/components/plays/review-change/reference/ice.md
+      - core/components/plays/review-change/SKILL.md
+    playbook: knowledge/review/harness.md
+    playbook_id: review/harness
+    notes: >
+      Both files changed together (ICE source + its recompiled artifact) in one commit,
+      matching the play-pipeline rule for an intent change (ICE → recompile, no hand-patch).
+      This is the only category present in the substantive diff.
+
+no_other_categories_present: true
+excluded_as_evidence_not_design:
+  - ".garura/project/issues/496/context/analysis.yaml"
+  - ".garura/project/issues/496/context/branch.json"
+  - ".garura/project/issues/496/context/commits.yaml"
+  - ".garura/project/issues/496/context/issue.json"
+  - ".garura/project/issues/496/context/pr.json"
+  - ".garura/project/issues/496/context/resolved-rules.json"
+  - ".garura/project/issues/496/context/self-review.md"
+  - ".garura/project/issues/496/context/work-description.txt"
