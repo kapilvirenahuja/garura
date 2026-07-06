@@ -1,0 +1,17 @@
+Issue #496 — [ENH] review-change: fan out design-grounding per category + fold assess/ground into one call
+
+review-change's design-grounding (Layer 2) runs as one change-reviewer agent that walks every
+design-bearing category in sequence. Grounding is read-only and independent per category — a
+natural fan-out. This is an intent change to the review-change play, done through its ICE
+(reference/ice.md) via play-editor.
+
+Two moves:
+1. Fold category assessment + single-category grounding into one change-reviewer call to remove
+   a sequential model round-trip (today: assess, then ground = two round-trips).
+2. Fan out design-grounding to one read-only change-reviewer per design-bearing category using
+   garura's concurrent read-only fan-out primitive (concurrent-fanout.md, #468).
+
+Barriers kept: assess-first (defines the category set / fan-out width), consolidate-last (verdict
+needs all findings). Shape = scatter-gather: assess (1) → ground per category (N parallel) →
+consolidate (1). Out of scope: Layer 1 linters (already deterministic scripts). Filed as the
+queued follow-on to #454.

@@ -11,7 +11,11 @@ resolve each category's review treatment from the review-knowledge memory shelf;
 review each category through the layers that apply to it: the objective linters first,
 then, for design-bearing categories, a design-grounding check whose principles are
 reconstructed from committed/external sources rather than from the branch's own new
-content. Run only the layers and steps that apply to the categories present. Consolidate
+content. The design-grounding is a concurrent read-only fan-out — one grounding pass per
+design-bearing category, dispatched as one batch and joined before consolidation — so a
+diff spanning several design-bearing categories is grounded in a single parallel pass
+rather than a serial sweep. Run only the layers and steps that apply to the categories
+present. Consolidate
 every finding — each citing its basis — into one report grouped by category and severity
 with a recommended verdict, then stop at a single decision gate: resolved per gate-config,
 the reviewer owns the approve-or-reject decision when the gate is on, and the computed
@@ -63,6 +67,17 @@ enforced by pre-flight (an open PR must exist).
   artifacts runs in `post_verdict.py`. The `repo-orchestrator` dispatch is removed. The
   category assessment and design-grounding (`change-reviewer`) and the standards linter
   (`quality-auditor`) STAY agent-run — they are genuine judgment, not mechanical.
+- C11 — Design-grounding runs as a concurrent read-only fan-out
+  (`standards/rules/concurrent-fanout.md`): once assessment fixes the design-bearing
+  category set (the opening barrier), the play dispatches one read-only `change-reviewer`
+  per design-bearing category in a single concurrent batch — each grounding ONLY its own
+  category from committed/external sources and writing ONLY its own output file
+  (`design-findings-<category>.yaml`), no grounding agent depending on another — and the
+  play joins the whole batch before consolidation (the closing barrier). The three fan-out
+  safety conditions hold (read-only over shared inputs; distinct output paths; no sibling
+  dependency), and outputs are collected in a stable category order, so the result is
+  identical to a serial run — concurrency changes only wall-clock. A single design-bearing
+  category is a fan-out of width one.
 
 ### Failure conditions
 
@@ -81,6 +96,10 @@ enforced by pre-flight (an open PR must exist).
   recommendation, or the posted comment does not identify the decider (harness vs human).
 - F11 — A mechanical PR/host operation (context bind, or verdict post + artifact
   commit/push) was run through an agent dispatch instead of its bundled script.
+- F12 — Design-grounding was run as a single monolithic pass over all design-bearing
+  categories (a serial sweep) instead of a per-category concurrent fan-out; or a grounding
+  agent grounded outside its assigned category or wrote a shared/overlapping output path;
+  or the batch was not joined before consolidation read its outputs.
 
 ## Expectation
 
@@ -111,6 +130,13 @@ enforced by pre-flight (an open PR must exist).
 - S5 — (reviewer, cited basis) Given any PR, when the consolidated report is produced, then
   every finding names a linter rule or a grounded principle as its basis. Measure: zero
   findings without a cited basis.
+- S6 — (reviewer, multi-category grounding) Given a PR whose diff contains more than one
+  design-bearing category, when review-change grounds them, then each design-bearing
+  category is grounded by its own read-only agent dispatched in one concurrent batch, and
+  all are joined before consolidation. Measure: the number of grounding agents dispatched
+  equals the number of design-bearing categories; each wrote only its own
+  `design-findings-<category>.yaml`; the batch was joined before the consolidation step read
+  any of them; the consolidated result is order-stable (identical to a serial run).
 
 ### Done means
 
@@ -155,3 +181,9 @@ enforced by pre-flight (an open PR must exist).
 - REC10 (F11) — trigger: a mechanical PR/host op was run through an agent instead of its
   script. direction: route it through the script (`fetch_pr_context.py` / `post_verdict.py`,
   via `platform_adapter.py`) and remove the agent dispatch. handoff: autonomous.
+- REC12 (F12) — trigger: grounding ran as a serial monolithic pass, or a grounding agent
+  crossed category scope / wrote a shared output, or the batch wasn't joined before
+  consolidation. direction: re-dispatch grounding as a concurrent read-only fan-out — one
+  read-only `change-reviewer` per design-bearing category, each scoped to its category and
+  its own `design-findings-<category>.yaml`, joined before consolidation. handoff:
+  autonomous.

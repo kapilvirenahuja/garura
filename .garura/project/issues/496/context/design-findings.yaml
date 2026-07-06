@@ -1,0 +1,93 @@
+---
+# design-findings.yaml — issue #496 / PR #497
+# Category: harness (review/harness.md)
+# Grounding sources are all committed/external: base ref d156b426, this repo's
+# standards/rules/concurrent-fanout.md, docs/adr/025-*.md, and the (unchanged-by-this-PR)
+# core/components/agents/change-reviewer.md — none is content this branch adds or rewrites.
+
+conformance_checks:
+  - principle: "Three fan-out safety conditions (read-only over shared inputs; distinct
+      output paths; no sibling dependency)"
+    source: "core/components/memory/standards/rules/concurrent-fanout.md"
+    result: PASS
+    evidence: >
+      Each per-category change-reviewer dispatch reads only committed sources + its own
+      diff slice (read-only), writes only its own design-findings-<category>.yaml (distinct
+      path), and no dispatch consumes another's output (siblings of Step 3, not a chain).
+
+  - principle: "Fan-out must be bounded, joined, and order-stable (same result as a serial
+      run)"
+    source: "core/components/memory/standards/rules/concurrent-fanout.md"
+    result: PASS
+    evidence: >
+      SKILL.md Step 3 states the batch is bounded by the Step 2 (assess-first) category set,
+      Step 4 explicitly joins before reading (\"read in stable category order after the
+      fan-out barrier\"), and SE-12/SCE-6 both assert count-equality and order-stability.
+
+  - principle: "A fan-out step must carry an explicit one-line declaration that it fans out
+      and that the safety conditions hold, so lint-components can check it"
+    source: "core/components/memory/standards/rules/concurrent-fanout.md"
+    result: PASS
+    evidence: >
+      Step 3 Layer 2 states the declaration inline, citing concurrent-fanout.md by name, and
+      the task notes lint-components already reports 0 errors on this play.
+
+  - principle: "Determinism lives at the skeleton, never inside the boxes — a bounded,
+      joined fan-out is still a single deterministic step from the outside"
+    source: "docs/adr/025-level-3-redefined-skeleton-and-loop.md"
+    result: PASS
+    evidence: >
+      The assess-first barrier (Step 2 fixes the category set) and consolidate-last barrier
+      (Step 4 joins before reading) are unchanged by this PR; concurrency is confined inside
+      Step 3 and changes only wall-clock, not the skeleton's step order or outcome.
+
+  - principle: "An intent change must trace to the ICE source and recompile — never a
+      hand-patched compiled artifact; fingerprint = sha256 of the edited ice.md; declared
+      ranges (Cn/Fn/Sn) must match what's actually present"
+    source: "CLAUDE.md Play Pipeline Rules; play-pipeline discipline referenced in
+      review/harness.md's own Layer-1 linter description"
+    result: PASS
+    evidence: >
+      ice.md and SKILL.md changed in the same commit; recomputed sha256 of the branch's
+      reference/ice.md is b4adce1338cabd935698234cf8157be971f9e8c589d48e2f5865733c99167cdd,
+      matching the fingerprint SKILL.md now declares. C1-C10/F1-F11/S1-S5 on the base ref
+      (d156b426) are exactly what SKILL.md's prior "Compiled From" line claimed, and the
+      diff adds exactly one of each (C11, F12, S6) with a paired REC12 and a paired
+      SE-12/SCE-6 — no orphaned reference, one recovery per failure.
+
+findings:
+  - id: harness-wiring-gap-1
+    file: core/components/plays/review-change/SKILL.md
+    category: harness
+    severity: P2
+    principle: >
+      Harness rubric (review/harness.md): "does the change keep the play → agent → skill
+      wiring intact" — a play's compiled Step contract and the agent it dispatches to must
+      agree on their JSON contract; the agent is part of the same wiring the play depends on.
+    committed_source: core/components/agents/change-reviewer.md (base ref d156b426, and
+      unchanged on this branch — not diff-added content)
+    finding: >
+      SKILL.md's new Step 3 dispatches `change-reviewer` once per design-bearing category
+      with a scoped input field `"category": "<cat>"` and expects a per-category output
+      `design-findings-<cat>.yaml`. But `core/components/agents/change-reviewer.md` — the
+      actual agent definition this play delegates to — was NOT touched by this PR. Its Job 2
+      / Input Contract still describes grounding "the design-bearing categories" (plural, no
+      per-category scoping input) and its Output Contract still names a single fixed path,
+      `design-findings.yaml` (no `<category>` variant). The play's new fan-out contract and
+      the agent's stated contract have drifted apart: nothing tells the agent to (a) restrict
+      Job 2 to only the one category named in its input, or (b) write its output to the
+      category-suffixed path Step 3/Step 4 now require.
+    why_it_matters: >
+      This is exactly the "keep the wiring intact" failure the harness playbook exists to
+      catch. Left as-is, each fan-out dispatch would either re-ground every design-bearing
+      category redundantly (defeating the fan-out and risking write collisions on a shared
+      `design-findings.yaml`, breaking the "distinct output paths" safety condition) or the
+      agent would simply ignore the unrecognized `category` field. Either way Step 4's
+      per-category read (`design-findings-<category>.yaml`) would find files that were never
+      written the way the play now expects.
+    recommendation: >
+      Update `core/components/agents/change-reviewer.md` in the same change: add a
+      category-scoped input to its Input Contract (limit Job 2 to the one named category)
+      and change its Output Contract to write `design-findings-<category>.yaml`. This is an
+      agent-definition edit, not a play-ICE edit, so it does not require another play-editor
+      recompile — but it must land before this PR's fan-out contract can actually run.

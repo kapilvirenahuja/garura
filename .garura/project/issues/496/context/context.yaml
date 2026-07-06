@@ -1,0 +1,7 @@
+base: d156b4263d83a839abb7ff372df095061c2db202
+standards_order: [kb, ltm, stm]
+review_shelf: core/components/memory/knowledge/review/
+severity_taxonomy_path: core/components/memory/standards/rules/pr.md
+changed_paths:
+  - core/components/plays/review-change/SKILL.md
+  - core/components/plays/review-change/reference/ice.md
