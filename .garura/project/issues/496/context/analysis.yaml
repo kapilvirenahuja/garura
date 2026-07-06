@@ -1,0 +1,25 @@
+---
+# analyze_changeset.py output (C8 fast path) + orchestrator grouping judgment
+# issue: 496
+needs_judgment: false
+
+change_groups:
+  - id: review-change-grounding-fanout
+    issue: 496
+    commit_type: feat
+    scope: review-change
+    subject: "fan out design-grounding to one read-only reviewer per design-bearing category"
+    files:
+      - core/components/plays/review-change/reference/ice.md
+      - core/components/plays/review-change/SKILL.md
+
+exclusions:
+  []
+
+risks:
+  sensitive_files:
+    []
+
+eval_gates:
+  SE-1: {status: PASS, evidence: "single intent change (ICE source + its recompiled SKILL.md) grouped as one commit"}
+  SE-5: {status: PASS, evidence: "no sensitive patterns matched"}
