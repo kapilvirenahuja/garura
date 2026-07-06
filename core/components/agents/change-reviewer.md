@@ -52,10 +52,19 @@ Write `categories.yaml`: each category present, the changed paths that put it th
 evidence), and the `knowledge/review/` playbook id that governs it (or `null` + a "playbook
 missing" note for a new category).
 
-## Job 2 — Design-ground the design-bearing categories (Layer 2)
+## Job 2 — Design-ground a design-bearing category (Layer 2)
 
-For each category whose playbook says design-grounding applies (harness, memory, and any new
-design-bearing category), run the Layer-2 sequence:
+**Scope — one category per dispatch (concurrent fan-out).** The play runs Layer 2 as a
+concurrent read-only fan-out: it dispatches this job **once per design-bearing category**, and
+the contract names the single category to ground in its `category` input and the category's own
+output file in `design_findings` (e.g. `design-findings-<category>.yaml`). Ground **only** that
+one category and write **only** that one file — never another category's, never a shared file —
+so the parallel dispatches never overlap or collide (the fan-out's distinct-output-path safety
+condition). If the contract omits `category` (a legacy whole-set dispatch), ground every
+design-bearing category into the single `design_findings` file.
+
+For the category in scope (whose playbook says design-grounding applies — harness, memory, and
+any new design-bearing category), run the Layer-2 sequence:
 
 1. **Reconstruct the principles from committed sources.** Read the design from outside the
    branch: `git show <base>:<path>` for the prior version, the philosophy docs
@@ -69,7 +78,8 @@ design-bearing category), run the Layer-2 sequence:
    reconstructed principles — not against the branch's own internal consistency. Emit a
    finding for each violation, citing the principle (and its committed source) as the basis.
 
-Write `design-findings.yaml`: each finding with its file, the principle violated, the
+Write the contract's `design_findings` file (the play names it per category, e.g.
+`design-findings-<category>.yaml`): each finding with its file, the principle violated, the
 committed source of that principle, and a severity drawn from the PR severity taxonomy
 (`memory/standards/rules/pr.md`).
 
@@ -90,22 +100,41 @@ committed source of that principle, and a severity drawn from the PR severity ta
 
 ## Input Contract
 
+The play dispatches this agent in one of two shapes. **Assessment** (Job 1) runs once:
+
 ```json
 {
-  "task": "categorize the diff and design-ground the design-bearing categories",
+  "task": "assess the work categories present in the diff",
   "inputs": {
     "context": "<working>/context.yaml",
     "diff": "<working>/pr.diff",
     "review_shelf": "<resolved memory>/knowledge/review/"
   },
-  "outputs": {
-    "categories": "<working>/categories.yaml",
-    "design_findings": "<working>/design-findings.yaml"
-  },
+  "outputs": { "categories": "<working>/categories.yaml" },
   "task_id": "<from play>"
 }
 ```
 
+**Grounding** (Job 2) runs once per design-bearing category, as a concurrent fan-out — the
+`category` input names the single category to ground and `design_findings` is that category's own
+file:
+
+```json
+{
+  "task": "design-ground ONLY the '<category>' category from committed sources",
+  "inputs": {
+    "context": "<working>/context.yaml",
+    "categories": "<working>/categories.yaml",
+    "category": "<the one design-bearing category to ground>",
+    "diff": "<working>/pr.diff"
+  },
+  "outputs": { "design_findings": "<working>/design-findings-<category>.yaml" },
+  "task_id": "<from play>"
+}
+```
+
+A legacy combined dispatch (both outputs, no `category`) is still honored: categorize, then
+ground every design-bearing category into the single `design_findings` file.
 `context.yaml` carries `changed_paths`, the `base` ref, and the resolved memory paths.
 
 ## Output Contract
