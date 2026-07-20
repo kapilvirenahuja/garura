@@ -51,7 +51,8 @@ Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM enr
   /understand never writes `locked`.
 - C8 — Against an already-`set` box, a need (an NFR level or a compliance regime) that
   exceeds the committed ceiling is an out-of-box event: it halts for human approval; each
-  approved box-move is recorded as its own product-level decision (ADR). A need inside the
+  box-move is written as its own product-level decision (ADR) and COMMITTED only on
+  approval (on cancel the write is reverted with the rest of the delta). A need inside the
   box never halts.
 - C9 — Exactly one human checkpoint, presenting the detailed capability, its
   functionalities, the per-capability NFR needs, and the profile changes — every box-move
@@ -65,10 +66,14 @@ Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM enr
   auto-passes with the skip and the diff summary recorded) → `gates.classes.standard` →
   `gates.default`. EVERY crossing appends one live-eval line via the bundled
   `gate_eval.py` (shape, predicted gate|auto, the human's real action
-  `approved_clean|approved_edited|rejected`, or `auto_pass`). Nothing is persisted before
-  the gate resolves: a typed approval, a recorded config skip, OR a recorded policy
-  auto-pass — box-move approvals ride this same gate, so the recorded skip or auto-pass
-  stands in evidence for them too. At close the play refreshes the learned policy with
+  `approved_clean|approved_edited|rejected`, or `auto_pass`). Write-then-review (ADR 026):
+  the run writes the full delta to the live model FIRST (docs by the skill, shared files by
+  the keyed persist), so the checkpoint presents the real model git diff and the change-shape
+  is classified over the full delta; nothing is COMMITTED before the gate resolves — a typed
+  approval, a recorded config skip, OR a recorded policy auto-pass. On cancel the whole delta
+  is reverted (`git restore` + `git clean`). Box-move approvals ride this same gate, so the
+  recorded skip or auto-pass stands in evidence for them too. At close the play refreshes the
+  learned policy with
   the bundled `distill_gate_policy.py` (config `gates.conditional`: streak/ledger/policy
   paths).
 - C10 — Non-destructive to the rest of the model, enforced by the post-write scoped guard:
@@ -90,9 +95,11 @@ Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM enr
   at entry (pre-flight halts on a dirty model tree), and after the approved checkpoint the
   play commits its model delta on the branch (`feat(model): … (#<issue>)`), so HEAD is a
   correct base for the guard and the change-shape and the next pipeline play enters clean.
-  This model-delta commit is a lightweight persist step ONLY — /understand remains a middle
-  play that injects no `start-change` head and no Standard Play Close; the commit persists
-  the model, it does not add a close sequence.
+  This model-delta commit is a lightweight persist step, distinct from the per-play Standard
+  Play Close (evidence + delivery report) that /understand still runs like every play. What
+  /understand omits as a middle play is the pipeline start/end sequence — no `start-change`
+  head and no end PR (those belong to the pipeline, the close to /roadmap); the model-delta
+  commit persists this run's model change, it does not add that pipeline sequence.
 
 ### Failure conditions
 
@@ -157,10 +164,11 @@ Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM enr
   ready, when the checkpoint is presented, then it shows the detailed capability, its
   functionalities, the per-capability NFR needs, and, for each box-move, an explicit line
   naming the dimension, the from→to levels, and the ADR it will create — rendered inline,
-  before any write. Measure: each box-move appears as its own line item; no product-model
-  file is written before the approval — or, on the auto-pass path (a policy-listed
-  shape), the gate resolves with no wait and the recorded auto-pass, the appended ledger
-  line, and the diff summary stand in the approval's place.
+  over the full written delta. Measure: each box-move appears as its own line item; no
+  product-model change is COMMITTED before the approval, and on cancel the working tree
+  returns byte-clean to HEAD (`git restore` + `git clean`) — or, on the auto-pass path (a
+  policy-listed shape), the gate resolves with no wait and the recorded auto-pass, the
+  appended ledger line, and the diff summary stand in the approval's place.
 
 ### Done means
 

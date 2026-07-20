@@ -17,9 +17,9 @@ git diff and the end-sequence PR.
 
 1. **Write target is the live model.** All model writes go to
    `{product.base-path}product-os/` directly — the spine `_spine.yaml`, the grounding
-   docs, `profile.yaml`, and `decisions/`. The enrichment/build skill that a play
-   invokes writes its docs straight to the live tree. There is no `<working>/draft/`
-   and no `<working>/draft/product-os/`.
+   docs, the profile (the `profile` block inside `_spine.yaml`), and `decisions/`. The
+   enrichment/build skill that a play invokes writes its docs straight to the live tree.
+   There is no `<working>/draft/` and no `<working>/draft/product-os/`.
 
 2. **STM holds no model copy.** Short-term memory keeps only its non-model artifacts
    (evidence, checkpoint records, context, routing, roll-up reports) per ADR 008/017.
@@ -29,8 +29,8 @@ git diff and the end-sequence PR.
    This is the containment split, and it is mandatory. The enrichment/build skill (the
    LLM) writes ONLY per-node grounding docs — `capability.md`, `functionality.md`, and
    the like — each its own file, straight to the live tree. It does **not** write any
-   shared model file. Every mutation of a shared file — the spine `_spine.yaml`, the
-   `profile.yaml`, the `decisions/` — is performed by the play's deterministic keyed
+   shared model file. Every mutation of a shared file — the spine `_spine.yaml` (including
+   its `profile` block) and the `decisions/` — is performed by the play's deterministic keyed
    script, in place on the live model, reading the skill's manifest (an STM,
    non-model artifact) for what to apply. That script keeps the node-level key the old
    `apply_<play>.py` had (e.g. `--capability-ref`) and refuses to touch any node outside
@@ -48,12 +48,13 @@ git diff and the end-sequence PR.
    to the live spine in place, node-keyed. The old doc-copy step and the before/after
    verify (`check_apply.py`) are removed.
 
-4. **Containment is a post-write scoped guard.** After the writes and before the
-   checkpoint, the play runs the shared scoped-write guard (below). It fails the run if
-   any model path was changed outside the run's declared write scope, and on
-   `--restore` reverts the out-of-scope paths. This carries forward the guarantee that
+4. **Containment is a post-write scoped guard, run once.** After ALL writes (docs +
+   shared files) and before the checkpoint, the play runs the shared scoped-write guard
+   (below) a single time over the full delta. It fails the run if any model path was
+   changed outside the run's declared write scope, and on `--restore` reverts the
+   out-of-scope paths. This carries forward the guarantee that
    `apply_<play>.py --capability-ref` enforced by construction — now enforced as
-   detect-and-revert at the run boundary.
+   detect-and-revert at the run boundary. Its `guard-report.json` is the Done-means input.
 
 5. **Change-shape reads the working-tree diff.** The conditional-gate classifier
    (`classify_change.py`, #467) derives its change-shape from the working-tree git diff
@@ -88,6 +89,30 @@ git diff and the end-sequence PR.
    reverts another play's work. `commit-change` at the end of the pipeline handles only
    what remains uncommitted (STM evidence, ADRs), not the model deltas the plays already
    committed.
+
+## Order of operations (write-then-review)
+
+The order is load-bearing, not incidental — it is the content of ADR 026 (write-then-review
+replaces the old review-then-write). Every model-writing play runs its steps in this order:
+
+1. **Write everything to the live model.** The skill writes its per-node docs; the keyed
+   persist script then writes every shared-file mutation (spine entries, profile roll-up,
+   decisions) in place. After this step the full delta is on disk.
+2. **Guard.** Run the scoped-write guard once over the full delta; halt + revert on any
+   out-of-scope path.
+3. **Classify.** Run `classify_change.py` over the full working-tree delta → the shape key.
+4. **Checkpoint.** Present the real model git diff (every box-move its own line item);
+   resolve the conditional gate. Approve → step 5. Cancel → `git restore` + `git clean` the
+   model paths (byte-clean back to HEAD) and halt.
+5. **Commit.** Commit the model delta on the branch (`feat(model): … (#<issue>)`).
+
+Why persist runs BEFORE the checkpoint: the change-shape and the human review must see the
+FULL delta. If the shared-file mutations (box-moves, profile bars, spine nodes) were still
+in the manifest at classify time, a high-impact run (a two-dimension box-move) would produce
+the same docs-only shape key as a prose edit, and the auto-pass policy would learn to
+auto-approve out-of-box moves as low-impact — a safety regression. Writing before the gate
+and gating the COMMIT (not the disk write) keeps every guarantee: nothing out-of-box is
+*committed* without approval, and cancel reverts the uncommitted writes.
 
 ## The shared scoped-write guard
 
@@ -163,6 +188,9 @@ pattern cannot survive a rebuild or a hand edit:
 - L-DMW-5: the play's enrichment/build skill is described as writing a shared model file
   (`_spine.yaml`, `profile.yaml`, `decisions/`) — shared files are written only by the
   play's deterministic keyed script.
+- L-DMW-6: the play's keyed persist step does not precede its checkpoint step (write-then-
+  review order violated — persist must run before the gate so the shape and the human see
+  the full delta).
 
 ## Why this is an intent change
 
