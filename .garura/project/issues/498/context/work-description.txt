@@ -1,0 +1,7 @@
+Kill the draft-then-apply write pattern across all model-writing plays.
+
+Problem: Every model-writing play (vision, understand, shape, grill, measure, roadmap, arch, ux, quality, agentic, run, marketing, learn) writes its changes into a throwaway draft/ folder under STM, keeps the real product-os model read-only, and only promotes the draft into the real model at the very end via an apply_*.py script, guarded by a before/after verify. This duplicates what the feature branch's git diff already provides and adds needless machinery: draft dirs, classify_change.py, apply_*.py, apply-manifest, before/after spine verify. There is no ADR recording this pattern.
+
+Change: model-writing plays edit the real product-os model directly. Review happens through the feature-branch git diff and the end-sequence PR (propose-change). Containment is preserved via a post-write scoped-diff guard plus git restore of any out-of-scope paths. The #467 conditional-gate learning is preserved by having classify_change read the working-tree git diff instead of draft-vs-live. A new ADR records the decision.
+
+Scope: an ADR plus ICE-source edits + recompiles across all 13 model-writing plays and their scripts.
