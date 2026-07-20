@@ -1,0 +1,58 @@
+pr: 499
+confidence: 1.0
+findings:
+  # ---- design-grounding layer (change-reviewer, grounded in committed sources) ----
+  - id: DF-1
+    category: harness
+    severity: P2
+    file: core/components/plays/understand/SKILL.md
+    defect: "Recorded intent fingerprint (sha256:366cc3fa…) does not match the actual sha256 of reference/ice.md (f271a4cc…). Verified by orchestrator. A wrong fingerprint defeats the ICE↔play drift check and asserts a compile that did not happen."
+    basis: "committed play-creator/SKILL.md — 'do not invent a hash; a made-up fingerprint is worse than none'"
+    fix: "recompute fingerprint to the real sha256(ice.md), or blank it, and keep the deviation note that no play-editor compile ran"
+  - id: DF-2
+    category: harness
+    severity: P2
+    file: core/components/plays/understand/SKILL.md
+    defect: "Intent change (write path, containment, cancel semantics) shipped as a hand-compiled SKILL.md; deviation note admits play-editor convergence is UNVERIFIED."
+    basis: "committed CLAUDE.md Play Pipeline Rules ('never hand-edit a compiled SKILL.md for an intent change') + play-close.md (hand-edit scoped to non-intent scaffolding)"
+    fix: "run /play-editor interactively on understand to confirm convergence before fanout (tracked in #500)"
+  - id: DF-3
+    category: tests
+    severity: P2
+    file: core/components/plays/understand/scripts/scoped_write_guard.py
+    defect: "No committed automated test for scoped_write_guard.py (the containment guarantee, incl. git restore/rm path) or the new L-DMW lint anchors. Orchestrator proved behaviors on an ad-hoc fixture, but nothing is committed."
+    basis: "review shelf tests.md ('run, don't just read') + code.md ('review data-safety paths hard'); branch self-review also flags it"
+    fix: "add a committed unit test for the guard's scope match + restore + untracked-clean, and for the lint anchors (tracked in #500)"
+  - id: DF-4
+    category: harness
+    severity: P4
+    file: core/tools/lint-components/lib/rules/structural.js
+    defect: "Comment says 'L-DMW-1..5' but the code implements six anchors (L-DMW-6 present)."
+    basis: "code/comment consistency (code.md)"
+    fix: "update the comment to L-DMW-1..6"
+  - id: DF-5
+    category: stm-run-artifacts
+    severity: P4
+    file: git-history
+    defect: "Three commits use docs(#498) instead of docs(<component>)."
+    basis: "committed commits.md conventional-commit convention; disclosed in self-review"
+    fix: "cosmetic; leave or amend"
+  # ---- objective/linter layer (quality-auditor + orchestrator-executed checks) ----
+  - id: Q-EXEC
+    category: code
+    severity: P4
+    file: multiple
+    defect: "Executed checks all GREEN: py_compile x3 ok; test_gate_learning 8/8+8/8; lint_play 14/14; lint-components 0 new violations (understand clean; enrich-capability-ice 3 missing-section are PRE-EXISTING from base). Shared scripts byte-identical canonical/stamped. persist keyed to --capability-ref, refuses siblings."
+    basis: "executed runnable checks (tests.md 'run don't just read')"
+  - id: Q-STRUCT-JS
+    category: code
+    severity: P3
+    file: core/tools/lint-components/lib/rules/structural.js
+    defect: "quality-check-scoped fired ~16 generic JS tripwires (complexity/length/naming) + 1 false-positive keyword ('join' read as SQL) on this one file — the only path classified as runtime-code (the 6 Python scripts fall under core/components/** and are classified prose, so code rules never ran on them). Mechanical, unverified as real defects."
+    basis: "pr.md taxonomy mechanical match; classification gap is in the review tooling, not this PR"
+  - id: Q-ADR-INFO
+    category: docs
+    severity: P4
+    file: docs/adr/026-direct-to-model-writes.md
+    defect: "Informational: 'a new ADR was added' notes (DOC-04/DOC-05/ARCH-23). No defect."
+    basis: "pr.md docs rules (informational)"

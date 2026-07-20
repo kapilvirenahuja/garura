@@ -3,12 +3,21 @@
 classify_change.py — deterministic change-shape classifier for conditional gates (#467).
 
 The first mechanical move of a conditional play's checkpoint step: read the play's
-draft-vs-live diff and emit a SHAPE VECTOR — counts on fixed structural axes — plus the
-derived SHAPE KEY the gate policy is learned against. No inference anywhere: every axis
-is a pattern count over the file diffs.
+working-tree git diff of the model paths and emit a SHAPE VECTOR — counts on fixed
+structural axes — plus the derived SHAPE KEY the gate policy is learned against. No
+inference anywhere: every axis is a pattern count over the file diffs.
 
-    python3 classify_change.py --play ux --draft <draft-dir> --live <live-dir> \
-        [--out shape.json]
+Direct-model-write (ADR 026): the source is the working-tree git diff of
+<product_base>product-os/ vs --base-ref (HEAD), NOT a draft-vs-live directory comparison.
+The `(path, old_lines, new_lines)` pairs are built from git — `new` is the current file,
+`old` is the file at --base-ref (empty for an added file) — and fed through the SAME
+classify_pair / new-file dispatch as before; the axis math is untouched, so the learned
+gate policy and ledger keep working. Untracked additions (git ls-files --others) are
+unioned with tracked changes, because a direct-write play creates new docs/decisions as
+untracked files that `git diff` alone does not list.
+
+    python3 classify_change.py --play understand \
+        --product-base <product_base> --base-ref HEAD [--out shape.json]
 
 Axes (fixed; the shape key is `<play>:<sorted non-zero axes joined by '+'>`):
 
@@ -29,6 +38,7 @@ import difflib
 import json
 import os
 import re
+import subprocess
 import sys
 
 SECTION_LINES = 5  # changed lines under one heading to call the section rewritten
@@ -57,18 +67,59 @@ def read_lines(path):
         return None  # binary or unreadable: ignored
 
 
-def walk(root):
+def git_out(root, *args):
+    proc = subprocess.run(["git", "-C", root, *args], capture_output=True, text=True)
+    return proc.returncode, proc.stdout
+
+
+def repo_root(start):
+    proc = subprocess.run(["git", "-C", start, "rev-parse", "--show-toplevel"],
+                          capture_output=True, text=True)
+    if proc.returncode != 0:
+        fail(f"not a git repo at {start}: {proc.stderr.strip()}")
+    return proc.stdout.strip()
+
+
+def rel_to_root(root, path):
+    # realpath both sides: git rev-parse resolves symlinks (e.g. macOS /var -> /private/var)
+    # while a passed-in path may not, which would otherwise yield a broken ../../.. relpath.
+    return os.path.relpath(os.path.realpath(path), os.path.realpath(root)).replace(os.sep, "/")
+
+
+def git_changed(root, base_ref, tree_rel):
+    """repo_rel_path -> status in {A, M, D}; unions tracked diff with untracked adds."""
     out = {}
-    for base, dirs, files in os.walk(root):
-        dirs[:] = [
-            d for d in dirs if not d.startswith((".", "_")) and d != "__pycache__"
-        ]
-        for f in files:
-            if f.startswith((".", "_")) or f.endswith((".pyc", ".bak")):
-                continue
-            full = os.path.join(base, f)
-            out[os.path.relpath(full, root)] = full
+    rc, diff = git_out(root, "diff", "--name-status", base_ref, "--", tree_rel)
+    if rc != 0:
+        fail(f"git diff against {base_ref} failed under {tree_rel}")
+    for line in diff.splitlines():
+        if not line.strip():
+            continue
+        parts = line.split("\t")
+        status = parts[0].strip()[0]
+        path = parts[-1].strip()
+        if status in ("R", "C"):
+            out[path] = "A"
+        elif status in ("A", "M", "D"):
+            out[path] = status
+        else:
+            out[path] = "M"
+    rc, others = git_out(root, "ls-files", "--others", "--exclude-standard", "--", tree_rel)
+    if rc != 0:
+        fail(f"git ls-files --others failed under {tree_rel}")
+    for line in others.splitlines():
+        p = line.strip()
+        if p:
+            out[p] = "A"
     return out
+
+
+def git_show_lines(root, base_ref, path):
+    """File content at base_ref as a list of lines, or [] if the path did not exist there."""
+    rc, text = git_out(root, "show", f"{base_ref}:{path}")
+    if rc != 0:
+        return []
+    return text.splitlines()
 
 
 def is_decision_path(rel):
@@ -191,22 +242,26 @@ AXES = [
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--play", required=True)
-    ap.add_argument("--draft", required=True, help="the play's draft dir")
-    ap.add_argument("--live", required=True, help="the matching live-model dir")
+    ap.add_argument("--product-base", required=True,
+                    help="product base, e.g. .garura/product/ ; the tree is <base>product-os/")
+    ap.add_argument("--base-ref", default="HEAD",
+                    help="git ref the working tree is diffed against (default HEAD)")
     ap.add_argument("--out", help="write the shape JSON here (also printed)")
     args = ap.parse_args(argv)
 
-    if not os.path.isdir(args.draft):
-        fail(f"draft dir missing: {args.draft}")
-    live_files = walk(args.live) if os.path.isdir(args.live) else {}
-    draft_files = walk(args.draft)
+    root = repo_root(args.product_base if os.path.isdir(args.product_base) else ".")
+    tree_rel = rel_to_root(root, os.path.join(args.product_base, "product-os"))
+    changed = git_changed(root, args.base_ref, tree_rel)
 
     axes = {a: 0 for a in AXES}
 
-    for rel in sorted(set(draft_files) | set(live_files)):
-        in_d, in_l = rel in draft_files, rel in live_files
-        if in_d and not in_l:  # new file
-            lines = read_lines(draft_files[rel])
+    for repo_rel in sorted(changed):
+        status = changed[repo_rel]
+        # product-os-relative path drives is_decision_path / is_profile_path, exactly as the
+        # old draft-relative path did.
+        rel = repo_rel[len(tree_rel) + 1:] if repo_rel.startswith(tree_rel + "/") else repo_rel
+        if status == "A":                       # new file — same dispatch as the old draft mode
+            lines = read_lines(os.path.join(root, repo_rel))
             if lines is None:
                 continue
             ids = count_node_ids(lines)
@@ -216,12 +271,15 @@ def main(argv=None):
                 axes["nodes_added"] += max(1, len(ids))
             else:
                 classify_pair(rel, [], lines, axes)
-        elif in_l and not in_d:
-            # absent from draft = untouched by this play run, NOT a removal
-            continue
-        else:
-            old, new = read_lines(live_files[rel]), read_lines(draft_files[rel])
-            if old is None or new is None or old == new:
+        elif status == "D":                     # deletion — old lines vs empty
+            old = git_show_lines(root, args.base_ref, repo_rel)
+            if not old:
+                continue
+            classify_pair(rel, old, [], axes)
+        else:                                   # modification
+            old = git_show_lines(root, args.base_ref, repo_rel)
+            new = read_lines(os.path.join(root, repo_rel))
+            if new is None or old == new:
                 continue
             classify_pair(rel, old, new, axes)
 

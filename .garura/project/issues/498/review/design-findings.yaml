@@ -1,0 +1,153 @@
+# design-findings.yaml — PR #499, base 6e44fd4bc6f61c6a908aac4103116e6f252b42b8
+# Layer 2 findings only. Every principle is grounded in a source that exists on the
+# base ref / is otherwise committed and external to this branch — NEVER in ADR 026 or
+# direct-model-write.md themselves (both are diff-added).
+
+findings:
+
+  - id: DF-1
+    category: harness
+    severity: P2
+    file: core/components/plays/understand/SKILL.md
+    defect: >
+      The recompiled SKILL.md declares a new intent fingerprint
+      (sha256:366cc3fa89c70151563784f0e99be8464203f285ef7aa1c1f10569994ef1f1d4) that does
+      NOT match sha256 of the file it claims to fingerprint. Verified mechanically:
+      `shasum -a 256 core/components/plays/understand/reference/ice.md` on the PR's tip
+      produces f271a4ccd4a1413664ce11e204170c9a4d8bad31d2ba1b2139c4678b661bf58c — a
+      different digest. Cross-check: the PRIOR fingerprint this replaces
+      (823da1a56b52de5d4c80f642eed9c6d5ebf165d1d6b657351afd6590fb0b526e) DOES match
+      sha256 of ice.md at the base ref exactly, confirming the convention is a real,
+      literal hash of the file — not a symbolic placeholder — so the new value is a
+      fabricated/invented digest, not a stale-but-honest one.
+    committed_basis:
+      path: core/components/plays/play-creator/SKILL.md (unchanged by this PR, present at
+        base ref 6e44fd4b)
+      says: >
+        "Record a content fingerprint of the intent + expectation in the metadata so
+        later drift is detectable and forces a fresh compile. Compute it mechanically —
+        run `shasum -a 256` over the intent + expectation text and paste the digest.
+        Don't invent a hash; the model can't compute one in its head, so a made-up
+        fingerprint is worse than none." And later: "The fingerprint still matches the
+        current intent + expectation — recompute it with `shasum -a 256` and compare."
+    why_it_matters: >
+      The fingerprint is the sole mechanical drift-detector the whole ICE→SKILL.md
+      compilation contract depends on. This PR's own deviation note says an interactive
+      /play-editor convergence run "is REQUIRED... before this direct-model-write
+      pattern is fanned out to the other 12 model-writing plays" — but a convergence
+      check that trusts this fingerprint would pass on a fabricated value, silently
+      defeating the one gate the author asked for. This is exactly the "made-up
+      fingerprint is worse than none" case the committed rule warns against.
+
+  - id: DF-2
+    category: harness
+    severity: P2
+    file: >
+      core/components/plays/understand/SKILL.md,
+      core/components/memory/standards/rules/direct-model-write.md,
+      docs/adr/026-direct-to-model-writes.md
+    defect: >
+      An intent change (write path, containment guarantee, and checkpoint cancel
+      semantics all changed) was shipped as a hand-compiled SKILL.md rather than a real
+      `/play-editor` run — disclosed candidly in the play's own "Direct-edit deviation
+      note (#498)", which states plainly that "no play-editor run actually occurred and
+      convergence is UNVERIFIED." The disclosure is honest and thorough, but the
+      underlying action — hand-patching a compiled play body for an intent-level change —
+      is exactly what the committed pipeline rule forbids, disclosure or not.
+    committed_basis:
+      path: /Users/kapilahuja/cto/builder/garura/CLAUDE.md (project root, unchanged by
+        this PR — "Play Pipeline Rules" section)
+      says: >
+        "Intent change — anything touching what the play *decides or guarantees*: the
+        intent statement, constraints (C-), failure conditions (F-), scenarios (S-), the
+        agent/skill flow, or evals. This MUST go through the play's ICE source
+        (reference/ice.md) → recompile with /play-editor. Never hand-edit a compiled
+        SKILL.md for an intent change." Also grounded by
+        core/components/memory/standards/rules/play-close.md (unchanged, base ref):
+        "the manual editor (direct SKILL.md edit, allowed for this non-intent
+        scaffolding)" — i.e. the committed precedent explicitly scopes hand-editing to
+        NON-intent scaffolding; this PR is an admitted intent change.
+    why_it_matters: >
+      The play-pipeline boundary rule exists precisely so a compiled play's guarantees
+      never drift from its ICE source without a real, tool-verified recompile. The
+      author's own note treats this as understood and temporary (pilot-only, gated
+      before fan-out to 12 more plays) — the disclosure is a mitigation, not a waiver.
+      The finding stands because the committed rule has no disclosure exception; it
+      should be tracked as a hard blocker on fanning the pattern out, which the PR
+      itself already says.
+
+  - id: DF-3
+    category: tests
+    severity: P2
+    file: >
+      core/components/plays/play-creator/references/scoped_write_guard.py,
+      core/tools/lint-components/lib/rules/structural.js (checkDmwAnchors, L-DMW-1..6)
+    defect: >
+      No automated test exists for either the new containment guard
+      (`scoped_write_guard.py`, 230 new lines — the mechanism the entire ADR 026
+      containment guarantee now rests on, including the `--restore` path that runs
+      `git restore`/`git rm`) or the new `checkDmwAnchors` lint rule in `structural.js`
+      (109 new lines, 6 anchors L-DMW-1 through L-DMW-6). Confirmed by search: no test
+      file anywhere under core/tools/lint-components/ references `dmw`/`DMW`/
+      `checkDmwAnchors`, and no test in play-creator/references/ exercises
+      `scoped_write_guard.py` (only `test_gate_learning.py` exists, and it covers
+      `classify_change.py` only).
+    committed_basis:
+      path: memory/knowledge/review/tests.md (review-knowledge shelf, pre-exists this
+        PR) and memory/knowledge/review/code.md
+      says: >
+        tests.md: "Run, don't just read: execute the test suite and confirm it passes...
+        Where a runnable suite exists for the touched code, running it is part of the
+        review — not optional." There is no runnable suite for these two files, so the
+        gap itself is the finding. code.md: "review the data-safety and idempotency
+        paths hard: a script that touches git, the filesystem, or external services is
+        the place a real defect does damage" — scoped_write_guard.py does exactly this
+        (git restore, git rm, file deletion) with zero test coverage.
+    why_it_matters: >
+      This is the same gap the branch's OWN self-review already surfaces (context/self-
+      review.md: "scoped_write_guard.py and the new structural.js DMW lint anchors ship
+      without dedicated automated tests... flag for review-change to decide") — this
+      finding independently confirms it against the review shelf's own rubric rather
+      than taking the self-review's word for it, and treats it as a real P2 rather than
+      an optional note, because the guard is the one piece ADR 026 explicitly names as
+      replacing a compile-time guarantee with a runtime one; an unverified guard is an
+      unverified safety property.
+
+  - id: DF-4
+    category: harness
+    severity: P4
+    file: core/tools/lint-components/lib/rules/structural.js
+    defect: >
+      The `checkDmwAnchors` function's own doc-comment says "Direct-model-write anchors
+      (L-DMW-1..5)" but the implementation actually defines six anchors, L-DMW-1 through
+      L-DMW-6 (L-DMW-6 checks write-then-review ordering). The comment underclaims the
+      rule's own scope.
+    committed_basis:
+      path: (internal consistency only — no external principle needed; flagged as a
+        plain doc/code mismatch, not a design-grounded violation)
+      says: "n/a — Layer 1 nit, included here only because it was found while reading
+        the same code the DF-3 finding is grounded against."
+    why_it_matters: >
+      Cosmetic. A future reader trusting the comment would think there are 5 anchors
+      and miss L-DMW-6 when auditing coverage.
+
+  - id: DF-5
+    category: stm-run-artifacts
+    severity: P4
+    file: .garura/project/issues/498/context/commits.yaml
+    defect: >
+      Three docs commits in this branch use `docs(#498): ...` (issue number in the scope
+      slot) instead of `docs(<component>): ...` (e.g. `docs(understand): ...`), with the
+      issue reference carried in the body/footer as the convention prescribes. Already
+      caught and disclosed by the branch's own self-review.
+    committed_basis:
+      path: core/components/memory/standards/rules/commits.md (unchanged, base ref)
+      says: >
+        The commit categorization table and its `type(component): subject` scope
+        convention (component names, not issue numbers, occupy the scope slot; the issue
+        is carried in the trailer).
+    why_it_matters: >
+      Cosmetic — does not affect the commit's association with #498 (all six commits do
+      reference #498), but diverges from the canonical scope convention. Confirmed
+      independently against commits.md rather than deferring to the self-review's own
+      assertion.

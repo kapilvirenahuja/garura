@@ -18,7 +18,9 @@ capability per run; one human checkpoint approves the detailed grounding and any
 before anything persists. The grounding docs are gated by the structural linter (shape)
 and the content-quality eval (a judge).
 
-Pipeline position: **none**. /understand is a MIDDLE play of the strategy pipeline (vision → understand → shape → roadmap): it expects to run on the branch /vision already started, injects no `start-change` head and no close sequence, stops when its work is done, and leaves the branch as-is for the next play to pick up. The close belongs to /roadmap. It writes the persistent product model directly, on the already-started branch. (#437)
+Pipeline position: **none**. /understand is a MIDDLE play of the strategy pipeline (vision → understand → shape → roadmap): it expects to run on the branch /vision already started, injects no `start-change` head and no close sequence, stops when its work is done, and leaves the branch as-is for the next play to pick up. The close belongs to /roadmap. It writes the persistent product model directly, on the already-started branch — there is no draft copy and no apply/promote step; review is the branch git diff and the pipeline's end PR. (#437, #498, ADR 026)
+
+Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM enrichment skill writes ONLY the per-node docs (`capability.md`, `functionality.md`) straight to the live model; every shared-file mutation (the spine `_spine.yaml`, `profile.yaml`, the box-move decisions) is done by the deterministic keyed persist script, in place, keyed to the target capability so it cannot touch a sibling node inside a shared file. The model tree is asserted clean at entry and the play commits its own model delta at close, so the working-tree diff vs HEAD is exactly this run's delta.
 
 ### Constraints
 
@@ -49,34 +51,55 @@ Pipeline position: **none**. /understand is a MIDDLE play of the strategy pipeli
   /understand never writes `locked`.
 - C8 — Against an already-`set` box, a need (an NFR level or a compliance regime) that
   exceeds the committed ceiling is an out-of-box event: it halts for human approval; each
-  approved box-move is recorded as its own product-level decision (ADR). A need inside the
+  box-move is written as its own product-level decision (ADR) and COMMITTED only on
+  approval (on cancel the write is reverted with the rest of the delta). A need inside the
   box never halts.
 - C9 — Exactly one human checkpoint, presenting the detailed capability, its
   functionalities, the per-capability NFR needs, and the profile changes — every box-move
   as its own line item (dimension, from→to, the decision it creates). The checkpoint is a
   **conditional gate** (#467; `gate-config.md` three gate kinds — /understand is one of
   the eleven conditional document plays). Resolution order: pinned (n/a here) → the
-  `gates.plays` override → the learned policy (classify the draft-vs-live change shape
-  with the bundled `classify_change.py`; a shape in `gate-policy.yaml`'s `auto:` and not
+  `gates.plays` override → the learned policy (classify the working-tree change shape —
+  the model tree's diff vs HEAD — with the bundled `classify_change.py`
+  (`--product-base`/`--base-ref HEAD`); a shape in `gate-policy.yaml`'s `auto:` and not
   in `never_auto:`, with NO blocking finding — a lint gap or a content-eval fail —
   auto-passes with the skip and the diff summary recorded) → `gates.classes.standard` →
   `gates.default`. EVERY crossing appends one live-eval line via the bundled
   `gate_eval.py` (shape, predicted gate|auto, the human's real action
-  `approved_clean|approved_edited|rejected`, or `auto_pass`). Nothing is persisted before
-  the gate resolves: a typed approval, a recorded config skip, OR a recorded policy
-  auto-pass — box-move approvals ride this same gate, so the recorded skip or auto-pass
-  stands in evidence for them too. At close the play refreshes the learned policy with
+  `approved_clean|approved_edited|rejected`, or `auto_pass`). Write-then-review (ADR 026):
+  the run writes the full delta to the live model FIRST (docs by the skill, shared files by
+  the keyed persist), so the checkpoint presents the real model git diff and the change-shape
+  is classified over the full delta; nothing is COMMITTED before the gate resolves — a typed
+  approval, a recorded config skip, OR a recorded policy auto-pass. On cancel the whole delta
+  is reverted (`git restore` + `git clean`). Box-move approvals ride this same gate, so the
+  recorded skip or auto-pass stands in evidence for them too. At close the play refreshes the
+  learned policy with
   the bundled `distill_gate_policy.py` (config `gates.conditional`: streak/ledger/policy
   paths).
-- C10 — Non-destructive to the rest of the model (allowlist): the run writes only the
-  target capability (its doc + spine entry), its new functionalities (docs + entries), the
-  firmed profile, and the box-move decisions. No other capability, functionality, or domain
-  is changed; the monotonic-up roll-up guarantees no other capability's need is undercut.
-- C11 — The play ends by proving its Done means at close (gated, #464): the allowlisted
-  applied record exists (the detailed capability grounding, its functionality docs, and the
-  profile roll-up were persisted), the applied record stamps the roll-up as written, and
-  the captured post-apply verification reads ok. The close never reads COMPLETED with the
+- C10 — Non-destructive to the rest of the model, enforced by the post-write scoped guard:
+  the run writes only the target capability (its doc + spine entry), its new functionalities
+  (docs + entries), the firmed profile, and the box-move decisions. After the writes and
+  before the checkpoint, the bundled `scoped_write_guard.py` diffs the model tree against
+  HEAD and FAILS the run (reverting the offending paths) if any model path outside that
+  scope changed. No other capability, functionality, or domain is changed; the monotonic-up
+  roll-up guarantees no other capability's need is undercut. Node-level containment inside
+  the shared spine/profile is kept by the keyed persist script (only it writes those files),
+  not the guard.
+- C11 — The play ends by proving its Done means at close (gated, #464): the keyed persist
+  record exists (the detailed capability grounding, its functionality docs, and the profile
+  roll-up were written in place on the live model), the persist record stamps the roll-up as
+  written, and the scoped-write guard report reads ok (the allowlist held). The play then
+  commits its own model delta on the branch. The close never reads COMPLETED with the
   stop-condition verdict unmet.
+- C12 — Clean tree in, committed delta out (ADR 026): the product-os tree is asserted clean
+  at entry (pre-flight halts on a dirty model tree), and after the approved checkpoint the
+  play commits its model delta on the branch (`feat(model): … (#<issue>)`), so HEAD is a
+  correct base for the guard and the change-shape and the next pipeline play enters clean.
+  This model-delta commit is a lightweight persist step, distinct from the per-play Standard
+  Play Close (evidence + delivery report) that /understand still runs like every play. What
+  /understand omits as a middle play is the pipeline start/end sequence — no `start-change`
+  head and no end PR (those belong to the pipeline, the close to /roadmap); the model-delta
+  commit persists this run's model change, it does not add that pipeline sequence.
 
 ### Failure conditions
 
@@ -100,11 +123,14 @@ Pipeline position: **none**. /understand is a MIDDLE play of the strategy pipeli
   its new functionalities) was changed during the run.
 - F10 — Over-reach into prioritization: a slice or an epic was written, or the target
   capability's status was flipped to active — that is /shape's job.
-- F11 — The run closed COMPLETED without the Done means held (no applied record, the
-  profile roll-up not stamped as persisted, or the post-apply verification not captured or
-  not ok).
+- F11 — The run closed COMPLETED without the Done means held (no persist record, the
+  profile roll-up not stamped as written, the scoped-write guard report not captured or not
+  ok, or the model delta not committed).
 - F12 — A conditional-gate crossing left no live-eval ledger line, or an auto-pass fired
   for a shape the policy does not list as auto (or that carried a blocking finding).
+- F13 — The play ran against a dirty product-os tree (uncommitted model edits present at
+  entry), so the change-shape and the scoped guard could not be trusted to reflect only
+  this run's delta.
 
 ## Expectation
 
@@ -138,31 +164,32 @@ Pipeline position: **none**. /understand is a MIDDLE play of the strategy pipeli
   ready, when the checkpoint is presented, then it shows the detailed capability, its
   functionalities, the per-capability NFR needs, and, for each box-move, an explicit line
   naming the dimension, the from→to levels, and the ADR it will create — rendered inline,
-  before any write. Measure: each box-move appears as its own line item; no product-model
-  file is written before the approval — or, on the auto-pass path (a policy-listed
-  shape), the gate resolves with no wait and the recorded auto-pass, the appended ledger
-  line, and the diff summary stand in the approval's place.
+  over the full written delta. Measure: each box-move appears as its own line item; no
+  product-model change is COMMITTED before the approval, and on cancel the working tree
+  returns byte-clean to HEAD (`git restore` + `git clean`) — or, on the auto-pass path (a
+  policy-listed shape), the gate resolves with no wait and the recorded auto-pass, the
+  appended ledger line, and the diff summary stand in the approval's place.
 
 ### Done means
 
 Paths are relative to the run's working root (`{stm_base}_shaping/understand/<capability>/`).
-`apply-manifest.json` is the applied record `apply_understand.py` writes after the approved
+`persist-manifest.json` is the record the keyed persist script writes after the approved
 checkpoint (its contract: `written`, `capability_ref`, `changed.{capability,
-functionalities_added, profile, decisions}`, `box_moves`) — the persisted detailed
-capability grounding, its functionality docs, and the profile roll-up; `apply-checks.json`
-is the verify step's captured `check_apply.py` output — the play always writes it, and its
-`ok` field is the mechanical proof that the allowlist held, the target was promoted with
-concrete needs, the box moved monotonic-up to `set`, and every box-move carries its
-accepted decision.
+functionalities_added, profile, decisions}`, `box_moves`) — the detailed capability
+grounding, its functionality docs, and the profile roll-up, all written in place on the
+live model; `guard-report.json` is the captured `scoped_write_guard.py` output — the play
+always writes it, and its `ok` field is the mechanical proof that no model path changed
+outside the target's scope (the allowlist held). Node-level promotion, concrete needs,
+monotonic-up box to `set`, and each box-move's accepted decision are stamped in the persist
+record.
 
-- D1 — says: "the applied record exists — the detailed capability grounding, its
-  functionality docs, and the roll-up were persisted through the allowlisted apply"
-  check: { type: artifact_exists, path: "apply-manifest.json" }
-- D2 — says: "the profile roll-up was persisted — the applied record stamps the firmed box"
-  check: { type: field_equals, file: "apply-manifest.json", field: "changed.profile", equals: true }
-- D3 — says: "the post-apply verification held — allowlist, promotion, monotonic box,
-  box-move decisions all ok"
-  check: { type: field_equals, file: "apply-checks.json", field: "ok", equals: true }
+- D1 — says: "the persist record exists — the detailed capability grounding, its
+  functionality docs, and the roll-up were written in place on the live model"
+  check: { type: artifact_exists, path: "persist-manifest.json" }
+- D2 — says: "the profile roll-up was persisted — the persist record stamps the firmed box"
+  check: { type: field_equals, file: "persist-manifest.json", field: "changed.profile", equals: true }
+- D3 — says: "the scoped-write guard held — no model path changed outside the target's scope"
+  check: { type: field_equals, file: "guard-report.json", field: "ok", equals: true }
 
 ### Recovery (one per failure condition)
 
@@ -199,11 +226,15 @@ accepted decision.
   leaving only /understand's detailing scope. handoff: autonomous.
 - REC11 (F11) — trigger: the run is about to close COMPLETED with the Done means unmet.
   direction: close HALTED with `exit_reason: stop_condition_unmet` and the unmet clauses
-  named; fix the state — re-run the allowlisted persist or re-capture the post-apply
-  verification — and re-evaluate; the close stays HALTED until the verdict reads held.
-  handoff: autonomous.
+  named; fix the state — re-run the keyed persist, re-capture the scoped-write guard report,
+  or make the model-delta commit — and re-evaluate; the close stays HALTED until the verdict
+  reads held. handoff: autonomous.
 - REC12 (F12) — trigger: a crossing left no live-eval ledger line, or an auto-pass fired
   for a shape not listed `auto:` in the policy (or one carrying a blocking finding).
   direction: re-append the missing ledger line for the recorded crossing; when the
   auto-pass was unearned, re-run the gate as a live wait — render the approval prompt
   and wait for the typed response — before proceeding. handoff: autonomous.
+- REC13 (F13) — trigger: the product-os tree is dirty at entry (uncommitted model edits
+  present). direction: halt at pre-flight and ask for a clean model tree — commit or revert
+  the pending model edits (or run the prior pipeline play to its close) — before /understand
+  proceeds. handoff: human.
