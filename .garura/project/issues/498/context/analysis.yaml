@@ -1,0 +1,33 @@
+---
+# analyze_changeset.py output (C8 fast path) + agent grouping judgment
+# issue: 498
+needs_judgment: false
+
+change_groups:
+  - id: understand-direct-write-reference
+    issue: 498
+    commit_type: feat
+    scope: understand
+    subject: "direct-model-write reference implementation"
+    files:
+      - core/components/plays/play-creator/references/classify_change.py
+      - core/components/plays/play-creator/references/test_gate_learning.py
+      - core/components/plays/play-creator/references/scoped_write_guard.py
+      - core/components/plays/understand/SKILL.md
+      - core/components/plays/understand/scripts/classify_change.py
+      - core/components/plays/understand/scripts/persist_understand.py
+      - core/components/plays/understand/scripts/scoped_write_guard.py
+      - core/components/plays/understand/stop-condition.yaml
+      - core/components/skills/enrich-capability-ice/SKILL.md
+      - core/tools/lint-components/lib/rules/structural.js
+
+exclusions:
+  []
+
+risks:
+  sensitive_files:
+    []
+
+eval_gates:
+  SE-1: {status: PASS, evidence: "single-issue branch (feature/498-model-plays-direct-write); all 10 files are one feature landing (play + shared scripts + canonical script copies + enforcing lint rule) — kept as one group per grouping rule 4 (never split one issue by component)"}
+  SE-5: {status: PASS, evidence: "no sensitive patterns matched by mechanical scan; manual review of all 10 paths confirms no secrets/credentials/env files — lint rule and script changes are plain source, not config-with-secrets"}
