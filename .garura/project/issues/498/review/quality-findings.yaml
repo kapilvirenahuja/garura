@@ -1,0 +1,346 @@
+meta:
+  generated_at: '2026-07-20T15:58:32Z'
+  diff_path: '/private/tmp/claude-503/-Users-kapilahuja-cto-builder-garura/a33d9df1-0594-4fe2-bbab-a97dd119d6b8/scratchpad/review-change/pr.diff'
+  taxonomy_path: 'core/components/memory/standards/rules/pr.md'
+  changed_paths_count: 21
+  scan_coverage: 1.0000
+  standards_relevant: 21
+  catchall:
+    CODE-20: 21
+
+artifact_type_classification:
+  # Mechanical, first-match-wins glob classification per pr.md Artifact-Type Scoping table.
+  # NOTE: core/components/** matches garura-prose BEFORE the runtime-code default —
+  # so the Python scripts under core/components/plays/** classify as garura-prose,
+  # not runtime-code, even though they are executable Python. This is correct per the
+  # taxonomy as written: it means grep-based CODE-*/SEC-*/BE-* rules are ineligible on
+  # them (Artifact-Type Scoping eligibility rule), only path:-catch-all (CODE-20, P4,
+  # suppressed) applies.
+  - path: core/components/plays/play-creator/references/classify_change.py
+    artifact_type: garura-prose
+  - path: core/components/plays/play-creator/references/scoped_write_guard.py
+    artifact_type: garura-prose
+  - path: core/components/plays/play-creator/references/test_gate_learning.py
+    artifact_type: garura-prose
+  - path: core/components/plays/understand/scripts/classify_change.py
+    artifact_type: garura-prose
+  - path: core/components/plays/understand/scripts/persist_understand.py
+    artifact_type: garura-prose
+  - path: core/components/plays/understand/scripts/scoped_write_guard.py
+    artifact_type: garura-prose
+  - path: core/tools/lint-components/lib/rules/structural.js
+    artifact_type: runtime-code   # outside core/components/** — no prose exemption
+  - path: core/components/plays/understand/stop-condition.yaml
+    artifact_type: garura-prose
+  - path: core/components/plays/understand/SKILL.md
+    artifact_type: garura-prose
+  - path: core/components/plays/understand/reference/ice.md
+    artifact_type: garura-prose
+  - path: core/components/skills/enrich-capability-ice/SKILL.md
+    artifact_type: garura-prose
+  - path: core/components/memory/standards/rules/direct-model-write.md
+    artifact_type: garura-prose
+  - path: docs/adr/026-direct-to-model-writes.md
+    artifact_type: docs-planning
+  - path: .garura/project/issues/498/context/analysis.yaml
+    artifact_type: stm-evidence
+  - path: .garura/project/issues/498/context/branch.json
+    artifact_type: stm-evidence
+  - path: .garura/project/issues/498/context/commits.yaml
+    artifact_type: stm-evidence
+  - path: .garura/project/issues/498/context/issue.json
+    artifact_type: stm-evidence
+  - path: .garura/project/issues/498/context/pr.json
+    artifact_type: stm-evidence
+  - path: .garura/project/issues/498/context/resolved-rules.json
+    artifact_type: stm-evidence
+  - path: .garura/project/issues/498/context/self-review.md
+    artifact_type: stm-evidence
+  - path: .garura/project/issues/498/context/work-description.txt
+    artifact_type: stm-evidence
+
+executed_checks:
+  - check: "py_compile core/components/plays/play-creator/references/classify_change.py"
+    result: PASS
+    exit_code: 0
+  - check: "py_compile core/components/plays/play-creator/references/scoped_write_guard.py"
+    result: PASS
+    exit_code: 0
+  - check: "py_compile core/components/plays/understand/scripts/classify_change.py"
+    result: PASS
+    exit_code: 0
+  - check: "py_compile core/components/plays/understand/scripts/persist_understand.py"
+    result: PASS
+    exit_code: 0
+  - check: "py_compile core/components/plays/understand/scripts/scoped_write_guard.py"
+    result: PASS
+    exit_code: 0
+  - check: "py_compile core/components/plays/play-creator/references/test_gate_learning.py"
+    result: PASS
+    exit_code: 0
+  - check: "python3 core/components/plays/play-creator/references/test_gate_learning.py"
+    result: PASS
+    exit_code: 0
+    evidence: "classifier: 8/8 pass; learner: 8/8 pass; ALL PASS"
+  - check: "python3 core/components/plays/play-creator/scripts/lint_play.py core/components/plays/understand/SKILL.md"
+    result: PASS
+    exit_code: 0
+    evidence: "VERDICT: PASS (0 gap(s)) — all 14 play-lint gates pass, including model-write position (D2b) and stop condition (#464)"
+  - check: "node core/tools/lint-components/index.js"
+    result: PASS_WITH_PREEXISTING_BASELINE
+    exit_code: 0
+    evidence: >
+      Repo-wide summary: 118 errors, 1 warning, 0 infos. Filtered to this PR's changed
+      files: understand/SKILL.md = 0 violations (clean, as expected). structural.js =
+      0 lint-tool violations against itself (it's a lint rule file, not linted content).
+      enrich-capability-ice/SKILL.md = 3 pre-existing missing-section violations
+      (## Input, ## Process, ## Output) — confirmed via `git show 6e44fd4b:...` that the
+      base commit already used non-matching headers (## Inputs / ## Procedure /
+      ## Output — the draft); this PR only added a new subsection and renamed the
+      Output heading's suffix, it did not introduce or worsen the violation. No NEW
+      violation lands on any changed file in this PR.
+
+findings:
+  - standard_id: 'ARCH-02'
+    severity: P2
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'ARCH-02'
+    source: static_rule
+  - standard_id: 'CODE-03'
+    severity: P2
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-03'
+    source: static_rule
+  - standard_id: 'CODE-04'
+    severity: P2
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-04'
+    source: static_rule
+  - standard_id: 'CODE-14'
+    severity: P2
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-14'
+    source: static_rule
+  - standard_id: 'BE-19'
+    severity: P2
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 184
+    evidence: 'join'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'BE-19'
+    source: static_rule
+    note: "Substring match on path.join() call — not an actual SELECT/FROM/JOIN SQL query. Taxonomy-mechanical hit, not a real defect."
+  - standard_id: 'ARCH-03'
+    severity: P3
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'ARCH-03'
+    source: static_rule
+  - standard_id: 'ARCH-08'
+    severity: P3
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'ARCH-08'
+    source: static_rule
+  - standard_id: 'CODE-09'
+    severity: P3
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-09'
+    source: static_rule
+  - standard_id: 'CODE-10'
+    severity: P3
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-10'
+    source: static_rule
+  - standard_id: 'CODE-11'
+    severity: P3
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-11'
+    source: static_rule
+  - standard_id: 'CODE-12'
+    severity: P3
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-12'
+    source: static_rule
+  - standard_id: 'CODE-15'
+    severity: P3
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-15'
+    source: static_rule
+  - standard_id: 'CODE-17'
+    severity: P3
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-17'
+    source: static_rule
+  - standard_id: 'CODE-18'
+    severity: P3
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-18'
+    source: static_rule
+  - standard_id: 'FE-08'
+    severity: P3
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'FE-08'
+    source: static_rule
+  - standard_id: 'DOC-04'
+    severity: P3
+    file: 'docs/adr/026-direct-to-model-writes.md'
+    line: 1
+    evidence: 'docs/adr/026-direct-to-model-writes.md'
+    artifact_type: 'docs-planning'
+    taxonomy_rule_id: 'DOC-04'
+    source: static_rule
+    note: "path:docs/adr/** — mechanical hit confirming an ADR was added; not a defect, informational per DOC-04's own P3 (missing-docs-style) intent."
+  - standard_id: 'CODE-13'
+    severity: P4
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-13'
+    source: static_rule
+  - standard_id: 'CODE-19'
+    severity: P4
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 1
+    evidence: 'core/tools/lint-components/lib/rules/structural.js'
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-19'
+    source: static_rule
+  - standard_id: 'CODE-22'
+    severity: P4
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 4
+    evidence: 'const path ='
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-22'
+    source: static_rule
+  - standard_id: 'CODE-22'
+    severity: P4
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 182
+    evidence: 'const violations ='
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-22'
+    source: static_rule
+  - standard_id: 'CODE-22'
+    severity: P4
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 183
+    evidence: 'const playDir ='
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-22'
+    source: static_rule
+  - standard_id: 'CODE-22'
+    severity: P4
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 184
+    evidence: 'const guardPath ='
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-22'
+    source: static_rule
+  - standard_id: 'CODE-22'
+    severity: P4
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 187
+    evidence: 'const push ='
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-22'
+    source: static_rule
+  - standard_id: 'CODE-22'
+    severity: P4
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 219
+    evidence: 'const hasCheckpoint ='
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-22'
+    source: static_rule
+  - standard_id: 'CODE-22'
+    severity: P4
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 264
+    evidence: 'const persistIdx ='
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-22'
+    source: static_rule
+  - standard_id: 'CODE-22'
+    severity: P4
+    file: 'core/tools/lint-components/lib/rules/structural.js'
+    line: 265
+    evidence: 'const gateIdx ='
+    artifact_type: 'runtime-code'
+    taxonomy_rule_id: 'CODE-22'
+    source: static_rule
+  - standard_id: 'ARCH-23'
+    severity: P4
+    file: 'docs/adr/026-direct-to-model-writes.md'
+    line: 1
+    evidence: 'docs/adr/026-direct-to-model-writes.md'
+    artifact_type: 'docs-planning'
+    taxonomy_rule_id: 'ARCH-23'
+    source: static_rule
+  - standard_id: 'DOC-05'
+    severity: P4
+    file: 'docs/adr/026-direct-to-model-writes.md'
+    line: 1
+    evidence: 'docs/adr/026-direct-to-model-writes.md'
+    artifact_type: 'docs-planning'
+    taxonomy_rule_id: 'DOC-05'
+    source: static_rule
+
+  # --- executed-check findings (from running lint_play.py / lint-components / py_compile) ---
+  - standard_id: 'LINT-COMPONENTS-STRUCTURAL'
+    severity: P4
+    file: 'core/components/skills/enrich-capability-ice/SKILL.md'
+    line: 1
+    evidence: 'Missing required section: ## Input / ## Process / ## Output (3 violations)'
+    artifact_type: 'garura-prose'
+    taxonomy_rule_id: null
+    source: executed_check
+    note: "Pre-existing baseline violation, confirmed via git show 6e44fd4b (base ref) — the same non-matching headers (## Inputs / ## Procedure / ## Output — the draft) existed before this PR. Not introduced by this diff. No standard_id in pr.md taxonomy maps to lint-components' own rule names, so this is reported as an executed-check finding, not a taxonomy finding."
+
+counts:
+  P1: 0
+  P2: 5
+  P3: 11
+  P4: 13   # 12 taxonomy P4 + 1 pre-existing lint-components P4 (informational, not new)

@@ -1,0 +1,10 @@
+pr: 499
+decision: approve
+decided_by: human (reviewer, typed)
+recommendation: approve
+gate: "skipped by config (gates.plays.review-change=false); reviewer decision captured interactively"
+condition_met: "DF-1 fixed before approval (commit 336bd840 — fingerprint corrected to match ice.md)"
+carried_followups:
+  - "DF-2: interactive /play-editor convergence run required before fanout (#500)"
+  - "DF-3: committed unit tests for scoped_write_guard.py + L-DMW lint anchors (#500)"
+  - "DF-4/DF-5: nits (comment L-DMW-1..6; commit-message scope) — non-blocking"

@@ -1,0 +1,100 @@
+# categories.yaml — PR #499, base 6e44fd4bc6f61c6a908aac4103116e6f252b42b8
+# Derived from actual diff content, not a preset list.
+
+categories:
+  - id: harness
+    label: "Harness (plays, skills, their bundled scripts and ICE)"
+    playbook: knowledge/review/harness.md
+    playbook_status: present
+    evidence:
+      - core/components/plays/understand/SKILL.md
+      - core/components/plays/understand/reference/ice.md
+      - core/components/plays/understand/stop-condition.yaml
+      - core/components/plays/understand/scripts/classify_change.py
+      - core/components/plays/understand/scripts/scoped_write_guard.py
+      - core/components/plays/understand/scripts/persist_understand.py   # renamed from apply_understand.py
+      - core/components/plays/understand/scripts/check_apply.py          # deleted
+      - core/components/plays/play-creator/references/classify_change.py   # canonical stamped copy
+      - core/components/plays/play-creator/references/scoped_write_guard.py # canonical stamped copy
+      - core/components/skills/enrich-capability-ice/SKILL.md
+    note: >
+      This is the intellectually central category here: the PR changes a compiled play
+      (SKILL.md + ICE), its bundled scripts, and its worker skill. Design-grounding
+      (Layer 2) applies — see design-findings.yaml.
+
+  - id: memory-standards
+    label: "Memory / standards (a new canonical rule)"
+    playbook: knowledge/review/memory.md
+    playbook_status: present
+    evidence:
+      - core/components/memory/standards/rules/direct-model-write.md
+    note: >
+      New standards rule shaping how all 13 model-writing plays are meant to write.
+      Design-grounding applies, but this file IS the branch's own new content, so it
+      cannot be used to ground itself — only checked for internal template conformance
+      and cross-checked against what it claims other committed files already establish.
+
+  - id: decision-record
+    label: "Decision record (ADR)"
+    playbook: knowledge/review/adrs.md
+    playbook_status: present
+    evidence:
+      - docs/adr/026-direct-to-model-writes.md
+    note: >
+      New ADR. Per adrs.md no design-grounding applies (the decision IS the design) —
+      Layer 1 (structural shape: Status/Date/Related/Context/Decision/Consequences) only,
+      human owns the merit judgement. Shape matches ADRs 001-025's convention.
+
+  - id: executable-code
+    label: "Executable code (scripts + JS lint rule)"
+    playbook: knowledge/review/code.md
+    playbook_status: present
+    evidence:
+      - core/components/plays/play-creator/references/classify_change.py
+      - core/components/plays/play-creator/references/scoped_write_guard.py
+      - core/components/plays/understand/scripts/classify_change.py
+      - core/components/plays/understand/scripts/scoped_write_guard.py
+      - core/components/plays/understand/scripts/persist_understand.py
+      - core/tools/lint-components/lib/rules/structural.js
+    note: >
+      Same script files also evidence "harness" above (they are a play's bundled
+      mechanical scripts); code.md's Layer 1 (language linter + pr.md taxonomy,
+      no design-grounding, extra weight on destructive/git-touching paths) applies here.
+      structural.js is JS harness-linter source, reviewed the same way.
+
+  - id: tests
+    label: "Tests"
+    playbook: knowledge/review/tests.md
+    playbook_status: present
+    evidence:
+      - core/components/plays/play-creator/references/test_gate_learning.py
+    note: >
+      Fixture test for classify_change.py's new git-diff mode. Ran the suite directly:
+      "classifier: 8/8 pass / learner: 8/8 pass / ALL PASS" — confirmed, not just read.
+      No dedicated test exists for scoped_write_guard.py or for the new checkDmwAnchors
+      lint rule in structural.js — see design-findings.yaml (gap flagged there since it
+      bears on the harness category's riskiest new pieces).
+
+  - id: stm-run-artifacts
+    label: "STM run artifacts (generated issue-context records)"
+    playbook: null
+    playbook_status: "playbook missing — new category, no seeded playbook covers generated
+      per-issue STM context/evidence files (analysis.yaml, branch.json, commits.yaml,
+      issue.json, pr.json, resolved-rules.json, self-review.md, work-description.txt).
+      These are not a config map (they don't wire the system by path), not documentation
+      authored for a human audience beyond this run, not harness code, and not a decision
+      record — they are the machine-generated audit trail start-change/propose-change write
+      per issue. Recommend a follow-up task to write knowledge/review/stm-artifacts.md."
+    evidence:
+      - .garura/project/issues/498/context/analysis.yaml
+      - .garura/project/issues/498/context/branch.json
+      - .garura/project/issues/498/context/commits.yaml
+      - .garura/project/issues/498/context/issue.json
+      - .garura/project/issues/498/context/pr.json
+      - .garura/project/issues/498/context/resolved-rules.json
+      - .garura/project/issues/498/context/self-review.md
+      - .garura/project/issues/498/context/work-description.txt
+    note: >
+      Layer 1 read-only check performed: paths conform to ADR 017's folder whitelist
+      (.garura/project/issues/{issue}/context/ is an allowed leaf). No design-grounding
+      needed or applicable (generated evidence, not a designed artifact).

@@ -1,0 +1,28 @@
+pr: 499
+issue: 498
+base: 6e44fd4bc6f61c6a908aac4103116e6f252b42b8
+standards_order: [kb, ltm, stm]
+review_shelf: /Users/kapilahuja/.garura/core/memory/knowledge/review/
+changed_paths:
+  - .garura/project/issues/498/context/analysis.yaml
+  - .garura/project/issues/498/context/branch.json
+  - .garura/project/issues/498/context/commits.yaml
+  - .garura/project/issues/498/context/issue.json
+  - .garura/project/issues/498/context/pr.json
+  - .garura/project/issues/498/context/resolved-rules.json
+  - .garura/project/issues/498/context/self-review.md
+  - .garura/project/issues/498/context/work-description.txt
+  - core/components/memory/standards/rules/direct-model-write.md
+  - core/components/plays/play-creator/references/classify_change.py
+  - core/components/plays/play-creator/references/scoped_write_guard.py
+  - core/components/plays/play-creator/references/test_gate_learning.py
+  - core/components/plays/understand/SKILL.md
+  - core/components/plays/understand/reference/ice.md
+  - core/components/plays/understand/scripts/check_apply.py   # DELETED
+  - core/components/plays/understand/scripts/classify_change.py
+  - core/components/plays/understand/scripts/persist_understand.py  # renamed from apply_understand.py
+  - core/components/plays/understand/scripts/scoped_write_guard.py
+  - core/components/plays/understand/stop-condition.yaml
+  - core/components/skills/enrich-capability-ice/SKILL.md
+  - core/tools/lint-components/lib/rules/structural.js
+  - docs/adr/026-direct-to-model-writes.md
