@@ -1,6 +1,6 @@
 ---
 name: check-cut-tensions
-description: Run the per-round tension check that makes /grill's steelman push-back discipline real. Reads the drafted epic cut (the `epic.md` grounding docs) and everything the slice declared — its functionalities' grounding docs `functionality.md` (the hub), all SEVEN lens grounding docs, and the profile bars — and produces a structured tension report, one entry per real contradiction, each citing the specific declared item it defends (source file + verbatim quote). Detects untestable increments, acceptance thinner than a declared bar, cut/lens contradictions, and material omissions — and, separately, unresolved DELIVERY-METHOD choices: when an epic's user check depends on a method the lenses never decided, it emits a cited decision_questions entry for the play to put to the human. Emits live tensions and open questions only; the push-back/human-response evidence fields are the play's to fill from the actual conversation, never this skill's. Returns an empty report when the cut is consistent with the declared design. Used only by the /grill play, once per grilling round, between draft (or revision) and push-back.
+description: Run the per-round tension check that makes /grill's steelman push-back discipline real. Reads the epic cut on the live model (the `epic.md` grounding docs, written in place per ADR 026 — there is no draft tree) and everything the slice declared — its functionalities' grounding docs `functionality.md` (the hub), all SEVEN lens grounding docs, and the profile bars — and produces a structured tension report, one entry per real contradiction, each citing the specific declared item it defends (source file + verbatim quote). Detects untestable increments, acceptance thinner than a declared bar, cut/lens contradictions, and material omissions — and, separately, unresolved DELIVERY-METHOD choices: when an epic's user check depends on a method the lenses never decided, it emits a cited decision_questions entry for the play to put to the human. Emits live tensions and open questions only; the push-back/human-response evidence fields are the play's to fill from the actual conversation, never this skill's. Returns an empty report when the cut is consistent with the declared design. Used only by the /grill play, once per grilling round, between draft (or revision) and push-back.
 version: 0.2.0
 user-invocable: false
 model: sonnet
@@ -30,7 +30,7 @@ without a cited anchor is not a tension and must not be emitted.
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `cut_dir` | yes | The draft folder holding the epics' `epic.md` docs + `deferrals.yaml`. |
+| `epics_home` | yes | The slice's live `epics/` home holding the epics' `epic.md` docs + `deferrals.yaml` (written in place on the live model per ADR 026 — read-only here). |
 | `slice_file` | yes | The slice record (read-only). |
 | `functionality_groundings` | yes | The resolved hub `functionality.md` paths, from the readiness gate. |
 | `lens_dir` | yes | The slice's lens folder — all SEVEN lens grounding docs (read-only). |
@@ -105,7 +105,7 @@ push-back, which the play forbids.
 
 ```yaml
 round_id: R1
-cut_dir: <path>
+epics_home: <path>
 tensions:
   - tension_id: R1-T1
     epic_id: e-2-team-rollups
@@ -149,7 +149,7 @@ always.
 
 | What failed | Return |
 |-------------|--------|
-| cut_dir empty / unreadable | `status: failed, reason: missing_cut` |
+| epics_home empty / unreadable | `status: failed, reason: missing_cut` |
 | a functionality grounding or lens doc unreadable | `status: failed, reason: missing_declared_source` |
 | output path unwritable | `status: failed, reason: output_write_error` |
 

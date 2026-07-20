@@ -1,7 +1,7 @@
 ---
 name: author-roadmap
-description: Draft /roadmap's plan over the vertical slices /shape produced — for each slice estimate its effort, resolve its dependency_notes (plus shared functionalities and those functionalities' spine depends_on) into concrete depends_on slice ids, and propose a value order. Writes a draft only (plan-draft.yaml in STM), never the live model and never the final order numbers. The judgment for the /roadmap play; the coherent order itself (topological sort, global 1..N, cycle detection) is the play's compute_plan.py, not this skill.
-version: 0.2.0
+description: Draft /roadmap's plan over the vertical slices /shape produced — for each slice estimate its effort, resolve its dependency_notes (plus shared functionalities and those functionalities' spine depends_on) into concrete depends_on slice ids, and propose a value order. Writes a draft only (plan-draft.yaml in STM), never the live model and never the final order numbers. Under direct-model-write (ADR 026) this draft IS the manifest data the play's keyed persist consumes: this skill writes no model file — the coherent order (compute_plan.py) and the in-place spine write (persist_roadmap.py) are the play's deterministic scripts, not this skill.
+version: 0.3.0
 user-invocable: false
 model: opus
 allowed-tools: Read, Write, Bash, Glob
@@ -25,6 +25,14 @@ numbers, does NOT enforce the topological sort, and does NOT detect cycles — t
 deterministic and belong to the play's `compute_plan.py`. This skill supplies effort,
 dependencies, and preference; the script turns them into a coherent, dependency-correct,
 global order.
+
+**Direct-model-write (ADR 026, `standards/rules/direct-model-write.md`).** This skill writes
+NO model file — not the spine `_spine.yaml`, not a grounding doc, nothing under
+`product-os/`. `plan-draft.yaml` is a non-model STM artifact: it is the manifest data the
+play's keyed persist (`persist_roadmap.py`, via `compute_plan.py`'s `plan.json`) later
+applies to the live spine slices in place. The containment split holds trivially here —
+the LLM (this skill) touches no shared file; the deterministic keyed script owns the sole
+shared file (`_spine.yaml`). Emit the draft and stop.
 
 ## Inputs
 
