@@ -40,9 +40,13 @@ git diff and the end-sequence PR.
    the keyed script — not by the guard.
 
    Migration consequence: this is not a path re-point. Any enrich/build skill that today
-   writes a draft `_spine.yaml` delta must stop writing the spine and emit that delta
-   only as its manifest; the keyed script applies it to the live spine. The old
-   doc-copy step and the before/after verify (`check_apply.py`) are removed.
+   writes a draft `_spine.yaml` delta must stop writing the spine and instead emit that
+   delta as **structured data in its manifest** — the same entry fields it already
+   computes (the target node's `detail`/`nfr_needs`/`compliance_needs`, the new child
+   entries), just written to the manifest (a non-model STM artifact) rather than to a
+   draft spine file. The keyed persist script reads the manifest and applies those fields
+   to the live spine in place, node-keyed. The old doc-copy step and the before/after
+   verify (`check_apply.py`) are removed.
 
 4. **Containment is a post-write scoped guard.** After the writes and before the
    checkpoint, the play runs the shared scoped-write guard (below). It fails the run if
@@ -70,13 +74,14 @@ git diff and the end-sequence PR.
      (`git status --porcelain -- <product_base>product-os` is empty). If it is dirty,
      the play halts — it will not classify against, guard against, or revert a tree that
      already carries someone else's uncommitted model edits.
-   - **Close (after checkpoint approval):** the play commits its own model delta on the
+   - **Persist (after checkpoint approval):** the play commits its own model delta on the
      branch — `feat(model): <what changed> (#<issue>)` — scoped to the product-os paths
-     it wrote. This is the persist step; the writes were already on disk, the commit is
-     what makes them durable and advances `HEAD` so the next play in the pipeline sees a
-     clean tree and a correct base. (Mirrors start-change committing its own STM context
-     at close, C7.) A rejected checkpoint commits nothing — the tree was already
-     restored in step 6.
+     it wrote. This is a lightweight persist step, NOT the Standard Play Close ceremony: a
+     middle play (understand, shape) that injects no close still makes this commit. The
+     writes were already on disk; the commit makes them durable and advances `HEAD` so the
+     next play in the pipeline sees a clean tree and a correct base. (Mirrors start-change
+     committing its own STM context, C7.) A rejected checkpoint commits nothing — the tree
+     was already restored in step 6.
 
    This makes the strategy pipeline (vision → understand → shape … on one branch) safe:
    each play enters clean, writes its delta, and commits it, so no play ever sees or
@@ -132,8 +137,15 @@ python3 scripts/classify_change.py --play <play> \
 It builds the `(path, old_lines, new_lines)` pairs from the working-tree diff — `new` is
 the current file, `old` is the file at `--base-ref` (empty for an added file) — and feeds
 them through the existing `classify_pair` logic. The `--draft`/`--live` directory mode is
-removed. Shape keys are identical to before for the same net change, so no relearning of
-the #467 policy is required.
+removed.
+
+Note on shape keys: git mode diffs the **full** new spine against the **full** old spine,
+whereas the old draft mode diffed a **partial** draft-delta spine against the full live
+spine, so the two modes need not produce identical shape keys. This is not a relearning
+risk here: `.garura/core/gate-policy.yaml` and `gate-evals.jsonl` are absent — no #467
+policy has been learned yet — so the ledger simply starts accumulating under git mode.
+Any repo that HAS learned a policy before this migration must reset it (the shape keys it
+learned against no longer map), which is a one-time note, not per-play work.
 
 ## Lint anchors (converge-and-lint)
 

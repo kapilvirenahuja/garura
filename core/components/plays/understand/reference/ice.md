@@ -90,6 +90,9 @@ Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM enr
   at entry (pre-flight halts on a dirty model tree), and after the approved checkpoint the
   play commits its model delta on the branch (`feat(model): … (#<issue>)`), so HEAD is a
   correct base for the guard and the change-shape and the next pipeline play enters clean.
+  This model-delta commit is a lightweight persist step ONLY — /understand remains a middle
+  play that injects no `start-change` head and no Standard Play Close; the commit persists
+  the model, it does not add a close sequence.
 
 ### Failure conditions
 
