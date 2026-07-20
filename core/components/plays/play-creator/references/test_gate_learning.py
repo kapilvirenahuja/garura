@@ -2,9 +2,11 @@
 """
 test_gate_learning.py — fixture tests for the #467 gate-learning spine.
 
-Covers classify_change.py (shape axes from real file diffs), gate_eval.py (append/tail,
-validation), and distill_gate_policy.py (earn, reset, auto_pass extension, correction
-refutation, never_auto preservation). Plain asserts, tempdirs, no test framework.
+Covers classify_change.py in GIT MODE (ADR 026 — shape axes from the working-tree git diff
+of <product_base>product-os/ vs HEAD, over a temp git-repo fixture, no draft dir),
+gate_eval.py (append/tail, validation), and distill_gate_policy.py (earn, reset, auto_pass
+extension, correction refutation, never_auto preservation). Plain asserts, tempdirs, no test
+framework.
 
     python3 test_gate_learning.py
 """
@@ -36,87 +38,109 @@ def write(root, rel, text):
         fh.write(text)
 
 
-def classify(draft, live, play="ux"):
-    out = run("classify_change.py", "--play", play, "--draft", draft, "--live", live)
+def git(root, *args):
+    r = subprocess.run(["git", "-C", root, *args], capture_output=True, text=True)
+    if r.returncode != 0:
+        raise AssertionError(f"git {' '.join(args)} failed:\n{r.stderr}")
+    return r.stdout
+
+
+def classify_git(base_files, new_files, play="ux", deletions=()):
+    """
+    Drive classify_change.py in git mode (ADR 026): commit `base_files` under
+    <product_base>product-os/ as HEAD, then apply `new_files`/`deletions` to the working
+    tree, then classify the working-tree diff vs HEAD. Mirrors how a direct-model-write play
+    invokes the classifier — no draft dir.
+    """
+    t = tempfile.mkdtemp(prefix="gl-")
+    pb = os.path.join(t, "product") + os.sep       # product_base, trailing sep
+    os_dir = os.path.join(pb, "product-os")
+    for rel, text in base_files.items():
+        write(os_dir, rel, text)
+    git(t, "init", "-q")
+    git(t, "config", "user.email", "t@t.t")
+    git(t, "config", "user.name", "t")
+    git(t, "add", "-A")
+    git(t, "commit", "-qm", "base")
+    # apply the working-tree change (the play's writes)
+    for rel, text in new_files.items():
+        write(os_dir, rel, text)
+    for rel in deletions:
+        os.remove(os.path.join(os_dir, rel))
+    out = run("classify_change.py", "--play", play, "--product-base", pb, "--base-ref", "HEAD")
+    shutil.rmtree(t)
     return json.loads(out)
 
 
 def test_classifier():
-    t = tempfile.mkdtemp(prefix="gl-")
-    live, draft = os.path.join(t, "live"), os.path.join(t, "draft")
-
     # 1. prose-only edit -> prose_edits only
-    write(live, "ux.md", "## Screens\nThe list screen shows items.\n")
-    write(draft, "ux.md", "## Screens\nThe list screen shows items, newest first.\n")
-    r = classify(draft, live)
+    r = classify_git(
+        {"ux.md": "## Screens\nThe list screen shows items.\n"},
+        {"ux.md": "## Screens\nThe list screen shows items, newest first.\n"},
+    )
     assert r["shape_key"] == "ux:prose_edits", r
     assert r["axes"]["sections_rewritten"] == 0, r
 
     # 2. status flip -> status_changes counted
-    shutil.rmtree(t)
-    os.makedirs(t)
-    write(live, "spine.yaml", "- id: slice-1\n  status: shaped\n")
-    write(draft, "spine.yaml", "- id: slice-1\n  status: realized\n")
-    r = classify(draft, live, play="measure")
+    r = classify_git(
+        {"_spine.yaml": "- id: slice-1\n  status: shaped\n"},
+        {"_spine.yaml": "- id: slice-1\n  status: realized\n"},
+        play="measure",
+    )
     assert r["axes"]["status_changes"] == 1, r
     assert "status_changes" in r["shape_key"], r
 
-    # 3. new node file -> nodes_added
-    shutil.rmtree(t)
-    os.makedirs(t)
-    write(live, "spine.yaml", "- id: cap-1\n")
-    write(draft, "spine.yaml", "- id: cap-1\n- id: cap-2\n")
-    write(draft, "cap-2/capability.md", "# Cap 2\n\n## Boundary\nDoes X.\n")
-    r = classify(draft, live, play="understand")
+    # 3. new node: a spine entry added + a new capability doc file -> nodes_added
+    r = classify_git(
+        {"_spine.yaml": "- id: cap-1\n"},
+        {
+            "_spine.yaml": "- id: cap-1\n- id: cap-2\n",
+            "cap-2/capability.md": "# Cap 2\n\n## Boundary\nDoes X.\n",
+        },
+        play="understand",
+    )
     assert r["axes"]["nodes_added"] >= 1, r
 
     # 4. profile bar move
-    shutil.rmtree(t)
-    os.makedirs(t)
-    write(live, "profile.yaml", "nfr_security: L2\nnfr_perf: L1\n")
-    write(draft, "profile.yaml", "nfr_security: L3\nnfr_perf: L1\n")
-    r = classify(draft, live, play="understand")
+    r = classify_git(
+        {"profile.yaml": "nfr_security: L2\nnfr_perf: L1\n"},
+        {"profile.yaml": "nfr_security: L3\nnfr_perf: L1\n"},
+        play="understand",
+    )
     assert r["axes"]["profile_bars_changed"] == 1, r
 
     # 5. decision appended
-    shutil.rmtree(t)
-    os.makedirs(t)
-    write(live, "decisions/log.yaml", "- id: d1\n  decision: use X\n")
-    write(
-        draft,
-        "decisions/log.yaml",
-        "- id: d1\n  decision: use X\n- id: d2\n  decision: use Y\n",
+    r = classify_git(
+        {"decisions/log.yaml": "- id: d1\n  decision: use X\n"},
+        {"decisions/log.yaml": "- id: d1\n  decision: use X\n- id: d2\n  decision: use Y\n"},
+        play="arch",
     )
-    r = classify(draft, live, play="arch")
     assert r["axes"]["decisions_added"] >= 1, r
 
     # 6. section rewrite (>=5 changed lines under one heading)
-    shutil.rmtree(t)
-    os.makedirs(t)
-    write(
-        live,
-        "ux.md",
-        "## Screens\n" + "\n".join(f"old line {i}" for i in range(8)) + "\n",
+    r = classify_git(
+        {"ux.md": "## Screens\n" + "\n".join(f"old line {i}" for i in range(8)) + "\n"},
+        {"ux.md": "## Screens\n" + "\n".join(f"new line {i}" for i in range(8)) + "\n"},
     )
-    write(
-        draft,
-        "ux.md",
-        "## Screens\n" + "\n".join(f"new line {i}" for i in range(8)) + "\n",
-    )
-    r = classify(draft, live)
     assert r["axes"]["sections_rewritten"] == 1, r
 
-    # 7. identical -> none; live file absent from draft is NOT a removal
-    shutil.rmtree(t)
-    os.makedirs(t)
-    write(live, "a.md", "same\n")
-    write(live, "b.md", "untouched\n")
-    write(draft, "a.md", "same\n")
-    r = classify(draft, live)
+    # 7. no change -> none; an untouched sibling never counts (git diff is empty)
+    r = classify_git(
+        {"a.md": "same\n", "b.md": "untouched\n"},
+        {},  # working tree matches HEAD
+    )
     assert r["shape_key"] == "ux:none", r
 
-    shutil.rmtree(t)
-    print("classifier: 7/7 pass")
+    # 8. brand-new decision file (untracked) is still counted -> decisions_added
+    #    (regression guard: untracked adds are invisible to `git diff` alone)
+    r = classify_git(
+        {"_spine.yaml": "- id: cap-1\n"},
+        {"decisions/dec-new.yaml": "decision:\n  id: dec-new\n"},
+        play="understand",
+    )
+    assert r["axes"]["decisions_added"] >= 1, r
+
+    print("classifier: 8/8 pass")
 
 
 def ledger_line(ledger, play, shape, human, ts, predicted="gate", refutes=None):

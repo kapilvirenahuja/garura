@@ -1,17 +1,17 @@
-# understand stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C).
+# understand stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C; #498 direct-model-write, ADR 026).
 # Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
 # Paths are relative to the run's working root ({stm_base}_shaping/understand/<capability>/).
-# A run whose persist or post-apply verification did not land leaves a clause unmet —
+# A run whose keyed persist or scoped-write guard did not land leaves a clause unmet —
 # the close reads HALTED, never COMPLETED.
 schema: { name: stop-condition }
 content:
   done:
     - id: D1
-      says: "the applied record exists — the detailed capability grounding, its functionality docs, and the roll-up were persisted through the allowlisted apply"
-      check: { type: artifact_exists, path: "apply-manifest.json" }
+      says: "the persist record exists — the detailed capability grounding, its functionality docs, and the roll-up were written in place on the live model"
+      check: { type: artifact_exists, path: "persist-manifest.json" }
     - id: D2
-      says: "the profile roll-up was persisted — the applied record stamps the firmed box"
-      check: { type: field_equals, file: "apply-manifest.json", field: "changed.profile", equals: true }
+      says: "the profile roll-up was persisted — the persist record stamps the firmed box"
+      check: { type: field_equals, file: "persist-manifest.json", field: "changed.profile", equals: true }
     - id: D3
-      says: "the post-apply verification held — allowlist, promotion, monotonic box, box-move decisions all ok"
-      check: { type: field_equals, file: "apply-checks.json", field: "ok", equals: true }
+      says: "the scoped-write guard held — no model path changed outside the target's scope (the allowlist held)"
+      check: { type: field_equals, file: "guard-report.json", field: "ok", equals: true }

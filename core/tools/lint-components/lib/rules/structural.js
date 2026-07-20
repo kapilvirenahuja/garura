@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 const yaml = require('js-yaml');
 const parseFrontmatter = require('../parse-frontmatter');
 
@@ -168,6 +169,112 @@ function checkAgent(component) {
  * Check a play SKILL.md file. Returns { violations, spellingUsed }
  * spellingUsed: 'user-invocable' | 'user-invokable' | null
  */
+/**
+ * Direct-model-write anchors (L-DMW-1..5), ADR 026 / standards/rules/direct-model-write.md.
+ *
+ * GATED: these fire ONLY on a play that bundles scripts/scoped_write_guard.py — the concrete
+ * signal that the play has migrated to direct-model-write. Unmigrated plays (which still carry
+ * draft/apply machinery) have no guard bundled and are skipped entirely, so this rule never
+ * fails the plays that have not yet been migrated. This is the converge-and-lint layer the
+ * contract describes, mirroring the Standard Play Close anchors.
+ */
+function checkDmwAnchors(component, body) {
+  const violations = [];
+  const playDir = path.dirname(component.file);
+  const guardPath = path.join(playDir, 'scripts', 'scoped_write_guard.py');
+  if (!fs.existsSync(guardPath)) return violations; // not a migrated play — skip
+
+  const push = (rule, message) =>
+    violations.push({ file: component.file, rule, severity: 'error', message, line: 1 });
+
+  // L-DMW-1: no residual draft/apply/check_apply write path.
+  const dmw1 = [
+    /draft\/product-os/,
+    /\bdraft_dir\b/,
+    /\bapply-manifest\b/,
+    /\bapply-checks\b/,
+    /scripts\/apply_\w+\.py/,
+    /scripts\/check_apply\.py/,
+  ].find((re) => re.test(body));
+  if (dmw1) {
+    push(
+      'structural/dmw-residual-draft',
+      'L-DMW-1: migrated play references a removed draft/apply pattern (' +
+        dmw1.source +
+        '). Direct-model-write plays have no draft/product-os, draft_dir, apply-manifest, ' +
+        'apply_<play>.py, or check_apply.py. See standards/rules/direct-model-write.md.'
+    );
+  }
+
+  // L-DMW-2: classify_change.py must use --product-base/--base-ref, never --draft/--live.
+  if (/classify_change\.py[^\n]*--(draft|live)\b/.test(body)) {
+    push(
+      'structural/dmw-classify-draft-mode',
+      'L-DMW-2: classify_change.py is invoked with --draft/--live; direct-model-write uses ' +
+        '--product-base/--base-ref HEAD (working-tree git diff). See direct-model-write.md.'
+    );
+  }
+
+  // L-DMW-3: the checkpoint must run the guard before the gate and a restore on cancel.
+  const hasCheckpoint = /##\s*(Phase:\s*)?Checkpoint/i.test(body) || /approval-prompt/.test(body);
+  if (hasCheckpoint) {
+    if (!/scoped_write_guard\.py/.test(body)) {
+      push(
+        'structural/dmw-guard-not-run',
+        'L-DMW-3: play has a checkpoint but never invokes scoped_write_guard.py before the gate.'
+      );
+    }
+    if (!/scoped_write_guard\.py[^\n]*--restore/.test(body) && !/--restore/.test(body)) {
+      push(
+        'structural/dmw-no-cancel-restore',
+        'L-DMW-3: checkpoint cancel must revert the working tree via scoped_write_guard.py ' +
+          '--restore. See direct-model-write.md step 6.'
+      );
+    }
+  }
+
+  // L-DMW-4: clean product-os tree asserted at pre-flight AND a model-delta commit at close.
+  if (!/git status --porcelain[^\n]*product-os/.test(body)) {
+    push(
+      'structural/dmw-no-clean-tree-assert',
+      'L-DMW-4: direct-model-write play must assert a clean product-os tree at pre-flight ' +
+        '(git status --porcelain -- <product_base>product-os). See direct-model-write.md step 7.'
+    );
+  }
+  if (!/feat\(model\)/.test(body)) {
+    push(
+      'structural/dmw-no-model-commit',
+      'L-DMW-4: direct-model-write play must commit its own model delta at close ' +
+        '(feat(model): ... (#<issue>)). See direct-model-write.md step 7.'
+    );
+  }
+
+  // L-DMW-5: the enrichment/build skill must not be described as writing a shared model file.
+  if (/enrich[^\n]*writes[^\n]*(_spine\.yaml|profile\.yaml|decisions\/)/i.test(body)) {
+    push(
+      'structural/dmw-skill-writes-shared',
+      'L-DMW-5: the enrichment/build skill is described as writing a shared model file ' +
+        '(_spine.yaml/profile.yaml/decisions); shared files are written only by the play\'s ' +
+        'deterministic keyed script. See direct-model-write.md item 3.'
+    );
+  }
+
+  // L-DMW-6: write-then-review order — the keyed persist (persist_*.py) must PRECEDE the
+  // checkpoint gate, so the guard, the change-shape, and the human all see the full delta.
+  const persistIdx = body.search(/persist_\w+\.py/);
+  const gateIdx = body.search(/approval-prompt|##\s*(Phase:\s*)?Checkpoint/i);
+  if (persistIdx !== -1 && gateIdx !== -1 && persistIdx > gateIdx) {
+    push(
+      'structural/dmw-persist-after-checkpoint',
+      'L-DMW-6: the keyed persist step runs AFTER the checkpoint; write-then-review (ADR 026) ' +
+        'requires the persist to precede the gate so the shape and the human see the full ' +
+        'delta. See direct-model-write.md "Order of operations".'
+    );
+  }
+
+  return violations;
+}
+
 function checkPlay(component) {
   const violations = [];
   const content = fs.readFileSync(component.file, 'utf8');
@@ -263,6 +370,8 @@ function checkPlay(component) {
       line: 1,
     });
   }
+
+  violations.push(...checkDmwAnchors(component, body));
 
   return { violations, spellingUsed };
 }
