@@ -552,7 +552,7 @@ start — a resume continues its own in-progress delta.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:366cc3fa89c70151563784f0e99be8464203f285ef7aa1c1f10569994ef1f1d4 (of `reference/ice.md`) |
+| fingerprint | sha256:f271a4ccd4a1413664ce11e204170c9a4d8bad31d2ba1b2139c4678b661bf58c (of `reference/ice.md`) |
 | compiled_by | play-editor (#498 direct-model-write, ADR 026); prior: play-editor (#467 Batch B, #466 Batch C) |
 | pipeline_position | none |
 | position_exception | middle of the strategy pipeline — runs on the branch /vision started; the close belongs to /roadmap (#437) |
