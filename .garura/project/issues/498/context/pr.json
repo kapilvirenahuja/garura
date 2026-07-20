@@ -1,0 +1,7 @@
+{
+  "number": 499,
+  "url": "https://github.com/kapilvirenahuja/garura/pull/499",
+  "base": "main",
+  "head": "feature/498-model-plays-direct-write",
+  "title": "feat(understand): direct-model-write reference implementation (#498)"
+}
