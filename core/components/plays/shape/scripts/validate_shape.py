@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-validate_shape.py — assert /shape's draft bundle is schema-true, grounded, and vertical.
+validate_shape.py — assert /shape's bundle is schema-true, grounded, and vertical.
 
-Run over the draft before the checkpoint. /shape SELECTS and COMPOSES — it does not create
-functionalities (so there are no functionality nodes/ICE to validate). It enforces:
+Run over the LIVE model before the checkpoint (ADR 026 direct-model-write: author-shape-bundle
+already wrote the slice/persona/journey/decision records straight to the live tree; there is no
+draft). /shape SELECTS and COMPOSES — it does not create functionalities (so there are no
+functionality nodes/ICE to validate). It enforces:
 
   - schema: personas, journeys, decisions, and slices carry their required fields.
   - references: every slice `functionality_ref` resolves to a real functionality in the
@@ -20,7 +22,7 @@ functionalities (so there are no functionality nodes/ICE to validate). It enforc
 
 Layer rule: reads files on disk only; no git/gh/network.
 
-    python3 validate_shape.py --draft <draft_dir> --manifest <shape-manifest.yaml> \
+    python3 validate_shape.py --root <product_base>/product-os --manifest <shape-manifest.yaml> \
                               --spine <live _spine.yaml>
 
 Prints {ok, errors[], counts} JSON. Exit 0 clean, 1 on violation, 2 usage error.
@@ -64,15 +66,15 @@ def collect_persona_ids(root):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Validate /shape's draft bundle.")
-    ap.add_argument("--draft", required=True)
+    ap = argparse.ArgumentParser(description="Validate /shape's live bundle (ADR 026).")
+    ap.add_argument("--root", required=True, help="the live product-os tree the records were written to")
     ap.add_argument("--manifest", required=True)
     ap.add_argument("--spine", required=True, help="live _spine.yaml (resolves functionality_refs + live personas)")
     args = ap.parse_args(argv)
 
-    draft_root = os.path.join(args.draft, "product-os")
-    if not os.path.isdir(draft_root):
-        sys.stderr.write(f"validate_shape.py: no draft tree at {draft_root}\n")
+    live_records_root = args.root
+    if not os.path.isdir(live_records_root):
+        sys.stderr.write(f"validate_shape.py: no product-os tree at {live_records_root}\n")
         return 2
     if not os.path.isfile(args.spine):
         sys.stderr.write(f"validate_shape.py: no spine at {args.spine}\n")
@@ -80,15 +82,14 @@ def main(argv=None):
 
     spine = load(args.spine)
     live_func_ids = {f.get("id") for f in (spine.get("functionalities") or []) if isinstance(f, dict)}
-    live_root = os.path.dirname(os.path.abspath(args.spine))
 
     errors = []
     counts = {"persona": 0, "journey": 0, "decision": 0, "slice": 0, "surface": 0}
 
-    persona_ids = collect_persona_ids(draft_root) | collect_persona_ids(live_root)
+    persona_ids = collect_persona_ids(live_records_root)
 
     # --- personas ------------------------------------------------------------
-    for p in glob.glob(os.path.join(draft_root, "**", "personas", "*.yaml"), recursive=True):
+    for p in glob.glob(os.path.join(live_records_root, "**", "personas", "*.yaml"), recursive=True):
         counts["persona"] += 1
         per = (load(p).get("persona") or {})
         for f in ("id", "name"):
@@ -97,7 +98,7 @@ def main(argv=None):
 
     # --- journeys ------------------------------------------------------------
     journey_surface_refs = set()
-    for j in glob.glob(os.path.join(draft_root, "**", "journeys", "*.yaml"), recursive=True):
+    for j in glob.glob(os.path.join(live_records_root, "**", "journeys", "*.yaml"), recursive=True):
         counts["journey"] += 1
         jr = (load(j).get("journey") or {})
         for f in ("id", "name"):
@@ -113,7 +114,7 @@ def main(argv=None):
         journey_surface_refs |= set(surface_refs)
 
     # --- decisions -----------------------------------------------------------
-    for d in glob.glob(os.path.join(draft_root, "**", "decisions", "*.yaml"), recursive=True):
+    for d in glob.glob(os.path.join(live_records_root, "**", "decisions", "*.yaml"), recursive=True):
         counts["decision"] += 1
         dec = (load(d).get("decision") or {})
         for f in ("id", "title", "reason", "status", "level"):
@@ -123,7 +124,7 @@ def main(argv=None):
     # --- slices --------------------------------------------------------------
     placed_fns = set()
     slice_surface_ids = set()
-    for sp in glob.glob(os.path.join(draft_root, "**", "slices", "*.yaml"), recursive=True):
+    for sp in glob.glob(os.path.join(live_records_root, "**", "slices", "*.yaml"), recursive=True):
         if os.path.basename(sp) == "_deferred.yaml":
             continue
         counts["slice"] += 1
@@ -172,7 +173,7 @@ def main(argv=None):
 
     # --- deferred bucket -----------------------------------------------------
     deferred_fns = set()
-    for dp in glob.glob(os.path.join(draft_root, "**", "slices", "_deferred.yaml"), recursive=True):
+    for dp in glob.glob(os.path.join(live_records_root, "**", "slices", "_deferred.yaml"), recursive=True):
         for fid in (load(dp).get("deferred") or {}).get("functionalities") or []:
             deferred_fns.add(fid)
 

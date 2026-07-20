@@ -1,7 +1,7 @@
 ---
 name: run
 position: end
-description: 'Write a SLICE''s run lens as a narrative grounding doc (run.md) AND a machine-readable per-environment definition (run.yaml) — the slice-level design (rollout, migrations, config/secrets, CI/CD) once, and ONE environment per call (local for /launch, or a cloud environment — provider, region, compute, services, firewalls, security, deploy command — for /deploy). Incremental: re-run to add or edit an environment; the rest are preserved. The END of the NON-FUNCTIONAL realize pipe (architecture → quality → run): it closes the pipe (commit → propose → review → merge). Reads the hub from the spine (functionality grounding + profile) and the slice''s architecture lens, never another lens. It never stamps the slice realized — that is /measure''s job.'
+description: 'Write a SLICE''s run lens as a narrative grounding doc (run.md) AND a machine-readable per-environment definition (run.yaml) — the slice-level design (rollout, migrations, config/secrets, CI/CD) once, and ONE environment per call (local for /launch, or a cloud environment — provider, region, compute, services, firewalls, security, deploy command — for /deploy). Incremental: re-run to add or edit an environment; the rest are preserved. The END of the NON-FUNCTIONAL realize pipe (architecture → quality → run): it commits its own model delta, then closes the pipe (commit → propose → review → merge). Reads the hub from the spine (functionality grounding + profile) and the slice''s architecture lens, never another lens. It never stamps the slice realized — that is /measure''s job.'
 user-invocable: true
 ---
 
@@ -19,51 +19,63 @@ compute, managed services, networking and firewalls, and security. The run plan 
 slice does and how it is built, so /run reads the slice's **hub** — its functionalities' grounding docs
 plus the profile (both from the spine) — and the slice's **architecture lens** (its components +
 stack), and only the architecture lens among the realize lenses. It never stamps the slice `realized` —
-that belongs to /measure.
+that belongs to /measure. One slice per run.
 
 **Pipeline position: end.** /run is the END of the non-functional realize pipe (architecture → quality
 → run): it runs on the branch /arch already started, injects no `start-change` head, and — after the
-lens is persisted and verified — injects the close sequence `commit-change → propose-change →
-review-change → merge-change`, committing the non-functional pipe's lenses, opening the PR, taking the
-verdict, and merging to main. It writes the persistent product model (the slice's run lens) on the
-already-started branch. Because environments are incremental, /run is expected to run more than once per
-slice — once per environment — each a small model-only change riding the same end sequence. (#437;
-3-pipe realize 2026-06-26; per-environment reshape #434)
+lens is written, guarded, and approved — commits its own `feat(model)` delta on the branch (each lens
+play commits its own delta, ADR 026), then injects the close sequence `commit-change → propose-change →
+review-change → merge-change`, which opens the PR carrying that commit, takes the verdict, and merges to
+main. The injected commit-change sweeps only what remains uncommitted (STM evidence, ADRs), NOT the run
+lens — that is already committed. Because environments are incremental, /run is expected to run more than
+once per slice — once per environment — each a small model-only change riding the same end sequence.
+(#437; 3-pipe realize 2026-06-26; per-environment reshape #434; #500 direct-model-write / ADR 026)
+
+**Write discipline (ADR 026, `standards/rules/direct-model-write.md`).** There is no draft copy and no
+apply/promote step. The LLM authoring skill writes ONLY the per-node narrative doc `run.md` straight to
+the live model; the deterministic keyed persist script (`persist_run.py`) writes the machine-readable
+`run.yaml` (merging exactly the target environment, keyed by name — so it defines the one target env and
+preserves every other) and any decision, in place. Containment is a post-write scoped guard
+(`scoped_write_guard.py`), run once over the full delta, not a draft. The model tree is asserted clean at
+entry (F16) and the play commits its own `feat(model)` delta after the approved checkpoint (C14), so the
+working-tree diff vs HEAD is exactly this run's delta.
 
 ## Compiled From
 
 This play was compiled from the run ICE (`reference/ice.md`) by play-editor (#466 Batch C,
-Level 3 rollout per ADR 025). Intent defines constraints (C1–C13) and failure conditions (F1–F15);
-the expectation defines success scenarios (S1–S8), a Done means (D1–D3, baked to
+Level 3 rollout per ADR 025; #467 Batch B — the checkpoint upgraded to a conditional learned gate,
+see `standards/rules/gate-config.md`; #500 — migrated to direct-model-write per ADR 026 and
+`standards/rules/direct-model-write.md`). Intent defines constraints (C1–C14) and failure conditions
+(F1–F16); the expectation defines success scenarios (S1–S8), a Done means (D1–D3, baked to
 `stop-condition.yaml`), and one recovery entry per failure condition. To modify this play, update
 `reference/ice.md` and recompile with play-editor. Do NOT edit this file manually — it is a
 compiled artifact.
 
-(#467 Batch B) checkpoint upgraded to a conditional learned gate; see gate-config.md.
-
 ## Role
 
 You are the orchestrator. You own the workflow and step order. You delegate the domain work —
-authoring the run lens (the narrative `run.md` and the machine-readable `run.yaml`) — to the
-`product-os-keeper` agent via a JSON contract over files on disk, and you run the mechanical checks
-(readiness/hub resolution, the target-environment resolver, the shape linter, the run.yaml validator,
-the content-quality eval, grounding + coverage, the allowlisted apply, the verify) through bundled
-scripts and an isolated judge. You never write the lens yourself, you never stamp the slice realized,
-you define exactly one environment per call, and you never persist before the single checkpoint's gate
-resolves (C10) — a typed approval, a recorded config skip, or a recorded policy auto-pass.
+authoring the run lens narrative `run.md` — to the `product-os-keeper` agent via a JSON contract over
+files on disk, and you run the mechanical work (readiness/hub resolution, the target-environment
+resolver, the shape linter, the content-quality eval, the keyed in-place persist, the run.yaml
+validator, and the post-write scoped guard) through bundled scripts and an isolated judge. You never
+write the lens yourself, you never stamp the slice realized, you define exactly one environment per
+call, and you never COMMIT before the single checkpoint's gate resolves (C10) — a typed approval, a
+recorded config skip, or a recorded policy auto-pass.
 
-**Forbidden:** hand-writing the lens or a decision; writing anything other than this slice's `run.md`,
-`run.yaml`, and a decision (C2); defining more than one environment or dropping/silently editing a
-previously-defined one (C9); reading or grounding on a realize lens other than architecture (C7);
-stamping the slice `realized` or writing its status (C8); writing a secret literal into the lens or the
-repo (C12); persisting by any route other than `scripts/apply_run.py`; persisting before the checkpoint;
-closing COMPLETED without the stop-condition verdict reading held (C13/F14).
+**Forbidden:** hand-writing the lens or a decision; writing anything other than this slice's `run.md`
+(by the skill) and `run.yaml` + a decision (by the keyed persist) (C2); defining more than one
+environment or dropping/silently editing a previously-defined one (C9); reading or grounding on a
+realize lens other than architecture (C7); stamping the slice `realized` or writing its status (C8);
+writing a secret literal into the lens or the repo (C12); persisting the shared files by any route
+other than `scripts/persist_run.py`; committing before the checkpoint resolves; running against a
+dirty product-os tree (C14/F16); closing COMPLETED without the stop-condition verdict reading held
+(C13/F14).
 
 **Agent boundaries:**
 
 | Agent | Domain | Skill it invokes | Phases |
 |-------|--------|------------------|--------|
-| `product-os-keeper` | Author the slice's run lens — slice-level design + the one target environment — as `run.md` + `run.yaml` from the hub + the architecture lens | `author-run-lens` | Draft |
+| `product-os-keeper` | Author the slice's run lens narrative `run.md` — slice-level design + the one target environment — straight to the live model, from the hub + the architecture lens; emit the `run.yaml` delta + any decision as manifest data | `author-run-lens` | Draft |
 
 `product-os-keeper` is the single domain agent this play uses (1 of the ≤5 budget). The
 content-quality judge always runs as an isolated, clean-context sub-agent (optionally on a configured
@@ -77,6 +89,7 @@ different model) — never the orchestrator's own context.
 | Resolve `grounding-eval.judge` (optional model override) | C4 | Default: sub-agent on the session model |
 | Slice ready + hub resolves + architecture lens present (`check_ready_slice.py`) | C1 | Hard halt (REC1) |
 | Resolve the target environment for this call (`resolve_target_env.py`) | C9 | Hard halt — all envs defined, ask for `--env` |
+| **Clean model tree** — `git status --porcelain -- <product_base>product-os` is empty | C14/F16 | Hard halt (REC16) |
 
 Resolve the pre-flight facts mechanically with the bundled resolver:
 
@@ -97,7 +110,7 @@ slice is absent, a functionality does not resolve, the profile is not firmed, or
 is missing, hard halt (C1/REC1).
 
 Then resolve **which one environment** this call builds — the lowest not-yet-defined tier by default,
-or the `--env <name>` the invoker named — reading the slice's current `run.yaml` (if any) from the
+or the `--env <name>` the invoker named — reading the slice's current LIVE `run.yaml` (if any) from the
 resolved `lens_dir`:
 
 ```
@@ -108,9 +121,22 @@ It returns the `target_env` (`{name, type, tier}`) and the `existing_run_yaml` p
 call). If every known environment is already defined and no `--env` is given, hard halt and ask which to
 edit (C9). Both facts are passed to the Draft step.
 
-The run's working root (`<working>` below) is `{stm_base}_realize/run/` — the draft dir, the manifests,
-the captured verify output (`run-checks.json`), and the `status/` markers all live under it; the stop
-condition evaluates against it.
+**Clean-tree assertion (C14/F16, ADR 026).** Before any work, assert the product-os tree carries no
+uncommitted edits — `HEAD` is only a correct base for the scoped guard and the change-shape if the tree
+is clean at entry:
+
+```
+test -z "$(git status --porcelain -- <product_base>product-os)" || { echo "HALT: dirty product-os tree (REC16)"; exit 1; }
+```
+
+If dirty, halt at pre-flight and ask for a clean model tree (commit or revert the pending model edits,
+or run the prior pipe member to its close) before /run proceeds.
+
+The run's working root (`<working>` below) is `{stm_base}_realize/run/` — the manifests
+(`run-manifest.yaml`, `persist-manifest.json`), the captured scoped-guard report (`guard-report.json`),
+the change-shape (`shape.json`), and the `status/` markers all live under it. These are STM,
+non-model artifacts (ADR 008/017) — the model itself is written IN PLACE under
+`<product_base>product-os/`, never into `<working>`. The stop condition evaluates against `<working>`.
 
 Right after the resolver, record the session identity stamp's start marker (#463 — soft-fail, never a
 halt):
@@ -128,34 +154,43 @@ steps, reset any in-progress step to pending, continue.
 
 Create ALL tasks immediately after resolving config — before any domain work.
 
+Write-then-review (ADR 026): the FULL model delta — the LLM's `run.md` AND the keyed persist's
+`run.yaml` + decisions — is written to the live model BEFORE the checkpoint, so the guard, the
+change-shape, and the human all see the real delta. Nothing is COMMITTED before the gate resolves;
+cancel reverts the uncommitted writes.
+
 ```
-[T1] Draft the lens          blockedBy: []
-[T2] Validate the draft      blockedBy: [T1]
-[T3] Checkpoint (approval)   blockedBy: [T2]
-[T4] Persist                 blockedBy: [T3]
-[T5] Verify persisted        blockedBy: [T4]
-[TE1] commit-change   (injected — end #1)  blockedBy: [T5]
-[TE2] propose-change  (injected — end #2)  blockedBy: [TE1]
-[TE3] review-change   (injected — end #3)  blockedBy: [TE2]
-[TE4] merge-change    (injected — end #4)  blockedBy: [TE3]
-[T6] Scenario Validation     blockedBy: [TE4]
-[T7] Close                   blockedBy: [T6]
+[T1] Draft the lens (run.md to live; emit manifest)      blockedBy: []
+[T2] Validate the live run.md (shape + content eval)     blockedBy: [T1]
+[T3] Persist (keyed, in place — run.yaml + decisions)    blockedBy: [T2]
+[T4] Guard the full delta + validate run.yaml + classify blockedBy: [T3]
+[T5] Checkpoint (approval over the full git diff)        blockedBy: [T4]
+[T6] Commit the model delta (feat(model))                blockedBy: [T5]
+[TE1] commit-change   (injected — end #1)                blockedBy: [T6]
+[TE2] propose-change  (injected — end #2)                blockedBy: [TE1]
+[TE3] review-change   (injected — end #3)                blockedBy: [TE2]
+[TE4] merge-change    (injected — end #4)                blockedBy: [TE3]
+[T7] Scenario Validation                                 blockedBy: [TE4]
+[T8] Close                                               blockedBy: [T7]
 ```
 
-Mark each task in-progress before its step and completed right after its eval passes.
+Mark each task in-progress before its step and completed right after its eval passes. No runtime
+reordering. On resume, skip completed and reset in-progress to pending.
 
 ## Workflow
 
 ### Phase: Draft
 
-**Step 1 — Draft the lens** · Owner: `product-os-keeper` · Depends on: pre-flight
-The agent invokes `author-run-lens` to draft the slice's `run.md` (per the Run lens template) AND
-`run.yaml` (per the run lens schema) — the slice-level design (carried forward if it exists) plus the
-one resolved target environment — from the hub (the functionality grounding docs + the profile) and the
-slice's `architecture.md`, plus a `run-manifest.yaml` (the grounding map) and any material run decision:
+**Step 1 — Draft the lens (run.md to live; emit manifest)** · Owner: `product-os-keeper` · Depends on: pre-flight
+The agent invokes `author-run-lens` to write the slice's `run.md` (per the Run lens template) — the
+slice-level design (carried forward if it exists) plus the one resolved target environment — **straight
+to the live model**, and to emit `run-manifest.yaml` (the `run.yaml` delta as structured data: the
+slice-level design + the ONE target environment definition + the grounding map + any decision record).
+Per ADR 026 the skill writes ONLY `run.md` to the live model and NEVER writes `run.yaml`, a decision, the
+spine, or the profile:
 
     {
-      "task":    "author the slice's run lens — slice-level design (rollout/migrations/config-secrets/ci-cd) once + define the one target environment (local: bring-up; cloud: provider/region/compute/services/firewalls/security/deploy) — as run.md + run.yaml; ground every operational choice in the functionalities, profile, or architecture; a cloud env's compute/services map to architecture components; secrets via a manager, never a literal",
+      "task":    "author the slice's run lens narrative run.md — slice-level design (rollout/migrations/config-secrets/ci-cd/tco) once + the one target environment (local: bring-up; cloud: provider/region/compute/services/firewalls/security/deploy) — writing run.md STRAIGHT TO THE LIVE MODEL; ground every operational choice in the functionalities, profile, or architecture; a cloud env's compute/services map to architecture components; secrets via a manager, never a literal; emit the run.yaml delta + any decision as structured manifest data",
       "inputs":  { "slice_ref": "<domain>/<slice>",
                    "slice_file": "<slice record>",
                    "target_env": "<{name,type,tier} from resolve_target_env>",
@@ -163,25 +198,33 @@ slice's `architecture.md`, plus a `run-manifest.yaml` (the grounding map) and an
                    "functionality_groundings": "<from check_ready_slice>",
                    "architecture_lens": "<slice>/lens/architecture.md",
                    "profile": "<spine profile>", "product_base": "<product_base>",
-                   "lens_rel": "product-os/<domain>/slices/<slice>/lens/run.md" },
-      "outputs": { "draft_dir": "<working>/draft/", "run_yaml": "<working>/draft/.../lens/run.yaml",
-                   "manifest": "<working>/draft/run-manifest.yaml" }
+                   "lens_rel": "product-os/<domain>/slices/<slice>/lens/run.yaml",
+                   "run_md_live": "<product_base>product-os/<domain>/slices/<slice>/lens/run.md",
+                   "manifest_path": "<working>/run-manifest.yaml" },
+      "outputs": { "run_md_live": "<product_base>product-os/<domain>/slices/<slice>/lens/run.md",
+                   "manifest": "<working>/run-manifest.yaml" }
     }
 
-The skill reads the hub + the architecture lens + any existing `run.yaml` read-only and writes only the
-draft (the `run.md`, the `run.yaml`, the manifest, any decision). It defines exactly the target
-environment, preserves the rest, and never stamps the slice realized.
+The skill reads the hub + the architecture lens + any existing live `run.yaml` read-only, writes `run.md`
+in place on the live model, and writes `run-manifest.yaml` under `<working>` (STM). It writes NO
+`run.yaml`, NO decision file, NO shared model file, and never stamps the slice realized. It returns the
+contract with the output paths on disk — never inline content.
+**SE-1 (F1/C1):** `check_ready_slice.py` passed at pre-flight — the slice is ready, its hub resolves,
+and the architecture lens exists; an unready slice halted (REC1).
+**SE-2 (F16/C14):** the product-os tree was clean at entry — the pre-flight assertion
+(`git status --porcelain -- <product_base>product-os` empty) passed on a fresh start; a dirty model tree
+halted at pre-flight (REC16), so the change-shape and the scoped guard reflect only this run's delta.
 
-**Step 2 — Validate the draft** · Owner: play · Depends on: Step 1
-Run the guards over the draft before the checkpoint — run.md shape, then run.yaml facts, then content,
-then grounding/coverage/preservation.
+### Phase: Validate
+
+**Step 2 — Validate the live run.md (shape + content eval)** · Owner: play · Depends on: Step 1
+Run the guards over the LIVE `run.md` before the keyed persist — shape first, then content. The doc is
+already written in place, and `run.yaml` has NOT yet been written for this run (the keyed persist runs
+next). So the linter runs over the newly written `run.md`, and the run.yaml schema + agreement checks
+run after the persist writes `run.yaml` (Step 4).
 
 ```
-python3 scripts/lint_grounding.py --doc <working>/draft/product-os/<domain>/slices/<slice>/lens/run.md
-python3 scripts/validate_run.py --draft <working>/draft --manifest <working>/draft/run-manifest.yaml \
-        --slice-file <product_base>/<slice_file> \
-        --arch-lens <product_base>/product-os/<domain>/slices/<slice>/lens/architecture.md \
-        --existing-run-yaml <existing_run_yaml or omit> --target-env <target_env.name>
+python3 scripts/lint_grounding.py --doc <product_base>/product-os/<domain>/slices/<slice>/lens/run.md
 ```
 
 Then run the **content-quality eval** over `run.md`: spawn an isolated, clean-context sub-agent handed
@@ -192,51 +235,122 @@ on the model from `grounding-eval.judge.model`. Gate the verdict:
 python3 scripts/grounding_gate.py --verdict <verdict.json>
 ```
 
-**SE-1 (F1/C1):** `check_ready_slice.py` passed at pre-flight — the slice is ready, its hub resolves,
-and the architecture lens exists; an unready slice halted (REC1).
-**SE-2 (F3/C3):** `lint_grounding.py` exits 0 — `run.md` conforms to the Run lens template
+**SE-3 (F3/C3):** `lint_grounding.py` exits 0 — `run.md` conforms to the Run lens template
 (Environments / Rollout / Migrations / Config & secrets / CI/CD), no missing/extra/empty section.
-**SE-3 (F3/C3):** `validate_run.py` — `run.yaml` conforms to the run lens schema: slice-level rollout /
-migrations / CI/CD present, and an `environments` list whose each entry has name/tier/type and the
-type-appropriate `local` or `cloud` block.
 **SE-4 (F4/C4):** the content-quality eval gate (`grounding_gate.py`) passes — `run.md` is
 self-explaining and clears the stranger test.
-**SE-5 (F5/C5):** `validate_run.py` — every operational choice grounds in the hub, the profile, or the
+On any GAP, apply the matching recovery (REC3–REC4) and re-run before the persist — a content-eval fail
+(SE-4) is REC4: rewrite the doc to the judge's cited fixes and re-judge.
+
+### Phase: Persist (write the full delta first, ADR 026 write-then-review)
+
+**Step 3 — Persist (keyed, in place)** · Owner: play · Depends on: Step 2
+Write-then-review (ADR 026): the FULL model delta is written to the live model BEFORE the checkpoint, so
+the guard, the change-shape, and the human all see the real delta. `run.md` is already on the live model
+(Step 1). `persist_run.py` now writes the SHARED/structured files in place, keyed to `--slice-ref` and
+`--target-env`: it reads `run-manifest.yaml`, merges EXACTLY the one target environment into the live
+`run.yaml` (replace-if-present by name, else append; every other environment preserved byte-for-value;
+carries the slice-level design forward), and writes any decision skip-if-exists — and it REFUSES a
+manifest environment that is not the target (this is the one-environment-per-call containment the
+file-level guard cannot provide). No draft, no doc copy, and it never touches `run.md`, the spine, the
+profile, or the slice record. Nothing is COMMITTED yet — the commit (Step 6) happens only after the gate
+approves; on cancel the whole delta is reverted (Step 5):
+
+```
+python3 scripts/persist_run.py --manifest <working>/run-manifest.yaml \
+        --product-base <product_base> --slice-ref <domain>/<slice> \
+        --target-env <target_env.name> --decided-by /run --date "$(date -u +%Y-%m-%d)" \
+        --out-manifest <working>/persist-manifest.json
+```
+
+**SE-5 (F9/C9):** `persist-manifest.json` records `changed.environment == <target_env>` and a
+`preserved_envs` list, and the persist REFUSED (exit 1) any manifest environment other than the target —
+exactly one environment was merged and every previously-defined one is preserved by construction.
+**SE-6 (F8/C8):** the keyed persist wrote only `run.yaml` (+ decisions) and never the spine or the slice
+record, so the slice's `status` cannot have moved — /run never stamps the slice realized (confirmed by
+the guard in Step 4: no spine/slice-record path changed).
+
+### Phase: Guard + Validate + Classify (over the full delta)
+
+**Step 4 — Guard the full delta + validate run.yaml + classify** · Owner: play · Depends on: Step 3
+
+**The run's write scope (the per-play guard policy, ADR 026).** The old `apply_run.py` encoded /run's
+write scope by construction; under direct-model-write that same scope is the `scoped_write_guard.py`
+policy — resolve `<slice-dir>` as `product-os/<domain>/slices/<slice>` (the target slice's folder):
+
+    --allow    'product-os/<domain>/slices/<slice>/lens/run.md'    # the narrative (skill overwrites on re-run)
+    --allow    'product-os/<domain>/slices/<slice>/lens/run.yaml'  # the machine-readable facts (keyed persist merges)
+    --add-only 'product-os/<domain>/slices/<slice>/decisions/*'    # new decisions (added, never edited in place)
+
+**Guard ONCE over the full delta (C2).** After ALL writes (the LLM's `run.md` from Step 1 and the keyed
+persist's `run.yaml` + decisions from Step 3), run the scoped guard a single time over the whole delta.
+Capture its report — its `ok` field is the stop condition's D3 input (this replaces the old
+`check_run.py` before/after verify):
+
+```
+python3 scripts/scoped_write_guard.py --product-base <product_base> --base-ref HEAD \
+        --allow 'product-os/<domain>/slices/<slice>/lens/run.md' \
+        --allow 'product-os/<domain>/slices/<slice>/lens/run.yaml' \
+        --add-only 'product-os/<domain>/slices/<slice>/decisions/*' \
+        --out <working>/guard-report.json
+```
+
+If the guard exits non-zero, re-run with `--restore` to revert the offending paths, apply REC2/REC11 (a
+path outside this slice's run-lens scope changed), and re-persist before the checkpoint.
+
+Then validate the merged live `run.yaml` + its agreement with `run.md` + grounding/coverage/secrets over
+the live slice folder:
+
+```
+python3 scripts/validate_run.py --slice-dir <product_base>/product-os/<domain>/slices/<slice> \
+        --manifest <working>/run-manifest.yaml \
+        --slice-file <product_base>/<slice_file> \
+        --arch-lens <product_base>/product-os/<domain>/slices/<slice>/lens/architecture.md
+```
+
+**Classify the full working-tree delta (C10).** Classify the model tree's diff vs HEAD — now the FULL
+delta (`run.md` + `run.yaml` + decisions), per ADR 026 write-then-review (no draft dir), so a
+high-impact run (a full cloud environment) yields a materially different shape key from a prose edit:
+
+```
+python3 scripts/classify_change.py --play run \
+        --product-base <product_base> --base-ref HEAD --out <working>/shape.json
+```
+
+**SE-7 (F2/F11/C2):** the scoped-write guard report reads `ok: true` — the model delta is confined to
+this slice's `run.md`, `run.yaml`, and new decisions; the spine, the profile, the slice record, the
+other lenses, and the other slices are byte-identical, and no accepted decision was edited in place.
+**SE-8 (F3/C3):** `validate_run.py` — `run.yaml` conforms to the run lens schema: slice-level rollout /
+migrations / CI/CD present, and an `environments` list whose each entry has name/tier/type and the
+type-appropriate `local` or `cloud` block.
+**SE-9 (F5/C5):** `validate_run.py` — every operational choice grounds in the hub, the profile, or the
 architecture lens; every cloud env compute/service maps to a real architecture-lens component; any
 material run choice names a decision that resolves.
-**SE-6 (F6/C6):** `validate_run.py` — the run plan considers every functionality the slice bundles
+**SE-10 (F6/C6):** `validate_run.py` — the run plan considers every functionality the slice bundles
 (coverage).
-**SE-7 (F7/C7):** `validate_run.py` — the run plan grounds on no realize lens other than architecture.
-**SE-8 (F9/C9):** `validate_run.py` — exactly the target environment is defined or edited this call; no
-environment beyond the target was added, none dropped, and every previously-defined environment is
-value-identical to the existing `run.yaml`.
-**SE-9 (F10/C11):** `validate_run.py` — `run.yaml` and `run.md` name the same environment set (every
+**SE-11 (F7/C7):** `validate_run.py` — the run plan grounds on no realize lens other than architecture.
+**SE-12 (F10/C11):** `validate_run.py` — `run.yaml` and `run.md` name the same environment set (every
 environment `run.yaml` defines is narrated in `run.md`).
-**SE-10 (F13/C12):** `validate_run.py` — no secret literal in `run.yaml` or `run.md`; secrets are
+**SE-13 (F13/C12):** `validate_run.py` — no secret literal in `run.yaml` or `run.md`; secrets are
 manager bindings, not raw values.
-On any GAP, apply the matching recovery (REC3–REC10, REC13) and re-run before the checkpoint.
+On any GAP, apply the matching recovery (REC2, REC5–REC13) and re-run before the checkpoint.
 
 ### Phase: Checkpoint (conditional gate, class: standard, C10)
 
-**Step 3 — Human review (conditional gate, class: standard)** · Owner: play · Depends on: Step 2
+**Step 5 — Human review (conditional gate, class: standard)** · Owner: play · Depends on: Step 4
 **This is the single checkpoint (C10) — the agent never skips it on its own judgment.** It is a
 **conditional gate** per `standards/rules/gate-config.md` (#467 — /run is one of the eleven
 conditional document plays). Resolve, first match wins: pinned (n/a here) → `gates.plays.run` → the
 learned policy → `gates.classes.standard` → `gates.default` (absent ⇒ on). When config resolves it
 off, record `gate skipped by config (<resolution path>)` as a Checkpoint Decisions row in the
-evidence and proceed on the validated draft.
+evidence and proceed on the validated, written delta.
 
-For the policy leg, classify the draft-vs-live change shape mechanically:
-
-```
-python3 scripts/classify_change.py --play run --draft <working>/draft --live <product_base> --out <working>/shape.json
-```
-
-Look the shape key up in the config-resolved learned policy (`gates.conditional.policy` →
-`gate-policy.yaml`). **Shape in `auto:` AND not in `never_auto:` AND no blocking finding (a Step 2
-lint gap or content-eval fail) → auto-pass:** record `gate auto-passed by learned policy
-(shape: <shape-key>, policy v<version>)` as a Checkpoint Decisions row plus the draft's diff summary
-(the axis counts from `shape.json`), append the ledger line, and proceed — no wait:
+For the policy leg, use the shape key classified in Step 4. Look it up in the config-resolved learned
+policy (`gates.conditional.policy` → `gate-policy.yaml`). **Shape in `auto:` AND not in `never_auto:`
+AND no blocking finding (a Step 2 lint gap or content-eval fail, a Step 4 guard violation or
+`validate_run.py` error) → auto-pass:** record `gate auto-passed by learned policy
+(shape: <shape-key>, policy v<version>)` as a Checkpoint Decisions row plus the working-tree diff
+summary (the axis counts from `shape.json`), append the ledger line, and proceed — no wait:
 
 ```
 python3 scripts/gate_eval.py append --ledger <gates.conditional.ledger> --play run \
@@ -244,61 +358,68 @@ python3 scripts/gate_eval.py append --ledger <gates.conditional.ledger> --play r
     --ts <run ts> --policy-version <policy version>
 ```
 
-**Anything else → gate:** render the approval prompt — the **target environment's** definition
-(local bring-up, or the cloud provider/region/compute/services/firewalls/security/deploy) plus the
-slice-level design (rollout, migrations, config & secrets, CI/CD) and any decision **inline** — and
-wait for the typed response. Approve → persist; cancel → halt, nothing written. Then append the
-ledger line with the human's real action:
+**Anything else → gate:** present the **target environment's** definition (local bring-up, or the cloud
+provider/region/compute/services/firewalls/security/deploy) plus the slice-level design (rollout,
+migrations, config & secrets, CI/CD) and any decision **inline over the real model git diff** — render
+the approval prompt (`standards/templates/approval-prompt.md`) and wait for the typed response.
+Approve → continue to Step 6 (commit). **Cancel → revert the working tree (ADR 026 step 6):** the full
+delta is already on disk, so run the guard with `--restore` and an EMPTY allow set to `git restore` the
+modified model paths and `git clean`/remove the new ones (byte-clean back to HEAD), then halt — nothing
+was committed, and cancel means "revert what was written":
+
+```
+python3 scripts/scoped_write_guard.py --product-base <product_base> --base-ref HEAD \
+        --restore --out <working>/guard-report.json   # empty --allow ⇒ every model path reverted
+```
+
+Then append the crossing's live-eval ledger line with the human's real action:
 
 ```
 python3 scripts/gate_eval.py append --ledger <gates.conditional.ledger> --play run \
     --issue <issue> --shape <shape-key> --predicted gate \
-    --human approved_clean|approved_edited|rejected --ts <run ts>
+    --human <approved_clean|approved_edited|rejected> --ts <run ts>
 ```
 
-`<run ts>` is the run's own timestamp, derived the same way the close derives `ts` (`date -u`) and
-passed by the orchestrator — the script never reads the wall clock. EVERY crossing appends exactly
-one live-eval ledger line, gated or auto.
-**SE-11 (F12/C10):** the lens is persisted only after this gate resolves — a typed approval, a
-recorded config skip, or a recorded policy auto-pass; Step 4 is the sole writer and depends on this
-step.
+`<issue>` is the slice-realize issue the run's branch carries (opened by /arch's start-change).
+`<gates.conditional.ledger>` / `<gates.conditional.policy>` resolve from config `gates.conditional`
+(defaults `.garura/core/gate-evals.jsonl` / `.garura/core/gate-policy.yaml`); `<policy version>` is the
+policy file's `version:` field. `<run ts>` is the run's own UTC timestamp, derived the same way the
+close derives `ts` (`date -u`), passed by the orchestrator — the script never reads the wall clock.
+**SE-14 (F12/C10):** the lens delta is COMMITTED only after this gate resolves — a typed approval, a
+recorded config skip, or a recorded policy auto-pass; Step 6 (commit) depends on this step, and on cancel
+the whole delta is reverted (`--restore`) before any commit, so nothing is made durable without the gate
+resolving.
 **SE-15 (F15/C10):** every conditional-gate crossing appended exactly one live-eval ledger line
 (`gate_eval.py append`), and an auto-pass fired only for a shape the policy lists in `auto:` (and not
 in `never_auto:`) with no blocking finding.
 
-### Phase: Apply
+### Phase: Commit (make the delta durable, ADR 026 step 7)
 
-**Step 4 — Persist** · Owner: play · Depends on: Step 3
-First snapshot the live spine and the slice folder so Step 5 can verify (`cp` the spine to
-`<working>/spine-before.yaml`; `cp -R` the slice folder to `<working>/slice-before`). Then persist on
-the fixed allowlist — only this slice's `run.md` and `run.yaml` (re-derive) and decisions
-(skip-if-exists):
-
-```
-python3 scripts/apply_run.py --draft <working>/draft --product-base <product_base> --out-manifest <working>/apply-manifest.json
-```
-
-**Step 5 — Verify persisted** · Owner: play · Depends on: Step 4
-Verify the persist was surgical and that the slice's status was untouched (no realized stamp) —
-capture the checker's JSON output; its `ok` field is the stop condition's D3 input:
+**Step 6 — Commit the model delta** · Owner: play · Depends on: Step 5
+The gate approved (or auto-passed / was skipped by config). Commit the full model delta on the branch
+(C14, ADR 026 step 7) — a lightweight persist step that makes the writes durable and advances HEAD, so
+the injected close opens the PR over an already-committed lens. A cancelled checkpoint never reaches
+this step — its tree was already restored in Step 5:
 
 ```
-python3 scripts/check_run.py --cap-before <working>/slice-before --cap-dir <product_base>/product-os/<domain>/slices/<slice> --spine-before <working>/spine-before.yaml --spine-after <product_base>/product-os/_spine.yaml > <working>/run-checks.json
+git add -- <product_base>product-os
+git commit -m "feat(model): run lens for <slice> — <target env> environment (#<issue>)"
 ```
-
-**SE-12 (F8/C8):** the spine and the slice record are byte-identical before and after — so the slice's
-`status` is unchanged; /run never stamped the slice realized.
-**SE-13 (F2/F11/C2):** the only files changed in the slice folder are `lens/run.md` and `lens/run.yaml`
-(decisions may be added, never edited in place); the spine — and with it the profile, the slice record,
-and the other lenses — is byte-identical. Nothing outside the allowlist was written.
+**SE-16 (F14/C13):** the close is stop-condition gated — `check_stop_condition.py` over the baked
+`stop-condition.yaml` (D1 the persist record `persist-manifest.json` exists; D2 it stamps
+`applied: true`; D3 the captured `guard-report.json` reads `ok: true`) must read **held** before any
+COMPLETED close, and the model delta is committed (C14); a run whose persist or guard did not land
+closes HALTED, never COMPLETED (REC14).
 
 ### Phase: End sequence (injected — D2 position: end)
 
-After the lens is persisted and verified, the D2 rule injects the close sequence — each a sub-play
-dispatched with `parent_run_id`, resolving its own context from the branch + config — to commit the
-non-functional pipe's lenses, raise the PR, take the verdict, and merge to main.
+After the lens is committed, the D2 rule injects the close sequence — each a sub-play dispatched with
+`parent_run_id`, resolving its own context from the branch + config — to sweep any remaining STM, raise
+the PR (carrying the `feat(model)` commit), take the verdict, and merge to main. Under ADR 026 the run
+lens is ALREADY committed by Step 6; commit-change handles only what remains uncommitted (STM evidence,
+ADRs), not the lens.
 
-**Step E1 — commit-change** · blockedBy: Step 5
+**Step E1 — commit-change** · blockedBy: Step 6
 
     { "play": "commit-change", "parent_run_id": "<this run id>", "inputs": {}, "outputs": { "result": "{stm_base}_realize/run/end/commit-change.json" } }
 
@@ -319,36 +440,36 @@ Each end member owns its own evals (commit grouped by concern, PR opened, verdic
 
 ### Phase: Scenario Validation
 
-**Step 6 — Scenario evals** · Owner: play · Depends on: the end sequence
+**Step 7 — Scenario evals** · Owner: play · Depends on: the end sequence
 - **SCE-1 (S1 — devops engineer, first environment):** the first run resolves the target to local,
-  writes `run.yaml` (slice-level design + local at tier 0) and `run.md`, both clearing their validators;
-  the spine/slice/profile/other lenses are byte-identical.
-- **SCE-2 (S2 — devops engineer, next environment):** a later run for `dev` adds the dev cloud
-  environment (provider/region/compute/services/firewalls/security/deploy), preserves the local
-  environment unchanged, and `run.yaml` holds both in tier order; `run.md` and `run.yaml` agree.
+  writes `run.md` and (via the keyed persist) `run.yaml` (slice-level design + local at tier 0) in
+  place, both clearing their validators; the spine/slice/profile/other lenses are byte-identical.
+- **SCE-2 (S2 — devops engineer, next environment):** a later run for `dev` merges the dev cloud
+  environment (provider/region/compute/services/firewalls/security/deploy) into `run.yaml`, preserves
+  the local environment unchanged, and `run.yaml` holds both in tier order; `run.md` and `run.yaml` agree.
 - **SCE-3 (S3 — architect, grounded run):** every operational choice grounds in the hub, the profile,
   or the architecture lens; every cloud compute/service maps to an architecture-lens component; material
   choices name a decision that resolves.
 - **SCE-4 (S4 — reviewer, architecture-driven):** the run plan read the architecture lens and no other
   realize lens, and flows from its stack and components.
-- **SCE-5 (S5 — release manager, no premature realize):** the slice's status is unchanged — /run never
-  stamped `realized`.
+- **SCE-5 (S5 — release manager, no premature realize):** the slice's status is unchanged — the
+  scoped-guard report shows no spine/slice-record path changed; /run never stamped `realized`.
 - **SCE-6 (S6 — product owner, re-run same environment):** a re-run of the same environment re-derives
-  only that environment; other environments, the spine, slice record, other lenses, and profile are
-  byte-identical; no accepted decision edited in place.
+  only that environment via the keyed persist; other environments, the spine, slice record, other
+  lenses, and profile are byte-identical; no accepted decision edited in place.
 - **SCE-7 (S7 — security reviewer, no secrets in repo):** a cloud env's secrets are manager bindings; no
   secret literal appears in `run.yaml`, `run.md`, or the repo.
 - **SCE-8 (S8 — reviewer, the checkpoint):** the checkpoint showed the target environment plus the
-  slice-level design inline, and no product-model file was written before approval — or, on the
-  auto-pass path, the shape was policy-listed and the recorded auto-pass, the ledger line, and the
-  diff summary stood in for the wait (nothing written before the gate resolved).
+  slice-level design inline over the full written delta, and no product-model change was COMMITTED
+  before approval — the full delta written in place shows as the working-tree diff and is reverted
+  byte-clean on cancel — or, on the auto-pass path, the shape was policy-listed and the recorded
+  auto-pass, the ledger line, and the diff summary stood in for the wait (nothing committed before the
+  gate resolved).
 
 ### Phase: Evidence & Close
 
-**Step 7 — Close** · Owner: play · Depends on: Step 6
+**Step 8 — Close** · Owner: play · Depends on: Step 7
 Run the Standard Play Close. /run is a slice-realize play — record evidence per the D1 rule.
-**SE-14 (F14/C13):** the stop-condition verdict is held before the run closes COMPLETED; a close over
-an unmet or unevaluable verdict reads HALTED, never COMPLETED (REC14).
 
 ```bash
 # --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
@@ -385,15 +506,16 @@ python3 scripts/distill_gate_policy.py --ledger "${gates_ledger}" --policy "${ga
 **Step C0 — bind the verdict.** `sc_exit == 0` (held) permits `status: COMPLETED`. Anything else
 closes `HALTED` with `exit_reason: stop_condition_unmet` and the evidence's Stop Condition section
 names every unmet clause — a run that never applied (checkpoint cancelled, validation failed) is a
-HALTED run, not a done one; fix the state per REC14 (re-run the verify capture, or complete the
-missing step) and re-evaluate; the close stays HALTED until the verdict reads held. An unevaluable
-verdict is never a pass.
+HALTED run, not a done one; fix the state per REC14 (re-run the keyed persist, re-capture the
+scoped-guard report, or make the model-delta commit) and re-evaluate; the close stays HALTED until the
+verdict reads held. An unevaluable verdict is never a pass.
 
 **Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag. When false, skip and
 record `evidence skipped (record=false)`. Otherwise fill the `evidence-file.md` slots (play `run`,
 run_id `run-${ts}`, slice slug, the target environment defined this call, started/completed, status
-per C0, exit_reason; artifacts: the slice's `run.md`, `run.yaml`, the manifest, any decision, the
-stop-condition verdict; the content-eval verdict; step + scenario evals SE-1…SE-15 / SCE-1…SCE-8;
+per C0, exit_reason; artifacts: the slice's `run.md`, `run.yaml`, the run manifest, the persist manifest
+(`persist-manifest.json`), the captured `guard-report.json`, any decision, the model-delta commit sha,
+the stop-condition verdict; the content-eval verdict; step + scenario evals SE-1…SE-16 / SCE-1…SCE-8;
 checkpoint decision (incl. any `gate skipped by config` or `gate auto-passed by learned policy` row,
 with the diff summary and the ledger line); the end-sequence results; the session
 identity stamp fields from $session_stamp (#463): session_id, ledger_file, ledger_start_offset,
@@ -428,44 +550,85 @@ which stamps the slice realized), and a pointer to `$evidence_dest`. Always emit
 | For | Trigger | Direction | Handoff |
 |-----|---------|-----------|---------|
 | F1 | the slice is absent, a functionality does not resolve, the profile is not firmed, or the architecture lens is missing | halt and route to /shape, /understand, or /arch before /run runs | human |
-| F2 | a write touched something beyond this slice's run.md, run.yaml, or a decision | revert the out-of-scope write; /run writes only the slice's run.md, run.yaml, and any decision | autonomous |
+| F2 | the scoped guard reports a write beyond this slice's run.md, run.yaml, or a decision | the guard's `--restore` reverts the out-of-scope paths; re-run writing only the slice's run.md, run.yaml, and any decision | autonomous |
 | F3 | run.md fails the template/shape or carries out-of-scope content, or run.yaml fails the schema | re-emit the failing artifact to its contract — the five run sections for run.md, the run lens schema for run.yaml | autonomous |
 | F4 | run.md fails the content-quality eval | rewrite the failing section to the judge's cited fixes and re-judge until the gate passes | autonomous |
 | F5 | an invented choice, a cloud compute/service referencing a non-arch component, or a material choice with no decision | re-tie each choice to the hub, the profile, or the architecture (a cloud compute/service to a real component), and record the material decision | autonomous |
 | F6 | a functionality was left unaccounted for | extend the run plan to account for the missing functionality | autonomous |
 | F7 | /run read or depended on a lens other than architecture | remove the dependency; /run reads only the hub + the architecture lens | autonomous |
-| F8 | /run stamped the slice realized or wrote its status | revert the status write; the realized stamp belongs to /measure | autonomous |
-| F9 | a previously-defined environment was dropped or silently edited, or more than one was defined in a call | restore the untouched environments from the prior run.yaml and re-derive only the single target environment | autonomous |
-| F10 | run.yaml and run.md disagree | re-emit both from one source of truth so the environments and facts match | autonomous |
-| F11 | a non-lens/non-decision file changed, or an accepted decision was edited in place | restore it and re-apply only run.md / run.yaml and the new decision, after a human confirms the restore | human |
-| F12 | the lens was persisted before the checkpoint gate resolved | revert the premature write and re-present the checkpoint; persist only after the gate resolves (a typed approval, a recorded config skip, or a recorded policy auto-pass) | human |
+| F8 | /run stamped the slice realized or wrote its status | revert the change via the guard `--restore`; the keyed persist writes only run.yaml + decisions — the realized stamp belongs to /measure | autonomous |
+| F9 | a previously-defined environment was dropped or silently edited, or more than one was defined in a call | the keyed persist refuses a non-target environment by construction — re-run resolving exactly one target; restore untouched environments from HEAD via the guard `--restore` if a stray write landed | autonomous |
+| F10 | run.yaml and run.md disagree | re-emit both from one source of truth (the manifest reasoning) so the environments and facts match | autonomous |
+| F11 | a non-lens/non-decision file changed, or an accepted decision was edited in place | the guard `--restore` reverts it; re-apply only run.md / run.yaml and the new decision, after a human confirms the restore | human |
+| F12 | the lens delta was committed before the checkpoint gate resolved | revert the premature commit and re-present the checkpoint; commit only after the gate resolves (a typed approval, a recorded config skip, or a recorded policy auto-pass) | human |
 | F13 | a secret value was written into the lens or the repo | strip the secret, replace it with a secrets-manager binding, and re-verify no secret literal remains | autonomous |
-| F14 | the run is about to close COMPLETED with the Done means unmet | close HALTED (`stop_condition_unmet`) with the unmet clauses named; fix the state — re-run the verify capture, or complete the missing draft/apply step — and re-evaluate; the close stays HALTED until the verdict reads held | autonomous |
+| F14 | the run is about to close COMPLETED with the Done means unmet | close HALTED (`stop_condition_unmet`) with the unmet clauses named; fix the state — re-run the keyed persist, re-capture the scoped-write guard report, or make the model-delta commit — and re-evaluate; the close stays HALTED until the verdict reads held | autonomous |
 | F15 | a conditional-gate crossing left no live-eval ledger line, or an auto-pass fired for a shape the policy does not list as auto (or that carried a blocking finding) | re-append the missing ledger line from the recorded crossing; when the auto-pass was unearned, re-run the gate as a live wait (render the prompt, take the typed verdict) and append the corrected line | autonomous |
+| F16 | the product-os tree is dirty at entry (uncommitted model edits present) | halt at pre-flight and ask for a clean model tree — commit or revert the pending model edits (or run the prior pipe member to its close) — before /run proceeds | human |
 
 ## Pause and Resume
 
 Steps run top to bottom. On entry, resolve config, resolve the target slice, resolve the target
 environment, check the status marker, skip completed steps, reset any in-progress step to pending, and
-continue.
+continue. A fresh start with no marker runs everything and creates the marker at Step 1. Resuming a run
+that already wrote model docs enters a dirty tree; the pre-flight clean-tree assertion (F16) is scoped to
+a FRESH start — a resume continues its own in-progress delta.
 
 ## Compilation Metadata
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:f88a93f2a07971b8417a69af1587e6dae080773a417100763b35b5223be0aa40 (of `reference/ice.md`) |
-| compiled_by | play-editor (#466 Batch C; #467 Batch B — conditional learned gate) |
-| pipeline_position | end (closes the non-functional realize pipe; injects commit → propose → review → merge) |
+| fingerprint | sha256:f38b14a86d62ef8ffb159d0d3996859a29937b209ee129826f3c8d742cba8b6e (of `reference/ice.md`) |
+| compiled_by | play-editor (#500 direct-model-write, ADR 026); prior: play-editor (#466 Batch C, #467 Batch B) |
+| pipeline_position | end (commits its own feat(model) delta, then injects commit → propose → review → merge) |
 | model_writes | yes |
-| workflow_structure | A (single checkpoint — conditional learned gate, class: standard, per gate-config.md #467; stop-condition gated close) |
+| workflow_structure | A (single checkpoint — conditional learned gate, class: standard, per gate-config.md #467; direct-model-write WRITE-THEN-REVIEW per ADR 026 — persist + guard + classify before the gate, commit after; stop-condition gated close) |
 | stop_condition | stop-condition.yaml (D1–D3), gate live at Step C0 |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |
 | skills_used | author-run-lens |
-| scripts | 13 (preflight, check_ready_slice, resolve_target_env, lint_grounding, grounding_gate, validate_run, apply_run, check_run, check_stop_condition, session_stamp, classify_change + gate_eval + distill_gate_policy — #467 conditional gate) |
-| constraints | 13 (C1–C13) |
-| failure_conditions | 15 (F1–F15) |
+| scripts | 13 (preflight, check_ready_slice, resolve_target_env, lint_grounding, grounding_gate, persist_run, scoped_write_guard, validate_run, classify_change, gate_eval, distill_gate_policy, check_stop_condition, session_stamp) |
+| constraints | 14 (C1–C14) |
+| failure_conditions | 16 (F1–F16) |
 | success_scenarios | 8 (S1–S8) |
-| step_evals | 15 (SE-1…SE-15) |
+| step_evals | 16 (SE-1…SE-16) |
 | scenario_evals | 8 (SCE-1…SCE-8) |
-| recovery_entries | 15 (one per failure condition; 12 autonomous / 3 human) |
+| recovery_entries | 16 (one per failure condition; 13 autonomous / 3 human) |
+
+**Recompiled note (#500, direct-model-write / ADR 026):** migrated from draft-then-apply to
+direct-model-write. The old draft model tree and the apply/verify scripts are removed — `apply_run.py`
+became the keyed `persist_run.py` (merges `run.yaml` for the target environment in place, keyed,
+preserving the rest; writes decisions skip-if-exists; refuses a non-target environment), and the
+before/after `check_run.py` is deleted (its role is now the post-write `scoped_write_guard.py`, whose
+`guard-report.json` is D3). The authoring skill (`author-run-lens`) writes only the narrative `run.md`
+straight to the live model and emits the `run.yaml` delta + decisions as manifest data;
+`validate_run.py` now runs over the LIVE slice folder (`--slice-dir`), and one-environment-per-call
+preservation (F9) moved to the keyed persist's by-construction refusal; `classify_change.py` reads the
+working-tree git diff (`--product-base`/`--base-ref HEAD`); checkpoint cancel reverts the working tree
+via the guard `--restore`; the play asserts a clean product-os tree at entry (F16) and commits its own
+`feat(model)` delta after approval (C14). Order is **write-then-review** (ADR 026 "Order of operations"):
+the full delta — `run.md` AND `run.yaml` + decisions — is written to the live model FIRST (Steps 1+3),
+then guarded ONCE and classified over the full delta (Step 4), then the gate resolves over the real git
+diff (Step 5), and only an approved gate COMMITS (Step 6). For this END play the injected commit-change
+sweeps only remaining STM (evidence, ADRs), not the lens — the lens is already committed by Step 6, and
+propose-change's PR carries the `feat(model)` commit. Nothing is COMMITTED before approval; cancel reverts
+the uncommitted writes. See `standards/rules/direct-model-write.md`.
+
+**Recompiled note (#467 Batch B):** checkpoint upgraded to a conditional learned gate; see
+`gate-config.md`.
+
+**Direct-edit deviation note (#500) — INTENT CHANGE, HAND-COMPILED, CONVERGENCE UNVERIFIED:**
+This SKILL was updated to the direct-model-write write-then-review shape (ADR 026) by a **hand-compile
+from `reference/ice.md`**, NOT by a `/play-editor` run. This is an intent change (it alters the write
+path, the containment guarantee, the checkpoint cancel semantics, and the step order), so the sanctioned
+path is recompile-via-`/play-editor`; play-editor is interactive-only (fully gated, human-checkpoint) and
+cannot run headless in this environment, so the compiled output was produced by hand to match what
+play-editor would emit from the current `reference/ice.md` (fingerprint above). **The `compiled_by` line
+names play-editor for provenance intent, but no play-editor run actually occurred and convergence is
+UNVERIFIED.** An interactive `/play-editor` convergence run against `reference/ice.md` is **REQUIRED** —
+confirming the emitted SKILL matches this hand-compiled body and refreshing the fingerprint. This mirrors
+the /understand reference implementation (#498) and the vision/grill/learn migrations on this branch. The
+per-play Standard Play Close block is retained (required by `lint-components` and the play-creator G12
+emit on every play); the `feat(model)` commit (Step 6) is the separate lightweight model-delta persist
+step ADR 026 requires of every model-writing play, and for this END play the injected close then sweeps
+only remaining STM, so both coexist as C14 describes.

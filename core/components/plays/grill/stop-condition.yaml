@@ -22,5 +22,8 @@ content:
       says: "the checkpoint resolved — the approval marker reads approved"
       check: { type: field_equals, file: "approval.json", field: "approved", equals: true }
     - id: D6
-      says: "the epic cut records exist — the persist was all-or-none, nothing refused"
-      check: { type: field_equals, file: "apply-manifest.json", field: "ok", equals: true }
+      says: "the epic cut records exist — the keyed persist was all-or-none, nothing refused"
+      check: { type: field_equals, file: "persist-manifest.json", field: "ok", equals: true }
+    - id: D7
+      says: "the scoped-write guard held — no model path changed outside the slice's epic scope"
+      check: { type: field_equals, file: "guard-report.json", field: "ok", equals: true }

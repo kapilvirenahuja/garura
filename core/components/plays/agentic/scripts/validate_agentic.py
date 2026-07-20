@@ -1,29 +1,31 @@
 #!/usr/bin/env python3
 """
-validate_agentic.py — assert /agentic's draft is grounded and considers the slice's hub.
+validate_agentic.py — assert /agentic's authored lens is grounded and considers the slice's hub.
 
-Run over the draft before the checkpoint. In the spine+grounding model the agentic lens is an
-MD grounding doc (`agentic.md`); its SHAPE (the "Is it an agent?", "Load weights", "Controls"
+Run over the manifest before the checkpoint. Under direct-model-write (ADR 026,
+standards/rules/direct-model-write.md) the lens `agentic.md` is written straight to the live
+model by the authoring skill; its SHAPE (the "Is it an agent?", "Load weights", "Controls"
 sections, each substantive) is checked by `lint_grounding.py`, and its UNDERSTANDABILITY by
-the content eval — both run by the play's validate step. THIS script checks what the manifest
-carries, which the prose can't enforce:
+the content eval — both run by the play's validate step over the LIVE doc. THIS script checks
+what the manifest carries, which the prose can't enforce:
 
   - grounded: every grounding entry names a real source from the slice's HUB (a functionality,
     persona, or journey) — never another lens (the agentic read is hub-only).
-  - decisions: a grounding flagged `material: true` names a `decision` that resolves.
+  - decisions: a grounding flagged `material: true` names a `decision` that resolves — the
+    decision record must be carried in the manifest's `decisions` block (the keyed persist
+    writes it in place; the LLM never writes a decision file itself).
   - coverage: every functionality of the slice is considered by the agentic assessment (each
     appears in the manifest grounds) — the agent gate can't ignore part of the slice.
 
 Layer rule: reads files on disk only; no git/gh/network.
 
-    python3 validate_agentic.py --draft <draft_dir> --manifest <agentic-manifest.yaml> \
+    python3 validate_agentic.py --manifest <agentic-manifest.yaml> \
             --slice-file <live slice record .yaml>
 
 Prints {ok, errors[], warnings[], counts} JSON. Exit 0 clean, 1 on violation, 2 usage.
 """
 
 import argparse
-import glob
 import json
 import os
 import sys
@@ -52,13 +54,16 @@ def _blank(v):
     return False
 
 
-def collect_decisions(draft_root, errors):
+def collect_decisions(man, errors):
+    """Decision records the manifest carries (the keyed persist writes them in place)."""
     ids = set()
-    for d in glob.glob(os.path.join(draft_root, "**", "decisions", "*.yaml"), recursive=True):
-        dec = (load(d).get("decision") or {})
+    for dec in (man.get("decisions") or []):
+        if not isinstance(dec, dict):
+            errors.append("a manifest decision entry is not a mapping")
+            continue
         for f in ("id", "title", "reason", "status", "level"):
             if _blank(dec.get(f)):
-                errors.append(f"{d}: decision missing '{f}'")
+                errors.append(f"manifest decision {dec.get('id') or '(no id)'}: missing '{f}'")
         if dec.get("id"):
             ids.add(dec["id"])
     return ids
@@ -104,25 +109,23 @@ def slice_functionalities(slice_file, errors):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Validate /agentic's draft grounding + coverage.")
-    ap.add_argument("--draft", required=True)
+    ap = argparse.ArgumentParser(description="Validate /agentic's authored lens grounding + coverage.")
     ap.add_argument("--manifest", required=True)
     ap.add_argument("--slice-file", required=True)
     args = ap.parse_args(argv)
 
-    draft_root = os.path.join(args.draft, "product-os")
-    if not os.path.isdir(draft_root):
-        sys.stderr.write(f"validate_agentic.py: no draft tree at {draft_root}\n")
+    if not os.path.isfile(args.manifest):
+        sys.stderr.write(f"validate_agentic.py: no manifest at {args.manifest}\n")
         return 2
 
     errors, warnings = [], []
-    decision_ids = collect_decisions(draft_root, errors)
     try:
         man = (load(args.manifest).get("agentic") or {})
     except (OSError, yaml.YAMLError) as exc:
         errors.append(f"manifest unreadable: {exc}")
         man = {}
 
+    decision_ids = collect_decisions(man, errors)
     grounded = check_grounding(man, decision_ids, errors)
     to_cover = slice_functionalities(args.slice_file, errors)
     for fid in sorted(f for f in to_cover if f):

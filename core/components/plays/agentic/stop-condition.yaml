@@ -1,15 +1,15 @@
-# agentic stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C).
+# agentic stop condition — baked from reference/ice.md "### Done means" (#464; #500 direct-model-write, ADR 026).
 # Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
 # Paths are relative to the run's working root ({stm_base}_realize/agentic/).
 schema: { name: stop-condition }
 content:
   done:
     - id: D1
-      says: "the drafted agentic lens exists"
-      check: { type: artifact_exists, path: "draft/product-os/*/slices/*/lens/agentic.md" }
+      says: "the persist record exists — the slice's agentic lens was written in place on the live model and any decision persisted"
+      check: { type: artifact_exists, path: "persist-manifest.json" }
     - id: D2
-      says: "the grounding manifest exists"
-      check: { type: artifact_exists, path: "draft/agentic-manifest.yaml" }
+      says: "the agentic lens landed in the model tree — machine-recorded by the keyed persist"
+      check: { type: field_equals, file: "persist-manifest.json", field: "lens_applied", equals: true }
     - id: D3
-      says: "the agentic lens landed in the model tree — machine-recorded by the apply"
-      check: { type: field_equals, file: "apply-manifest.json", field: "lens_applied", equals: true }
+      says: "the scoped-write guard held — no model path changed outside the slice's write scope (the allowlist held)"
+      check: { type: field_equals, file: "guard-report.json", field: "ok", equals: true }

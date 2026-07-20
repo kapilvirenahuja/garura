@@ -30,9 +30,11 @@ persona who opens it, what they do on it); it never **designs** it — wireframe
 and layout are /realize's UX lens.
 
 One domain per run; one human checkpoint approves the whole selection bundle before
-anything persists.
+the model delta is committed.
 
-Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (vision → understand → shape → roadmap): it expects to run on the branch /vision already started, injects no `start-change` head and no close sequence, stops when its work is done, and leaves the branch as-is for the next play to pick up. The close belongs to /roadmap. It writes the persistent product model directly, on the already-started branch. (#437)
+Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (vision → understand → shape → roadmap): it expects to run on the branch /vision already started, injects no `start-change` head and no close sequence, stops when its work is done, and leaves the branch as-is for the next play to pick up. The close belongs to /roadmap. It writes the persistent product model **directly, in place** on the already-started branch — there is no draft copy and no apply/promote step; review is the branch git diff and the pipeline's end PR. (#437, #499, ADR 026)
+
+Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM authoring skill writes ONLY the per-node record files — each slice, persona, journey, and decision record, and the `_deferred` bucket — straight to the live model; the one shared-file mutation (the spine `_spine.yaml` — the capability `status` flips, the persona/journey/decision refs, and the `slices` index) is done by the deterministic keyed persist script, in place, keyed to the domain so it cannot touch a capability outside it inside the spine. /shape never writes the profile. The model tree is asserted clean at entry and the play commits its own model delta at close, so the working-tree diff vs HEAD is exactly this run's delta. Containment is a post-write scoped guard (`scoped_write_guard.py`), not a draft.
 
 ### Constraints
 
@@ -80,25 +82,44 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
   bucket. The checkpoint is a **conditional gate** (#467; `gate-config.md` three gate
   kinds — /shape is one of the eleven conditional document plays). Resolution order:
   pinned (n/a here) → the `gates.plays` override → the learned policy (classify the
-  draft-vs-live change shape with the bundled `classify_change.py`; a shape in
+  working-tree change shape — the model tree's diff vs HEAD — with the bundled
+  `classify_change.py` (`--product-base`/`--base-ref HEAD`); a shape in
   `gate-policy.yaml`'s `auto:` and not in `never_auto:`, with NO blocking finding — a
-  lint gap or a content-eval fail — auto-passes with the skip and the diff summary
-  recorded) → `gates.classes.standard` → `gates.default`. EVERY crossing appends one
+  `validate_shape.py` gap or a guard violation — auto-passes with the skip and the diff
+  summary recorded) → `gates.classes.standard` → `gates.default`. EVERY crossing appends one
   live-eval line via the bundled `gate_eval.py` (shape, predicted gate|auto, the human's
-  real action `approved_clean|approved_edited|rejected`, or `auto_pass`). Nothing is
-  persisted before the gate resolves: a typed approval, a recorded config skip, OR a
-  recorded policy auto-pass. At close the play refreshes the learned policy with the
-  bundled `distill_gate_policy.py` (config `gates.conditional`: streak/ledger/policy
-  paths).
-- C13 — Non-destructive allowlist: the run writes only capability `status` flips, the new
-  slices, personas, journeys, and decisions, and their refs onto the capabilities. It never
-  changes a functionality, a domain, or the profile. Stable ids (from name/slug) written
-  skip-if-exists mean a re-run never duplicates.
-- C14 — The play ends by proving its Done means at close (gated, #464): the allowlisted
-  applied record exists (the selection bundle — the slice records, the persona/journey
-  records, the decisions, and the status flips — was persisted), the applied record stamps
-  `applied: true`, and the captured post-apply verification reads ok. The close never
-  reads COMPLETED with the stop-condition verdict unmet.
+  real action `approved_clean|approved_edited|rejected`, or `auto_pass`). Write-then-review
+  (ADR 026): the run writes the full delta to the live model FIRST (the records by the skill,
+  the spine by the keyed persist), so the checkpoint presents the real model git diff and the
+  change-shape is classified over the full delta; nothing is COMMITTED before the gate
+  resolves — a typed approval, a recorded config skip, OR a recorded policy auto-pass. On
+  cancel the whole delta is reverted (`git restore` + `git clean`). At close the play refreshes
+  the learned policy with the bundled `distill_gate_policy.py` (config `gates.conditional`:
+  streak/ledger/policy paths).
+- C13 — Non-destructive to the rest of the model, enforced by the post-write scoped guard:
+  the run writes only capability `status` flips, the new slices, personas, journeys, and
+  decisions, and their refs onto the capabilities. After the writes and before the checkpoint,
+  the bundled `scoped_write_guard.py` diffs the model tree against HEAD and FAILS the run
+  (reverting the offending paths) if any model path outside that scope changed. It never
+  changes a functionality, a domain, or the profile. Node-level containment inside the shared
+  spine (only the named capabilities flip, only their status field moves) is kept by the keyed
+  persist script — only it writes the spine — not the guard. Stable ids (from name/slug)
+  mean a re-run never duplicates.
+- C14 — The play ends by proving its Done means at close (gated, #464): the keyed persist
+  record exists (the spine merge — the capability status flips, the slice index, and the
+  persona/journey/decision refs — was written in place on the live model, and the record files
+  are on disk), the persist record stamps `applied: true`, and the post-write scoped-guard
+  report reads ok (the allowlist held). The play then commits its own model delta on the
+  branch. The close never reads COMPLETED with the stop-condition verdict unmet.
+- C15 — Clean tree in, committed delta out (ADR 026): the product-os tree is asserted clean
+  at entry (pre-flight halts on a dirty model tree), and after the approved checkpoint the
+  play commits its model delta on the branch (`feat(model): … (#<issue>)`), so HEAD is a
+  correct base for the guard and the change-shape and the next pipeline play enters clean.
+  This model-delta commit is a lightweight persist step, distinct from the per-play Standard
+  Play Close (evidence + delivery report) that /shape still runs like every play. What /shape
+  omits as a middle play is the pipeline start/end sequence — no `start-change` head and no end
+  PR (those belong to the pipeline, the close to /roadmap); the model-delta commit persists
+  this run's model change, it does not add that pipeline sequence.
 
 ### Failure conditions
 
@@ -124,15 +145,20 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
 - F10 — A slice copied a functionality's content instead of referencing it by spine id, or a
   slice carries `order`, `effort`, or resolved `depends_on`.
 - F11 — A prune or a material selection was made with no decision recorded.
-- F12 — The selection was persisted before the checkpoint gate resolved — no typed
+- F12 — The selection delta was COMMITTED before the checkpoint gate resolved — no typed
   approval, no recorded config skip, and no recorded policy auto-pass.
-- F13 — Allowlist breach: a functionality, a domain, or the profile changed during the run;
-  or a re-run duplicated a persona, journey, or slice.
-- F14 — The run closed COMPLETED without the Done means held (no applied record, the
-  record not stamped `applied: true`, or the post-apply verification not captured or not
-  ok).
+- F13 — Allowlist breach (scoped-guard violation): a functionality, a domain, or the profile
+  changed during the run; or a model path outside /shape's scope (the spine + the new
+  slice/persona/journey/decision records) changed; or a re-run duplicated a persona, journey,
+  or slice.
+- F14 — The run closed COMPLETED without the Done means held (no persist record, the record
+  not stamped `applied: true`, the post-write scoped-guard report not captured or not ok, or
+  the model delta not committed).
 - F15 — A conditional-gate crossing left no live-eval ledger line, or an auto-pass fired
   for a shape the policy does not list as auto (or that carried a blocking finding).
+- F16 — The play ran against a dirty product-os tree (uncommitted model edits present at
+  entry), so the change-shape and the scoped guard could not be trusted to reflect only this
+  run's delta.
 
 ## Expectation
 
@@ -185,23 +211,23 @@ Pipeline position: **none**. /shape is a MIDDLE play of the strategy pipeline (v
 ### Done means
 
 Paths are relative to the run's working root (`{stm_base}_shaping/shape/<domain>/`).
-`apply-manifest.json` is the applied record `apply_shape.py` writes after the approved
-checkpoint (its contract: `applied: true`, `written`, `skipped`, `status_flips`) — the
-persisted selection bundle: the slice records, the persona/journey/decision records, and
-the spine merge; `shape-checks.json` is the verify step's captured `check_shape.py` output
-— the play always writes it, and its `ok` field is the mechanical proof that the profile
-is untouched, capabilities changed status-only, slices were only added, and every declared
-decision is on disk.
+`persist-manifest.json` is the record the keyed persist script (`persist_shape.py`) writes
+after applying the manifest's spine-delta in place on the live model (its contract:
+`applied: true`, `written`, `skipped`, `status_flips`) — the spine merge: the capability
+status flips, the slice index, and the persona/journey/decision refs; `guard-report.json` is
+the captured `scoped_write_guard.py` output — the play always writes it, and its `ok` field is
+the mechanical proof that no model path changed outside /shape's scope (the spine plus the new
+slice/persona/journey/decision records), so the profile is untouched and no functionality or
+domain moved.
 
-- D1 — says: "the applied record exists — the selection bundle (slices, personas,
-  journeys, decisions, status flips) was persisted through the allowlisted apply"
-  check: { type: artifact_exists, path: "apply-manifest.json" }
-- D2 — says: "the apply stamped its applied-record field — the spine merge and the record
-  copies landed"
-  check: { type: field_equals, file: "apply-manifest.json", field: "applied", equals: true }
-- D3 — says: "the post-apply verification held — profile untouched, status-only capability
-  changes, slices added-only, decisions on disk"
-  check: { type: field_equals, file: "shape-checks.json", field: "ok", equals: true }
+- D1 — says: "the persist record exists — the spine merge (status flips, slice index,
+  persona/journey/decision refs) was written in place on the live model through the keyed
+  persist"
+  check: { type: artifact_exists, path: "persist-manifest.json" }
+- D2 — says: "the keyed persist stamped its applied-record field — the spine merge landed"
+  check: { type: field_equals, file: "persist-manifest.json", field: "applied", equals: true }
+- D3 — says: "the post-write scoped guard held — no model path changed outside /shape's scope"
+  check: { type: field_equals, file: "guard-report.json", field: "ok", equals: true }
 
 ### Recovery (one per failure condition)
 
@@ -237,20 +263,26 @@ decision is on disk.
   fields — /shape composes, /roadmap plans. handoff: autonomous.
 - REC11 (F11) — trigger: a prune or material selection with no decision. direction: write the
   decision (ADR) for each before persisting. handoff: autonomous.
-- REC12 (F12) — trigger: the selection persisted with no checkpoint approval. direction:
-  revert the premature write and re-present the checkpoint; persist only after approval.
-  handoff: human.
-- REC13 (F13) — trigger: a functionality/domain/profile changed, or a re-run duplicated a
-  record. direction: restore the changed artifact and re-run writing only /shape's allowlist
-  (status flips, new slices/personas/journeys/decisions), de-duplicating by stable id, after
-  a human confirms the restore. handoff: human.
+- REC12 (F12) — trigger: the selection delta was COMMITTED before the checkpoint gate
+  resolved. direction: revert the working tree (`scoped_write_guard.py --restore`, empty
+  allow set) and re-present the checkpoint; commit only after a human approves. handoff:
+  human.
+- REC13 (F13) — trigger: a scoped-guard violation — a functionality/domain/profile changed,
+  a model path outside /shape's scope changed, or a re-run duplicated a record. direction: the
+  guard's `--restore` already reverted the offending paths; re-run writing only /shape's scope
+  (the spine status flips/slice index/refs, and the new slice/persona/journey/decision
+  records), de-duplicating by stable id, after a human confirms the restore. handoff: human.
 - REC14 (F14) — trigger: the run is about to close COMPLETED with the Done means unmet.
   direction: close HALTED with `exit_reason: stop_condition_unmet` and the unmet clauses
-  named; fix the state — re-run the allowlisted persist or re-capture the post-apply
-  verification — and re-evaluate; the close stays HALTED until the verdict reads held.
-  handoff: autonomous.
+  named; fix the state — re-run the keyed persist, re-capture the scoped-guard report, or make
+  the model-delta commit — and re-evaluate; the close stays HALTED until the verdict reads
+  held. handoff: autonomous.
 - REC15 (F15) — trigger: a crossing left no live-eval ledger line, or an auto-pass fired
   for a shape not listed `auto:` in the policy (or one carrying a blocking finding).
   direction: re-append the missing ledger line for the recorded crossing; when the
   auto-pass was unearned, re-run the gate as a live wait — render the approval prompt
   and wait for the typed response — before proceeding. handoff: autonomous.
+- REC16 (F16) — trigger: the product-os tree is dirty at entry (uncommitted model edits
+  present). direction: halt at pre-flight and ask for a clean model tree — commit or revert
+  the pending model edits (or run the prior pipeline play to its close) — before /shape
+  proceeds. handoff: human.

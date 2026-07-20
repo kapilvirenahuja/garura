@@ -1,16 +1,19 @@
-# learn stop condition — baked from reference/ice.md "### Done means" (#464/#466 Batch C).
+# learn stop condition — baked from reference/ice.md "### Done means" (#464/#466 Batch C;
+# #498 direct-model-write, ADR 026).
 # Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
 # Single-pass play: the Done means is proven once, at the gated close. Paths are relative
 # to the run's STM root ({stm_base}{issue}/); <working> is its context/ dir.
+# A run whose keyed persist or scoped-write guard did not land leaves a clause unmet —
+# the close reads HALTED, never COMPLETED.
 schema: { name: stop-condition }
 content:
   done:
     - id: D1
-      says: "the proposed learnings manifest exists"
-      check: { type: artifact_exists, path: "context/draft/learn-manifest.yaml" }
-    - id: D2
       says: "the applied model-update record exists"
-      check: { type: artifact_exists, path: "context/apply-manifest.json" }
-    - id: D3
+      check: { type: artifact_exists, path: "context/persist-manifest.json" }
+    - id: D2
       says: "the approved updates were applied — machine-recorded"
-      check: { type: field_equals, file: "context/apply-manifest.json", field: "applied", equals: true }
+      check: { type: field_equals, file: "context/persist-manifest.json", field: "applied", equals: true }
+    - id: D3
+      says: "the scoped-write guard held — no model path changed outside the run's write scope"
+      check: { type: field_equals, file: "context/guard-report.json", field: "ok", equals: true }

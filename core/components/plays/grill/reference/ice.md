@@ -1,7 +1,7 @@
 # grill — ICE source
 
 The clean ICE triple this play is compiled from. Update this and recompile via
-play-creator; never hand-edit the compiled SKILL.md.
+play-editor; never hand-edit the compiled SKILL.md.
 
 ## Intent
 
@@ -80,6 +80,21 @@ still opens no implementation issue and cuts no branch for an epic's delivery wo
 picking up an epic remains /start's job, one epic at a time. /grill works on one slice and
 remains the slice's end conceptually: nothing about a slice is finished until grill is.
 
+Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM author-epics
+skill writes ONLY the per-node docs (`epic.md`, and the slice's `deferrals.yaml`) straight
+to the live model; the one shared-file mutation — the spine `_spine.yaml` `epics` index — is
+done by the deterministic keyed persist script, in place, keyed to the target slice so it
+cannot touch an epic delivery already owns (status not `ready`) or any spine field outside
+`epics`. There is no `draft/` model copy and no apply/promote step. Order is
+**write-then-review** (ADR 026): the full cut — the LLM's `epic.md` docs AND the keyed
+persist's `epics`-index entries — is written to the live model FIRST, so the checkpoint
+presents the real model git diff; nothing is COMMITTED before the checkpoint resolves.
+Containment is the post-write scoped guard (`scoped_write_guard.py`), not a draft. The model
+tree is asserted clean at entry (the fresh branch `start-change` cuts guarantees it), and
+the play commits its own `feat(model)` model delta after the approved checkpoint — a
+lightweight persist step that advances HEAD before the injected end sequence lands the
+change. On checkpoint cancel the whole delta is reverted (`git restore` + `git clean`).
+
 ### Constraints
 
 - C1 — The play operates on exactly one slice per run, and only a slice stamped realized
@@ -100,17 +115,28 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
   reason before writing.
 - C8 — Epics are ordered: dependencies among them are explicit and acyclic, and the first
   epic is independently deliverable.
-- C9 — The full cut is written only after the approval checkpoint resolves, atomically —
-  all epics or none. The checkpoint is a config switch of class `standard` per
-  `gate-config.md` — NOT pinned: a config off-switch may skip its firing, recorded in
-  evidence, never silent. The switch touches ONLY this close-side checkpoint — the
-  grilling loop's per-question HITL discipline (C12/C13: one question at a time, typed
-  answers, never self-resolved) is the loop's interior, not a close gate, and no config
-  value touches it.
+- C9 — Write-then-review (ADR 026): the full cut is WRITTEN to the live model before the
+  checkpoint — the `epic.md` docs by the author-epics skill and the spine `epics`-index
+  entries by the keyed persist script (all-or-none: if the persist refuses any entry it
+  writes none) — so the checkpoint presents the real model git diff. Nothing is COMMITTED
+  until the checkpoint resolves; on approval the play commits the `feat(model)` model
+  delta, on cancel the whole written delta is reverted (`git restore` + `git clean`). The
+  checkpoint is a config switch of class `standard` per `gate-config.md` — NOT pinned: a
+  config off-switch may skip its firing, recorded in evidence, never silent. The switch
+  touches ONLY this close-side checkpoint — the grilling loop's per-question HITL discipline
+  (C12/C13: one question at a time, typed answers, never self-resolved) is the loop's
+  interior, not a close gate, and no config value touches it.
 - C10 — Epics are created at the start of their lifecycle; their later pickup, delivery,
   and deletion belong to the delivery plays, which this play never performs.
-- C11 — The play writes only epics; it never modifies the slice record, the lenses, the
-  intent records, or the profile. A lens defect found while grilling is recorded and routed
+- C11 — The play writes only epics, enforced by the post-write scoped guard: the run writes
+  only the slice's `epic.md` docs, its `deferrals.yaml`, and the spine `epics` index; it
+  never modifies the slice record, the lenses, the intent records, the profile, or any other
+  spine field. After the writes and before the checkpoint, the bundled `scoped_write_guard.py`
+  diffs the model tree against HEAD and FAILS the run (reverting the offending paths on
+  `--restore`) if any model path outside that scope changed. Node-level containment inside the
+  shared spine — only the `epics` index changes, and an epic delivery already owns
+  (status not `ready`) is untouched — is kept by the keyed persist script (only it writes
+  `_spine.yaml`), not the guard. A lens defect found while grilling is recorded and routed
   back to its lens play, not patched here.
 - C12 — A tension leaves `live` only on a typed human response, and the round record
   proves it: the push-back actually shown (its text, marked shown), the human's own words,
@@ -155,8 +181,20 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
   concept does not apply to grilling. The proof is machine-readable: the write-gate
   writes its verdict (`write-gate.yaml` — ok, live-tension and open-question counts; the
   round reports are a closed schema and never carry machine fields), the checkpoint's
-  resolution lands in an approval marker, and the persist's all-or-none manifest closes
-  the chain.
+  resolution lands in an approval marker, the keyed persist's all-or-none manifest
+  (`persist-manifest.json`) records the written `epics` entries, and the post-write
+  scoped-write guard report (`guard-report.json`) reads ok. The close never reads COMPLETED
+  with the stop-condition verdict unmet.
+- C18 — Clean tree in, committed model delta out (ADR 026): the product-os tree is asserted
+  clean at entry — the fresh branch the injected `start-change` head cuts off main
+  guarantees `HEAD` is a correct base for the scoped guard and the git diff; a dirty
+  product-os tree at entry halts. After the approved checkpoint the play commits its own
+  model delta on the branch (`feat(model): … (#<issue>)`), a lightweight persist step that
+  advances HEAD before the injected end sequence (commit-change → propose-change →
+  review-change → merge-change) lands the change. This model-delta commit is distinct from
+  the end sequence: the `feat(model)` commit makes this run's model change durable and gives
+  the end-sequence members a committed model delta to carry; a cancelled checkpoint reverts
+  the written tree and commits nothing.
 
 ### Failure conditions
 
@@ -171,8 +209,11 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
 - F5 — A push-back is issued without a citation — the play badgers on taste.
 - F6 — A tension between the cut and a lens is detected but swallowed — epics written
   anyway with no resolution or recorded acceptance.
-- F7 — Epics are written without approval, or partially — some written, some not.
-- F8 — The play mutates the product model beyond epics.
+- F7 — The model delta is COMMITTED without the checkpoint resolving, or the keyed persist
+  wrote a partial set — some `epics` entries written, some not (not all-or-none).
+- F8 — The play mutates the product model beyond epics — a model path outside the slice's
+  epic docs, its `deferrals.yaml`, and the spine `epics` index changed (a scoped-guard
+  violation).
 - F9 — The epic ordering is undeliverable — a dependency cycle, or a first epic that can't
   stand alone.
 - F10 — An epic arrives at delivery without the context to build it, forcing the delivery
@@ -201,7 +242,11 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
   delivery.
 - F18 — The run closes COMPLETED without the Done means holding — the write-gate verdict
   missing or unclean, a live tension or open decision question surviving, the approval
-  marker absent, or the apply manifest not ok: the close was asserted, never proven.
+  marker absent, the keyed persist manifest not ok, or the scoped-write guard report not
+  captured or not ok: the close was asserted, never proven.
+- F19 — The play ran against a dirty product-os tree (uncommitted model edits present at
+  entry), so the git diff and the scoped guard could not be trusted to reflect only this
+  run's delta.
 
 ## Expectation
 
@@ -209,8 +254,9 @@ remains the slice's end conceptually: nothing about a slice is finished until gr
 
 - S1 — (product builder) Given a realized slice, when the play completes, then the slice
   carries an approved, ordered set of epics. Measure: every epic's acceptance criteria name
-  observable user behavior (open, do, verify); the set was written in a single approved
-  transaction; zero epics exist for the slice from any earlier partial run.
+  observable user behavior (open, do, verify); the keyed persist wrote the `epics` entries
+  all-or-none and the approved cut was committed as a single `feat(model)` model delta; zero
+  epics exist for the slice from any earlier partial run.
 - S2 — (delivery engineer) Given the approved cut, when they pick up the first epic, then
   they can start without consulting anything beyond the epic and what it references.
   Measure: the epic carries persona, systems, and scope context plus acceptance; every
@@ -263,8 +309,10 @@ is the clean tension report, never an iteration count; the Done means proves tha
   check: { type: field_equals, file: "write-gate.yaml", field: "counts.decision_questions_open", equals: 0 }
 - D5 — says: "the checkpoint resolved — the approval marker reads approved"
   check: { type: field_equals, file: "approval.json", field: "approved", equals: true }
-- D6 — says: "the epic cut records exist — the persist was all-or-none, nothing refused"
-  check: { type: field_equals, file: "apply-manifest.json", field: "ok", equals: true }
+- D6 — says: "the epic cut records exist — the keyed persist was all-or-none, nothing refused"
+  check: { type: field_equals, file: "persist-manifest.json", field: "ok", equals: true }
+- D7 — says: "the scoped-write guard held — no model path changed outside the slice's epic scope"
+  check: { type: field_equals, file: "guard-report.json", field: "ok", equals: true }
 
 ### Recovery (one per failure condition)
 
@@ -284,12 +332,13 @@ is the clean tension report, never an iteration count; the Done means proves tha
 - REC6 (F6) — trigger: live unresolved tensions exist when the write is attempted.
   direction: block the write; resolve each tension in the cut or record an explicit
   acceptance, then re-present. handoff: autonomous.
-- REC7 (F7) — trigger: epics on disk without a recorded approval, or only part of the set
-  written. direction: remove the partial write, restore the pre-run state, return to the
-  checkpoint for a fresh approval. handoff: human.
-- REC8 (F8) — trigger: the write-guard finds changes outside the slice's epic home.
-  direction: restore every touched file from its pre-run state; confine the write to epics.
-  handoff: autonomous.
+- REC7 (F7) — trigger: the model delta was committed with no recorded approval, or the keyed
+  persist wrote only part of the set. direction: revert the working tree
+  (`scoped_write_guard.py --restore` with an empty allow set), return to the checkpoint for a
+  fresh approval, and re-run the all-or-none keyed persist. handoff: human.
+- REC8 (F8) — trigger: the scoped-write guard finds a changed model path outside the slice's
+  epic docs, its deferrals, and the spine `epics` index. direction: the guard's `--restore`
+  reverts the offending paths; re-run confining the write to epics. handoff: autonomous.
 - REC9 (F9) — trigger: a dependency cycle, or a first epic that can't stand alone.
   direction: re-order or split epics until the order is acyclic and the first is
   independently deliverable. handoff: autonomous.
@@ -336,3 +385,7 @@ is the clean tension report, never an iteration count; the Done means proves tha
   loop_cap_exhausted here: the grilling rounds are human-paced and uncapped, so an
   unconverged grilling simply holds the run open until the human's answers converge it.
   handoff: autonomous.
+- REC19 (F19) — trigger: the product-os tree is dirty at entry (uncommitted model edits
+  present). direction: halt and ask for a clean model tree — commit or revert the pending
+  model edits (or let the injected `start-change` head cut a fresh branch off main) — before
+  /grill proceeds. handoff: human.

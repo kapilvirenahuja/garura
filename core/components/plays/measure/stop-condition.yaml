@@ -1,21 +1,23 @@
-# measure stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C).
+# measure stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C;
+# #500 direct-model-write, ADR 026).
 # Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
-# Paths are relative to the run's working root ({stm_base}_realize/measure/). D4 counts BOTH
-# stamp outcomes as done: stamped realized on lines-up, or explicitly not-stamped with the
-# missing lenses recorded — an UNRESOLVED stamp (no record) leaves D4 unmet and the run closes
-# HALTED, never COMPLETED.
+# Paths are relative to the run's working root ({stm_base}_realize/measure/) — STM, non-model
+# artifacts (the model itself is written in place under <product_base>product-os/). D1/D2 are the
+# keyed persist record; D3 is the post-write scoped guard; D4 counts BOTH stamp outcomes as done:
+# stamped realized on lines-up, or explicitly not-stamped with the missing lenses recorded — an
+# UNRESOLVED stamp (no record) leaves D4 unmet and the run closes HALTED, never COMPLETED.
 schema: { name: stop-condition }
 content:
   done:
     - id: D1
-      says: "the measure lens draft exists"
-      check: { type: artifact_exists, path: "draft/product-os/*/slices/*/lens/measure.md" }
+      says: "the keyed persist record exists"
+      check: { type: artifact_exists, path: "persist-manifest.json" }
     - id: D2
-      says: "the grounding manifest exists"
-      check: { type: artifact_exists, path: "draft/measure-manifest.yaml" }
+      says: "the approved lens deltas were applied — machine-recorded"
+      check: { type: field_equals, file: "persist-manifest.json", field: "applied", equals: true }
     - id: D3
-      says: "the approved lens was applied and verified surgical"
-      check: { type: field_equals, file: "measure-checks.json", field: "ok", equals: true }
+      says: "the scoped-write guard held — no model path changed outside the run's write scope"
+      check: { type: field_equals, file: "guard-report.json", field: "ok", equals: true }
     - id: D4
       says: "the realized-stamp question was resolved — stamped, or explicitly not-stamped with the missing lenses recorded"
       check: { type: field_equals, file: "stamp-record.json", field: "stamp_resolved", equals: true }

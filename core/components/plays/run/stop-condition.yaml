@@ -1,17 +1,17 @@
-# run stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C).
-# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
-# Paths are relative to the run's working root ({stm_base}_realize/run/). A run that never
-# applied (checkpoint cancelled, validation failed) leaves D3 unmet — the run closes HALTED,
-# never COMPLETED.
+# run stop condition — baked from reference/ice.md "### Done means" (#464; #500 direct-model-write,
+# ADR 026). Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+# Paths are relative to the run's working root ({stm_base}_realize/run/). A run that never applied
+# (checkpoint cancelled, validation failed) leaves a clause unmet — the run closes HALTED, never
+# COMPLETED.
 schema: { name: stop-condition }
 content:
   done:
     - id: D1
-      says: "the run narrative draft exists (run.md)"
-      check: { type: artifact_exists, path: "draft/product-os/*/slices/*/lens/run.md" }
+      says: "the keyed persist record exists — the run lens was written in place on the live model"
+      check: { type: artifact_exists, path: "persist-manifest.json" }
     - id: D2
-      says: "the machine-readable environment definition exists (run.yaml)"
-      check: { type: artifact_exists, path: "draft/product-os/*/slices/*/lens/run.yaml" }
+      says: "the run lens was applied — the persist record stamps it"
+      check: { type: field_equals, file: "persist-manifest.json", field: "applied", equals: true }
     - id: D3
-      says: "the approved lens was applied and verified surgical (status untouched)"
-      check: { type: field_equals, file: "run-checks.json", field: "ok", equals: true }
+      says: "the scoped-write guard held — no model path changed outside this slice's run-lens scope"
+      check: { type: field_equals, file: "guard-report.json", field: "ok", equals: true }

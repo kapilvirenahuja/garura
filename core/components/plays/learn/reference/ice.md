@@ -23,7 +23,7 @@ the alternative it rejected and why, status). It REPLACES the old five-play lear
 (capture / codify / distill / enrich / reap), which staged proposals into a separate knowledge
 base and wrote a retired YAML shape; /learn writes the new spine + grounding model directly.
 One delivered unit per run; one human checkpoint approves every proposed update — high-
-confidence batched, low-confidence surfaced one by one — before anything persists. /learn
+confidence batched, low-confidence surfaced one by one — before anything is COMMITTED. /learn
 writes ONLY meaning and never the skeleton: it never renames or re-parents a domain, capability,
 or functionality, never rewrites a slice or epic entry, and never edits an accepted decision in
 place.
@@ -33,6 +33,19 @@ rides the change pipeline like any other. The D2 rule prepends `start-change` (o
 issue, cuts a fresh branch off main, inits STM) and, after the updates are persisted and
 verified, appends the close sequence `commit-change → propose-change → review-change →
 merge-change`, merging the refreshed model to main. (#434 ProductOS command model)
+
+Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM authoring skill
+(author-learnings) writes ONLY the per-node grounding docs (`capability.md`, `functionality.md`,
+and the slice `lens/measure|run|quality.md`) straight to the live model; every shared-file
+mutation (the spine `_spine.yaml` meaning fields, the `profile` nfr levels inside it, and the
+new decision records under `decisions/`) is done by the deterministic keyed persist script
+(`persist_learn.py`), in place, keyed to the manifest-named nodes and the meaning-field
+whitelist so it cannot touch a node the manifest does not name, the tree skeleton, a slice or
+epic entry, or an accepted decision. There is no `draft/` model copy and no apply/promote step:
+the model tree is asserted clean at entry, the run writes the full delta to the live model, a
+post-write scoped guard confirms containment, and the play commits its own `feat(model)` delta
+before the injected close sequence runs — so the working-tree diff vs the branch base is exactly
+this run's delta. Review is the branch git diff and the pipeline's end PR.
 
 ### Constraints
 
@@ -59,23 +72,42 @@ merge-change`, merging the refreshed model to main. (#434 ProductOS command mode
 - C8 — Status changes are earned: a functionality or epic `status` advances only on evidence it
   proved out (validated / delivered); a `fix_required` is read as a model-gap signal and refines
   the grounding, never silently advanced.
-- C9 — The spine write is surgical: it mutates only the allowlisted fields on the nodes the
-  approved manifest names; every other node, field, and collection stays byte-identical.
+- C9 — The shared-file write is surgical, enforced by the keyed persist script BY CONSTRUCTION:
+  `persist_learn.py` is the ONLY writer of the shared files (the spine `_spine.yaml`, the
+  `profile` block inside it, and the `decisions/` records), and it mutates only the allowlisted
+  meaning fields (`one_line`, `nfr_needs` level, earned `status`, appended `decisions` refs) on
+  the nodes the approved manifest names — every other node, field, and collection stays
+  byte-identical. This is the node-level containment the file-level scoped guard cannot provide.
 - C10 — Non-destructive: a re-run re-derives only the proposed updates; no accepted decision is
   edited in place and nothing is removed.
 - C11 — Exactly one human checkpoint, presenting every proposed update (spine meaning fields,
   doc-section rewrites, new decisions) with its outcome citation — high-confidence batched,
   low-confidence surfaced one by one. The checkpoint is a **default-on config gate**
   (`standards/rules/gate-config.md`, #466), declared `(class: standard)`, not pinned: when it
-  resolves on (the default), it waits for typed approval and nothing is persisted before that
-  approval; when config resolves it off, the skip is recorded in evidence (`gate skipped by
-  config`) and the play proceeds on the validated draft.
+  resolves on (the default), it waits for typed approval; when config resolves it off, the skip
+  is recorded in evidence (`gate skipped by config`) and the play proceeds. Write-then-review
+  (ADR 026): the run writes the FULL delta to the live model FIRST — the grounding docs by the
+  authoring skill, then the shared files (spine meaning fields, profile, decisions) by the keyed
+  persist — so the checkpoint presents the real model git diff over the full written delta;
+  nothing is COMMITTED before the gate resolves. On cancel the whole delta is reverted
+  (`scoped_write_guard.py --restore` with an empty allow set), so nothing the run wrote becomes
+  durable. This checkpoint is not a #467 conditional learned gate, so there is no change-shape
+  classification step.
 - C12 — Learnings are outcome-grounded, not invented: the link from outcome to model change is
   explicit and traceable; a proposed change with no outcome citation is rejected.
-- C13 — The play ends by proving its Done means at close (gated, #464): the proposed learnings
-  manifest exists and the applied model-update record exists with its MACHINE `applied` field
-  true — the persist recorded as machine fields, never as prose. A close whose Done means does
-  not hold reads HALTED, never COMPLETED.
+- C13 — The play ends by proving its Done means at close (gated, #464): the keyed persist record
+  (`persist-manifest.json`) exists with its MACHINE `applied` field true — the persist recorded
+  as machine fields, never as prose — and the scoped-write guard report (`guard-report.json`)
+  reads `ok: true` (the allowlist held). A close whose Done means does not hold reads HALTED,
+  never COMPLETED.
+- C14 — Clean tree in, committed delta out (ADR 026): the product-os tree is asserted clean at
+  entry (pre-flight halts on a dirty model tree, so the injected `start-change` cuts a fresh
+  branch off main against a clean base and the branch base is a correct reference for the guard
+  and the diff). After the approved checkpoint the play commits its own model delta on the branch
+  (`feat(model): … (#<issue>)`), scoped to the product-os paths it wrote, BEFORE the injected
+  close sequence runs — the subsequent `commit-change` then handles only what remains uncommitted
+  (STM evidence, ADRs), not the model delta this play already committed. On cancel the tree was
+  already reverted (C11), so nothing is committed.
 
 ### Failure conditions
 
@@ -89,14 +121,18 @@ merge-change`, merging the refreshed model to main. (#434 ProductOS command mode
 - F7 — An accepted decision was edited in place, or a superseding learning did not name what it
   supersedes.
 - F8 — A status was advanced without proving evidence, or a `fix_required` was silently advanced.
-- F9 — The spine write changed more than the allowlisted fields on the manifest-named nodes.
-- F10 — A non-allowlisted file changed, or an accepted decision was edited in place.
-- F11 — A model update was persisted before the checkpoint completed — before the human
-  approved it, or (when the gate resolved off by config) before the skip was recorded in
-  evidence.
+- F9 — The keyed persist changed more than the allowlisted meaning fields on the manifest-named
+  nodes (a non-meaning field, or a node the manifest does not name, was mutated in a shared file).
+- F10 — A model path outside the run's declared write scope changed (the scoped-write guard
+  reports a violation), or an accepted decision file was modified rather than added.
+- F11 — A model delta was COMMITTED before the checkpoint completed — before the human approved
+  it, or (when the gate resolved off by config) before the skip was recorded in evidence.
 - F12 — A learning with no traceable link to an outcome.
-- F13 — The run closed COMPLETED without the Done means held — a missing learnings manifest or
-  apply record, or a persist asserted done in prose with no machine `applied` field.
+- F13 — The run closed COMPLETED without the Done means held — a missing persist record, a
+  persist whose machine `applied` field is not true, or a scoped-write guard report that is not
+  captured or does not read `ok`.
+- F14 — The play ran against a dirty product-os tree (uncommitted model edits present at entry),
+  so the branch base could not be trusted to reflect only this run's delta.
 
 ## Expectation
 
@@ -123,20 +159,27 @@ merge-change`, merging the refreshed model to main. (#434 ProductOS command mode
   is edited in place. Measure: the spine diff is confined to the re-derived fields; no decision
   rewritten.
 - S6 — (reviewer, the checkpoint) Given the updates are ready, when the checkpoint is presented,
-  then it shows every proposed change with its citation, tiered by confidence, and nothing is
-  written before approval. Measure: no product-model file changed before the approval.
+  then it shows every proposed change with its citation, tiered by confidence, over the full
+  written delta, and nothing is COMMITTED before approval. Measure: the full delta (docs + spine
+  meaning fields + decisions) is written in place and shows as the branch diff, no product-model
+  change is COMMITTED before the approval, and on cancel the working tree returns byte-clean to
+  the branch base (`scoped_write_guard.py --restore`).
 
 ### Done means
 
-- D1 — says: "the proposed learnings manifest exists"
-  check: { type: artifact_exists, path: "context/draft/learn-manifest.yaml" }
-- D2 — says: "the applied model-update record exists"
-  check: { type: artifact_exists, path: "context/apply-manifest.json" }
-- D3 — says: "the approved updates were applied — machine-recorded"
-  check: { type: field_equals, file: "context/apply-manifest.json", field: "applied", equals: true }
+Paths are relative to the run's STM root (`{stm_base}{issue}/`); `<working>` is its `context/`
+dir. `persist-manifest.json` is the record the keyed persist script (`persist_learn.py`) writes
+after the approved checkpoint — its `applied` field is the machine proof the approved updates were
+applied to the live model. `guard-report.json` is the captured `scoped_write_guard.py` output —
+its `ok` field is the mechanical proof that no model path changed outside the run's declared
+write scope (the allowlist held).
 
-(Paths are relative to the run's STM root, `{stm_base}{issue}/`; `<working>` is its
-`context/` dir.)
+- D1 — says: "the applied model-update record exists"
+  check: { type: artifact_exists, path: "context/persist-manifest.json" }
+- D2 — says: "the approved updates were applied — machine-recorded"
+  check: { type: field_equals, file: "context/persist-manifest.json", field: "applied", equals: true }
+- D3 — says: "the scoped-write guard held — no model path changed outside the run's write scope"
+  check: { type: field_equals, file: "context/guard-report.json", field: "ok", equals: true }
 
 ### Recovery (one per failure condition)
 
@@ -159,19 +202,24 @@ merge-change`, merging the refreshed model to main. (#434 ProductOS command mode
   human.
 - REC8 (F8) — trigger: a status advanced without evidence, or a fix_required was silently advanced.
   direction: revert the status and refine the grounding from the gap instead. handoff: autonomous.
-- REC9 (F9) — trigger: the spine write changed more than the allowlisted fields. direction: restore
-  the spine and re-apply only the allowlisted mutations on the manifest-named nodes. handoff:
-  human.
-- REC10 (F10) — trigger: a non-allowlisted file changed, or a decision edited in place. direction:
-  restore it and re-apply only the allowlisted writes, after a human confirms the restore.
+- REC9 (F9) — trigger: the keyed persist changed more than the allowlisted meaning fields on the
+  manifest-named nodes. direction: restore the spine and re-run `persist_learn.py` so only the
+  allowlisted mutations on the manifest-named nodes are applied. handoff: human.
+- REC10 (F10) — trigger: the scoped-write guard reports an out-of-scope path, or a decision file
+  was modified rather than added. direction: the guard's `--restore` already reverted the
+  offending paths; re-run writing only the allowlisted scope, after a human confirms the restore.
   handoff: human.
-- REC11 (F11) — trigger: a model update persisted before the checkpoint completed (no approval,
-  and no recorded config skip). direction: revert the premature write and re-present the
-  checkpoint; persist only after the gate completes. handoff: human.
+- REC11 (F11) — trigger: a model delta was committed before the checkpoint completed (no approval,
+  and no recorded config skip). direction: revert the premature commit and re-present the
+  checkpoint; commit only after the gate completes. handoff: human.
 - REC12 (F12) — trigger: a learning with no traceable outcome link. direction: trace it to an
   outcome signal or drop it. handoff: autonomous.
-- REC13 (F13) — trigger: the run is about to close COMPLETED with the Done means unmet (a
-  missing learnings manifest or apply record, or `applied` not true). direction: produce the
-  missing artifact — re-run `apply_learn.py` over the approved manifest so the apply record
-  carries the machine `applied` field — then re-evaluate the stop condition; the close stays
-  HALTED until the verdict reads held. handoff: autonomous.
+- REC13 (F13) — trigger: the run is about to close COMPLETED with the Done means unmet (a missing
+  persist record, `applied` not true, or the guard report absent or not ok). direction: produce
+  the missing artifact — re-run `persist_learn.py` over the approved manifest so the persist record
+  carries the machine `applied` field, and re-capture the `scoped_write_guard.py` report — then
+  re-evaluate the stop condition; the close stays HALTED until the verdict reads held. handoff:
+  autonomous.
+- REC14 (F14) — trigger: the product-os tree is dirty at entry (uncommitted model edits present).
+  direction: halt at pre-flight and ask for a clean model tree — commit or revert the pending
+  model edits — before /learn proceeds. handoff: human.

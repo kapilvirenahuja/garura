@@ -1,16 +1,19 @@
-# roadmap stop condition — baked from reference/ice.md "### Done means" (#464/#466 Batch C).
+# roadmap stop condition — baked from reference/ice.md "### Done means" (#464/#466 Batch C; #500 direct-model-write, ADR 026).
 # Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
 # Single-pass play: the Done means is proven once, at the gated close. Paths are relative
 # to the run's STM working root ({stm_base}_shaping/roadmap/).
+# A run whose keyed persist or scoped-write guard did not land leaves a clause unmet —
+# the close reads HALTED, never COMPLETED. Plan coherence (orders 1..N, no cycle) is a
+# HARD pre-persist gate (compute_plan.py exit 0), not a Done clause.
 schema: { name: stop-condition }
 content:
   done:
     - id: D1
-      says: "the plan draft exists"
-      check: { type: artifact_exists, path: "plan-draft.yaml" }
+      says: "the persist record exists — the plan was written in place onto the live spine slices"
+      check: { type: artifact_exists, path: "persist-manifest.json" }
     - id: D2
-      says: "the computed plan record exists"
-      check: { type: artifact_exists, path: "plan.json" }
+      says: "the plan was persisted — the persist record stamps the write applied"
+      check: { type: field_equals, file: "persist-manifest.json", field: "applied", equals: true }
     - id: D3
-      says: "the computed plan's orders are coherent — every slice ordered 1..N with its order fields, no cycle persisted"
-      check: { type: field_equals, file: "plan.json", field: "orders_coherent", equals: true }
+      says: "the scoped-write guard held — no model path changed outside the run's write scope (the allowlist held)"
+      check: { type: field_equals, file: "guard-report.json", field: "ok", equals: true }

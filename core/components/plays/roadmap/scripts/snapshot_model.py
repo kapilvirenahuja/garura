@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
 """
-snapshot_model.py — capture the spine slices + a tree census for /roadmap.
+snapshot_model.py — read the current spine slices /roadmap must plan.
 
 The plan (order/effort/depends_on/status) lives on the SPINE slices index — the only
-thing /roadmap writes — so this snapshots the spine and a path->hash census of every file
-under product-os EXCEPT `_spine.yaml`. Each slice's `dependency_notes` is read from its
-record (composition, never touched) for the planner's dependency judgment.
+thing /roadmap writes. This reads the current slices across every shaped domain so the
+authoring skill and `compute_plan.py` have the authoritative list of what to plan and
+each slice's `dependency_notes` (read from its record — composition, never touched — for
+the planner's dependency judgment).
+
+Under direct-model-write (ADR 026) this is NOT a before/after picture: the play enters on
+a clean product-os tree, so HEAD is the guard's base and the post-write
+`scoped_write_guard.py` (not a file census here) proves non-destructiveness. This script
+only READS current state as planning input.
 
 Two modes:
   --probe : count the spine slices, write NOTHING (pre-flight readiness; zero => run
             /shape first). Safe to re-run on every invocation (resume included).
-  --out   : the "before" picture for planning + the non-destructive check. Holds
-            `spine_before` (the full spine, so verify proves only the slices' plan fields
-            changed), `slices` (id, domain_ref, functionality_refs, dependency_notes,
-            current plan fields), and `files` (path->sha256 of every file but the spine).
+  --out   : write the current slices (id, domain_ref, functionality_refs,
+            dependency_notes, current plan fields) as planning input.
 
 Layer rule: reads files on disk only; no git/gh/network.
 
@@ -24,8 +28,6 @@ Prints {ok, slice_count, errors[]} JSON. Exit 0 readable, 2 on usage/IO error.
 """
 
 import argparse
-import glob
-import hashlib
 import json
 import os
 import sys
@@ -44,16 +46,8 @@ def load(path):
         return yaml.safe_load(fh) or {}
 
 
-def sha256(path):
-    h = hashlib.sha256()
-    with open(path, "rb") as fh:
-        for chunk in iter(lambda: fh.read(65536), b""):
-            h.update(chunk)
-    return h.hexdigest()
-
-
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Capture spine slices for /roadmap.")
+    ap = argparse.ArgumentParser(description="Read current spine slices for /roadmap.")
     ap.add_argument("--product-base", required=True)
     ap.add_argument("--out", default=None)
     ap.add_argument("--probe", action="store_true", help="count only — write nothing")
@@ -95,14 +89,9 @@ def main(argv=None):
         })
 
     if not args.probe:
-        files = {}
-        for fp in glob.glob(os.path.join(root, "**", "*"), recursive=True):
-            if os.path.isfile(fp) and os.path.basename(fp) != SPINE:
-                files[os.path.relpath(fp, root)] = sha256(fp)
         with open(args.out, "w", encoding="utf-8") as fh:
             json.dump({"product_base": args.product_base, "spine_rel": SPINE,
-                       "spine_before": spine, "slices": slices, "files": files},
-                      fh, indent=2)
+                       "slices": slices}, fh, indent=2)
 
     print(json.dumps({"ok": not errors, "slice_count": len(slices), "errors": errors}, indent=2))
     return 0 if not errors else 2

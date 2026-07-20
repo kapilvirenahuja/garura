@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """
-validate_run.py — assert /run's draft is grounded and considers the slice's hub.
+validate_run.py — assert /run's live-written lens is grounded and considers the slice's hub.
 
-Run over the draft before the checkpoint. In the spine+grounding model the run lens is an
-MD grounding doc (`run.md`); its SHAPE (Environments / Rollout / Migrations / Config & secrets
-/ CI/CD, each substantive) is checked by `lint_grounding.py`, and its UNDERSTANDABILITY by the
-content eval — both run by the play's validate step. THIS script checks what the manifest
-carries, which the prose can't enforce:
+Direct-model-write (ADR 026): there is no draft tree. The authoring skill wrote `run.md`
+straight to the live model and the keyed persist (`persist_run.py`) merged `run.yaml` +
+decisions in place, so this validator runs over the LIVE slice folder (after persist, before
+the checkpoint). In the spine+grounding model the run lens is an MD grounding doc (`run.md`);
+its SHAPE (Environments / Rollout / Migrations / Config & secrets / CI/CD, each substantive) is
+checked by `lint_grounding.py`, and its UNDERSTANDABILITY by the content eval — both run by the
+play's validate step. THIS script checks what the manifest + the machine-readable run.yaml
+carry, which the prose can't enforce:
 
   - grounded: every grounding entry names a real source — the slice's HUB (a functionality,
     persona, or journey), the profile, or the ARCHITECTURE lens (run reads architecture, and
@@ -14,11 +17,16 @@ carries, which the prose can't enforce:
   - decisions: a grounding flagged `material: true` names a `decision` that resolves.
   - coverage: every functionality of the slice is considered by the run plan (each appears in
     the manifest grounds) — the run lens can't ignore part of the slice.
+  - run.yaml schema, run.md/run.yaml agreement, cloud-component mapping, and no-secret-literals
+    over the LIVE lens files.
+
+One-environment-per-call preservation (C9/F9) is enforced BY CONSTRUCTION by the keyed
+`persist_run.py` (it merges only the target environment and refuses a non-target one), not here.
 
 Layer rule: reads files on disk only; no git/gh/network.
 
-    python3 validate_run.py --draft <draft_dir> --manifest <run-manifest.yaml> \
-            --slice-file <live slice record .yaml>
+    python3 validate_run.py --slice-dir <live slice folder> --manifest <run-manifest.yaml> \
+            --slice-file <live slice record .yaml> [--arch-lens <architecture.md>]
 
 Prints {ok, errors[], warnings[], counts} JSON. Exit 0 clean, 1 on violation, 2 usage.
 """
@@ -211,49 +219,18 @@ def check_no_secret_literals(paths, errors):
                                       f"bind via a secrets manager, not a literal")
 
 
-def check_env_preservation(draft_by_name, existing_run_yaml, target_env, errors):
-    target = (target_env or "").strip().lower()
-    if not target:
-        errors.append("no --target-env given — cannot verify one-environment-per-call")
-        return
-    if target not in {n.lower() for n in draft_by_name}:
-        errors.append(f"run.yaml does not define the target environment {target!r} this call")
-    existing_by_name = {}
-    if existing_run_yaml and os.path.isfile(existing_run_yaml):
-        with open(existing_run_yaml, encoding="utf-8") as fh:
-            prev = yaml.safe_load(fh) or {}
-        prev_content = prev.get("content") or (prev.get("lens") or {}).get("content") or {}
-        existing_by_name = {e.get("name"): e
-                            for e in (prev_content.get("environments") or [])
-                            if isinstance(e, dict) and e.get("name")}
-    for name in existing_by_name:
-        if name not in draft_by_name:
-            errors.append(f"environment {name!r} was dropped — /run is additive (one env per call)")
-    for name in draft_by_name:
-        if name not in existing_by_name and name.lower() != target:
-            errors.append(f"environment {name!r} was added but is not the target {target!r} — "
-                          f"/run defines exactly one environment per call")
-    for name, prev_env in existing_by_name.items():
-        if name.lower() == target:
-            continue
-        if name in draft_by_name and draft_by_name[name] != prev_env:
-            errors.append(f"previously-defined environment {name!r} was silently edited — "
-                          f"only the target {target!r} may change")
-
-
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Validate /run's draft grounding + coverage.")
-    ap.add_argument("--draft", required=True)
+    ap = argparse.ArgumentParser(description="Validate /run's live-written lens grounding + coverage.")
+    ap.add_argument("--slice-dir", required=True,
+                    help="the LIVE slice folder (…/product-os/<domain>/slices/<slice>)")
     ap.add_argument("--manifest", required=True)
     ap.add_argument("--slice-file", required=True)
     ap.add_argument("--arch-lens", help="path to the slice's architecture.md (cloud component mapping)")
-    ap.add_argument("--existing-run-yaml", help="the slice's current lens/run.yaml (env preservation)")
-    ap.add_argument("--target-env", help="the environment name being defined/edited this call")
     args = ap.parse_args(argv)
 
-    draft_root = os.path.join(args.draft, "product-os")
+    draft_root = args.slice_dir
     if not os.path.isdir(draft_root):
-        sys.stderr.write(f"validate_run.py: no draft tree at {draft_root}\n")
+        sys.stderr.write(f"validate_run.py: no slice folder at {draft_root}\n")
         return 2
 
     errors, warnings = [], []
@@ -283,7 +260,6 @@ def main(argv=None):
         check_component_mapping(env_by_name, args.arch_lens, errors, warnings)
         check_md_yaml_consistency(run_md_path, env_by_name, errors)
         check_no_secret_literals([run_yaml_path, run_md_path], errors)
-        check_env_preservation(env_by_name, args.existing_run_yaml, args.target_env, errors)
 
     counts = {"grounds": len(man.get("grounds") or []), "decisions": len(decision_ids),
               "to_cover": len(to_cover), "grounded": len(grounded),
