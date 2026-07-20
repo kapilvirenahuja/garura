@@ -1,0 +1,10 @@
+{
+  "pr": 499,
+  "approved": true,
+  "approval_basis": "review-change verdict = approve (decision.yaml; PR comment #issuecomment-5024440979); review-pr.bypass=true",
+  "mergeable": true,
+  "merge_state_status": "CLEAN",
+  "already_merged": false,
+  "pr_merged": true,
+  "branch_deleted": true
+}
