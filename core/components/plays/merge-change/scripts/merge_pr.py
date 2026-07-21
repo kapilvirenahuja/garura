@@ -97,6 +97,8 @@ def main(argv=None):
         gate["branch_deleted"] = branch_deleted
         if extra:
             gate.update(extra)
+            if extra.get("status") in {"merged", "already_merged"}:
+                gate.pop("error", None)
         with open(ns.gate, "w", encoding="utf-8") as fh:
             json.dump(gate, fh, indent=2)
         committed = (_commit_records(ns.gate, ns.records_dir, ns.issue)

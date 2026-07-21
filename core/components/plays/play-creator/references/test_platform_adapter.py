@@ -64,7 +64,7 @@ def test_github_argv():
           == ["gh", "pr", "view", "489"])
     check("merge-pr argv",
           pa._gh("merge-pr", {"pr_number": "489"}, repo)
-          == [["gh", "pr", "merge", "489"]])
+          == [["gh", "pr", "merge", "489", "--merge"]])
     check("comment-pr keeps body as ONE argv element (injection-safe)",
           pa._gh("comment-pr", {"pr_number": 1, "body": 'a "$(rm -rf /)" b'}, repo)[0]
           == ["gh", "pr", "comment", "1", "--body", 'a "$(rm -rf /)" b'])
