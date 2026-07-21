@@ -66,7 +66,7 @@ def _cap_description(description):
     return cut.rstrip(" ,;—-") + " …"
 
 
-def _codex_skill_text(name, description, tier, body):
+def _codex_skill_text(name, description, tier, body, position=None):
     prof = TIER_PROFILE[tier]
     fm = (
         "---\n"
@@ -79,7 +79,11 @@ def _codex_skill_text(name, description, tier, body):
         f"> Recommended Codex profile: `{tier}` — run "
         f"`codex --profile {tier}` ({prof['model']}, reasoning {prof['effort']}).\n"
     )
-    return fm + "\n" + note + "\n" + body.lstrip("\n")
+    position_note = (
+        f"> Garura pipeline position: `{position}`.\n"
+        if position in {"start", "end", "both", "none"} else ""
+    )
+    return fm + "\n" + note + position_note + "\n" + body.lstrip("\n")
 
 
 def _emit_skill(md_path, sid, src_dir, skills_root, paths):
@@ -94,13 +98,14 @@ def _emit_skill(md_path, sid, src_dir, skills_root, paths):
     if not desc or desc in (">", "|", ">-", "|-", ">+", "|+"):
         desc = name
     tier = common.tier_of(common.frontmatter_value(fm, "model"))
+    position = common.frontmatter_value(fm, "position")
 
     out_dir = os.path.join(skills_root, sid)
     if os.path.isdir(out_dir):
         shutil.rmtree(out_dir)
     os.makedirs(out_dir, exist_ok=True)
     common.write_text(os.path.join(out_dir, "SKILL.md"),
-                      _codex_skill_text(name, desc, tier, body))
+                      _codex_skill_text(name, desc, tier, body, position))
     # carry a skill/play's own bundled dirs (agents have none)
     if src_dir:
         for sub in ("scripts", "references", "assets"):

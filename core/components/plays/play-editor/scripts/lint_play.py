@@ -108,11 +108,17 @@ def load_context(path, text):
                 pos_detail = f"invalid position '{pos_val}' (must be start|end|both|none)"
         elif "Recommended Codex profile:" in text:
             # Codex accepts only name + description in installed skill
-            # frontmatter. Validate the compiled play's emitted body marker.
+            # frontmatter. Prefer the installer's deterministic marker, then
+            # fall back to older installed copies' compiled-play prose.
             pm = re.search(
-                r"(?i)\*\*Pipeline position:\s*(start|end|both|none)\.?\*\*",
+                r"(?i)Garura pipeline position:\s*`(start|end|both|none)`",
                 text,
             )
+            if not pm:
+                pm = re.search(
+                    r"(?i)\*\*Pipeline position:\s*(start|end|both|none)\.?\*\*",
+                    text,
+                )
             if pm:
                 pos_val = pm.group(1).lower()
                 pos_ok, pos_detail = True, f"position: {pos_val} (Codex body marker)"
