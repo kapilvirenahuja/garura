@@ -1,15 +1,16 @@
-# marketing stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C).
-# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
-# Paths are relative to the run's working root ({stm_base}_realize/marketing/).
+# marketing stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C;
+# #500 direct-model-write / ADR 026). Evaluated by scripts/check_stop_condition.py at Step C0 of
+# the Standard Play Close. Paths are relative to the run's working root
+# ({stm_base}_realize/marketing/).
 schema: { name: stop-condition }
 content:
   done:
     - id: D1
-      says: "the drafted marketing lens exists"
-      check: { type: artifact_exists, path: "draft/product-os/*/slices/*/lens/marketing.md" }
+      says: "the persist record exists — the material decisions were written in place on the live model (and the lens was re-derived within the guarded scope)"
+      check: { type: artifact_exists, path: "persist-manifest.json" }
     - id: D2
-      says: "the grounding manifest exists"
-      check: { type: artifact_exists, path: "draft/marketing-manifest.yaml" }
+      says: "the persist was applied — the persist record stamps the write applied"
+      check: { type: field_equals, file: "persist-manifest.json", field: "applied", equals: true }
     - id: D3
-      says: "the marketing lens landed in the model tree — machine-recorded by the apply"
-      check: { type: field_equals, file: "apply-manifest.json", field: "lens_applied", equals: true }
+      says: "the scoped-write guard held — no model path changed outside the slice's write scope (the allowlist held)"
+      check: { type: field_equals, file: "guard-report.json", field: "ok", equals: true }

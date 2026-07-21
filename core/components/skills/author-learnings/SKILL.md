@@ -1,7 +1,7 @@
 ---
 name: author-learnings
-description: 'Read a delivered unit''s real outcomes — the measure lens (baseline/target/realized), the validate verdicts and fix reports, the run lens (production actuals), and the delivered epic/slice status — against the current product model, and draft the proposed MEANING updates the delivery taught — a refined capability/functionality one_line, a raised nfr_needs level (monotonic-up), an earned status promotion, the grounding-doc sections the learning changed, and a new append-only decision per material learning. Each proposed change carries the outcome that justifies it and a confidence tier. Writes a draft learn-manifest.yaml plus the rewritten grounding docs and decision records under the STM draft dir — never the live model, never the tree skeleton, never a slice/epic entry. Generative artifact production for the /learn play.'
-version: 0.1.0
+description: 'Read a delivered unit''s real outcomes — the measure lens (baseline/target/realized), the validate verdicts and fix reports, the run lens (production actuals), and the delivered epic/slice status — against the current product model, and author the MEANING updates the delivery taught — a refined capability/functionality one_line, a raised nfr_needs level (monotonic-up), an earned status promotion, the grounding-doc sections the learning changed, and a new append-only decision per material learning. Each proposed change carries the outcome that justifies it and a confidence tier. Writes the rewritten grounding docs STRAIGHT to the live model (per-node docs only) and emits the spine meaning-field deltas and the decision records as structured data in an STM learn-manifest.yaml — never the shared model files (_spine.yaml, profile, decisions), never the tree skeleton, never a slice/epic entry. Generative artifact production for the /learn play.'
+version: 0.2.0
 user-invocable: false
 model: opus
 allowed-tools: Read, Write, Bash, Glob
@@ -9,25 +9,35 @@ allowed-tools: Read, Write, Bash, Glob
 
 # author-learnings
 
-Turns a **delivered unit's real outcomes** into the proposed updates that keep the living product
+Turns a **delivered unit's real outcomes** into the updates that keep the living product
 model honest. After a unit ships, the pipeline has already produced the evidence — the measure lens
 (each metric's baseline → target → realized + proof), the validate verdicts and fix reports (which
 gates truly cleared; a `fix_required` is a model-was-wrong signal), the run lens (production actuals
 vs planned), and the delivered epic/slice status. This skill reads that evidence against what the
-model *claimed*, and drafts the precise **meaning** updates the delivery taught — never the tree
-skeleton, never a slice or epic entry. It reads the model read-only and writes a draft; /learn's
-checkpoint and apply step persist it. This is the close of the loop the old enrich gate used to be.
+model *claimed*, and authors the precise **meaning** updates the delivery taught — never the tree
+skeleton, never a slice or epic entry. It is the close of the loop the old enrich gate used to be.
 
-## What it produces (the draft only)
+## Write discipline (ADR 026, direct-model-write)
 
-A human-reviewable `learn-manifest.yaml` listing every proposed change with its **outcome citation**
-and a **confidence** tier, plus the rewritten grounding docs and any new decision records. Each
-rewritten grounding doc conforms to its locked template
-(`standards/schemas/product-os/grounding/...`) and must clear the linter (shape) and the
-content-quality eval (meaning) — /learn runs both over the draft before the checkpoint. The manifest
-is the machine-checkable contract `validate_learn.py` (pre-checkpoint) and, after apply,
-`check_apply_learn.py` assert against — every change carries an outcome, every nfr move is
-monotonic-up, every status promotion is earned, every decision is a new accepted record.
+This skill writes ONLY the per-node grounding docs (`capability.md`, `functionality.md`, and the
+slice `lens/{measure|run|quality}.md`) — each its own file — **straight to the live model** under
+`<product_base>/product-os/…`. It NEVER writes any shared model file: not `_spine.yaml`, not the
+`profile` block, not a `decisions/` record. Every shared-file mutation is emitted as **structured
+data in the STM `learn-manifest.yaml`** — the spine meaning-field deltas in `changes:` and the full
+decision records in `decisions:` — for /learn's deterministic keyed persist (`persist_learn.py`) to
+apply in place after the human checkpoint. /learn runs the shape linter and the content-quality eval
+over the live docs, then the scoped-write guard over the full delta, before the checkpoint; nothing
+is committed until the gate resolves.
+
+## What it produces
+
+The rewritten grounding docs at their live paths, plus a human-reviewable `learn-manifest.yaml`
+listing every proposed change with its **outcome citation** and a **confidence** tier. Each rewritten
+grounding doc conforms to its locked template (`standards/schemas/product-os/grounding/…`) and must
+clear the linter (shape) and the content-quality eval (meaning). The manifest is the machine-checkable
+contract `validate_learn.py` (pre-checkpoint) and `persist_learn.py` (the keyed persist) read — every
+change carries an outcome, every nfr move is monotonic-up, every status promotion is earned, every
+decision is a new accepted record carrying all its own fields.
 
 ## Inputs
 
@@ -37,8 +47,8 @@ monotonic-up, every status promotion is earned, every decision is a new accepted
 | `unit` | yes | The resolved unit from `check_ready_unit` — `{issue, epics[], slices[]}`. |
 | `outcomes` | yes | The outcome-evidence paths from `check_ready_unit` — `{measure_lenses[], run_lenses[], validate[], delivered_epics[], delivered_slices[]}`. Read these; they are what the delivery actually showed. |
 | `spine` | yes | Path to the live spine (`product-os/_spine.yaml`) — read-only, for the current claims and the node ids. |
-| `product_base` | yes | Product model root — to read the affected nodes' grounding docs (read-only) and to resolve a prior decision a learning may supersede. |
-| `draft_dir` | yes | Output folder under STM for the draft (manifest + rewritten docs + decision records). |
+| `product_base` | yes | Product model root — to READ the affected nodes' grounding docs and resolve a prior decision a learning may supersede, and to WRITE the rewritten per-node grounding docs in place under `product-os/…`. |
+| `manifest_path` | yes | Output path under STM for the `learn-manifest.yaml` (the proposed-change contract — spine deltas + decision records as structured data). |
 
 ## Procedure
 
@@ -69,59 +79,59 @@ Outcome-grounding, the allowlist, and template/eval conformance are non-negotiab
    A change with no outcome is dropped, not guessed.
 5. **Tier by confidence.** `high` for a change a single clear outcome proves; `low` for an inferred or
    partial signal — /learn surfaces low-confidence changes one by one at the checkpoint.
-6. **Write the draft.** Write the rewritten grounding docs to their lens/grounding paths under
-   `draft_dir` (per template), write each decision record under `draft_dir/.../decisions/{id}.yaml`,
-   and write `learn-manifest.yaml`. Drafts only — never touch the live model.
+6. **Write the live docs; emit the shared-file deltas as manifest data.** Write each rewritten
+   grounding doc **straight to its live path** under `<product_base>/product-os/…` (per template) —
+   these are the only files this skill writes. Emit every spine meaning-field change in the manifest's
+   `changes:` block and every new decision as a full record in the manifest's `decisions:` block
+   (carrying `reason`, `alternatives`, and `level` — `persist_learn.py` builds the `decisions/<id>.yaml`
+   record from these). Write `learn-manifest.yaml` to `manifest_path`. NEVER write `_spine.yaml`, the
+   `profile` block, or a `decisions/` record — those are the keyed persist's job.
 
-## Output — the draft
+## Output
+
+The rewritten grounding docs, at their live paths:
 
 ```
-{draft_dir}/
-  product-os/{domain}/...
-    capability.md | functionality.md                 # a rewritten grounding doc (only changed ones)
-    slices/{slice}/lens/{measure|run|quality}.md      # a rewritten lens doc (only changed ones)
-    decisions/{decision-id}.yaml                      # a new decision record (append-only)
-  learn-manifest.yaml                                 # the proposed-change contract
+<product_base>/product-os/{domain}/…
+  capability.md | functionality.md                  # a rewritten grounding doc (only changed ones)
+  slices/{slice}/lens/{measure|run|quality}.md       # a rewritten lens doc (only changed ones)
 ```
 
-`learn-manifest.yaml` — field-for-field what `validate_learn.py` reads:
+and the STM manifest at `manifest_path`:
+
+`learn-manifest.yaml` — field-for-field what `validate_learn.py` and `persist_learn.py` read:
 
 ```yaml
 changes:                                              # spine meaning-field changes
   - node_ref: cap-source-coverage                     # the spine node id
     node_kind: capability                             # capability | functionality | profile
     field: nfr_needs                                  # one_line | nfr_needs | status
+    dimension: performance                            # required when field == nfr_needs
     from: medium                                      # current value (level for nfr_needs; state for status)
     to: high                                          # proposed value (monotonic-up for nfr; earned for status)
     outcome: "run.md: production p95 480ms vs target 150ms — performance underscoped"
     confidence: high                                  # high | low
-docs:                                                 # rewritten grounding docs
+docs:                                                 # grounding docs rewritten in place (live paths)
   - rel: product-os/token-dash/slices/slice-trusted-coverage/lens/measure.md
     outcome: "measure: coverage 100% realized; render p95 1.9s vs <2s — both confirmed"
-decisions:                                            # NEW append-only decision records
+decisions:                                            # NEW append-only decision records (full data)
   - id: dec-learn-source-coverage-perf-high
     node_ref: cap-source-coverage
+    level: product                                    # product | ... (persist writes it into the record)
     title: "Source-coverage performance must be high — production load proved medium underscoped"
+    reason: "Run lens recorded p95 480ms at 100 concurrent users; the profile target is 150ms. The medium level set pre-delivery did not survive real load."
+    alternatives:
+      - name: "keep nfr_needs.performance: medium"
+        why_not: "Realized production load shows the target is unreachable at medium without an architecture change."
     supersedes:                                       # optional: the accepted decision id this overturns
     outcome: "run.md: p95 480ms at 100 users; profile target 150ms unmet without redesign"
 ```
 
-Each `decisions/{id}.yaml` record (the issue's decision model — `/learn` stamps `decided_by`/`date`):
+`persist_learn.py` builds each `decisions/<id>.yaml` record from the manifest `decisions:` entry
+(stamping `decided_by`/`date`/`status: accepted`), so `title`, `reason`, `alternatives`, and `level`
+MUST be present in the manifest — there is no draft decision file to fall back on.
 
-```yaml
-decision:
-  id: dec-learn-source-coverage-perf-high
-  node_ref: cap-source-coverage
-  title: "Source-coverage performance must be high — production load proved medium underscoped"
-  reason: "Run lens recorded p95 480ms at 100 concurrent users; the profile target is 150ms. The medium level set pre-delivery did not survive real load."
-  alternatives:
-    - name: "keep nfr_needs.performance: medium"
-      why_not: "Realized production load shows the target is unreachable at medium without an architecture change."
-  status: accepted
-  supersedes:                                         # the accepted decision id this overturns, if any
-```
-
-Return the enriched contract with `draft_dir` and the `learn-manifest.yaml` path — paths, never
+Return the contract with the live doc paths and the `learn-manifest.yaml` path — paths, never
 inline content.
 
 ## Rules
@@ -131,7 +141,7 @@ inline content.
 - **Meaning only, never the skeleton.** Propose changes ONLY to `one_line`, `nfr_needs` level,
   earned `status`, the listed grounding sections, and new decisions. NEVER rename or re-parent a
   domain/capability/functionality, NEVER rewrite a slice or epic entry, NEVER edit an accepted
-  decision in place — those are rejected by `validate_learn.py` / `check_apply_learn.py`.
+  decision in place — those are rejected by `validate_learn.py` / the keyed persist.
 - **Monotonic-up.** An `nfr_needs` level may only rise; a raised profile nfr (a box-move) carries a
   decision.
 - **Earned status.** Promote a status only to an earned state the outcome proves; never advance a
@@ -140,5 +150,8 @@ inline content.
   that overturns a prior decision names what it `supersedes`, never edits the old record.
 - **Template-true.** Each rewritten grounding doc conforms to its locked template and must clear the
   linter + the content eval — every section self-explaining, never thinned.
-- **Drafts only.** Write under `draft_dir`; never touch the live model.
+- **Docs to live, shared-file deltas as manifest data.** Write ONLY the per-node grounding docs to
+  their live paths; emit the spine meaning-field changes and the full decision records as structured
+  data in `learn-manifest.yaml`. Never write `_spine.yaml`, the `profile` block, or a `decisions/`
+  record — the keyed persist owns those.
 ```

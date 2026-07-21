@@ -1,7 +1,7 @@
 ---
 name: author-ux-lens
-description: Author a shaped slice's UX lens as an MD grounding doc — the screens (with low-fidelity layouts), the states each holds, and the product's visual core (color + typography) — from the slice's hub (its functionalities' grounding docs + the spine profile) and KB pattern grounding. Writes a draft ux.md (conforming to the UX lens template) plus a grounding manifest and the visual-core decision; reads the functionality.md docs for the hub, never another lens. Generative artifact production for the /ux play; writes a draft only, never the live model.
-version: 0.4.0
+description: Author a shaped slice's UX lens as an MD grounding doc — the screens (with low-fidelity layouts), the states each holds, and the product's visual core (color + typography) — from the slice's hub (its functionalities' grounding docs + the spine profile) and KB pattern grounding. Writes the per-node grounding doc ux.md STRAIGHT TO THE LIVE MODEL (conforming to the UX lens template) and emits the visual-core decision plus the grounding map as structured data in a manifest; it NEVER writes a shared model file (the spine _spine.yaml, the profile, or a decisions/*.yaml). Reads the functionality.md docs for the hub, never another lens. Generative artifact production for the /ux play under direct-model-write (ADR 026).
+version: 0.5.0
 user-invocable: false
 model: opus
 allowed-tools: Read, Write, Bash, Glob
@@ -13,8 +13,14 @@ Turns a shaped slice's **hub** — the grounding docs of the functionalities it 
 the product profile — into the slice's **UX lens**, written as the grounding doc `ux.md`:
 the screens that make every functionality visible, the states each screen holds, and the
 product's visual core. It anchors the intended experience; it is not a full spec. It reads
-the hub only (never another realize lens) and writes a draft — /ux's checkpoint and apply
-step persist it.
+the hub only (never another realize lens).
+
+**Write discipline (ADR 026, `standards/rules/direct-model-write.md`).** This skill writes
+ONLY the per-node doc `ux.md`, **straight to the live model** in place. It does NOT write any
+shared model file — not the spine `_spine.yaml`, not the profile, and not a `decisions/*.yaml`.
+The visual-core decision is emitted as **structured data in the manifest** (`decision_delta`);
+the play's deterministic keyed persist script (`persist_ux.py`) writes that decision in place,
+keyed to the slice and `skip-if-exists`. There is no draft tree.
 
 ## What it produces (against the locked template)
 
@@ -22,25 +28,26 @@ step persist it.
 sections **Intent**, **Screens** (each: name + low-fidelity layout in prose), **States**
 (per screen), **Visual core** (color + typography direction). It must clear the linter
 (shape) and the content-quality eval (the play runs both). Alongside the doc it writes a
-structured `ux-manifest.yaml` carrying the machine-checkable grounding the prose can't —
-which screen grounds to which functionality, and the visual-core grounding.
+structured `ux-manifest.yaml` (an STM, non-model artifact) carrying the machine-checkable
+grounding the prose can't — which screen grounds to which functionality, the visual-core
+grounding, and the visual-core **decision delta** for the keyed persist to write.
 
-## Inputs
+## Input
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `slice_ref` | yes | `{domain}/{slice-id}` — display reference. |
+| `slice_ref` | yes | `{domain}/{slice-id}` — display reference and the persist key. |
 | `slice_file` | yes | Path to the live slice record (read-only — for the functionalities list it bundles). |
 | `functionality_groundings` | yes | Paths to each functionality's `functionality.md` grounding doc (the hub, resolved by `check_ready_slice`). Read these for intent/behavior — NOT `ice.yaml` (retired). |
 | `profile` | yes | The product profile (from the spine) — conditions + surfaces. Read-only. |
 | `kb_search` | yes | Path to the KB search script, for pattern grounding. |
 | `kb_root` | yes | Path to `knowledge/`, to resolve learning ids. |
-| `product_base` | yes | Product model root (to reuse an existing visual-core decision). |
-| `lens_rel` | yes | Relative path the lens mirrors: `product-os/{domain}/slices/{slice}/lens/ux.md`. |
-| `draft_dir` | yes | Output folder under STM for the draft + manifest + proposals. |
+| `product_base` | yes | Product model root — the LIVE write target (and to reuse an existing visual-core decision). |
+| `lens_rel` | yes | Relative path of the live lens: `product-os/{domain}/slices/{slice}/lens/ux.md`. Write `ux.md` here, in place. |
+| `manifest_path` | yes | Output path under STM for `ux-manifest.yaml` (grounding map + decision delta + proposals). |
 | `stm_base` | yes | From config. |
 
-## Procedure
+## Process
 
 Reasoning (drawing screens, enumerating states, choosing the visual core) is yours. Template
 conformance, grounding, and coverage are non-negotiable.
@@ -54,22 +61,27 @@ conformance, grounding, and coverage are non-negotiable.
    partial, populated) and what the user sees in each.
 4. **Choose the visual core.** The color and typography direction — grounded in a KB
    technology/architecture learning (matched to the product's conditions + surfaces via
-   `kb_search`), or a recorded KB-learning-gap proposal. Record it as a slice-level decision
-   (reuse the product-level one if it exists).
-5. **Write the draft.** Write `ux.md` to the lens path under `draft_dir` (per the template);
-   write `ux-manifest.yaml` (every screen's `grounds` → a functionality_ref / persona / journey;
-   the visual core's grounding → kb or decision); write the visual-core decision; write any KB
-   proposals. Drafts only — never the live model, never another lens.
+   `kb_search`), or a recorded KB-learning-gap proposal. If the product already carries a
+   visual-core decision (check under `product_base`), REUSE it — name it in the manifest and
+   emit NO new `decision_delta`. Otherwise emit the decision as manifest data for the keyed
+   persist to write (do NOT write the decision file yourself).
+5. **Write the lens in place + the manifest.** Write `ux.md` to the LIVE lens path
+   (`product_base` + `lens_rel`), per the template. Write `ux-manifest.yaml` to `manifest_path`
+   (STM) carrying: every screen's `grounds` → a functionality_ref / persona / journey; the
+   visual core's grounding → kb or the reused decision; and, when a new decision is needed, the
+   `decision_delta` (id, the slice-scoped `rel`, and the full `record` body). Write any KB
+   proposals under an STM proposals folder. Write NO shared model file — never `_spine.yaml`,
+   never the profile, never a `decisions/*.yaml`.
 
-## Output — the draft
+## Output
 
 ```
-{draft_dir}/
-  product-os/{domain}/slices/{slice}/
-    lens/ux.md                                    # the UX lens grounding doc
-    decisions/{decision-id}.yaml                  # the visual-core decision (if material)
-  ux-manifest.yaml                                # grounding map (screens → functionalities; visual core)
-  proposals/<gap>.yaml                            # KB-learning-gap proposals (only if gaps)
+LIVE (in place, under product_base):
+  product-os/{domain}/slices/{slice}/lens/ux.md            # the UX lens grounding doc (the only live write)
+
+STM (non-model):
+  {manifest_path}                                           # ux-manifest.yaml — grounding map + decision delta
+  {stm}/proposals/<gap>.yaml                                # KB-learning-gap proposals (only if gaps)
 ```
 
 `ux-manifest.yaml`:
@@ -84,11 +96,19 @@ ux:
   design_system:                                  # the visual core grounding
     source_type: decision                         # kb | decision
     decision: dec-visual-core-token-dash
+  decision_delta:                                 # OMIT when reusing an existing product decision
+    id: dec-visual-core-token-dash
+    rel: product-os/token-dash/slices/slice-trusted-coverage/decisions/dec-visual-core-token-dash.yaml
+    record:                                       # the full decision YAML body the keyed persist writes
+      id: dec-visual-core-token-dash
+      level: slice
+      status: accepted
+      # … dimension, choice, grounding …
   choices: []                                     # KB-grounded pattern choices (visual core / nav / responsive)
 ```
 
-Return the enriched contract with the `draft_dir` and `ux-manifest.yaml` path — paths, never
-inline content.
+Return the enriched contract with the live `lens_rel` written and the `ux-manifest.yaml` path
+— paths, never inline content.
 
 ## Rules
 
@@ -102,5 +122,7 @@ inline content.
   screen, recorded in the manifest.
 - **Grounded, not invented.** Every screen grounds to a functionality or a persona/journey;
   the visual core grounds to a KB learning or a proposal and is recorded as a decision.
-- **Drafts only.** Write under `draft_dir`; never touch the live model.
+- **One live doc; no shared file.** Write ONLY `ux.md` to the live model. The visual-core
+  decision goes into the manifest as `decision_delta` — the play's keyed persist writes it. Never
+  write `_spine.yaml`, the profile, or a `decisions/*.yaml`; never write to another slice.
 ```

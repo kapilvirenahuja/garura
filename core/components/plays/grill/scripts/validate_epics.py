@@ -14,8 +14,13 @@ is the eval's. THIS script does the cut-level checks lint_grounding cannot:
            decision_question answered, and a CLOSED schema — only `tensions` /
            `decision_questions` (legacy `questions` aliased); any other top-level key fails.
 
-    python3 validate_epics.py --draft <dir> --product-base <pb> --slice-ref <id> \
-        [--rounds-dir <dir>] [--out <write-gate.yaml>]
+Direct-model-write (ADR 026): there is no draft tree. author-epics writes each `epic.md`
+straight to the live model and emits the epics-index delta as structured data in the
+epics-manifest (STM, non-model). This validator reads the `epics` list and the `deferrals`
+(functionality ids not cut this run) from that MANIFEST — never a draft `_spine.yaml`.
+
+    python3 validate_epics.py --manifest <epics-manifest.yaml> --product-base <pb> \
+        --slice-ref <id> [--rounds-dir <dir>] [--out <write-gate.yaml>]
 
 Prints {ok, errors[], counts} JSON. With --out, also writes that verdict as YAML —
 the machine-readable write-gate verdict (#466 Batch C): the round reports are a CLOSED
@@ -61,7 +66,8 @@ def acyclic(nodes, deps):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Validate an epic cut.")
-    ap.add_argument("--draft", required=True)
+    ap.add_argument("--manifest", required=True,
+                    help="epics-manifest.yaml (STM, non-model) — the epics-index delta + deferrals")
     ap.add_argument("--product-base", required=True)
     ap.add_argument("--slice-ref", required=True)
     ap.add_argument("--rounds-dir", default=None)
@@ -71,19 +77,19 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     errors = []
-    draft_root = os.path.join(args.draft, "product-os")
-    epics = load(os.path.join(draft_root, "_spine.yaml")).get("epics") or []
+    manifest = load(args.manifest)
+    epics = manifest.get("epics") or []
 
     # the slice's functionalities (from the live spine slice record)
     live = load(os.path.join(args.product_base, "product-os", "_spine.yaml"))
     sl = next((s for s in (live.get("slices") or []) if s.get("id") == args.slice_ref), {})
     slice_funcs = set(sl.get("functionality_refs") or [])
 
-    # deferrals
-    deferred = set()
-    for d in glob.glob(os.path.join(draft_root, "**", "deferrals.yaml"), recursive=True):
-        doc = load(d)
-        deferred |= set((doc.get("deferrals") or doc.get("functionalities") or []))
+    # deferrals — recorded as structured manifest data (a list of functionality ids)
+    _def = manifest.get("deferrals") or manifest.get("functionalities") or []
+    if isinstance(_def, dict):
+        _def = _def.get("deferrals") or _def.get("functionalities") or []
+    deferred = set(_def)
 
     covered = set()
     orders, user_checks = [], []

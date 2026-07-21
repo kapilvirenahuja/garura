@@ -1,30 +1,36 @@
 #!/usr/bin/env python3
 """
-validate_arch.py — assert /arch's draft is grounded and threads the slice's functionalities.
+validate_arch.py — assert /arch's authored lens is grounded and threads the slice's functionalities.
 
-Run over the draft before the checkpoint. In the spine+grounding model the architecture lens
-is an MD grounding doc (`architecture.md`); its SHAPE (the Intent/Components/Stack/Vertical
-build sections, each substantive) is checked by `lint_grounding.py`, and its
-UNDERSTANDABILITY by the content eval — both run by the play's validate step. THIS script
-checks the things the manifest carries, which the prose can't enforce:
+Run over the arch manifest before the checkpoint. Under direct-model-write (ADR 026,
+standards/rules/direct-model-write.md) there is no draft tree: the lens doc (`architecture.md`)
+is written straight to the live model by author-architecture-lens, and the decisions are carried
+as structured data in the manifest (the keyed persist_arch.py writes them to disk only after the
+gate approves). So the material-choice decisions are read from the MANIFEST here, NOT globbed off
+disk — validate runs BEFORE persist in the write-then-review order.
+
+In the spine+grounding model the architecture lens is an MD grounding doc (`architecture.md`); its
+SHAPE (the Intent/Components/Stack/Vertical build sections, each substantive) is checked by
+`lint_grounding.py`, and its UNDERSTANDABILITY by the content eval — both run by the play's
+validate step. THIS script checks the things the manifest carries, which the prose can't enforce:
 
   - grounded: every component in the manifest names >=1 real source (a functionality of the
     slice — its systems — or the profile surfaces); the stack grounds on the KB or a decision.
   - hub-only: no component grounds on another realize lens.
-  - decisions: a grounding flagged `material: true` names a `decision` that resolves.
+  - decisions: a grounding flagged `material: true` names a `decision` that resolves to a
+    decision record carried in the manifest.
   - coverage: the slice's functionalities (read from the slice record) are each threaded by
     at least one component — nothing shaped is left unbuilt.
 
 Layer rule: reads files on disk only; no git/gh/network.
 
-    python3 validate_arch.py --draft <draft_dir> --manifest <arch-manifest.yaml> \
+    python3 validate_arch.py --manifest <arch-manifest.yaml> \
             --slice-file <live slice record .yaml>
 
 Prints {ok, errors[], warnings[], counts} JSON. Exit 0 clean, 1 on violation, 2 usage.
 """
 
 import argparse
-import glob
 import json
 import os
 import sys
@@ -53,15 +59,23 @@ def _blank(v):
     return False
 
 
-def collect_decisions(draft_root, errors):
+def collect_decisions(man, errors):
+    """Decision ids from the MANIFEST (ADR 026 — decisions are manifest data pre-persist)."""
     ids = set()
-    for d in glob.glob(os.path.join(draft_root, "**", "decisions", "*.yaml"), recursive=True):
-        dec = (load(d).get("decision") or {})
+    for entry in (man.get("decisions") or []):
+        if not isinstance(entry, dict):
+            errors.append("a manifest decision entry is not a mapping")
+            continue
+        rec = entry.get("decision") or entry.get("record") or {}
+        dec = rec.get("decision") if isinstance(rec, dict) and "decision" in rec else rec
+        dec = dec or {}
+        did = dec.get("id") or entry.get("id")
         for f in ("id", "title", "reason", "status", "level"):
-            if _blank(dec.get(f)):
-                errors.append(f"{d}: decision missing '{f}'")
-        if dec.get("id"):
-            ids.add(dec["id"])
+            val = dec.get(f) if f != "id" else did
+            if _blank(val):
+                errors.append(f"manifest decision {did or '<no-id>'}: missing '{f}'")
+        if did:
+            ids.add(did)
     return ids
 
 
@@ -120,25 +134,19 @@ def slice_functionalities(slice_file, errors):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Validate /arch's draft grounding + coverage.")
-    ap.add_argument("--draft", required=True)
+    ap = argparse.ArgumentParser(description="Validate /arch's authored lens grounding + coverage.")
     ap.add_argument("--manifest", required=True)
     ap.add_argument("--slice-file", required=True)
     args = ap.parse_args(argv)
 
-    draft_root = os.path.join(args.draft, "product-os")
-    if not os.path.isdir(draft_root):
-        sys.stderr.write(f"validate_arch.py: no draft tree at {draft_root}\n")
-        return 2
-
     errors, warnings = [], []
-    decision_ids = collect_decisions(draft_root, errors)
     try:
         man = (load(args.manifest).get("arch") or {})
     except (OSError, yaml.YAMLError) as exc:
         errors.append(f"manifest unreadable: {exc}")
         man = {}
 
+    decision_ids = collect_decisions(man, errors)
     threaded = check_grounding(man, decision_ids, errors)
     to_cover = slice_functionalities(args.slice_file, errors)
     for fid in sorted(f for f in to_cover if f):

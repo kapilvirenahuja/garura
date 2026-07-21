@@ -1,0 +1,158 @@
+pr: 502
+issue: 500
+base: e7c24f973d58fbc375cc52646a23c17286214647
+category: harness
+
+grounding_sources:
+  - core/components/memory/standards/rules/direct-model-write.md   # git show e7c24f97 — the contract, committed on base
+  - docs/adr/026-direct-to-model-writes.md                          # git show e7c24f97 — committed on base
+  - core/components/memory/standards/rules/gate-config.md           # git show e7c24f97 — pinned/conditional/off gate kinds
+  - core/components/plays/understand/SKILL.md                       # git show e7c24f97 — merged reference implementation (#498/#499)
+  - core/components/plays/play-creator/references/scoped_write_guard.py  # git show e7c24f97 — canonical guard script
+  - core/tools/lint-components/lib/rules/structural.js               # git show e7c24f97 — L-DMW-1..6 lint anchors
+  - context.yaml (task input)                                        # issue: 500 for this PR
+  - git log --all (base, read-only)                                  # b2459ebc / d1000962: #498 = /understand issue, #499 = its merge PR
+
+order_check_write_then_review:
+  # Item 1 in the review brief: does persist_<play>.py run BEFORE the checkpoint step,
+  # per direct-model-write.md "Order of operations" and L-DMW-6? Verified against each
+  # play's own Task DAG + Phase headers (git show <branch>:.../SKILL.md).
+  vision:    { persist_before_gate: true,  evidence: "T4 Persist blockedBy [T3] -> T5 Guard -> T6 Checkpoint" }
+  shape:     { persist_before_gate: true,  evidence: "T3 Persist blockedBy [T2] -> T4 Guard -> T5 Checkpoint" }
+  grill:     { persist_before_gate: true,  evidence: "T4 Persist blockedBy [T3 grill rounds] -> T5 Guard -> T6 Checkpoint" }
+  roadmap:   { persist_before_gate: true,  evidence: "T4 Persist blockedBy [T3 compute] -> T5 Guard -> T6 Checkpoint" }
+  arch:      { persist_before_gate: true,  evidence: "T3 Persist blockedBy [T2] -> T4 Guard -> T5 Checkpoint" }
+  ux:        { persist_before_gate: true,  evidence: "T3 Persist blockedBy [T2] -> T4 Guard -> T5 Checkpoint" }
+  quality:   { persist_before_gate: true,  evidence: "T3 Persist blockedBy [T2] -> T4 Guard -> T5 Checkpoint" }
+  agentic:   { persist_before_gate: true,  evidence: "T3 Persist blockedBy [T2] -> T4 Guard -> T5 Checkpoint" }
+  run:       { persist_before_gate: true,  evidence: "T3 Persist blockedBy [T2] -> T4 Guard -> T5 Checkpoint" }
+  marketing: { persist_before_gate: true,  evidence: "T3 Persist blockedBy [T2] -> T4 Guard -> T5 Checkpoint" }
+  measure:   { persist_before_gate: true,  evidence: "T3 Persist blockedBy [T2] -> T4 Guard -> T5 Checkpoint" }
+  learn:     { persist_before_gate: true,  evidence: "T3 Persist blockedBy [T2] -> T4 Guard -> T5 Checkpoint" }
+  verdict: "No L-DMW-6 violation found in any of the 12 plays. All persist steps precede their checkpoint step in both the Task DAG and the Phase order."
+
+conformance_checks_passed_no_finding:
+  - check: "classify_change.py git-mode presence"
+    result: >
+      Correctly present (kept, modified) in the 10 conditional-gate plays (vision,
+      shape, roadmap + the 7 realize lenses: arch, ux, quality, agentic, run,
+      marketing, measure) and correctly absent from grill and learn (both PINNED
+      gates per gate-config.md, so no learned-policy shape lookup is needed).
+    basis: "gate-config.md 'pinned set: grill ... learn'; names.txt file list"
+  - check: "Fingerprint = sha256(reference/ice.md)"
+    result: "Verified for all 12 plays (spot-checked 4 by hand, scripted the other 8) — all match."
+    basis: "direct sha256sum of git show <branch>:.../reference/ice.md vs the fingerprint line in SKILL.md"
+  - check: "Authoring-skill containment split (L-DMW-5)"
+    result: >
+      All 12 authoring skills + check-cut-tensions explicitly state they write ONLY
+      their own per-node doc, never _spine.yaml/profile/decisions.
+    basis: "direct-model-write.md item 3; each skill's own description/body text"
+  - check: "Clean-tree assertion (F13) + feat(model) commit (L-DMW-4)"
+    result: "All 12 plays assert 'git status --porcelain ... product-os' at pre-flight and commit 'feat(model): ...' at close."
+    basis: "direct-model-write.md step 7; structural.js L-DMW-4"
+  - check: "Guard --allow/--add-only scope vs old apply_<play>.py allowlist (file-level glob layer)"
+    result: >
+      Faithful translation in all 12 plays (vision, shape, grill, roadmap, arch, ux,
+      quality, agentic, run, marketing, measure, learn) — decision files are
+      --add-only (skip-if-exists, matching "never edit an accepted decision in
+      place"); lens/doc files are --allow (overwrite-in-kind, matching the old
+      copy-in-kind behavior); grill's <slice-epics> glob resolves to the slice's own
+      epics/ home, not the whole slice.
+    basis: "diffed each play's new --allow/--add-only set against git show e7c24f97:.../scripts/apply_<play>.py's documented allowlist"
+  - check: >
+      Node-level containment inside the coarse '--allow product-os/_spine.yaml' allow
+      (the keyed-persist layer that direct-model-write.md item 3 relies on for the 5
+      plays whose guard allows the whole spine file: vision, grill, roadmap, measure,
+      learn)
+    result: >
+      Read all 5 persist scripts directly (not just shape/measure's stamp precedent).
+      persist_seed.py (vision): id-keyed additive-only, skips any id already present,
+      profile added only if absent. persist_epics.py (grill): keyed to --slice-ref,
+      additive by id, refuses any epic whose live status != 'ready', writes nothing
+      outside the epics index. persist_roadmap.py (roadmap): writes ONLY the 4 plan
+      fields (order/effort/depends_on/status) on manifest-named slice ids, refuses a
+      plan naming a slice absent from the spine, every other field/collection
+      byte-untouched. persist_learn.py (learn): whitelists exactly 3 meaning fields
+      (one_line/nfr_needs/status) via MEANING_FIELDS, refuses any other field, refuses
+      an nfr level that would fall, refuses a decision node not on the whitelist kinds
+      (capability/functionality/profile). persist_measure.py: covered via its
+      pre-existing stamp_slice.py precedent (already verified). All 5 match their
+      documented old apply_<play>.py refusal semantics — no containment regression
+      found.
+    basis: >
+      git show <branch>:core/components/plays/{vision,grill,roadmap,learn}/scripts/persist_*.py
+      read in full, each compared against its e7c24f97:.../scripts/apply_*.py docstring.
+  - check: "shape's file-level --allow 'product-os/_spine.yaml' looks broader than the old field-restricted apply_shape.py"
+    result: >
+      NOT a defect. direct-model-write.md item 3 explicitly delegates node/field-level
+      containment to the keyed persist script, not the file-level guard. Verified
+      persist_shape.py still carries the same defensive refusal ("It never writes the
+      profile ... defensive: a profile delta is refused").
+    basis: "direct-model-write.md item 3; git show <branch>:core/components/plays/shape/scripts/persist_shape.py"
+  - check: "measure's new --allow 'product-os/_spine.yaml' looks like new scope vs. apply_measure.py (which never touched the spine)"
+    result: >
+      NOT a defect. The spine-stamp responsibility already existed pre-PR in the
+      separate stamp_slice.py (deleted by this PR, merged into persist_measure.py) —
+      this is a consolidation of an existing capability, not scope creep.
+    basis: "git show e7c24f97:core/components/plays/measure/scripts/stamp_slice.py"
+
+findings:
+  - id: F1
+    play: "vision, grill, ux, quality, marketing, measure, learn (7 plays)"
+    category: harness
+    severity: P3
+    defect: >
+      compiled_by / Direct-edit-deviation-note headers (and, for ux/marketing, the
+      stop-condition.yaml comment header) cite issue "#498" as the source of this
+      direct-model-write migration. #498 is the /understand reference
+      implementation's issue (merged as PR #499) — a DIFFERENT, earlier change. This
+      PR's own issue is #500. The citation is a copy-paste of the /understand play's
+      provenance text that was never updated for these 7 plays.
+    committed_basis: >
+      context.yaml (task input) states issue: 500. git log on base shows b2459ebc
+      "feat(understand): direct-model-write reference implementation (#498)" and
+      d1000962 "Merge pull request #499 ... feature/498-model-plays-direct-write" —
+      #498/#499 belong to the prior /understand work, not this fanout.
+    cross_check: >
+      Internally inconsistent even without external grounding: of the 12 plays, 4
+      (roadmap, arch, agentic, run) correctly cite "#500"; shape cites "#499" (the old
+      PR number); the other 7 cite "#498" (the old issue number). A uniform fanout
+      should cite the same issue number everywhere.
+    note: "Not caught by the PR's own self-review.md, which reports 'Docs in step: PASS' with no mention of this."
+
+  - id: F2
+    play: shape
+    category: harness
+    severity: P3
+    defect: >
+      compiled_by line cites "#499" (the /understand PR number) instead of "#500"
+      (this fanout's issue) — same class of provenance-citation error as F1, but a
+      different wrong number (PR number instead of issue number).
+    committed_basis: "context.yaml issue: 500; git log d1000962 (PR #499 = /understand's merge)."
+
+  - id: F3
+    play: "all 12 (informational, not a defect)"
+    category: harness
+    severity: P4
+    defect: >
+      No finding — recorded to make the negative result explicit per the review
+      brief's #1 priority check. All 12 plays run their keyed persist_<play>.py step
+      BEFORE the checkpoint/gate step, in both the Task DAG (blockedBy chain) and the
+      Phase headers. No docs-only-shape-mislearning risk found.
+    committed_basis: "direct-model-write.md 'Order of operations' (write-then-review); structural.js L-DMW-6."
+
+summary:
+  total_findings: 2
+  by_severity: { P1: 0, P2: 0, P3: 2, P4: 0 }
+  headline: >
+    The fan-out is structurally sound: write-then-review order (12/12, verified from
+    the actual Task DAG + Phase order, not just a text-position lint), the
+    file-level guard-glob scope (12/12, diffed against each old apply_<play>.py),
+    the node-level keyed-persist containment underneath the 5 coarse
+    '--allow _spine.yaml' guards (vision, grill, roadmap, measure, learn — all 5
+    persist scripts read in full), conditional-vs-pinned classify_change placement,
+    and fingerprint integrity all hold across all 12 plays. The only defects found
+    are cosmetic but real: 8 of the 12 plays (vision, shape, grill, ux, quality,
+    marketing, measure, learn) cite the wrong issue number in their own compiled-doc
+    provenance headers, misattributing this PR's (#500) migration to the prior
+    /understand work (#498/#499).

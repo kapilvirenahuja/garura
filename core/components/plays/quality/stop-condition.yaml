@@ -1,18 +1,20 @@
-# quality stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C).
+# quality stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C; #500 direct-model-write, ADR 026).
 # Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
 # Paths are relative to the run's working root ({stm_base}_realize/quality/).
+# A run whose keyed persist or scoped-write guard did not land leaves a clause unmet —
+# the close reads HALTED, never COMPLETED.
 schema: { name: stop-condition }
 content:
   done:
     - id: D1
-      says: "the drafted quality lens exists"
-      check: { type: artifact_exists, path: "draft/product-os/*/slices/*/lens/quality.md" }
+      says: "the persist record exists — the keyed persist ran over the slice's decisions in place"
+      check: { type: artifact_exists, path: "persist-manifest.json" }
     - id: D2
-      says: "the grounding manifest exists"
-      check: { type: artifact_exists, path: "draft/quality-manifest.yaml" }
+      says: "the quality lens landed on the live model — the persist record stamps it present"
+      check: { type: field_equals, file: "persist-manifest.json", field: "lens_applied", equals: true }
     - id: D3
-      says: "the quality lens landed in the model tree — machine-recorded by the apply"
-      check: { type: field_equals, file: "apply-manifest.json", field: "lens_applied", equals: true }
-    - id: D4
       says: "the machine sibling quality-gates.yaml landed beside it (#462)"
-      check: { type: field_equals, file: "apply-manifest.json", field: "gates_machine_applied", equals: true }
+      check: { type: field_equals, file: "persist-manifest.json", field: "gates_machine_applied", equals: true }
+    - id: D4
+      says: "the scoped-write guard held — no model path changed outside the slice's scope"
+      check: { type: field_equals, file: "guard-report.json", field: "ok", equals: true }

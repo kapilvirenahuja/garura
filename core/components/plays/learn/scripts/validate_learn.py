@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-validate_learn.py — assert /learn's DRAFT obeys its guarantees before the checkpoint.
+validate_learn.py — assert /learn's proposed updates obey their guarantees before the checkpoint.
 
-Reads the draft `learn-manifest.yaml` (the proposed updates) + the live spine and checks the
-load-bearing invariants the play promises:
+Reads the STM `learn-manifest.yaml` (the proposed updates authored straight onto the live model,
+per ADR 026 direct-model-write) and checks the load-bearing invariants the play promises:
 
   - outcome-grounded (C5/C12, F5/F12): every proposed change, doc rewrite, and decision carries
     a non-empty `outcome` citation.
@@ -15,13 +15,13 @@ load-bearing invariants the play promises:
     `supersedes` (when present) names a target.
 
 Manifest shape (authored by `author-learnings`):
-  changes:   [{node_ref, node_kind, field(one_line|nfr_needs|status), from, to, outcome, confidence}]
+  changes:   [{node_ref, node_kind, field(one_line|nfr_needs|status), dimension?, from, to, outcome, confidence}]
   docs:      [{rel, outcome}]
-  decisions: [{id, node_ref, title, supersedes, outcome}]
+  decisions: [{id, node_ref, level, title, reason, alternatives, supersedes, outcome}]
 
 Layer rule: reads files on disk only; no git/gh/network.
 
-    python3 validate_learn.py --draft <draft_dir> --manifest <learn-manifest.yaml> --spine <_spine.yaml>
+    python3 validate_learn.py --manifest <learn-manifest.yaml> --spine <_spine.yaml>
 
 Prints {ok, errors[]} JSON. Exit 0 clean, 1 on any violation, 2 on usage error.
 """
@@ -57,8 +57,7 @@ def cited(entry):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Validate /learn's draft manifest.")
-    ap.add_argument("--draft", required=True)
+    ap = argparse.ArgumentParser(description="Validate /learn's proposed-updates manifest.")
     ap.add_argument("--manifest", required=True)
     ap.add_argument("--spine", required=True)
     args = ap.parse_args(argv)

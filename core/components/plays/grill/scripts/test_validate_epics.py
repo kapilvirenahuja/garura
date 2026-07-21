@@ -51,8 +51,10 @@ def run(round_files, out_name=None):
             functionality_refs:
               - func-a
     """)
-    draft = os.path.join(d, "draft")
-    _write(os.path.join(draft, "product-os", "_spine.yaml"), """
+    # Direct-model-write (ADR 026): the epics-index delta lives in the STM manifest,
+    # not a draft _spine.yaml. The epic.md doc is written to the live model by author-epics.
+    manifest = os.path.join(d, "epics-manifest.yaml")
+    _write(manifest, """
         epics:
           - id: e-1
             slice_ref: dom/slice-x
@@ -66,12 +68,13 @@ def run(round_files, out_name=None):
               - func-a
             status: ready
             order: 1
+        deferrals: []
     """)
     rounds = os.path.join(d, "rounds")
     os.makedirs(rounds, exist_ok=True)
     for name, text in round_files.items():
         _write(os.path.join(rounds, name), text)
-    argv = ["--draft", draft, "--product-base", pb, "--slice-ref", "slice-x",
+    argv = ["--manifest", manifest, "--product-base", pb, "--slice-ref", "slice-x",
             "--rounds-dir", rounds]
     out_path = None
     if out_name:
