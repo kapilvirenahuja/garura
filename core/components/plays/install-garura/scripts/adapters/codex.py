@@ -106,12 +106,19 @@ def _emit_skill(md_path, sid, src_dir, skills_root, paths):
     os.makedirs(out_dir, exist_ok=True)
     common.write_text(os.path.join(out_dir, "SKILL.md"),
                       _codex_skill_text(name, desc, tier, body, position))
-    # carry a skill/play's own bundled dirs (agents have none)
+    # Carry a skill/play's bundled dirs and root support artifacts (agents have
+    # none). Compiled plays keep stop-condition.yaml beside SKILL.md.
     if src_dir:
         for sub in ("scripts", "references", "assets"):
             s = os.path.join(src_dir, sub)
             if os.path.isdir(s):
                 shutil.copytree(s, os.path.join(out_dir, sub))
+        for entry in sorted(os.listdir(src_dir)):
+            if entry == "SKILL.md" or common.skippable(entry):
+                continue
+            s = os.path.join(src_dir, entry)
+            if os.path.isfile(s):
+                shutil.copy2(s, os.path.join(out_dir, entry))
     paths.append(os.path.join(".agents", "skills", sid))
 
 
