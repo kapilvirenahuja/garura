@@ -1,0 +1,68 @@
+pr: 502
+issue: 500
+base: e7c24f973d58fbc375cc52646a23c17286214647
+categories:
+  - name: harness
+    what_it_is: >
+      The MD-defined "code" of the agentic system: the 12 model-writing plays
+      (vision, shape, grill, roadmap, arch, ux, quality, agentic, run, marketing,
+      measure, learn) — their SKILL.md, reference/ice.md, stop-condition.yaml, and
+      bundled scripts (persist_<play>.py, scoped_write_guard.py, classify_change.py,
+      validate_<play>.py, and the deleted apply_<play>.py / check_<play>.py) — plus
+      the 12 authoring skills (author-vision-seed, author-shape-bundle, author-epics,
+      author-roadmap, author-architecture-lens, author-ux-lens, author-quality-lens,
+      author-agentic-lens, author-run-lens, author-marketing-lens, author-measure-lens,
+      author-learnings) and check-cut-tensions.
+    evidence_paths:
+      - "core/components/plays/{vision,shape,grill,roadmap,arch,ux,quality,agentic,run,marketing,measure,learn}/SKILL.md"
+      - "core/components/plays/{vision,shape,grill,roadmap,arch,ux,quality,agentic,run,marketing,measure,learn}/reference/ice.md"
+      - "core/components/plays/{vision,shape,grill,roadmap,arch,ux,quality,agentic,run,marketing,measure,learn}/stop-condition.yaml"
+      - "core/components/plays/*/scripts/{persist_*,scoped_write_guard,classify_change,validate_*,apply_*,check_*,snapshot_model,stamp_slice}.py"
+      - "core/components/skills/author-*/SKILL.md"
+      - "core/components/skills/check-cut-tensions/SKILL.md"
+    playbook: knowledge/review/harness.md
+    design_bearing: true
+    note: >
+      Judgment call: the plays' bundled .py scripts (persist_*, scoped_write_guard,
+      classify_change, validate_*) sit under core/components/plays/**/scripts/ and
+      also match code.md's "scripts/**/*.py" signal. Classified here under Harness,
+      not under "Executable code", because these scripts ARE the mechanical expression
+      of the play's own contract (ADR 026 / direct-model-write.md) — stamped from
+      play-creator/references, lint-anchored by structural.js's L-DMW rules, not by a
+      language linter — so their correctness is a design-conformance question, not a
+      generic code-quality one.
+
+  - name: tests
+    what_it_is: >
+      One automated test file touched incidentally by the grill migration.
+    evidence_paths:
+      - "core/components/plays/grill/scripts/test_validate_epics.py"
+    playbook: knowledge/review/tests.md
+    design_bearing: false
+    note: >
+      Layer 1 only per tests.md ("run, don't just read"). Not executed as part of
+      this design-grounding pass — that is quality-auditor's / the play's job, not
+      change-reviewer's. Flagging so it is not silently skipped downstream.
+
+  - name: stm_run_records
+    what_it_is: >
+      This PR's own pipeline-run evidence for issue #500 — analysis, commit ledger,
+      PR metadata, resolved-rules snapshot, and the author's self-review.
+    evidence_paths:
+      - ".garura/project/issues/500/context/analysis.yaml"
+      - ".garura/project/issues/500/context/commits.yaml"
+      - ".garura/project/issues/500/context/pr.json"
+      - ".garura/project/issues/500/context/resolved-rules.json"
+      - ".garura/project/issues/500/context/self-review.md"
+    playbook: null
+    design_bearing: false
+    note: >
+      Playbook missing. None of the seeded review/ categories (decision records, docs,
+      harness, memory, code, config-maps, tests) describe pipeline-run STM evidence for
+      the *-change sequence itself. These are administrative/evidentiary artifacts, not
+      design-bearing.
+    followup_task_needed: true
+    followup_task_description: >
+      Write (or fold into an existing shelf) a review-knowledge playbook for
+      `.garura/project/issues/*/context/**` pipeline-run STM evidence, so future
+      review-change runs classify it deterministically instead of via ad-hoc judgment.

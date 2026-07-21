@@ -1,0 +1,8 @@
+pr: 502
+decision: approve
+decided_by: human (reviewer, typed)
+recommendation: approve
+gate: "skipped by config (gates.plays.review-change=false); reviewer decision captured interactively"
+condition_met: "P2 (RQ-1 author-roadmap frontmatter) + all 8 P3 issue-number mislabels (RF-1/RF-2) fixed before approval — commit 9be62870; re-verified: frontmatter parses, 0 #499, remaining #498 all /understand cross-refs, 6 fingerprints match, all 12 lint_play PASS, 0 L-DMW"
+left_as_is:
+  - "RN-1 (P4): author-run-lens + check-cut-tensions pre-existing frontmatter parse failures (failed at base e7c24f97) — out of scope for #500"

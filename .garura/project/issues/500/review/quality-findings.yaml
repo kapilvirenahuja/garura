@@ -1,0 +1,168 @@
+meta:
+  pr: 502
+  issue: 500
+  base: e7c24f973d58fbc375cc52646a23c17286214647
+  changed_paths_count: 123
+  scan_tool: core/components/skills/quality-check-scoped/scripts/scan_taxonomy.py
+  taxonomy: core/components/memory/standards/rules/pr.md
+  generated_at: "2026-07-21T00:14:22Z"
+
+artifact_type_tally:
+  garura-prose: 118      # core/components/plays/**/SKILL.md, reference/ice.md, stop-condition.yaml, scripts/*.py (core/components/** rule), author-*/check-cut-tensions SKILL.md
+  stm-evidence: 5         # .garura/project/issues/500/context/*
+  runtime-code: 0
+  deployable-config: 0
+  tests: 0
+  docs-planning: 0
+  productos-model: 0
+  wireframe: 0
+
+scan_taxonomy_result:
+  standards_relevant: 0
+  scan_coverage: 1.0
+  catchall_CODE-20: 123
+  counts: {P1: 0, P2: 0, P3: 0, P4: 0}
+  note: >
+    Zero standard-ID findings. Every changed path classified garura-prose or
+    stm-evidence (core/components/** and .garura/project/** glob rules, first
+    match wins) so grep-based CODE-* rules never became eligible, and no
+    path: rule's matched glob was docs-targeting. This is the taxonomy
+    operating as designed on a garura-native PR (all 12 plays' scripts live
+    under core/components/plays/**), not a coverage gap.
+
+executed_checks:
+  py_compile:
+    files_checked: 45
+    pattern: "persist_*.py, scoped_write_guard.py, classify_change.py, validate_*.py across all 12 play dirs (44), plus roadmap/scripts/snapshot_model.py (1) — the one other changed .py file in the diff not matching those four name patterns"
+    result: PASS
+    failures: 0
+    detail: "All 45 changed/present Python scripts compiled cleanly with `python3 -m py_compile`, including roadmap/scripts/snapshot_model.py."
+    roadmap_validate_removal:
+      finding: >
+        roadmap/scripts/validate_roadmap.py was deleted (D in diff) with no
+        replacement validate_*.py added. Objectively checked via
+        `grep -rn validate_roadmap core/components/plays/roadmap/`: the only
+        hit is SKILL.md's own "Recompiled note (#500, direct-model-write /
+        ADR 026)" section (line 561), which documents the removal as an
+        intentional part of the draft-then-apply -> direct-model-write
+        migration ("the validate_roadmap.py before/after verify are
+        removed"). No SKILL.md step, stop-condition.yaml clause, or
+        ice.md reference still invokes it. lint_play.py also passed roadmap
+        with 0 gaps. Not a broken reference or coverage gap — documented,
+        intentional removal. Not raised as a finding.
+
+  lint_play:
+    tool: core/components/plays/play-creator/scripts/lint_play.py
+    plays_checked: 12
+    results:
+      agentic:  {verdict: PASS, gaps: 0}
+      arch:     {verdict: PASS, gaps: 0}
+      grill:    {verdict: PASS, gaps: 0}
+      learn:    {verdict: PASS, gaps: 0}
+      marketing: {verdict: PASS, gaps: 0}
+      measure:  {verdict: PASS, gaps: 0}
+      quality:  {verdict: PASS, gaps: 0}
+      roadmap:  {verdict: PASS, gaps: 0}
+      run:      {verdict: PASS, gaps: 0}
+      shape:    {verdict: PASS, gaps: 0}
+      ux:       {verdict: PASS, gaps: 0}
+      vision:   {verdict: PASS, gaps: 0}
+    result: PASS
+    total_gaps: 0
+
+  bundled_test:
+    search: "find core/components/plays/{12 play dirs}/scripts -name 'test_*.py'"
+    files_found: 1
+    file: core/components/plays/grill/scripts/test_validate_epics.py
+    note: "Only test file present across all 12 play script dirs."
+    result: PASS
+    subtests_passed: 6
+    subtests_total: 6
+
+  lint_components:
+    tool: core/tools/lint-components/index.js
+    current_run:
+      errors: 111
+      warnings: 1
+      L-DMW_violations: 0
+    baseline_run_e7c24f97:
+      errors: 118
+      warnings: 1
+      L-DMW_violations: 0
+    net_error_delta: -7
+    new_violations_vs_baseline:
+      - file: core/components/skills/author-roadmap/SKILL.md
+        rule: structural/frontmatter-parse-error
+        severity: P2
+        status: NEW — genuine regression
+        evidence: >
+          YAML bad indentation of a mapping entry at frontmatter char offset
+          483, inside the description field's added clause "...the play's
+          keyed persist consumes: this skill writes no model file...". The
+          unquoted colon-space ("consumes: this") inside a plain YAML scalar
+          is parsed as a nested mapping key. Base (e7c24f97) description had
+          no such colon-space sequence and parsed clean (with 3 separate
+          missing-section findings instead). This PR's edit to the
+          description text introduces the parse failure, which now also
+          masks lint-components' ability to run its missing-section check
+          against this file.
+        fix_suggestion: "Quote the description value or remove the colon-space inside the added clause."
+      - file: core/components/skills/author-run-lens/SKILL.md
+        rule: structural/frontmatter-parse-error
+        status: NOT NEW — pre-existing bug, offset shifted only
+        evidence: >
+          Same frontmatter-parse-error rule fired in baseline too (char
+          offset 181 in base vs 305 in current) — the PR's text edit to the
+          description moved the pre-existing colon-space trigger further
+          into the string. Confirmed by diffing base vs current file: the
+          bug class is identical, not newly introduced.
+      - file: core/components/skills/check-cut-tensions/SKILL.md
+        rule: structural/frontmatter-parse-error
+        status: NOT NEW — pre-existing bug, offset shifted only
+        evidence: >
+          Same rule fired in baseline (char offset 646 in base vs 711 in
+          current) — pre-existing bug, position shifted by the PR's text
+          edit, not a new defect.
+    resolved_violations_vs_baseline:
+      - {file: core/components/skills/author-ux-lens/SKILL.md, fixed: ["## Input", "## Output", "## Process"], note: "sections added by this PR, real fix"}
+      - {file: core/components/skills/author-learnings/SKILL.md, fixed: ["## Output"], note: "section added by this PR, real fix"}
+      - {file: core/components/skills/author-marketing-lens/SKILL.md, fixed: ["## Output"], note: "section added by this PR, real fix"}
+    missing_section_debt_on_author_skills:
+      status: PRE-EXISTING, confirmed against baseline
+      note: >
+        The bulk of both baseline (118) and current (111) error counts is
+        pre-existing missing-section/missing-frontmatter-field debt spread
+        across many unrelated skills (author-*, quality-check, kb-search,
+        derive-*, etc.) that are NOT in this PR's 123 changed paths — byte
+        identical between base and current, confirmed by direct file diff.
+        This is old debt, not introduced by PR #502.
+
+findings:
+  - id: F1
+    file: core/components/skills/author-roadmap/SKILL.md
+    rule_basis: "lint-components structural/frontmatter-parse-error (not a pr.md standard-ID; executed-check evidence)"
+    severity: P2
+    static_vs_executed: executed
+    description: >
+      This PR's edit introduces a YAML frontmatter parse failure in
+      author-roadmap/SKILL.md's description field (unquoted colon-space),
+      confirmed new against the e7c24f97 baseline. It also suppresses the
+      3 missing-section checks that used to run cleanly against this file.
+  - id: F2
+    file: "core/components/skills/{author-run-lens,check-cut-tensions}/SKILL.md"
+    rule_basis: "lint-components structural/frontmatter-parse-error"
+    severity: P4
+    static_vs_executed: executed
+    description: >
+      Pre-existing YAML frontmatter parse bug (same rule, same file, offset
+      shifted by this PR's text edits). Not introduced by PR #502 — flagged
+      only as noted debt, confirmed unchanged in kind against baseline.
+
+counts:
+  P1: 0
+  P2: 1
+  P3: 0
+  P4: 1
+  # F2 (roadmap validate_roadmap.py removal) demoted from finding to a
+  # documented, intentional design change after grep confirmed no live
+  # reference remains and SKILL.md's own Recompiled note explains it.

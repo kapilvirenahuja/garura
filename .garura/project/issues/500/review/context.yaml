@@ -1,0 +1,7 @@
+pr: 502
+issue: 500
+base: e7c24f973d58fbc375cc52646a23c17286214647
+standards_order: [kb, ltm, stm]
+review_shelf: /Users/kapilahuja/.garura/core/memory/knowledge/review/
+note: base (main) NOW INCLUDES #499 — direct-model-write.md contract, ADR 026, and the merged /understand reference are COMMITTED grounding, not diff-added.
+changed_paths_file: /private/tmp/claude-503/-Users-kapilahuja-cto-builder-garura/a33d9df1-0594-4fe2-bbab-a97dd119d6b8/scratchpad/review-502/names.txt

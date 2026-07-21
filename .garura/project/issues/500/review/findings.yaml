@@ -1,0 +1,42 @@
+pr: 502
+confidence: 1.0
+findings:
+  - id: RQ-1
+    category: harness
+    severity: P2
+    file: core/components/skills/author-roadmap/SKILL.md
+    defect: "NEW regression: the fanout edit added 'consumes: this skill writes...' to the description, and the ': ' breaks the YAML frontmatter parse (mapping values not allowed). Verified: the file parsed cleanly at base e7c24f97, fails now. Broken frontmatter also masks the file's other structural lint checks."
+    basis: "committed base version parses; YAML spec; quality-auditor executed check + orchestrator confirmed"
+    fix: "reword 'consumes:' → 'consumes —' (or quote the description) — one line"
+  - id: RF-1
+    category: harness
+    severity: P3
+    file: "vision, grill, ux, quality, marketing, measure, learn (7 plays)"
+    defect: "Provenance headers (and ux/marketing stop-condition.yaml comments) cite issue #498 — the prior /understand migration — instead of this PR's issue #500. Copy-paste from the reference. Only roadmap/arch/agentic/run correctly say #500."
+    basis: "context.yaml issue=500; base git history shows #498 = the /understand work"
+    fix: "s/#498/#500/ in the 7 plays' provenance notes (cosmetic, non-functional)"
+  - id: RF-2
+    category: harness
+    severity: P3
+    file: core/components/plays/shape/SKILL.md
+    defect: "shape cites #499 (the old PR number) in provenance instead of #500 — same mislabel class."
+    basis: "context.yaml issue=500"
+    fix: "s/#499/#500/ in shape's provenance note"
+  - id: RN-1
+    category: harness
+    severity: P4
+    file: "author-run-lens/SKILL.md, check-cut-tensions/SKILL.md"
+    defect: "PRE-EXISTING (not this PR): both have a frontmatter colon-space parse failure that already failed at base e7c24f97. check-cut-tensions was touched by grill's repoint but the bug pre-dates. Out of scope for #500; worth a separate cleanup."
+    basis: "base e7c24f97 versions fail to parse identically"
+  - id: RQ-EXEC
+    category: harness
+    severity: P4
+    file: multiple
+    defect: "Executed checks GREEN: 45 changed Python scripts py_compile ok; all 12 lint_play PASS (0 gaps); grill test_validate_epics 6/6; lint-components 0 L-DMW violations, 0 new violations vs base."
+    basis: "executed runnable checks (tests.md 'run don't just read')"
+  - id: RD-CONFORM
+    category: harness
+    severity: P4
+    file: "all 12 plays"
+    defect: "Design-grounding vs the COMMITTED direct-model-write.md + merged understand reference PASSED across all 12: write-then-review order (persist BEFORE checkpoint) holds everywhere (no L-DMW-6); classify git-mode kept for the 10 gated plays, correctly absent for grill/learn; fingerprints match sha256(ice.md); containment split + node-level keyed-persist refusals verified; clean-tree + feat(model) commit present."
+    basis: "committed direct-model-write.md, understand/, ADR 026, CLAUDE.md pipeline rules"
