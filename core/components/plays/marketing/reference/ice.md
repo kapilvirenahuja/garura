@@ -31,7 +31,7 @@ commits the functional pipe's lenses, opens the PR, takes the verdict, and merge
 the persistent product model **directly, in place** (the slice's marketing lens) on the
 already-started branch, and reads the hub only — never another lens. There is no draft copy and no
 apply/promote step; review is the branch git diff and the injected end PR. (#437; 3-pipe realize
-2026-06-25; #498, ADR 026)
+2026-06-25; #500, ADR 026)
 
 Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM authoring skill writes
 ONLY the per-node lens doc (`marketing.md`) straight to the live model (a re-derive — it overwrites a

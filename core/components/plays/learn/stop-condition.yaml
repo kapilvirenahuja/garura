@@ -1,5 +1,5 @@
 # learn stop condition — baked from reference/ice.md "### Done means" (#464/#466 Batch C;
-# #498 direct-model-write, ADR 026).
+# #500 direct-model-write, ADR 026).
 # Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
 # Single-pass play: the Done means is proven once, at the gated close. Paths are relative
 # to the run's STM root ({stm_base}{issue}/); <working> is its context/ dir.

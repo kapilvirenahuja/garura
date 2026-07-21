@@ -75,7 +75,7 @@ delta. On checkpoint cancel the whole written delta is reverted (`git restore` +
 
 This play was compiled from the grill ICE (`reference/ice.md`) by play-creator and
 recompiled via play-editor (#436, #437; closed-schema round-report fix; #466 Batch C —
-gated close per ADR 025; #498 — migrated to direct-model-write per ADR 026 and
+gated close per ADR 025; #500 — migrated to direct-model-write per ADR 026 and
 `standards/rules/direct-model-write.md`). Intent defines constraints (C1–C18) and failure
 conditions (F1–F19); the expectation defines success scenarios (S1–S8), a Done means
 (D1–D7, baked to `stop-condition.yaml`), and one recovery entry per failure condition.
@@ -734,7 +734,7 @@ human's answers converge it.
 | Field | Value |
 |-------|-------|
 | fingerprint | sha256:d566ecc331c24164ea2ddcdbfb0ef3066d94b943f8f6df333b6450f64e65d6fa (of `reference/ice.md`) |
-| compiled_by | play-editor (#498 direct-model-write, ADR 026); prior: play-editor (#466 Batch C — gated close per ADR 025: Done means baked, stop-condition gate at Step C0, session stamp, checkpoint class standard, uncapped human loop stated), play-creator (#434; edited via play-editor, #436, #437), play-editor (#434, decision 24; closed-schema round-report fix — F14); epic-lifecycle prose corrected #439 (see deviation note) |
+| compiled_by | play-editor (#500 direct-model-write, ADR 026); prior: play-editor (#466 Batch C — gated close per ADR 025: Done means baked, stop-condition gate at Step C0, session stamp, checkpoint class standard, uncapped human loop stated), play-creator (#434; edited via play-editor, #436, #437), play-editor (#434, decision 24; closed-schema round-report fix — F14); epic-lifecycle prose corrected #439 (see deviation note) |
 
 **Direct-edit deviation note (#439, ADR 019):** the epic-lifecycle sentence ("epics are temporary… deleted on merge") was corrected to "epics are permanent… stamped `delivered` on merge and kept" in both `reference/ice.md` and this compiled body, and the fingerprint recomputed to match. This is descriptive context about the epic's downstream life, not grill's own guarantee — no constraint, failure condition, scenario, step, or eval changed; grill still cuts epics and deletes nothing. No re-interview/rebuild required.
 | pipeline_position | both (start-change head; commit-change → propose-change → review-change → merge-change tail — self-contained) |
@@ -750,7 +750,7 @@ human's answers converge it.
 | scenario_evals | 8 (SCE-1…SCE-8) |
 | recovery_entries | 19 (one per failure condition; 13 autonomous / 6 human) |
 
-**Recompiled note (#498, direct-model-write / ADR 026):** migrated from draft-then-apply to
+**Recompiled note (#500, direct-model-write / ADR 026):** migrated from draft-then-apply to
 direct-model-write. The old draft model tree is removed; the author-epics skill writes each
 `epic.md` (and the slice's `deferrals.yaml`) straight to the live model and emits the spine
 `epics`-index delta as structured manifest data; the renamed keyed `persist_epics.py`
@@ -768,7 +768,7 @@ committed delta. Checkpoint cancel reverts the working tree via the guard `--res
 conditional learned gate — so no `classify_change.py` is bundled and no change-shape is
 classified. See `standards/rules/direct-model-write.md`.
 
-**Direct-edit deviation note (#498) — INTENT CHANGE, HAND-COMPILED, CONVERGENCE UNVERIFIED:**
+**Direct-edit deviation note (#500) — INTENT CHANGE, HAND-COMPILED, CONVERGENCE UNVERIFIED:**
 This SKILL was updated to the direct-model-write write-then-review shape (ADR 026) by a
 **hand-compile from `reference/ice.md`**, NOT by a `/play-editor` run. This is an intent change
 (it alters the write path, the containment guarantee, the checkpoint cancel semantics, and the

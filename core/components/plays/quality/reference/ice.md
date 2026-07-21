@@ -27,7 +27,7 @@ head and no close sequence, stops when its work is done, and leaves the branch f
 belongs to /run (the non-functional pipe's end). It writes the persistent product model **directly,
 in place** on the already-started branch (the slice's quality lens) — there is no draft copy and no
 apply/promote step; review is the branch git diff and the pipeline's end PR. It reads the hub only —
-never another lens. (#437; 3-pipe realize 2026-06-25; #498/ADR 026)
+never another lens. (#437; 3-pipe realize 2026-06-25; #500/ADR 026)
 
 Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM authoring skill writes
 ONLY the per-slice lens docs (`quality.md` and its machine sibling `quality-gates.yaml`) straight to

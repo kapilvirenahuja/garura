@@ -21,7 +21,7 @@ domain per run.
 checks, and that surface is a thin scaffold — this slice's piece of screen, not the whole
 UI. The product surface accretes slice by slice.
 
-**Pipeline position: none.** /shape is a MIDDLE play of the strategy pipeline (vision → understand → shape → roadmap): it expects to run on the branch /vision already started, injects no `start-change` head and no close sequence, stops when its work is done, and leaves the branch as-is for the next play to pick up. The close belongs to /roadmap. It writes the persistent product model **directly, in place** on the already-started branch — there is no draft copy and no apply/promote step; review is the branch git diff and the pipeline's end PR. (#437, #499, ADR 026)
+**Pipeline position: none.** /shape is a MIDDLE play of the strategy pipeline (vision → understand → shape → roadmap): it expects to run on the branch /vision already started, injects no `start-change` head and no close sequence, stops when its work is done, and leaves the branch as-is for the next play to pick up. The close belongs to /roadmap. It writes the persistent product model **directly, in place** on the already-started branch — there is no draft copy and no apply/promote step; review is the branch git diff and the pipeline's end PR. (#437, #500, ADR 026)
 
 **Write discipline (ADR 026, `standards/rules/direct-model-write.md`).** The LLM authoring
 skill writes ONLY the per-node record files — each slice, persona, journey, and decision
@@ -37,7 +37,7 @@ is a post-write scoped guard (`scoped_write_guard.py`), not a draft.
 
 This play was compiled from the shape ICE (`reference/ice.md`) by play-editor
 (#466 Batch C, Level 3 rollout per ADR 025; #467 Batch B — the checkpoint upgraded to a
-conditional learned gate, see `standards/rules/gate-config.md`; #499 — migrated to
+conditional learned gate, see `standards/rules/gate-config.md`; #500 — migrated to
 direct-model-write per ADR 026 and `standards/rules/direct-model-write.md`). Intent defines
 constraints (C1–C15) and failure conditions (F1–F16); the expectation defines success
 scenarios (S1–S8), a Done means (D1–D3, baked to `stop-condition.yaml`), and one
@@ -531,8 +531,8 @@ start — a resume continues its own in-progress delta.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:cb64a75262b8a3dcb6b36027182795afc669cdfaf04d20244d4ad6138dae51c9 (of `reference/ice.md`) |
-| compiled_by | play-editor (#499 direct-model-write, ADR 026); prior: play-editor (#467 Batch B, #466 Batch C) |
+| fingerprint | sha256:fc97705caf7b0b6d0895dc8f6e87c492fcb365a2e1d711f252734d37f4da0920 (of `reference/ice.md`) |
+| compiled_by | play-editor (#500 direct-model-write, ADR 026); prior: play-editor (#467 Batch B, #466 Batch C) |
 | pipeline_position | none |
 | position_exception | middle of the strategy pipeline — runs on the branch /vision started; the close belongs to /roadmap (#437) |
 | workflow_structure | A (single checkpoint — class: standard, conditional gate per gate-config.md #467; direct-model-write WRITE-THEN-REVIEW per ADR 026 — persist + guard + classify before the gate, commit after; stop-condition gated close) |
@@ -545,7 +545,7 @@ start — a resume continues its own in-progress delta.
 | scenario_evals | 8 (SCE-1…SCE-8) |
 | recovery_entries | 16 (one per failure condition; 12 autonomous / 4 human) |
 
-**Recompiled note (#499, direct-model-write / ADR 026):** migrated from draft-then-apply to
+**Recompiled note (#500, direct-model-write / ADR 026):** migrated from draft-then-apply to
 direct-model-write. The old draft model tree and the apply/check promotion scripts
 (`apply_shape.py`, `check_shape.py`) are removed; the authoring skill writes each per-node
 record (slice/persona/journey/decision + the `_deferred` bucket) straight to the live model;
@@ -564,7 +564,7 @@ writes. See `standards/rules/direct-model-write.md`.
 **Recompiled note (#467 Batch B):** checkpoint upgraded to a conditional learned gate;
 see `gate-config.md`.
 
-**Direct-edit deviation note (#499) — INTENT CHANGE, HAND-COMPILED, CONVERGENCE UNVERIFIED:**
+**Direct-edit deviation note (#500) — INTENT CHANGE, HAND-COMPILED, CONVERGENCE UNVERIFIED:**
 This SKILL was updated to the direct-model-write write-then-review shape (ADR 026) by a
 **hand-compile from `reference/ice.md`**, NOT by a `/play-editor` run. This is an intent change
 (it alters the write path, the containment guarantee, the checkpoint cancel semantics, and the

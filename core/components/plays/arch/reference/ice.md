@@ -28,7 +28,7 @@ already-started branch. No close sequence is injected here; the non-functional p
 place** on the started branch — there is no draft copy and no apply/promote step; review is the
 branch git diff and the pipe's end PR. It reads the hub (the slice's functionalities' grounding +
 the profile) and MAY read the already-merged functional lens docs (ux/agentic/marketing), never
-the measure or run lens. (#437, decision 24; 3-pipe realize 2026-06-26; #498/#500 direct-model-write, ADR 026)
+the measure or run lens. (#437, decision 24; 3-pipe realize 2026-06-26; #500 direct-model-write, ADR 026)
 
 Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM authoring skill
 writes ONLY the per-node lens doc (`architecture.md`) straight to the live model, re-deriving

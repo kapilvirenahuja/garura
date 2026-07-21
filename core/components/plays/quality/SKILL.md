@@ -18,7 +18,7 @@ profile (both from the spine) — and never another realize lens.
 close sequence, stops when its work is done, and leaves the branch for /run. The close belongs to
 /run. It writes the persistent product model **directly, in place** on the already-started branch
 (the slice's quality lens) — there is no draft copy and no apply/promote step; review is the branch
-git diff and the pipeline's end PR. (#437, #498, ADR 026)
+git diff and the pipeline's end PR. (#437, #500, ADR 026)
 
 **Write discipline (ADR 026, `standards/rules/direct-model-write.md`).** The LLM authoring skill
 writes ONLY the per-node lens docs (`quality.md` and its machine sibling `quality-gates.yaml`)
@@ -32,7 +32,7 @@ post-write scoped guard (`scoped_write_guard.py`), not a draft.
 
 This play was compiled from the quality ICE (`reference/ice.md`) by play-editor (#466 Batch C;
 #467 Batch B — the checkpoint upgraded to a conditional learned gate, see
-`standards/rules/gate-config.md`; #498 — migrated to direct-model-write per ADR 026 and
+`standards/rules/gate-config.md`; #500 — migrated to direct-model-write per ADR 026 and
 `standards/rules/direct-model-write.md`). Intent defines constraints (C1–C12) and failure conditions
 (F1–F13); the expectation defines success scenarios (S1–S6), a Done means (D1–D4, baked to
 `stop-condition.yaml`), and one recovery entry per failure condition. To modify this play, update
@@ -477,8 +477,8 @@ continues its own in-progress delta.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:ccd1d67dfe818c7cbe8643b5901cb51210bfb18a826edba768bc4228993f3c4b (of `reference/ice.md`) |
-| compiled_by | play-editor (#498 direct-model-write, ADR 026); prior: play-editor (#466 Batch C; #467 Batch B — conditional learned gate) |
+| fingerprint | sha256:387b35863215da93b3e57ade968d6368071a0399fb8ceb297f253d28e6b90dcb (of `reference/ice.md`) |
+| compiled_by | play-editor (#500 direct-model-write, ADR 026); prior: play-editor (#466 Batch C; #467 Batch B — conditional learned gate) |
 | pipeline_position | none |
 | position_exception | middle of the non-functional realize pipe — runs on the branch /arch started; the close belongs to /run |
 | workflow_structure | A (single checkpoint — conditional learned gate, class: standard, per gate-config.md #467; direct-model-write WRITE-THEN-REVIEW per ADR 026 — persist + guard + classify before the gate, commit after; gated close) |
@@ -491,7 +491,7 @@ continues its own in-progress delta.
 | scenario_evals | 6 (SCE-1…SCE-6) |
 | recovery_entries | 13 (one per failure condition; 10 autonomous / 3 human) |
 
-**Recompiled note (#498, direct-model-write / ADR 026):** migrated from draft-then-apply to
+**Recompiled note (#500, direct-model-write / ADR 026):** migrated from draft-then-apply to
 direct-model-write. The old draft model tree and the `apply_quality.py`/`check_quality.py` promotion +
 verify scripts are removed; the authoring skill writes the per-node lens docs (`quality.md` +
 `quality-gates.yaml`) straight to the live model; the new keyed `persist_quality.py` writes the shared
@@ -511,7 +511,7 @@ persist step, so both coexist as C12 describes. See `standards/rules/direct-mode
 **Recompiled note (#467 Batch B):** checkpoint upgraded to a conditional learned gate; see
 `gate-config.md`.
 
-**Direct-edit deviation note (#498) — INTENT CHANGE, HAND-COMPILED, CONVERGENCE UNVERIFIED:**
+**Direct-edit deviation note (#500) — INTENT CHANGE, HAND-COMPILED, CONVERGENCE UNVERIFIED:**
 This SKILL was updated to the direct-model-write write-then-review shape (ADR 026) by a
 **hand-compile from `reference/ice.md`**, NOT by a live `/play-editor` run. This is an intent change
 (it alters the write path, the containment guarantee, the checkpoint cancel semantics, and the step

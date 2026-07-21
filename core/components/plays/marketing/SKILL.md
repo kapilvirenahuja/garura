@@ -21,7 +21,7 @@ the lens is persisted and verified — injects the close sequence `commit-change
 review-change → merge-change`, committing the functional pipe's lenses, opening the PR, taking the
 verdict, and merging to main. It writes the persistent product model **directly, in place** (the
 slice's marketing lens) on the already-started branch — there is no draft copy and no apply/promote
-step; review is the branch git diff and the injected end PR. (#437; 3-pipe realize 2026-06-26; #498,
+step; review is the branch git diff and the injected end PR. (#437; 3-pipe realize 2026-06-26; #500,
 ADR 026)
 
 **Write discipline (ADR 026, `standards/rules/direct-model-write.md`).** The LLM authoring skill
@@ -40,7 +40,7 @@ sequence carries a committed model change. Containment is a post-write scoped gu
 
 This play was compiled from the marketing ICE (`reference/ice.md`) by play-editor (#466 Batch C;
 #467 Batch B — the checkpoint upgraded to a conditional learned gate, see
-`standards/rules/gate-config.md`; #498 — migrated to direct-model-write per ADR 026 and
+`standards/rules/gate-config.md`; #500 — migrated to direct-model-write per ADR 026 and
 `standards/rules/direct-model-write.md`). Intent defines constraints (C1–C14) and failure conditions
 (F1–F15); the expectation defines success scenarios (S1–S6), a Done means (D1–D3, baked to
 `stop-condition.yaml`), and one recovery entry per failure condition. To modify this play, update
@@ -535,8 +535,8 @@ clean-tree assertion (F15) is scoped to a FRESH start — a resume continues its
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:c83204c088eea51358e0117cf99217c805961858688b4a002f30edf9cee6be34 (of `reference/ice.md`) |
-| compiled_by | play-editor (#498 direct-model-write, ADR 026); prior: play-editor (#467 Batch B, #466 Batch C) |
+| fingerprint | sha256:5c87cf97b0171de982224d994450d8c925ebd8681b325458aeaa3e9b0c39897e (of `reference/ice.md`) |
+| compiled_by | play-editor (#500 direct-model-write, ADR 026); prior: play-editor (#467 Batch B, #466 Batch C) |
 | pipeline_position | end (closes the functional realize pipe; injects commit → propose → review → merge) |
 | position_exception | model-writing end play — writes the model on the already-started branch and commits its own `feat(model)` model delta after approval (C14); the injected end sequence then raises/reviews/lands it (#437) |
 | workflow_structure | A (single checkpoint — class: standard, conditional learned gate per gate-config.md #467; direct-model-write WRITE-THEN-REVIEW per ADR 026 — persist + guard + classify before the gate, `feat(model)` commit after; gated close) |
@@ -549,7 +549,7 @@ clean-tree assertion (F15) is scoped to a FRESH start — a resume continues its
 | scenario_evals | 6 (SCE-1…SCE-6) |
 | recovery_entries | 15 (one per failure condition; 10 autonomous / 5 human) |
 
-**Recompiled note (#498, direct-model-write / ADR 026):** migrated from draft-then-apply to
+**Recompiled note (#500, direct-model-write / ADR 026):** migrated from draft-then-apply to
 direct-model-write. The old draft model tree and the `apply_marketing.py`/`check_marketing.py`
 promotion + before/after verify path are removed; the authoring skill (`author-marketing-lens`)
 writes the slice's `marketing.md` straight to the live model (a re-derive) and emits any decision as
@@ -580,7 +580,7 @@ if a stop-condition-level guarantee is wanted (NOT the before/after diff that wa
 **Recompiled note (#467 Batch B):** checkpoint upgraded to a conditional learned gate; see
 `gate-config.md`.
 
-**Direct-edit deviation note (#498) — INTENT CHANGE, HAND-COMPILED, CONVERGENCE UNVERIFIED:**
+**Direct-edit deviation note (#500) — INTENT CHANGE, HAND-COMPILED, CONVERGENCE UNVERIFIED:**
 This SKILL was updated to the direct-model-write write-then-review shape (ADR 026) by a
 **hand-compile from `reference/ice.md`**, NOT by a `/play-editor` run. This is an intent change (it
 alters the write path, the containment guarantee, the checkpoint cancel semantics, and the step

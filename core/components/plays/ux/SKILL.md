@@ -19,7 +19,7 @@ off fresh main, optional worktree, init STM — so /agentic and /marketing run o
 already-started branch. No pipeline close sequence (no end PR) is injected here; the functional
 pipe closes at /marketing. It writes the persistent product model **directly, in place** (the
 slice's ux lens and the visual-core decision) on the started branch — there is no draft copy and
-no apply/promote step; review is the branch git diff and the pipeline's end PR. (#437, #498, ADR 026)
+no apply/promote step; review is the branch git diff and the pipeline's end PR. (#437, #500, ADR 026)
 
 **Write discipline (ADR 026, `standards/rules/direct-model-write.md`).** The LLM authoring skill
 writes ONLY the per-node grounding doc `ux.md` straight to the live model; the one shared-file
@@ -34,7 +34,7 @@ scoped guard (`scoped_write_guard.py`), not a draft.
 
 This play was compiled from the ux ICE (`reference/ice.md`) by play-editor (#466 Batch C; #467
 Batch B — the checkpoint upgraded to a conditional learned gate, see
-`standards/rules/gate-config.md`; #498 — migrated to direct-model-write per ADR 026 and
+`standards/rules/gate-config.md`; #500 — migrated to direct-model-write per ADR 026 and
 `standards/rules/direct-model-write.md`). Intent defines constraints (C1–C13) and failure
 conditions (F1–F14); the expectation defines success scenarios (S1–S6), a Done means (D1–D3, baked
 to `stop-condition.yaml`), and one recovery entry per failure condition. To modify this play,
@@ -517,8 +517,8 @@ start — a resume continues its own in-progress delta.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:52c1b9d6ea10749ff23557038bf1f33fd4a030d9fd55528152a092224c6383e7 (of `reference/ice.md`) |
-| compiled_by | play-editor (#498 direct-model-write, ADR 026); prior: play-editor (#467 Batch B, #466 Batch C) |
+| fingerprint | sha256:0d18d26db5ffd9253213d30716f46e3caac8652d25cf8ef743a1e0b91a1805a7 (of `reference/ice.md`) |
+| compiled_by | play-editor (#500 direct-model-write, ADR 026); prior: play-editor (#467 Batch B, #466 Batch C) |
 | pipeline_position | start (functional pipe head; the functional pipe closes at /marketing) |
 | workflow_structure | A (single checkpoint — class: standard, conditional learned gate per gate-config.md #467; direct-model-write WRITE-THEN-REVIEW per ADR 026 — persist + guard + classify before the gate, commit after; stop-condition gated close) |
 | stop_condition | stop-condition.yaml (D1–D3), gate live at Step C0 |
@@ -530,7 +530,7 @@ start — a resume continues its own in-progress delta.
 | scenario_evals | 6 (SCE-1…SCE-6) |
 | recovery_entries | 14 (one per failure condition; 11 autonomous / 3 human) |
 
-**Recompiled note (#498, direct-model-write / ADR 026):** migrated from draft-then-apply to
+**Recompiled note (#500, direct-model-write / ADR 026):** migrated from draft-then-apply to
 direct-model-write. The old draft model tree and the `apply_ux.py`/`check_ux.py` promotion+verify
 scripts are removed; the authoring skill writes `ux.md` straight to the live model; the new keyed
 `persist_ux.py` writes the visual-core decision in place (skip-if-exists, keyed to the slice);
@@ -547,7 +547,7 @@ reverts the uncommitted writes. See `standards/rules/direct-model-write.md`.
 **Recompiled note (#467 Batch B):** checkpoint upgraded to a conditional learned gate; see
 `gate-config.md`.
 
-**Direct-edit deviation note (#498) — INTENT CHANGE, HAND-COMPILED, CONVERGENCE UNVERIFIED:**
+**Direct-edit deviation note (#500) — INTENT CHANGE, HAND-COMPILED, CONVERGENCE UNVERIFIED:**
 This SKILL was updated to the direct-model-write write-then-review shape (ADR 026) by a
 **hand-compile from `reference/ice.md`**, NOT by a `/play-editor` run. This is an intent change
 (it alters the write path, the containment guarantee, the checkpoint cancel semantics, and the

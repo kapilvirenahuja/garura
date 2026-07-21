@@ -517,7 +517,7 @@ FRESH start right after start-change — a resume continues its own in-progress 
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:82e42aff694f82e69c1fe48e6c7ce09d02de5240b21d9525450645f1c1b43ee9 (of `reference/ice.md`) |
+| fingerprint | sha256:ccc8313690cd591e2f551ad6920000c62499c0210201e08ce8258f10eda9296e (of `reference/ice.md`) |
 | compiled_by | play-editor (#500 direct-model-write, ADR 026); prior: play-editor (#467 Batch B, #466 Batch C) |
 | pipeline_position | start (non-functional pipe head; the non-functional pipe closes at /run) |
 | position_exception | model-writing start play — writes the model on the started branch and commits its own model delta (C13); the pipe end PR belongs to /run |

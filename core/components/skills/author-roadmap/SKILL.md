@@ -1,6 +1,6 @@
 ---
 name: author-roadmap
-description: Draft /roadmap's plan over the vertical slices /shape produced — for each slice estimate its effort, resolve its dependency_notes (plus shared functionalities and those functionalities' spine depends_on) into concrete depends_on slice ids, and propose a value order. Writes a draft only (plan-draft.yaml in STM), never the live model and never the final order numbers. Under direct-model-write (ADR 026) this draft IS the manifest data the play's keyed persist consumes: this skill writes no model file — the coherent order (compute_plan.py) and the in-place spine write (persist_roadmap.py) are the play's deterministic scripts, not this skill.
+description: Draft /roadmap's plan over the vertical slices /shape produced — for each slice estimate its effort, resolve its dependency_notes (plus shared functionalities and those functionalities' spine depends_on) into concrete depends_on slice ids, and propose a value order. Writes a draft only (plan-draft.yaml in STM), never the live model and never the final order numbers. Under direct-model-write (ADR 026) this draft IS the manifest data the play's keyed persist consumes — this skill writes no model file — the coherent order (compute_plan.py) and the in-place spine write (persist_roadmap.py) are the play's deterministic scripts, not this skill.
 version: 0.3.0
 user-invocable: false
 model: opus

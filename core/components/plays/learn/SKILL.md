@@ -39,7 +39,7 @@ is no draft model copy and no apply/promote step.
 
 ## Compiled From
 
-This play was compiled from the learn ICE (`reference/ice.md`) by play-editor (#466 Batch C; #498 —
+This play was compiled from the learn ICE (`reference/ice.md`) by play-editor (#466 Batch C; #500 —
 migrated to direct-model-write per ADR 026 and `standards/rules/direct-model-write.md`). Intent
 defines constraints (C1–C14) and failure conditions (F1–F14); the expectation defines success
 scenarios (S1–S6), a Done means (D1–D3, baked to `stop-condition.yaml`), and one recovery entry per
@@ -496,7 +496,7 @@ resume that already wrote model docs continues its own in-progress delta.
 | Field | Value |
 |-------|-------|
 | fingerprint | sha256:61a011a3d94e08d4b0aea6eb213b7b004eca097e39878837124ad9f23b6f4500 (of `reference/ice.md`) |
-| compiled_by | play-editor (#498 direct-model-write, ADR 026); prior: play-editor (#466 Batch C) |
+| compiled_by | play-editor (#500 direct-model-write, ADR 026); prior: play-editor (#466 Batch C) |
 | pipeline_position | both (injects start-change head and commit → propose → review → merge close) |
 | workflow_structure | A (single checkpoint, class standard, config-gated per gate-config.md; direct-model-write WRITE-THEN-REVIEW per ADR 026 — persist + guard before the gate, commit after; stop-condition gated close) |
 | model_writes | yes |
@@ -508,7 +508,7 @@ resume that already wrote model docs continues its own in-progress delta.
 | scenario_evals | 6 (SCE-1…SCE-6) |
 | recovery_entries | 14 (one per failure condition; 8 autonomous / 6 human) |
 
-**Recompiled note (#498, direct-model-write / ADR 026):** migrated from draft-then-apply to
+**Recompiled note (#500, direct-model-write / ADR 026):** migrated from draft-then-apply to
 direct-model-write. The old draft model tree and the `apply_learn.py` / `check_apply_learn.py`
 promotion + verify scripts are removed; the authoring skill (author-learnings) writes the per-node
 grounding docs straight to the live model and emits the spine deltas + decision records as manifest
@@ -525,7 +525,7 @@ BEFORE the injected `commit-change` — which then handles only what remains unc
 ADRs). /learn's checkpoint is a #466 default-on config gate, NOT a #467 conditional learned gate, so
 no `classify_change.py` and no gate ledger/policy are used. See `standards/rules/direct-model-write.md`.
 
-**Direct-edit deviation note (#498) — INTENT CHANGE, HAND-COMPILED, CONVERGENCE UNVERIFIED:**
+**Direct-edit deviation note (#500) — INTENT CHANGE, HAND-COMPILED, CONVERGENCE UNVERIFIED:**
 This SKILL was updated to the direct-model-write write-then-review shape (ADR 026) by a
 **hand-compile from `reference/ice.md`**, NOT by a `/play-editor` run. This is an intent change (it
 alters the write path, the containment guarantee, the checkpoint cancel semantics, and the step

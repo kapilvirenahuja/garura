@@ -30,7 +30,7 @@ pipe closes at /marketing. It writes the persistent product model **directly, in
 slice's ux lens and the visual-core decision) on the started branch — there is no draft copy and
 no apply/promote step; review is the branch git diff and the pipeline's end PR. It reads the hub
 only (the slice's functionalities' grounding + the profile); never another lens. (#437,
-decision 24; 3-pipe realize 2026-06-25; #498, ADR 026)
+decision 24; 3-pipe realize 2026-06-25; #500, ADR 026)
 
 Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM authoring skill
 writes ONLY the per-node grounding doc (`ux.md`) straight to the live model; the one shared-file
