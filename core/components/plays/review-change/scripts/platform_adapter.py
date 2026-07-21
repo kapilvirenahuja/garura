@@ -113,7 +113,7 @@ def _gh(verb, args, repo):
         _opt(argv, "--assignee", a.get("assignee"))
         return [argv]
     if verb == "merge-pr":
-        return [["gh", "pr", "merge", str(a["pr_number"])]]
+        return [["gh", "pr", "merge", str(a["pr_number"]), "--merge"]]
     if verb == "view-issue":
         return [["gh", "issue", "view", str(a["issue_number"]), "--json",
                  "number,title,labels,state,body,url,closedAt"]]
