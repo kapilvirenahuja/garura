@@ -96,9 +96,15 @@ List open issues matching a search query:
 gh issue list \
   --state {state} \
   --search "{query}" \
-  --json number,title,updatedAt,labels,state \
+  --json {fields} \
   --limit {limit}
 ```
+
+`{fields}` is optional. When the caller does not pass it, substitute the default
+`number,title,updatedAt,labels,state` — existing callers are unchanged. A caller
+that needs more (e.g. `/focus` selecting by assignee, age, or close date) passes
+its own comma-separated `gh` JSON field list, such as
+`number,title,url,state,createdAt,updatedAt,closedAt,labels,assignees`.
 
 ## close-issue
 
