@@ -3,6 +3,7 @@
   "version": 2,
   "record": {
     "tool": "claude",
+    "scope": "harness",
     "components": [
       ".claude/agents/change-reviewer.md",
       ".claude/agents/project-orchestrator.md",
@@ -19,6 +20,7 @@
       ".claude/skills/setup-branch",
       ".claude/skills/submit-pr",
       ".claude/skills/commit-change",
+      ".claude/skills/focus",
       ".claude/skills/merge-change",
       ".claude/skills/play-creator",
       ".claude/skills/play-editor",
@@ -29,14 +31,13 @@
     "counts": {
       "agents": 4,
       "skills": 10,
-      "plays": 7
+      "plays": 8
     },
     "instruction_surface": "CLAUDE.md.new",
     "config": ".garura/core/config.yaml",
     "memory": "/Users/kapilahuja/.garura/core/memory",
     "global_files": [],
     "status_gitignore": ".garura/.gitignore",
-    "retired": [],
-    "trimmed": "2026-07-04: scoped to harness set (meta plays + change chain + their workers) on user direction"
+    "retired": []
   }
 }
