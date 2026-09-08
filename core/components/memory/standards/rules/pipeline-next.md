@@ -65,6 +65,7 @@ next:
 
   # Navigation
   next:           { command: null,           why: "next is the recommender — it has no successor" }
+  focus:          { command: null,           why: "focus is the issue-side navigator — it recommends, it has no successor" }
 
   # Change chain (git members)
   start-change:   { command: null,           why: "injected at a play's head; the opened play continues" }

@@ -1,0 +1,68 @@
+# focus — the kind map.
+#
+# The single place /focus decides what an issue IS and which garura play to run
+# for it. Both are FIXED TABLE LOOKUPS over the issue's labels. Nothing here is
+# inferred, and /focus never reads the product model to work a play out — that is
+# /next's job, and a second recommender that disagrees with the first is worse
+# than none (C11).
+#
+# THE CARDINAL RULE (C12): silence beats a wrong answer. A row with no `command`,
+# and any label set that matches no row at all, produce NO recommendation — not a
+# generic pointer, not a safe-looking default. The entry shows what is known and
+# stops there. A recommendation appears only where THIS table names a play.
+#
+# A project with its own label vocabulary edits THIS file. No recompile needed.
+#
+# The label vocabulary matches garura's own issue standard —
+# standards/templates/github-issue.md, "Labels" — so a project that opens issues
+# through the pipeline lands on the right kind without extra work.
+
+schema: { name: kind-map }
+
+# Checked top to bottom; FIRST match wins. Order is the precedence: a broken thing
+# outranks a planned thing, so an issue labelled both `bug` and `feature` reads as a
+# defect. Precedence is part of the contract — reorder it and the play's answers change.
+kinds:
+  - kind: defect
+    labels: [defect, bug]
+    command: fix-bug
+    says: "a defect — trace it to root cause and fix it"
+
+  - kind: epic
+    labels: [epic]
+    command: grill
+    says: "an epic — cut it into user-testable delivery epics"
+
+  - kind: refactor
+    labels: [refactor]
+    command: refactor
+    says: "a refactor — improve the code without changing behaviour"
+
+  - kind: feature
+    labels: [feature, enhancement]
+    command: shape
+    says: "new capability — shape it into a slice before building"
+
+  # No `command`: the kind is known, but no single play covers it. Per the cardinal
+  # rule these render with no recommendation at all.
+  - kind: docs
+    labels: [documentation]
+    command: null
+    says: "documentation work"
+
+  - kind: chore
+    labels: [chore]
+    command: null
+    says: "maintenance work"
+
+# Used when no label in the set matches any row above — including an issue with no
+# labels at all. `command: null` means NO recommendation is rendered. The play states
+# that it cannot tell, and names why; it never substitutes a default.
+fallback:
+  kind: unlabelled
+  command: null
+  says: "no kind label — /focus cannot tell what this is"
+
+# Rendered in place of a recommendation wherever `command` is null. It is a statement of
+# what is not known, NOT a recommendation, and must never name a play.
+no_command_note: "no recommendation (label it to get one)"
