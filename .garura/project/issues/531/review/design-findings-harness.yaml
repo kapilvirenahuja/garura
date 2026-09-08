@@ -1,0 +1,101 @@
+category: harness
+grounded_by: change-reviewer (Layer 2, PR #532 / issue 531)
+base_ref: main
+method: >
+  Reconstructed harness design principles from committed sources only (git show main:...
+  for prior/sibling files, docs/adr/**, and core/components/memory/standards/rules/** as
+  committed on main — never from this branch's own new prose) and checked the branch's
+  changed harness files (focus/SKILL.md, focus/reference/ice.md, focus/reference/kind-map.yaml,
+  focus/stop-condition.yaml, play-creator/SKILL.md, play-editor/SKILL.md,
+  platform-adapter/reference/github/verbs.md) for conformance.
+
+sources_consulted:
+  - git show main:core/components/memory/standards/rules/play-close.md
+  - git show main:core/components/memory/standards/rules/evidence-recording.md
+  - git show main:core/components/memory/standards/rules/pipeline-position.md
+  - git show main:core/components/memory/standards/rules/pipeline-next.md
+  - git show main:core/components/plays/next/SKILL.md   # sibling product-scoped play, precedent
+  - git show main:core/components/plays/play-editor/SKILL.md
+  - git show main:core/components/skills/platform-adapter/reference/github/verbs.md
+  - git show main:core/components/plays/play-creator/scripts/lint_play.py   # pre-branch linter
+  - docs/adr/017-folder-whitelist.md   # retires L1/L2 agent-count budgets
+  - docs/philosophy/architecture.md    # confirms ADR 017 retirement
+
+checks_run:
+  - "python3 <main's lint_play.py> against focus/SKILL.md -> PASS, 0 gaps (sections, C/F/S
+    coverage, 1:1 recovery, no orphans, position, close block, pre-flight resolver, stop
+    condition, fingerprint, next-command) — structural conformance grounded in the
+    pre-existing (main) linter, not the branch's own new check_unbacked_recommendation."
+  - "sha256 of core/components/plays/focus/reference/ice.md recomputed on disk and matches
+    the fingerprint recorded in focus/SKILL.md's Compilation Metadata exactly."
+  - "python3 <main's lint_play.py> against play-creator/SKILL.md and play-editor/SKILL.md
+    -> same FAIL/gap set as on main's pre-branch versions (both files are meta-exempt
+    compiler bootstraps per CLAUDE.md and pipeline-next.md's meta_exempt list) — confirmed
+    these gaps are pre-existing, not introduced by this PR."
+  - "Compared focus's product-scoped Standard Play Close block (evidence_base, <working>
+    session-stamp path, stop-condition base) against main's play-close.md canonical block
+    and the committed /next play's equivalent block — identical pattern, correctly adapted
+    for a position:none, product-scoped, no-issue play."
+  - "Compared platform-adapter verbs.md diff against main's version — the new {fields}
+    placeholder defaults to the exact same hardcoded field list main callers relied on,
+    so existing callers are unaffected; genuinely additive."
+  - "Traced the apparent tension between C12/F10/REC10 (never substitute even a generic
+    pointer) and REC9's phrase 'fall the entry back to unlabelled + the /next pointer' by
+    reading select_focus.py's actual resolve_kind(): the fallback command is always null;
+    no code path renders a per-entry '/next' recommendation. REC9's '/next pointer' refers
+    to the play-close's standard boilerplate Next line (rendered for every play regardless
+    of entries), not a substituted per-entry recommendation — no violation."
+
+findings:
+  - id: H-1
+    file: core/components/plays/focus/SKILL.md
+    severity: P4
+    principle: >
+      Play levels and agent-count ceilings (including the "≤5 domain agent" budget) were
+      formally retired: "A play is just a play — coherence is enforced by the intent
+      schema and evals, not by a level or agent-count budget."
+    committed_source: "docs/adr/017-folder-whitelist.md (section 'Play levels and
+      agent-count budgets retired'); corroborated by docs/philosophy/architecture.md line 48."
+    violation: >
+      focus/SKILL.md's Agent boundaries section states "project-orchestrator is the single
+      domain agent this play uses (1 of the ≤5 budget)" — restating a governance ceiling
+      ADR 017 explicitly removed from the framework.
+    mitigating_context: >
+      Not a deviation unique to this PR: the identical "(1 of the ≤5 budget)" / "within the
+      ≤5 budget" phrasing already appears, verbatim, in essentially every other committed
+      play on main (agentic, arch, deploy, fix-bug, grill, implement, launch, learn,
+      marketing, measure, next, quality, refactor, roadmap, run, shape, understand,
+      validate, ux). This PR only extends an existing repo-wide convention to a new play; it
+      does not introduce the inaccuracy. Flagged as a nit for awareness, not a blocker —
+      fixing it play-by-play in this PR would be out of proportion to its scope.
+
+  - id: H-2
+    file: core/components/plays/play-creator/scripts/lint_play.py
+    severity: P4
+    principle: >
+      "The linter checks the play is wired; only the play's own eval can check a given
+      run. That split is deliberate and matches play-close.md: the lint proves the guard
+      exists, the guard proves the run." (convergence-and-lint pattern established by the
+      pre-existing check_fanout_declaration check this new check is explicitly modeled on)
+    committed_source: "core/components/plays/focus/SKILL.md's own text describing
+      check_unbacked_recommendation as 'same shape as check_fanout_declaration' — verified
+      against git show main:core/components/plays/play-creator/scripts/lint_play.py, which
+      already contains check_fanout_declaration using the identical structural pattern
+      (frontmatter trigger -> require citation + constraint + failure regex)."
+    violation: none
+    note: >
+      Recorded as a conformance PASS, not a violation: check_unbacked_recommendation
+      follows the same convergence-and-lint shape as the pre-existing check_fanout_declaration
+      on main, so the new linter check is consistent with established linter design, not a
+      one-off pattern.
+
+summary:
+  P1: 0
+  P2: 0
+  P3: 0
+  P4: 2
+  total: 2
+  note: >
+    No P1-P3 harness design violations found. H-2 is a conformance note, not a defect
+    (included for completeness of the grounding trail). Only H-1 is a true finding, and it
+    is pre-existing house convention this PR extends rather than originates.

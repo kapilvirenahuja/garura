@@ -1,0 +1,2925 @@
+diff --git a/.garura/install-manifest.json b/.garura/install-manifest.json
+index bea0fb36..6726c3fc 100644
+--- a/.garura/install-manifest.json
++++ b/.garura/install-manifest.json
+@@ -3,6 +3,7 @@
+   "version": 2,
+   "record": {
+     "tool": "claude",
++    "scope": "harness",
+     "components": [
+       ".claude/agents/change-reviewer.md",
+       ".claude/agents/project-orchestrator.md",
+@@ -19,6 +20,7 @@
+       ".claude/skills/setup-branch",
+       ".claude/skills/submit-pr",
+       ".claude/skills/commit-change",
++      ".claude/skills/focus",
+       ".claude/skills/merge-change",
+       ".claude/skills/play-creator",
+       ".claude/skills/play-editor",
+@@ -29,14 +31,13 @@
+     "counts": {
+       "agents": 4,
+       "skills": 10,
+-      "plays": 7
++      "plays": 8
+     },
+     "instruction_surface": "CLAUDE.md.new",
+     "config": ".garura/core/config.yaml",
+     "memory": "/Users/kapilahuja/.garura/core/memory",
+     "global_files": [],
+     "status_gitignore": ".garura/.gitignore",
+-    "retired": [],
+-    "trimmed": "2026-07-04: scoped to harness set (meta plays + change chain + their workers) on user direction"
++    "retired": []
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/.garura/project/issues/531/context/analysis.yaml b/.garura/project/issues/531/context/analysis.yaml
+new file mode 100644
+index 00000000..942f7338
+--- /dev/null
++++ b/.garura/project/issues/531/context/analysis.yaml
+@@ -0,0 +1,74 @@
++---
++# analyze_changeset.py output (C8 fast path) — REPLACED by analyze-changes agent (needs_judgment resolved)
++# issue: 531
++needs_judgment: false
++
++change_groups:
++  - commit_type: feat
++    scope: focus
++    subject: add focus play surfacing tracked issues worth attention now
++    issue: 531
++    files:
++      - core/components/plays/focus/SKILL.md
++      - core/components/plays/focus/reference/ice.md
++      - core/components/plays/focus/reference/kind-map.yaml
++      - core/components/plays/focus/stop-condition.yaml
++      - core/components/plays/focus/scripts/check_output.py
++      - core/components/plays/focus/scripts/check_stop_condition.py
++      - core/components/plays/focus/scripts/preflight.py
++      - core/components/plays/focus/scripts/resolve_mode.py
++      - core/components/plays/focus/scripts/select_focus.py
++      - core/components/plays/focus/scripts/session_stamp.py
++      - core/components/memory/standards/rules/pipeline-next.md
++
++  - commit_type: feat
++    scope: guardrails
++    subject: add no-unbacked-recommendation standards rule
++    issue: 531
++    files:
++      - core/components/memory/standards/rules/no-unbacked-recommendation.md
++      - core/components/memory/standards/rules/_index.md
++
++  - commit_type: feat
++    scope: play-compiler
++    subject: enforce no-unbacked-recommendation rule in play compiler and editor
++    issue: 531
++    files:
++      - core/components/plays/play-creator/scripts/lint_play.py
++      - core/components/plays/play-creator/SKILL.md
++      - core/components/plays/play-editor/SKILL.md
++
++  - commit_type: feat
++    scope: platform-adapter
++    subject: add optional fields argument to list-issues verb
++    issue: 531
++    files:
++      - core/components/skills/platform-adapter/reference/github/verbs.md
++
++  - commit_type: chore
++    scope: install-garura
++    subject: add focus play to harness install scope
++    issue: 531
++    files:
++      - core/components/plays/install-garura/scripts/install.py
++
++exclusions:
++  - path: .garura/install-manifest.json
++    reason: regenerated run state produced by running the installer, not authored work
++  - path: .garura/project/issues/531/context/analysis.yaml
++    reason: this is the plan artifact being written by this analysis step, not a source change
++  - path: .garura/project/issues/531/context/porcelain.txt
++    reason: scratch git-status snapshot used during analysis, not authored work
++
++risks:
++  sensitive_files:
++    []
++  breaking_changes:
++    []
++  ambiguous_types:
++    []
++  hotfix_branch: false
++
++eval_gates:
++  SE-1: {status: PASS, evidence: "all 20 changed paths grouped by concern (5 groups) or excluded with reason; none dropped"}
++  SE-5: {status: PASS, evidence: "no sensitive patterns matched"}
+diff --git a/.garura/project/issues/531/context/branch.json b/.garura/project/issues/531/context/branch.json
+new file mode 100644
+index 00000000..5712ed19
+--- /dev/null
++++ b/.garura/project/issues/531/context/branch.json
+@@ -0,0 +1,6 @@
++{
++  "branch_name": "feature/531-focus-play-and-no-unbacked-recommendation-guardrail",
++  "base_sha": "648343b77cb45f54472b08f2a92651baa64fb66c",
++  "on_default_branch": false,
++  "worktree_path": null
++}
+\ No newline at end of file
+diff --git a/.garura/project/issues/531/context/commits.yaml b/.garura/project/issues/531/context/commits.yaml
+new file mode 100644
+index 00000000..2509a392
+--- /dev/null
++++ b/.garura/project/issues/531/context/commits.yaml
+@@ -0,0 +1,50 @@
++commits:
++  - sha: c1c16ff4
++    message: "feat(focus): add focus play surfacing tracked issues worth attention now (#531)"
++    files:
++      - core/components/plays/focus/SKILL.md
++      - core/components/plays/focus/reference/ice.md
++      - core/components/plays/focus/reference/kind-map.yaml
++      - core/components/plays/focus/stop-condition.yaml
++      - core/components/plays/focus/scripts/check_output.py
++      - core/components/plays/focus/scripts/check_stop_condition.py
++      - core/components/plays/focus/scripts/preflight.py
++      - core/components/plays/focus/scripts/resolve_mode.py
++      - core/components/plays/focus/scripts/select_focus.py
++      - core/components/plays/focus/scripts/session_stamp.py
++      - core/components/memory/standards/rules/pipeline-next.md
++    branch: feature/531-focus-play-and-no-unbacked-recommendation-guardrail
++  - sha: 54c1b74b
++    message: "feat(guardrails): add no-unbacked-recommendation standards rule (#531)"
++    files:
++      - core/components/memory/standards/rules/no-unbacked-recommendation.md
++      - core/components/memory/standards/rules/_index.md
++    branch: feature/531-focus-play-and-no-unbacked-recommendation-guardrail
++  - sha: 31475642
++    message: "feat(play-compiler): enforce no-unbacked-recommendation rule in play compiler and editor (#531)"
++    files:
++      - core/components/plays/play-creator/scripts/lint_play.py
++      - core/components/plays/play-creator/SKILL.md
++      - core/components/plays/play-editor/SKILL.md
++    branch: feature/531-focus-play-and-no-unbacked-recommendation-guardrail
++  - sha: 428f81a0
++    message: "feat(platform-adapter): add optional fields argument to list-issues verb (#531)"
++    files:
++      - core/components/skills/platform-adapter/reference/github/verbs.md
++    branch: feature/531-focus-play-and-no-unbacked-recommendation-guardrail
++  - sha: 0ebae41e
++    message: "chore(install-garura): add focus play to harness install scope (#531)"
++    files:
++      - core/components/plays/install-garura/scripts/install.py
++    branch: feature/531-focus-play-and-no-unbacked-recommendation-guardrail
++excluded_files:
++  - path: ".garura/project/issues/531/context/analysis.yaml"
++    reason: "this is the plan artifact being written by this analysis step, not a source change"
++  - path: ".garura/project/issues/531/context/porcelain.txt"
++    reason: "scratch git-status snapshot used during analysis, not authored work"
++  - sha: "5421a339"
++    message: "chore(install-garura): record focus in the install manifest (#531)"
++leftover_count: 0
++tree_clean: true
++pushed: false
++run_state_committed: true
+diff --git a/.garura/project/issues/531/context/issue.json b/.garura/project/issues/531/context/issue.json
+new file mode 100644
+index 00000000..31dc817a
+--- /dev/null
++++ b/.garura/project/issues/531/context/issue.json
+@@ -0,0 +1 @@
++{"resolved": false, "issue_number": 531, "title": "[FEAT] Add /focus play and the no-unbacked-recommendation guardrail", "created": true}
+diff --git a/.garura/project/issues/531/context/porcelain.txt b/.garura/project/issues/531/context/porcelain.txt
+new file mode 100644
+index 00000000..8205490b
+--- /dev/null
++++ b/.garura/project/issues/531/context/porcelain.txt
+@@ -0,0 +1,11 @@
++ M .garura/install-manifest.json
++ M core/components/memory/standards/rules/_index.md
++ M core/components/memory/standards/rules/pipeline-next.md
++ M core/components/plays/install-garura/scripts/install.py
++ M core/components/plays/play-creator/SKILL.md
++ M core/components/plays/play-creator/scripts/lint_play.py
++ M core/components/plays/play-editor/SKILL.md
++ M core/components/skills/platform-adapter/reference/github/verbs.md
++?? .garura/project/issues/531/context/porcelain.txt
++?? core/components/memory/standards/rules/no-unbacked-recommendation.md
++?? core/components/plays/focus/
+diff --git a/.garura/project/issues/531/context/pr-body.md b/.garura/project/issues/531/context/pr-body.md
+new file mode 100644
+index 00000000..1960d4b8
+--- /dev/null
++++ b/.garura/project/issues/531/context/pr-body.md
+@@ -0,0 +1,241 @@
++## What this does
++
++Two related pieces.
++
++**A new play, `/focus`.** The issue-side counterpart to `/next`. `/next` reads the product
++model and is forbidden from reading issues; `/focus` reads the tracked issue host and never
++touches the model. It cuts a long issue list to at most 10 entries using one of three fixed
++modes — `today` (open work you could pick up now), `review` (open work already in flight),
++`recent` (issues closed inside the last 7 days). Each entry carries its number, title, a
++plain-language reason built from the signals that selected it, what kind of issue it is,
++and — only where the kind map names one — the garura play to run for it.
++
++Selection, ordering, kind and recommendation are deterministic scripts. There is no
++inference after the issue capture. One agent exists, solely for the live host read, because
++scripts never shell out to gh.
++
++**The cardinal rule, as a garura-wide guardrail.** Silence beats a wrong answer: a play that
++recommends must be able to name what backs it, and where it cannot it says nothing rather
++than offering a default.
++
++This came from a real miss during the build. `/focus` rendered "run `/next`" on eight
++unlabelled issues; two of them were plainly defects whose correct answer was `/fix-bug`. The
++play was not wrong about what it knew — it was wrong to speak where it knew nothing. A blank
++would have read as "these need labels", which was true. "/next" read as "this is the answer",
++which was false. A default offered in place of an answer is worse than the gap it hides,
++because it hides the gap.
++
++The rule is now `standards/rules/no-unbacked-recommendation.md`, enforced by a new
++`lint_play.py` check that fires on any play whose description says it recommends, suggests,
++advises or ranks. It demands four things, not a good intention: a constraint, a failure
++condition, a step eval, and a recovery that **strips** the recommendation rather than picking
++a different one — absence is the correct answer, so recovery must not repair it into a guess.
++
++## Also in here
++
++- An additive optional `fields` argument on `platform-adapter`'s GitHub `list-issues` verb.
++  The default preserves the previous field list, so existing callers are unchanged. `/focus`
++  needs it to select on assignee, age and close date.
++- `focus` added to `install-garura`'s harness scope and to `pipeline-next.md`'s successor map.
++- `focus` added to the play roster in `docs/components/plays.md`.
++
++## Known and deliberate
++
++`/next` and `/review-change` **fail** the new lint check today. That is the guardrail working
++and staying visible, not a regression this PR introduces. It is tracked as #530, and the
++rule file's own state table says so rather than claiming coverage it does not have.
++
++## How it was verified
++
++- `lint_play.py` on `plays/focus/SKILL.md`: 13 checks, `VERDICT: PASS (0 gap(s))`, including
++  the new check.
++- `/focus` run end to end twice against the live issue host. Read-only proven: the captured
++  issue set is byte-identical before and after, and the host-verb log names only
++  `list-issues` and `view-user`.
++- The output enforcer: 11 checks, 0 gaps. Negative tests pass — a sneaked-in default
++  recommendation and a missing verb log both fail the run as they should.
++- Kind mapping tested on a labelled fixture: `defect`/`bug` → `/fix-bug`, `epic` → `/grill`,
++  `refactor` → `/refactor`, `feature` → `/shape`, `documentation`/`chore` and unlabelled →
++  no recommendation. Precedence holds: an issue labelled both `bug` and `feature` reads as a
++  defect.
++- Both GitHub and GitLab issue shapes tested (GitLab's `opened` normalizes to `open`).
++
++## Caveat worth knowing
++
++`start-change` does not apply a kind label to the issues it opens, so pipeline-opened issues
++come back `unlabelled` and carry no recommendation until someone labels them. In this repo
++that is 37 of 39 open issues. The feature works; it will look sparse until labels get used.
++
++Closes #531
++
++---
++
++# PR Analysis Output — Self-Review (Issue #531)
++
++**Rules source:** `/Users/kapilahuja/.garura/core/memory/standards/rules/self-review.md` (resolved at pre-flight, not re-resolved here)
++**Mode:** Branch-diff (`git diff origin/main...HEAD`)
++
++## Branch Info
++
++- **Current Branch**: `feature/531-focus-play-and-no-unbacked-recommendation-guardrail`
++- **Base Branch**: `main` (compared against `origin/main`)
++- **Branch Pattern**: feature
++
++## Change Summary
++
++- **Commits**: 9
++- **Files Changed**: 25
++- **Additions**: +2234
++- **Deletions**: -5
++
++## Suggested PR Title
++
++```
++feat(focus): add focus play and no-unbacked-recommendation guardrail
++```
++
++## Context Detected
++
++### File Patterns Matched
++
++| Pattern | Files |
++|---------|-------|
++| Play definitions (`**/plays/**/SKILL.md`, `**/plays/**/*.md`) | `focus/SKILL.md`, `focus/reference/ice.md`, `play-creator/SKILL.md`, `play-editor/SKILL.md`, `no-unbacked-recommendation.md`, `pipeline-next.md`, `_index.md` |
++| Scripts (mechanical, bundled with play) | `focus/scripts/*.py` (7 files) |
++| Configuration (`*.yaml`) | `focus/reference/kind-map.yaml`, `focus/stop-condition.yaml`, `.garura/install-manifest.json` |
++| Skill reference docs | `platform-adapter/reference/github/verbs.md` |
++| STM run artifacts (excluded from review scope per instruction) | `.garura/project/issues/531/context/*` (7 files) |
++
++### Commit Types Found
++
++| Type | Count | Examples |
++|------|-------|----------|
++| feat | 3 | `feat(focus): add focus play surfacing tracked issues worth attention now (#531)` |
++| chore | 6 | `chore(install-garura): add focus play to harness install scope (#531)` |
++
++## Quality Checklist (from self-review.md)
++
++### Scope checks
++
++| Item | Status | Evidence |
++|------|--------|----------|
++| Matches the issue | PASS | Every changed file maps to one of the four described pieces of work: the `focus` play, the `no-unbacked-recommendation` rule, its enforcement in `play-creator`/`play-editor`, and the two small enabling changes (`platform-adapter` fields arg, install-garura scope + pipeline-next entry). No unrelated files touched. |
++| No scope creep | PASS | Confirmed by file-by-file read of the diff; nothing rides along outside the four pieces above. |
++| Reasonable size | PASS | 25 files / +2234 is large for a single sitting, but ~1700 lines are the new play itself (`SKILL.md` 411, `ice.md` 239, 6 scripts totaling ~1123) plus its own reference data — normal size for a net-new compiled play, not sprawl. |
++| No stray artifacts | PASS | STM files under `.garura/project/issues/531/context/**` are the pipeline's own run records, not stray — confirmed by content read, not by path/status alone. No commented-out code, debug prints, or scratch files found in the diff. |
++
++### Quality checks
++
++| Item | Status | Evidence |
++|------|--------|----------|
++| Tests present | PASS | No unit-test framework exists in this repo (prompting/agentic project convention). Verification instead runs through `lint_play.py` (ran directly: `focus/SKILL.md` → `VERDICT: PASS (0 gap(s))`) and the play's own step evals (SE-1…SE-5, covering all 10 failure conditions) and scenario evals (SCE-1…SCE-8) declared in `SKILL.md`'s Compilation Metadata. All three new/changed scripts (`select_focus.py`, `check_output.py`, `resolve_mode.py`) parse cleanly (`ast.parse`, no syntax errors). |
++| Commits are clean | PASS | All 9 commits use conventional format and reference `(#531)`. One `chore(stm)` commit (`008ba74f`) corrects a preceding `chore(stm)` commit's own record within the same branch — self-contained, does not touch product code, and is a materially minor 2-line diff. |
++| No secrets | PASS | Ran a pattern scan (`api_key`, `secret`, `password`, `token`, PEM private-key headers) over the full diff. All matches are prose references to "path tokens" / "sessionId... token usage" in documentation — no actual credential, key, or secret value present. |
++| Docs in step | REVIEW (non-blocking) | `focus` is a new user-invocable play, comparable in standing to `/next` (which the play itself is described as the "issue-side counterpart" to). `docs/components/plays.md` carries a canonical play table that lists `next`, `commit-change`, `propose-change`, `review-change`, `merge-change`, etc., but has **not** been updated to add a `focus` row. `README.md`'s directory-tree listing is already a non-exhaustive sample (it also omits `play-editor`, `manage-issue`, etc.) so its omission is not itself a gap. Recommend adding a row to `docs/components/plays.md` before or shortly after merge — not required to raise, since the rule that would require it (`docs-consistent`, triggered by changes to `docs/components/**`) never fired because that file wasn't touched, and self-review is informational, not the gate. |
++| Nothing obviously broken | PASS | `git merge-tree --write-tree origin/main HEAD` returns a clean tree hash — no conflict markers. `lint_play.py` run directly against `core/components/plays/focus/SKILL.md` returns `VERDICT: PASS (0 gap(s))`, including the new `no-unbacked-recommendation` check. Verified the two "known-failing" plays cited in the task really do fail today and for the stated reason: `lint_play.py` on `next/SKILL.md` and `review-change/SKILL.md` both return `VERDICT: FAIL (1 gap(s))` with gap `no-unbacked-recommendation`, matching the state table in `no-unbacked-recommendation.md` ("caught, not yet wired (#530)") and issue #530 is named directly in the rule file. Verified the `platform-adapter` `fields` change is additive: the `gh issue list` template now takes `{fields}` with the doc stating existing callers are unchanged. Verified `focus/scripts/preflight.py`, `session_stamp.py`, `check_stop_condition.py` are stamped verbatim copies (per the task's own note); did not independently diff them against `play-creator/references/`, taking the stated design intent as given per the task's read-only scope. |
++
++## Blocking Issues
++
++None — ready to raise.
++
++## Readiness Assessment
++
++- **Ready**: yes
++- **Blocking Count**: 0
++- **Review Required (non-blocking)**: 1 — `docs/components/plays.md` play table doesn't yet list `focus`
++- **Recommendation**: Create PR
++
++---
++
++## YAML Output
++
++```yaml
++analysis:
++  branch: feature/531-focus-play-and-no-unbacked-recommendation-guardrail
++  base: main
++  branch_pattern: feature
++  commits: 9
++  changes:
++    files: 25
++    additions: 2234
++    deletions: 5
++  suggested_title: "feat(focus): add focus play and no-unbacked-recommendation guardrail"
++
++  context:
++    file_patterns_matched:
++      - name: "play-definitions"
++        files: 7
++        trigger: "**/plays/**/*.md"
++      - name: "scripts"
++        files: 7
++        trigger: "core/components/plays/focus/scripts/*.py"
++      - name: "configuration"
++        files: 3
++        trigger: "*.yaml, install-manifest.json"
++      - name: "skill-reference-docs"
++        files: 1
++        trigger: "core/components/skills/platform-adapter/reference/**"
++      - name: "stm-run-artifacts"
++        files: 7
++        trigger: ".garura/project/issues/531/context/**"
++    commit_types:
++      - type: "feat"
++        count: 3
++      - type: "chore"
++        count: 6
++    branch_modifiers: []
++
++  checklist:
++    must_have: []
++    nice_to_have:
++      - id: "scope-matches-issue"
++        item: "Matches the issue"
++        trigger: "self-review.md Scope checks"
++        status: "PASS"
++        evidence: "All 25 files map to the four described pieces of work"
++      - id: "scope-no-creep"
++        item: "No scope creep"
++        trigger: "self-review.md Scope checks"
++        status: "PASS"
++        evidence: "File-by-file diff read, no unrelated edits"
++      - id: "scope-size"
++        item: "Reasonable size"
++        trigger: "self-review.md Scope checks"
++        status: "PASS"
++        evidence: "Size driven by net-new compiled play (SKILL.md, ice.md, 6 scripts, kind-map)"
++      - id: "scope-no-stray-artifacts"
++        item: "No stray artifacts"
++        trigger: "self-review.md Scope checks"
++        status: "PASS"
++        evidence: "STM context files are the run's own records; no debug/scratch content found"
++      - id: "quality-tests-present"
++        item: "Tests present"
++        trigger: "self-review.md Quality checks"
++        status: "PASS"
++        evidence: "lint_play.py PASS 0 gaps on focus/SKILL.md; SE-1..SE-5 and SCE-1..SCE-8 declared; scripts parse cleanly"
++      - id: "quality-commits-clean"
++        item: "Commits are clean"
++        trigger: "self-review.md Quality checks"
++        status: "PASS"
++        evidence: "9/9 commits conventional-format, all reference (#531)"
++      - id: "quality-no-secrets"
++        item: "No secrets"
++        trigger: "self-review.md Quality checks"
++        status: "PASS"
++        evidence: "Pattern scan over full diff — no credential/key values found"
++      - id: "quality-docs-in-step"
++        item: "Docs in step"
++        trigger: "self-review.md Quality checks"
++        status: "REVIEW"
++        evidence: "docs/components/plays.md play table not updated to list focus; non-blocking, recommend follow-up"
++      - id: "quality-nothing-broken"
++        item: "Nothing obviously broken"
++        trigger: "self-review.md Quality checks"
++        status: "PASS"
++        evidence: "No merge conflicts (git merge-tree clean); lint_play.py PASS on focus; next/review-change confirmed failing for the stated, tracked (#530) reason; platform-adapter fields arg confirmed additive"
++
++  blocking_issues: []
++
++  ready: true
++  recommendation: "Create PR"
++```
+diff --git a/.garura/project/issues/531/context/pr.json b/.garura/project/issues/531/context/pr.json
+new file mode 100644
+index 00000000..70e6a037
+--- /dev/null
++++ b/.garura/project/issues/531/context/pr.json
+@@ -0,0 +1,6 @@
++{
++  "number": 532,
++  "url": "https://github.com/kapilvirenahuja/garura/pull/532",
++  "state": "OPEN",
++  "base": "main"
++}
+\ No newline at end of file
+diff --git a/.garura/project/issues/531/context/resolved-rules.json b/.garura/project/issues/531/context/resolved-rules.json
+new file mode 100644
+index 00000000..70b8f431
+--- /dev/null
++++ b/.garura/project/issues/531/context/resolved-rules.json
+@@ -0,0 +1,6 @@
++{
++  "resolved": true,
++  "path": "/Users/kapilahuja/.garura/core/memory/standards/rules/self-review.md",
++  "source": "/Users/kapilahuja/.garura/core/memory/standards/rules",
++  "is_override": false
++}
+diff --git a/.garura/project/issues/531/context/self-review.md b/.garura/project/issues/531/context/self-review.md
+new file mode 100644
+index 00000000..4bc1e3d5
+--- /dev/null
++++ b/.garura/project/issues/531/context/self-review.md
+@@ -0,0 +1,169 @@
++# PR Analysis Output — Self-Review (Issue #531)
++
++**Rules source:** `/Users/kapilahuja/.garura/core/memory/standards/rules/self-review.md` (resolved at pre-flight, not re-resolved here)
++**Mode:** Branch-diff (`git diff origin/main...HEAD`)
++
++## Branch Info
++
++- **Current Branch**: `feature/531-focus-play-and-no-unbacked-recommendation-guardrail`
++- **Base Branch**: `main` (compared against `origin/main`)
++- **Branch Pattern**: feature
++
++## Change Summary
++
++- **Commits**: 9
++- **Files Changed**: 25
++- **Additions**: +2234
++- **Deletions**: -5
++
++## Suggested PR Title
++
++```
++feat(focus): add focus play and no-unbacked-recommendation guardrail
++```
++
++## Context Detected
++
++### File Patterns Matched
++
++| Pattern | Files |
++|---------|-------|
++| Play definitions (`**/plays/**/SKILL.md`, `**/plays/**/*.md`) | `focus/SKILL.md`, `focus/reference/ice.md`, `play-creator/SKILL.md`, `play-editor/SKILL.md`, `no-unbacked-recommendation.md`, `pipeline-next.md`, `_index.md` |
++| Scripts (mechanical, bundled with play) | `focus/scripts/*.py` (7 files) |
++| Configuration (`*.yaml`) | `focus/reference/kind-map.yaml`, `focus/stop-condition.yaml`, `.garura/install-manifest.json` |
++| Skill reference docs | `platform-adapter/reference/github/verbs.md` |
++| STM run artifacts (excluded from review scope per instruction) | `.garura/project/issues/531/context/*` (7 files) |
++
++### Commit Types Found
++
++| Type | Count | Examples |
++|------|-------|----------|
++| feat | 3 | `feat(focus): add focus play surfacing tracked issues worth attention now (#531)` |
++| chore | 6 | `chore(install-garura): add focus play to harness install scope (#531)` |
++
++## Quality Checklist (from self-review.md)
++
++### Scope checks
++
++| Item | Status | Evidence |
++|------|--------|----------|
++| Matches the issue | PASS | Every changed file maps to one of the four described pieces of work: the `focus` play, the `no-unbacked-recommendation` rule, its enforcement in `play-creator`/`play-editor`, and the two small enabling changes (`platform-adapter` fields arg, install-garura scope + pipeline-next entry). No unrelated files touched. |
++| No scope creep | PASS | Confirmed by file-by-file read of the diff; nothing rides along outside the four pieces above. |
++| Reasonable size | PASS | 25 files / +2234 is large for a single sitting, but ~1700 lines are the new play itself (`SKILL.md` 411, `ice.md` 239, 6 scripts totaling ~1123) plus its own reference data — normal size for a net-new compiled play, not sprawl. |
++| No stray artifacts | PASS | STM files under `.garura/project/issues/531/context/**` are the pipeline's own run records, not stray — confirmed by content read, not by path/status alone. No commented-out code, debug prints, or scratch files found in the diff. |
++
++### Quality checks
++
++| Item | Status | Evidence |
++|------|--------|----------|
++| Tests present | PASS | No unit-test framework exists in this repo (prompting/agentic project convention). Verification instead runs through `lint_play.py` (ran directly: `focus/SKILL.md` → `VERDICT: PASS (0 gap(s))`) and the play's own step evals (SE-1…SE-5, covering all 10 failure conditions) and scenario evals (SCE-1…SCE-8) declared in `SKILL.md`'s Compilation Metadata. All three new/changed scripts (`select_focus.py`, `check_output.py`, `resolve_mode.py`) parse cleanly (`ast.parse`, no syntax errors). |
++| Commits are clean | PASS | All 9 commits use conventional format and reference `(#531)`. One `chore(stm)` commit (`008ba74f`) corrects a preceding `chore(stm)` commit's own record within the same branch — self-contained, does not touch product code, and is a materially minor 2-line diff. |
++| No secrets | PASS | Ran a pattern scan (`api_key`, `secret`, `password`, `token`, PEM private-key headers) over the full diff. All matches are prose references to "path tokens" / "sessionId... token usage" in documentation — no actual credential, key, or secret value present. |
++| Docs in step | REVIEW (non-blocking) | `focus` is a new user-invocable play, comparable in standing to `/next` (which the play itself is described as the "issue-side counterpart" to). `docs/components/plays.md` carries a canonical play table that lists `next`, `commit-change`, `propose-change`, `review-change`, `merge-change`, etc., but has **not** been updated to add a `focus` row. `README.md`'s directory-tree listing is already a non-exhaustive sample (it also omits `play-editor`, `manage-issue`, etc.) so its omission is not itself a gap. Recommend adding a row to `docs/components/plays.md` before or shortly after merge — not required to raise, since the rule that would require it (`docs-consistent`, triggered by changes to `docs/components/**`) never fired because that file wasn't touched, and self-review is informational, not the gate. |
++| Nothing obviously broken | PASS | `git merge-tree --write-tree origin/main HEAD` returns a clean tree hash — no conflict markers. `lint_play.py` run directly against `core/components/plays/focus/SKILL.md` returns `VERDICT: PASS (0 gap(s))`, including the new `no-unbacked-recommendation` check. Verified the two "known-failing" plays cited in the task really do fail today and for the stated reason: `lint_play.py` on `next/SKILL.md` and `review-change/SKILL.md` both return `VERDICT: FAIL (1 gap(s))` with gap `no-unbacked-recommendation`, matching the state table in `no-unbacked-recommendation.md` ("caught, not yet wired (#530)") and issue #530 is named directly in the rule file. Verified the `platform-adapter` `fields` change is additive: the `gh issue list` template now takes `{fields}` with the doc stating existing callers are unchanged. Verified `focus/scripts/preflight.py`, `session_stamp.py`, `check_stop_condition.py` are stamped verbatim copies (per the task's own note); did not independently diff them against `play-creator/references/`, taking the stated design intent as given per the task's read-only scope. |
++
++## Blocking Issues
++
++None — ready to raise.
++
++## Readiness Assessment
++
++- **Ready**: yes
++- **Blocking Count**: 0
++- **Review Required (non-blocking)**: 1 — `docs/components/plays.md` play table doesn't yet list `focus`
++- **Recommendation**: Create PR
++
++---
++
++## YAML Output
++
++```yaml
++analysis:
++  branch: feature/531-focus-play-and-no-unbacked-recommendation-guardrail
++  base: main
++  branch_pattern: feature
++  commits: 9
++  changes:
++    files: 25
++    additions: 2234
++    deletions: 5
++  suggested_title: "feat(focus): add focus play and no-unbacked-recommendation guardrail"
++
++  context:
++    file_patterns_matched:
++      - name: "play-definitions"
++        files: 7
++        trigger: "**/plays/**/*.md"
++      - name: "scripts"
++        files: 7
++        trigger: "core/components/plays/focus/scripts/*.py"
++      - name: "configuration"
++        files: 3
++        trigger: "*.yaml, install-manifest.json"
++      - name: "skill-reference-docs"
++        files: 1
++        trigger: "core/components/skills/platform-adapter/reference/**"
++      - name: "stm-run-artifacts"
++        files: 7
++        trigger: ".garura/project/issues/531/context/**"
++    commit_types:
++      - type: "feat"
++        count: 3
++      - type: "chore"
++        count: 6
++    branch_modifiers: []
++
++  checklist:
++    must_have: []
++    nice_to_have:
++      - id: "scope-matches-issue"
++        item: "Matches the issue"
++        trigger: "self-review.md Scope checks"
++        status: "PASS"
++        evidence: "All 25 files map to the four described pieces of work"
++      - id: "scope-no-creep"
++        item: "No scope creep"
++        trigger: "self-review.md Scope checks"
++        status: "PASS"
++        evidence: "File-by-file diff read, no unrelated edits"
++      - id: "scope-size"
++        item: "Reasonable size"
++        trigger: "self-review.md Scope checks"
++        status: "PASS"
++        evidence: "Size driven by net-new compiled play (SKILL.md, ice.md, 6 scripts, kind-map)"
++      - id: "scope-no-stray-artifacts"
++        item: "No stray artifacts"
++        trigger: "self-review.md Scope checks"
++        status: "PASS"
++        evidence: "STM context files are the run's own records; no debug/scratch content found"
++      - id: "quality-tests-present"
++        item: "Tests present"
++        trigger: "self-review.md Quality checks"
++        status: "PASS"
++        evidence: "lint_play.py PASS 0 gaps on focus/SKILL.md; SE-1..SE-5 and SCE-1..SCE-8 declared; scripts parse cleanly"
++      - id: "quality-commits-clean"
++        item: "Commits are clean"
++        trigger: "self-review.md Quality checks"
++        status: "PASS"
++        evidence: "9/9 commits conventional-format, all reference (#531)"
++      - id: "quality-no-secrets"
++        item: "No secrets"
++        trigger: "self-review.md Quality checks"
++        status: "PASS"
++        evidence: "Pattern scan over full diff — no credential/key values found"
++      - id: "quality-docs-in-step"
++        item: "Docs in step"
++        trigger: "self-review.md Quality checks"
++        status: "REVIEW"
++        evidence: "docs/components/plays.md play table not updated to list focus; non-blocking, recommend follow-up"
++      - id: "quality-nothing-broken"
++        item: "Nothing obviously broken"
++        trigger: "self-review.md Quality checks"
++        status: "PASS"
++        evidence: "No merge conflicts (git merge-tree clean); lint_play.py PASS on focus; next/review-change confirmed failing for the stated, tracked (#530) reason; platform-adapter fields arg confirmed additive"
++
++  blocking_issues: []
++
++  ready: true
++  recommendation: "Create PR"
++```
+diff --git a/.garura/project/issues/531/context/work-description.txt b/.garura/project/issues/531/context/work-description.txt
+new file mode 100644
+index 00000000..e3e1d0a1
+--- /dev/null
++++ b/.garura/project/issues/531/context/work-description.txt
+@@ -0,0 +1,27 @@
++[FEAT] Add /focus play and the no-unbacked-recommendation guardrail
++
++Two related pieces of work, already built and sitting uncommitted on main.
++
++1. A new play, /focus. It is the issue-side counterpart to /next: /next reads the
++   product model and is forbidden from reading issues; /focus reads the tracked issue
++   host and never touches the model. It cuts a long issue list to at most 10 entries
++   using one of three fixed modes — today (open work you could pick up now), review
++   (open work already in flight), recent (issues closed inside the last 7 days). Each
++   entry carries its number, title, a plain-language reason built from the signals that
++   selected it, its kind, and — only where the kind map names one — the garura play to
++   run for it. Selection, ordering, kind and recommendation are all deterministic
++   scripts; there is no inference after the issue capture.
++
++2. The cardinal rule, as a garura-wide guardrail. Silence beats a wrong answer: a play
++   that recommends must be able to name what backs it, and where it cannot it says
++   nothing rather than offering a default. This came from a real miss — /focus rendered
++   "run /next" on eight unlabelled issues, two of which were plainly defects. The rule
++   is now a standard, enforced by a new lint_play.py check on any play whose description
++   says it recommends, and emitted by play-creator / preserved by play-editor.
++
++Also in scope: an additive optional fields argument on platform-adapter's GitHub
++list-issues verb (default preserves the old field list), a pipeline-next map entry for
++focus, and focus added to install-garura's harness scope so it deploys as a meta play.
++
++Follow-ups already logged separately: #529 (cheat sheet drift) and #530 (/next and
++/review-change not yet wired to the cardinal rule).
+diff --git a/core/components/memory/standards/rules/_index.md b/core/components/memory/standards/rules/_index.md
+index a156fa1c..34dcc265 100644
+--- a/core/components/memory/standards/rules/_index.md
++++ b/core/components/memory/standards/rules/_index.md
+@@ -41,6 +41,7 @@ Agents and skills query this category when they need to know: **"What rules must
+ | `evidence-recording.md` | D1 evidence rule (#434) — evidence recording is play-only (never agents, never skills); fires on `evidence.record`, tunable per play via `evidence.plays.<name>`. | `play-creator`, `lint-components`, every play |
+ | `pipeline-position.md` | D2 pipeline rule (#434) — a play declares `position: start\|end\|both\|none`; play-creator injects start-change (start) and the commit → propose → review → merge end sequence (end). Members: start-change + the four end plays. | `play-creator`, `lint-components`, every play |
+ | `surface-contract.md` | Surface contract (ADR 022, #442) — an epic's user-facing surface (`web_dashboard\|server_api\|cli\|library\|service_read_model`) is DECLARED at the `/grill` cut and checked downstream, never re-derived; per-type required runnable evidence, valid deploy targets, downgrade ordering, and surface-debt blocking. | `/grill`, `/implement`, `/validate`, `/launch`, `/next`, `lint-components` |
++| `no-unbacked-recommendation.md` | The cardinal rule (2026-09-08) — a play that recommends must be able to cite what backs it. Where it cannot, it says NOTHING: no default, no generic pointer, no substitute play name — and it reports how many entries it could not recommend for. Wired as a constraint + failure condition + step eval + strip-not-replace recovery. Reference implementation: `focus` (C12/F10/S8/REC10). | `play-creator`, `play-editor`, `lint-components`; wired in `/focus`; caught-not-yet-wired in `/next` and `/review-change` |
+ | `concurrent-fanout.md` | Concurrent read-only fan-out (#468, epic #460 Stage 5) — the one allowed intra-step concurrency: a step runs independent read-only sub-tasks at once when three conditions hold (read-only over shared inputs, distinct output paths, no sibling dependency), then joins. Bounded + joined + order-stable, so the step stays a single deterministic node (ADR 025). Writing fan-out is #488. | `play-creator`, `lint-components`, `/vision`, `/understand`, `/validate` |
+ 
+ ## Deferred follow-ups
+diff --git a/core/components/memory/standards/rules/no-unbacked-recommendation.md b/core/components/memory/standards/rules/no-unbacked-recommendation.md
+new file mode 100644
+index 00000000..f2f5b88c
+--- /dev/null
++++ b/core/components/memory/standards/rules/no-unbacked-recommendation.md
+@@ -0,0 +1,97 @@
++# No unbacked recommendation — the cardinal rule
++
++**Silence beats a wrong answer.** A play that recommends an action must be able to name
++the source that backs it. Where it cannot, it says nothing — it never fills the gap with a
++default, a generic pointer, or another play's name.
++
++Kapil, 2026-09-08: *"there is a cardinal rule. its better to not recommend if you dont
++know rather than recommending wrongly."*
++
++## The failure this exists to stop
++
++A play reaches an entry it cannot resolve. Rather than leave it blank — which looks
++unfinished — it offers something harmless-looking: "run `/next`", "see the docs", the most
++common play, the first row in the table. That default is not neutral. The reader cannot
++tell it apart from the recommendations the play actually derived, so it inherits their
++authority while carrying none of their backing.
++
++The real-world case: `/focus` showed ten issues. Eight had no kind label, so the table had
++no play for them, and each was rendered "run `/next`". Two of those eight were plainly
++defects whose correct answer was `/fix-bug`. The play was not wrong about what it knew; it
++was wrong to speak where it knew nothing. A blank would have been read as "label these",
++which is the true state. `/next` was read as "this is the answer", which was false.
++
++A default offered in place of an answer is worse than the gap it hides, because it hides
++the gap.
++
++## The rule
++
++A play in scope (see below) must satisfy all four:
++
++1. **Backed or blank.** Every recommendation the play emits traces to a named source it
++   can cite — a table row, a resolved artifact, a declared rule. An entry the play cannot
++   back carries **no** recommendation.
++2. **No substitute.** The blank is never filled. Not with a default, not with a generic
++   pointer, not with the most common answer, not with another play's name. Text shown in
++   place of a recommendation must state what is *not* known and must name no action.
++3. **The gap is reported.** The play counts the entries it could not recommend for and
++   surfaces that count to the user. An invisible gap is the same failure one step later.
++4. **It is enforced, not intended.** The rule appears as a **constraint** and a matching
++   **failure condition** in the play's ICE, with a step eval that fails when an unbacked
++   recommendation is present, and a recovery whose direction is to *strip* the
++   recommendation — never to choose a different one. Absence is the correct answer, so
++   recovery must not "repair" it into a guess.
++
++## Scope
++
++Any play whose frontmatter `description` says it recommends, suggests, advises, or ranks
++actions for the user. Any future play is in scope the moment its description says so.
++
++State today (2026-09-08, verified by the lint sweep):
++
++| Play | State |
++|------|-------|
++| `focus` | **wired** — the reference implementation |
++| `next` | **caught, not yet wired** (#530) — its thin-history notice already follows the rule for one field, but the rule is not stated as a guarantee |
++| `review-change` | **caught, not yet wired** (#530) — needs a check on whether it can post a computed verdict with no completed review behind it |
++
++A play listed as caught fails `lint_play.py` today. That is the guardrail working, not a
++defect in the play; the fix is to wire it (or, if it only reports, to say so in its
++description so the rule stops claiming it).
++
++A play that only *reports* (a status, a diff, a list of facts) is out of scope — it makes
++no recommendation to back.
++
++## Worked example
++
++`focus` is the reference implementation (`core/components/plays/focus/`):
++
++- The table is `reference/kind-map.yaml`; a row's `command` is the backing. A row with no
++  `command`, and the `fallback` row, produce `recommendation: null`.
++- `no_command_note` is the text shown instead. It states the gap and names no play.
++- `select_focus.py` has no code path that can substitute a default.
++- `check_output.py`'s `C12/F10 no-unbacked-recommendation` check fails the run when any
++  entry without a table command carries a recommendation, when such text names a play
++  (`/[a-z][a-z0-9-]{2,}`), when the count is wrong, or when the count is missing from the
++  report.
++- ICE: constraint C12, failure condition F10, scenario S8, recovery REC10.
++
++## Enforced
++
++`lint_play.py` runs `no-unbacked-recommendation` on every compiled play whose frontmatter
++description contains a recommending verb. It requires the play to cite this file and to
++carry both a constraint and a failure condition for the rule. `play-creator` emits that
++wiring for a recommending play (step 4c + a hard rule); `play-editor` preserves it (hard
++rule). The trigger strips negated mentions first, so a play advertising "no
++recommendations attached" (`grill`) is not dragged in scope by its own disclaimer.
++
++The linter checks the play is *wired*; only the play's own eval can check a given run.
++That split is deliberate and matches `play-close.md`: the lint proves the guard exists,
++the guard proves the run.
++
++## Related
++
++- `pipeline-next.md` — the successor map. The Next line is backed *by that map*; a play
++  with a `null` command renders no play name, which is this rule at the close.
++- `play-close.md` — same convergence-and-lint pattern.
++- `user-facing-voice.md` — how the gap is worded to the user.
+diff --git a/core/components/memory/standards/rules/pipeline-next.md b/core/components/memory/standards/rules/pipeline-next.md
+index 23ad2c2d..daec95b9 100644
+--- a/core/components/memory/standards/rules/pipeline-next.md
++++ b/core/components/memory/standards/rules/pipeline-next.md
+@@ -65,6 +65,7 @@ next:
+ 
+   # Navigation
+   next:           { command: null,           why: "next is the recommender — it has no successor" }
++  focus:          { command: null,           why: "focus is the issue-side navigator — it recommends, it has no successor" }
+ 
+   # Change chain (git members)
+   start-change:   { command: null,           why: "injected at a play's head; the opened play continues" }
+diff --git a/core/components/plays/focus/SKILL.md b/core/components/plays/focus/SKILL.md
+new file mode 100644
+index 00000000..90e06b24
+--- /dev/null
++++ b/core/components/plays/focus/SKILL.md
+@@ -0,0 +1,411 @@
++---
++name: focus
++position: none
++description: 'Show the tracked issues worth attention right now — read the issue host, apply one of three fixed modes (today = open work you could pick up now; review = open work already in flight; recent = issues closed inside the last 7 days), and present a deterministic, capped list of at most 10 entries, each carrying its issue number, title, a plain-language reason built from the signals that selected it, what kind of issue it is (defect / epic / refactor / feature / docs / chore / unlabelled), and — only where the table names one — which garura play to run for it. The issue host is the single source: no backlog, sprint plan, product model or work queue is consulted or created — this is the issue-side counterpart to /next, which reads the product model and is forbidden from reading issues. The mode is a named argument with today as the default; an unrecognised mode halts rather than being guessed. Kind and recommendation are fixed table lookups over the issue''s own labels, held in an editable kind map beside the play; the cardinal rule is that silence beats a wrong answer, so a kind the table has no play for, and any unlabelled issue, carry NO recommendation at all — no default, no generic pointer, no substitute — and the play reports how many entries it could not recommend for; /focus never derives a recommendation from the product model, which is /next''s job. Selection, ordering, kind and recommendation are fully deterministic (scripts, never inference), so the same issue set and mode always give the same list. Read-only and position none: it never creates, edits, closes, comments on, labels or assigns an issue, and runs on any branch at any point in the pipeline. Use when the user asks "what should I focus on today", "what is open", "what is in flight", "what got done recently", or wants the long issue list cut down to a workable few.'
++user-invokable: true
++---
++
++# focus
++
++Read the tracked issue host, cut its long list down to a workable few using one of
++three fixed modes, and present them — each entry with its number, its title, and a
++plain-language reason for why it is showing, what kind of issue it is, and — where the
++kind map names one — the play to run for it. Where it names none, the entry says so and
++stops. Silence beats a wrong answer.
++
++`/focus` is the issue-side counterpart to `/next`. `/next` reads the product model
++and its own C1 forbids it from reading any issue store. `/focus` reads issues and
++never touches the model. Neither play duplicates the other.
++
++## Compiled From
++
++This play was compiled from the focus ICE (`reference/ice.md`) by play-creator.
++Intent defines constraints (C1–C12) and failure conditions (F1–F10); the expectation
++defines success scenarios (S1–S8), a Done means (D1–D6, baked to
++`stop-condition.yaml`), and one recovery entry per failure condition.
++To modify this play, update `reference/ice.md` and recompile with play-editor.
++Do NOT edit this file manually — it is a compiled artifact.
++
++## Role
++
++You are the orchestrator. You own the workflow and the step order. Every mechanical
++part of this play — resolving the mode, selecting and ordering the issues, building
++each entry's reason, stamping its kind and recommended play from the kind map, and
++grading the output — is deterministic code in `scripts/`,
++never re-reasoned prose (C7). You delegate exactly one thing: the live read of the
++issue host, which is a skill's job invoked through an agent, because scripts never
++shell out to the host (layer rule). At close, after the list is verified and
++presented, you delete the working folder yourself — the play leaves no scratch
++behind (C9); the evidence record is never deleted.
++
++**Forbidden:** any write verb against the issue host — `create-issue`,
++`close-issue`, `comment-issue`, `add-label`, `attach-sub-issue`, assign, or edit
++(C2/F1); launching another play; reading the product model, a backlog, a sprint
++plan, or any work queue (C1); selecting, ordering or explaining entries by
++reasoning instead of `scripts/select_focus.py` (C7); guessing a mode instead of
++halting on an unrecognised one (C5/F5); presenting a list when the capture came
++back partial or failed (F6); falling back to another mode or widening the window
++when a mode matches nothing (C8); inferring an issue's kind, naming a play the kind map
++does not contain, or working a recommendation out from the product model — model-derived
++recommendation belongs to `/next`, never to this play (C11/F9); giving an entry a
++recommendation the kind map has no play for — a default, a generic pointer, another
++play's name — instead of leaving it blank (C12/F10) — the cardinal rule,
++`standards/rules/no-unbacked-recommendation.md`, of which this play is the reference
++implementation.
++
++**Agent boundaries:**
++
++| Agent | Domain | Skills it invokes | Phases |
++|-------|--------|-------------------|--------|
++| `project-orchestrator` | Read the tracked issue host for the mode's queries and capture the raw result set to disk | `platform-adapter` (`list-issues` verb, read-only) | Capture |
++
++`project-orchestrator` is the single **domain agent** this play uses (1 of the ≤5
++budget). No utility agents. The agent exists solely because live host reads belong
++to the skill layer; it makes no selection decision — selection is `select_focus.py`.
++
++## Pre-flight
++
++| Check | Constraint | Action on Failure |
++|-------|-----------|-------------------|
++| Resolve config (`.garura/core/config.yaml`) via `scripts/preflight.py` | — | Hard halt |
++| Mode resolves to `today`, `review` or `recent` via `scripts/resolve_mode.py` | C5 / F5 | **Hard halt** — print the three valid modes; never guess (REC5) |
++| Issue host platform resolved from config (`github` / `gitlab`) | C1 | Hard halt |
++| Host CLI authenticated and the repo reachable | F6 | Hard halt — no partial list is ever rendered (REC6) |
++| Kind map resolves (`<play-dir>/reference/kind-map.yaml`, readable, carries `kinds` + `fallback` + `no_command_note`) | C11 / C12 | Hard halt — without the table there is no non-inferred way to name a kind or a play (REC9) |
++
++```
++python3 scripts/preflight.py --play focus --config .garura/core/config.yaml
++python3 scripts/resolve_mode.py --mode "<mode-arg>" --window-days 7 --cap 10 \
++        --out <working>/mode.json
++```
++
++`preflight.py` returns the config facts (`product_base`, `stm_base`, `platform`,
++`evidence_record`). `resolve_mode.py` exits **2** on an unrecognised mode — that
++exit is the hard halt; the play stops there and prints the record's `error` line.
++Resolve the working dir as `<working> = ${product_base}_status/focus/`. `/focus`
++has no branch or issue resolution (position `none`): it runs on whatever branch it
++finds, including main, and leaves it untouched.
++
++Right after the mode resolves, record the session identity stamp's start marker
++(#463 — soft-fail, never a halt). `/focus` is read-only and issue-less, so the
++marker lives in the play's own working folder; it travels with the run and is
++removed by Step 7's self-clean, its durable copy being the evidence record:
++
++```
++python3 scripts/session_stamp.py --phase start \
++    --marker "<working>/session-stamp-focus.json" \
++    --cwd "$(pwd)" --branch "$(git branch --show-current)"
++```
++
++**Resume check:** `/focus` is cheap and advisory — a re-run is always a fresh run.
++If `<working>/` holds artifacts from a prior run, overwrite them; never resume a
++stale list against a host that may have moved.
++
++## Task DAG
++
++Create ALL tasks immediately after resolving config — before any domain work.
++The play owns this DAG; the agent must not edit its top-level tasks.
++
++```
++[T1] Capture the issue set          blockedBy: []
++[T2] Select, order and cap          blockedBy: [T1]
++[T3] Verify the output              blockedBy: [T2]
++[T4] Present the list               blockedBy: [T3]
++[T5] Scenario Validation            blockedBy: [T4]
++[T6] Close                          blockedBy: [T5]
++[T7] Self-clean (delete working dir) blockedBy: [T6]
++```
++
++Mark each task in-progress before its step and completed right after its eval
++passes. No runtime reordering.
++
++## Workflow
++
++### Phase: Capture
++
++**Step 1 — Capture the issue set** · Owner: `project-orchestrator` · Depends on: pre-flight
++The only live host read in the play, and the only step that is not a script. The
++play dispatches a JSON contract; the agent invokes `platform-adapter` with the
++**read-only** `list-issues` verb once per query the mode needs, merges and
++deduplicates by issue number, and writes the raw result to disk — paths only,
++never inline content:
++
++    {
++      "task":    "read the tracked issue host for /focus's chosen mode and capture the raw issue set to disk. Invoke platform-adapter with verb list-issues ONLY — never a write verb. For mode `today` or `review`: one query with state=open. For mode `recent`: one query with state=closed limited to issues closed within window_days. Pass fields=number,title,url,state,createdAt,updatedAt,closedAt,labels,assignees and a limit high enough to cover the repo (200). Merge, deduplicate by number, and write {capture_complete, operator, queries, issues:[...]} to out_json. `operator` is the host login of the person running — read it with platform-adapter's `view-user` verb, which returns the authenticated user's login on GitHub and GitLab alike; leave it null if that verb fails. Append the NAME of every platform-adapter verb you invoke, one per line, to verbs_log as you go — that log is the play's read-only proof at Step 3, and a missing log fails the run. Set capture_complete=false and return the host error if ANY query failed or was truncated — never write a partial set as complete. Make no selection, ordering, or ranking decision; capture only.",
++      "intent":  "core/components/plays/focus/reference/ice.md",
++      "inputs":  { "mode_record": "<working>/mode.json",
++                   "config":      ".garura/core/config.yaml" },
++      "outputs": { "out_json":  "<working>/issues.json",
++                   "verbs_log": "<working>/host-verbs.log" }
++    }
++
++**SE-1 (C1/C5, F6):** `issues.json` exists; `capture_complete` is `true` (a `false`
++or missing flag is a hard halt — REC6, no list is rendered); every issue in the set
++came from the issue host via `list-issues` and no other source was read (C1); the
++captured `state` values match `mode.json`'s `expected_state` (GitLab's
++`opened` normalizes to `open`); and `host-verbs.log` exists and names only
++`list-issues` and `view-user` — a missing log is a GAP, never a pass (F1/C2).
++
++Immediately after the capture, snapshot it so Step 3 can prove the play changed
++nothing (F1/C2). The agent has already written `host-verbs.log`; if that file is
++absent the run halts here — an unwritten log is not evidence of no writes:
++
++```
++test -s <working>/host-verbs.log || { echo "no host-verb log — halt (F1/REC1)"; exit 1; }
++cp <working>/issues.json <working>/issues-after.json
++```
++
++### Phase: Selection
++
++**Step 2 — Select, order and cap** · Owner: play · Depends on: Step 1
++Apply the mode's filter table, order the survivors by fixed rules, cap at 10, count the
++surplus, build each entry's reason from the signals that selected it, and stamp its kind
++and recommended play by first-match lookup in the kind map. A pure function of the
++captured set, the mode record and the map — no judgment anywhere (C7/C11):
++
++```
++python3 scripts/select_focus.py --issues <working>/issues.json \
++        --mode-record <working>/mode.json \
++        --kind-map <play-dir>/reference/kind-map.yaml \
++        --out-json <working>/selection.json \
++        --out-md <working>/focus.md
++```
++
++**SE-2 (C3/C4/C6/C7/C8/C11/C12, F2/F3/F4/F9/F10):** both artifacts exist; `selection.json` carries
++`mode`, `matched_count`, `shown_count` (≤ `cap`), `surplus_count`,
++`entries_missing_fields`, `entries_off_map`, `entries_without_recommendation`,
++`known_commands`, and an `empty` flag; every entry carries an integer `number`, a
++non-empty `title`, a non-empty `reason` assembled from its `signals`, and a `kind` drawn
++from the map (or its declared fallback); an entry carries a `recommendation` **only**
++where the map gives it a `command`, and that command is in `known_commands` — every other
++entry's `recommendation` is null, so `entries_off_map` is 0: no play name was invented
++(C11/F9) and none was substituted where the table had none (C12/F10); entry order is
++total (no duplicates, deterministic tie-break on issue number). On a GAP, apply
++REC2/REC3/REC4/REC9/REC10 and re-run this step.
++
++**Step 3 — Verify the output** · Owner: play · Depends on: Step 2
++Run the enforcer. This is where the read-only proof, the cap, the state-matches-mode
++rule, the entry shape, the determinism of the ordering, and the honest-empty rule are
++all checked mechanically:
++
++```
++python3 scripts/check_output.py \
++        --selection    <working>/selection.json \
++        --mode-record  <working>/mode.json \
++        --issues       <working>/issues.json \
++        --issues-after <working>/issues-after.json \
++        --md           <working>/focus.md \
++        --host-writes  <working>/host-verbs.log \
++        --kind-map     <play-dir>/reference/kind-map.yaml
++```
++
++**SE-3 (F1, F2, F3, F4, F5, F6, F9, F10 / C1, C2, C3, C4, C5, C6, C7, C8, C11, C12):**
++`check_output.py` exits 0 — the captured set is byte-identical before and after and
++the host-verb log is present and names no write verb — an absent log is a GAP, not a pass (F1/C2); the mode is one of the three and the selection used
++it (F5/C5); the cap holds and the surplus is both correct and stated in the report
++(F3/C4); every entry has a number, title and reason, and every number is rendered in
++the report (F2/C3); every entry's state matches its mode, `recent` entries closed
++inside the window (F4/C6); every entry's kind is one the map declares and every
++recommendation present is a mapped command — nothing invented and nothing model-derived
++(F9/C11); no entry the map has no command for carries a recommendation, none of them
++names a play, the no-recommendation count is correct, and that count appears in the
++report so the gap is visible rather than papered over (F10/C12); the order is total and duplicate-free (C7); an empty result
++carries the explicit no-fallback message (C8); the capture was complete (F6); and no
++entry appears that was not in the captured set (C1).
++On any GAP, apply the matching recovery (REC1–REC6, REC9, REC10) and re-run this step.
++
++**Step 4 — Present the list** · Owner: play · Depends on: Step 3
++Output `<working>/focus.md` to the user **inline** — the mode and its plain label as
++the lead, the matched and shown counts, the entries in order, each with its reason line and
++its `kind — recommendation` line (or, where the map names no play, its
++`kind — no-recommendation note` line), the no-recommendation count when any entry has
++none, and the surplus count when the cap bit. Never fill a blank recommendation with a
++default when presenting (C12). When nothing matched, print the empty
++message as written and stop: never switch mode, widen the window, or relax a filter
++(C8). The operator picks an issue and acts on it themselves — this play launches
++nothing and writes nothing (C2).
++
++### Phase: Scenario Validation
++
++**Step 5 — Scenario evals** · Owner: play · Depends on: Step 4
++- **SCE-1 (S1 — solo builder, no mode supplied):** `mode.json` has `defaulted: true`
++  and `mode: today`; every entry in `selection.json` has `state: open`;
++  `shown_count` ≤ 10; every entry has a non-empty `reason`, an integer `number` and a
++  `kind`; an entry has a `recommendation` only where the map gave it a `command`.
++- **SCE-2 (S2 — lead, work in flight):** under `--mode review`, every entry's
++  `signals` contain at least one in-flight signal (an `assigned to` signal, a
++  `has a branch or PR open` signal, or a `stale` signal); no open issue lacking all
++  three appears in `entries`.
++- **SCE-3 (S3 — anyone, what got done):** under `--mode recent`, every entry has
++  `state: closed` and a `closed_at` whose age is within `window_days`; no entry has
++  `state: open`; `shown_count` ≤ 10.
++- **SCE-4 (S4 — big repo, over the cap):** when `matched_count` > `cap`,
++  `shown_count` equals `cap` exactly and `surplus_count` equals
++  `matched_count - cap`, with that number present in `focus.md`.
++- **SCE-5 (S5 — empty result):** when nothing matches, `entries` is empty,
++  `empty` is `true`, `focus.md` carries the explicit "Nothing matched" message, and
++  `selection.json`'s `mode` equals `mode.json`'s `mode` — no fallback occurred.
++- **SCE-7 (S7 — full-garura project, labelled issues):** on a repo whose issues carry the
++  standard labels, the `defect`-labelled entry's `command` is `fix-bug`, the `epic` one's is
++  `grill`, the `refactor` one's is `refactor`, the `feature` one's is `shape`, and the
++  unlabelled one has no `command` and no `recommendation` at all; `entries_off_map` is 0.
++  Checkable from `selection.json` + `kind-map.yaml` alone.
++- **SCE-8 (S8 — operator, why is this one blank):** every entry with no `command` has a
++  null `recommendation` and no play name anywhere in its rendered line;
++  `entries_without_recommendation` equals the number of such entries; and that count is
++  printed in `focus.md`. Checkable from `selection.json` + `focus.md` alone.
++- **SCE-6 (S6 — audit, it changed nothing):** `check_output.py`'s `C2/F1 read-only`
++  check reads PASS — `issues.json` and `issues-after.json` hash identical, `host-verbs.log` is
++  present, and it contains zero write verbs.
++
++### Phase: Evidence & Close
++
++**Step 6 — Close** · Owner: play · Depends on: Step 5
++Run the Standard Play Close. `/focus` is a **product-scoped** play (no issue of its
++own — it reads issues, it does not open one) — use the product-scoped evidence base
++and slug. Evidence recording is play-only and config-gated per the D1 evidence rule
++(`standards/rules/evidence-recording.md`).
++
++This phase ends with **Step 7 — Self-clean** (the bash block after the close): once
++the evidence record and delivery report are written, the working folder is deleted as
++the terminal action, so the run leaves no scratch behind (C9). Only the working
++folder is removed — never the evidence folder, which is the durable record.
++**SE-4 (C9/F7):** after Step 7, `${working}` no longer exists on disk while the
++evidence folder (when evidence recording is on) is intact — the play's only surviving
++products are the presented list and the evidence record. On a GAP (working files
++remain), apply REC7 and re-run Step 7.
++**SE-5 (F8/C10):** the close is stop-condition gated — `check_stop_condition.py` over
++the baked `stop-condition.yaml` (D1 the captured issue set exists; D2 the mode
++resolved; D3 the capped selection exists; D4 no entry is missing a reason, number or kind; D5 the presented list exists; D6 no recommendation is off-map or unbacked) reads **held** before the run closes COMPLETED; anything
++else closes HALTED with the unmet clauses named. The gate runs at Step 6, BEFORE Step
++7's self-clean removes the working folder. This play has no checkpoint, so there are
++no gates to class under `gate-config.md` — the stop-condition gate and the evidence
++flag are the close's only switches.
++
++```bash
++# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
++# Path tokens resolved at pre-flight (resolve here if not already):
++#   ltm_project_target  = yq '.ltm.project-target' .garura/core/config.yaml
++#   evidence_base, slug:
++#     project-scoped play : evidence_base="${stm_base}${issue}/evidence/focus/"  ; slug="#${issue}"
++#     product-scoped play : evidence_base="${product_base}_evidence/focus/"      ; slug="${product_slug}"
++evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
++delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
++ts=$(date -u +%Y%m%d-%H%M%S)
++evidence_dest="${evidence_base}${ts}.md"
++mkdir -p "$(dirname "$evidence_dest")"
++# Session identity stamp (#463) — close phase; start phase ran at pre-flight
++session_stamp=$(python3 scripts/session_stamp.py --phase close \
++    --marker "<working>/session-stamp-focus.json")
++# Stop-condition gate (#464) — Step C0: this play carries a baked manifest, so the
++# gate is LIVE. Evaluate the Done means here — BEFORE Step 7's self-clean deletes
++# the working folder — as the close's authoritative input.
++python3 scripts/check_stop_condition.py \
++    --manifest "<play-dir>/stop-condition.yaml" \
++    --base "<working>/" \
++    --out "<working>/stop-condition-focus.yaml"
++sc_exit=$?   # 0 held · 1 unmet · 2 error
++```
++
++`/focus` is product-scoped: `evidence_base="${product_base}_evidence/focus/"` and
++`slug="${product_slug}"`.
++
++**Step C0 — bind the verdict.** `sc_exit == 0` (held) permits `status: COMPLETED`.
++Anything else closes `HALTED` with `exit_reason: stop_condition_unmet` and the
++evidence's Stop Condition section names every unmet clause. An unevaluable verdict is
++never a pass.
++
++**Step C1 — Write evidence file.** Gated by the resolved `evidence.record` flag
++(global + per-play `evidence.plays.focus`; first match wins, absent ⇒ record). When
++false, skip the write and record `evidence skipped (record=false)` in the report's
++pointer line. Otherwise fill the `evidence-file.md` slots (play `focus`, run_id
++`focus-${ts}`, product_slug, started_at/completed_at, status per C0, exit_reason;
++artifacts produced: the mode record, the captured issue set, the host-verb log,
++the resolved kind map, the selection, the presented list, the stop-condition verdict; step and scenario eval results SE-1…SE-5 /
++SCE-1…SCE-6; checkpoint decisions: none — this play has no gates; the session identity
++stamp fields from $session_stamp (#463): session_id, ledger_file, ledger_start_offset,
++ledger_end_offset (null when unresolved — never blocks the close); and stop_condition
++per C0 with the Stop Condition section filled) and write to `$evidence_dest`. Do NOT
++hand-author the body.
++
++**Step C2 — Render delivery report.** Also render the **Next** line: resolve this play
++in `standards/rules/pipeline-next.md` and emit `**Next:** /<command> — <why>. Or run
++/next to see all recommended actions.` (only the `/next` pointer, or omit, when the
++mapped command is null), per `play-close.md`. Fill the `delivery-report.md` slots and
++output the report: `## focus Delivered — ${product_slug}`, the Run Summary table, the
++Pipeline Steps table from the task DAG, the Artifacts Produced table (the mode, the
++matched and shown counts, the surplus, the listed issue numbers), Next Steps (the
++issue the operator picked, if any), and a pointer to `$evidence_dest`. Always emitted;
++never gated.
++
++```bash
++# --- end Standard Play Close ---
++```
++
++**Step 7 — Self-clean** · Owner: play · Depends on: Step 6 (declared above; SE-4)
++The terminal action. The list has been verified (Step 3), presented (Step 4),
++scenario-checked (Step 5), and the evidence record + delivery report written (Step 6)
++— the working folder now has no further reader. Delete ONLY the working folder so the
++run leaves no scratch behind (C9); never touch the evidence folder
++(`${product_base}_evidence/focus/`), the durable record. The stop-condition verdict and
++the session-stamp marker go with the working folder — their durable copies live in the
++evidence record written at Step 6.
++
++```bash
++rm -rf "${working}"            # working = ${product_base}_status/focus/
++```
++
++## Scenario Validation
++
++| Scenario | Persona | Eval |
++|----------|---------|------|
++| S1 — no mode supplied, pick something up | solo builder | SCE-1 |
++| S2 — open work already in flight | lead | SCE-2 |
++| S3 — what got done recently | anyone | SCE-3 |
++| S4 — more matches than the cap | big-repo operator | SCE-4 |
++| S5 — nothing matches the mode | any operator | SCE-5 |
++| S7 — labelled issues, full garura | product team | SCE-7 |
++| S8 — some entries cannot be recommended for | operator | SCE-8 |
++| S6 — the run changed nothing | auditor | SCE-6 |
++
++## Recovery
++
++| For | Trigger | Direction | Handoff |
++|-----|---------|-----------|---------|
++| F1 | a write verb is attempted against the issue host, or the captured set differs before and after | halt the run before the call lands and report the attempted verb; read-only is structural and is never repaired by retry | human |
++| F2 | an entry has no reason or no issue number | drop the malformed entry, re-render from the captured issue file, and record the drop | autonomous |
++| F3 | the rendered list exceeds the cap, or the surplus count is absent or wrong | re-apply the cap over the captured set and re-render with the correct surplus count | autonomous |
++| F4 | an entry's state does not match its mode (a closed issue under `today`/`review`, an open or out-of-window issue under `recent`) | re-run the mode filter over the captured file and re-render | autonomous |
++| F5 | the mode argument is not one of `today`, `review`, `recent` | halt and print the three valid modes from `mode.json`'s `error` line; never guess a mode | human |
++| F6 | the issue host call fails, is truncated, or returns `capture_complete: false` | halt before rendering; report the host error and that no list was produced — never present a partial list as complete | human |
++| F7 | working files remain after the run completes | delete the working folder; the already-presented list is the only product | autonomous |
++| F9 | an entry's kind or recommended play is absent from the kind map | re-derive both from `kind-map.yaml` over the captured labels and re-render; if either still fails to resolve the map is incomplete — record the gap and fall the entry back to `unlabelled` + the `/next` pointer, never a play the table does not contain | autonomous |
++| F10 | an entry the kind map has no play for was given a recommendation anyway — a default, a generic pointer, or a substitute play name | strip the recommendation from that entry, re-render it as kind-only with the map's no-command note, and re-report the no-recommendation count; never repair by choosing a different play — the absence IS the correct answer | autonomous |
++| F8 | the close would report COMPLETED without the Done means held | surface the unmet clauses and re-run the producing step (capture or selection) to restore the missing artifact, or close HALTED with the verdict recorded | autonomous |
++
++## Pause and Resume
++
++Steps run top to bottom. `/focus` does not resume — a list is only as good as the
++issue-host state it was captured from, so any interruption means a fresh run:
++re-resolve the mode, re-capture, re-select. Prior artifacts in `<working>/` are
++overwritten. There is no status marker.
++
++## Compilation Metadata
++
++| Field | Value |
++|-------|-------|
++| fingerprint | sha256:b6ea6ca90cc1463d401f8130f42b80a1ff28a0ca9c6862bd9690ef11d932422c (of `reference/ice.md`) |
++| compiled_by | play-creator; recompiled by play-editor (kind + recommended-play fields, C11/F9/S7/D6; then the cardinal rule — no unbacked recommendation — C12/F10/S8/REC10) |
++| pipeline_position | none |
++| structural_constraints | C1 (only `platform-adapter`'s read-only `list-issues` verb reaches any source — by construction of Step 1's contract; no model, backlog or queue path is opened anywhere in the play); C7 (selection, ordering, reason text, kind and recommendation are pure functions in `select_focus.py` — the play has no inference step); C11 (kind and recommendation are first-match lookups in `reference/kind-map.yaml`; the play opens no product-model path anywhere, so a model-derived recommendation is structurally impossible); C12 (`select_focus.py` sets `recommendation` to null whenever the matched row has no `command` — there is no code path that can substitute a default, and `check_output.py` fails any entry that acquires one); C9 (the working folder is the play's only write target outside the evidence record, and Step 7 is its terminal deletion) |
++| standards_rules | `no-unbacked-recommendation.md` (the cardinal rule — this play is its reference implementation: C12 constraint, F10 failure, S8 scenario, REC10 strip-not-replace recovery, SE-2/SE-3 evals) |
++| workflow_structure | readiness-only (analysis, no generation; no checkpoint — the output is advice; nothing to class under gate-config.md) |
++| stop_condition | stop-condition.yaml (D1–D6), gate live at Step C0 — evaluated BEFORE the Step 7 self-clean |
++| domain_agents | 1 (project-orchestrator) |
++| utility_agents | 0 |
++| skills_used | platform-adapter (`list-issues` + `view-user` verbs, read-only) |
++| data | reference/kind-map.yaml (the label→kind→play table; project-editable, no recompile needed) |
++| scripts | 6 (preflight.py, resolve_mode.py, select_focus.py, check_output.py, check_stop_condition.py, session_stamp.py) |
++| step_evals | 5 (SE-1…SE-5; every failure condition covered: F1→SE-3, F2→SE-2+SE-3, F3→SE-2+SE-3, F4→SE-2+SE-3, F5→SE-3 (+pre-flight hard halt), F6→SE-1+SE-3, F7→SE-4, F8→SE-5, F9→SE-2+SE-3, F10→SE-2+SE-3) |
++| scenario_evals | 8 (SCE-1…SCE-8) |
++| recovery_entries | 10 (one per failure condition; 7 autonomous / 3 human) |
+diff --git a/core/components/plays/focus/reference/ice.md b/core/components/plays/focus/reference/ice.md
+new file mode 100644
+index 00000000..5a0d86dc
+--- /dev/null
++++ b/core/components/plays/focus/reference/ice.md
+@@ -0,0 +1,239 @@
++# focus — ICE source
++
++The clean ICE triple this play is compiled from. Update this and recompile via
++play-editor; never hand-edit the compiled SKILL.md.
++
++## Intent
++
++Show the small set of tracked issues worth attention right now, shaped by one of three
++fixed modes, with a plain reason on every entry.
++
++The tracked issue host is the single source of "what is worth attention". No backlog
++file, no sprint plan, no product model, and no work queue is consulted, and none is
++created. This play is the issue-side counterpart to `/next`, which reads the product
++model and is explicitly forbidden from reading issues; the two never overlap.
++
++A real project's issue list is long, so the play never shows the whole list. It shows a
++capped, ordered slice of it, chosen by the mode the operator asked for:
++
++- **today** — open issues that could be picked up now: unblocked, and either unassigned
++  or assigned to the operator.
++- **review** — open work already in flight: assigned, carrying a linked branch or pull
++  request, or stale past the bar.
++- **recent** — issues closed inside the recency window: what got done.
++
++The mode is a fixed, named choice supplied when the play is run, with `today` as the
++default. It is never inferred from free text and never resolved at run time. Ordering
++inside a mode is deterministic, so the same issue set and mode always give the same
++list; the only variable input is the issue host's state.
++
++Every entry names its issue number and title and says, in plain words, why it is
++showing — built from the signals that selected it, not from prose invented per run.
++
++Every entry also says what the issue **is** — a defect, an epic, a refactor, a feature,
++documentation, a chore, or unlabelled — and, where the table names one, which garura play
++to run for it. Both come from a fixed table keyed on the issue's own labels, held in a
++data file the project can extend. Neither is ever inferred, and neither is ever worked
++out by reading the product model: recommending from the model is `/next`'s job, and a
++second recommender that can disagree with the first is worse than no recommendation at
++all.
++
++**The cardinal rule: silence beats a wrong answer.** Where the table names no play — a
++kind with no command, or a label set matching no row — the entry carries **no
++recommendation at all**. Not a generic pointer, not a safe-looking default, not another
++play's name. The entry states its kind, says plainly that it cannot tell, and stops. A
++default offered in place of an answer still reads as advice, and advice the play cannot
++back is worse than the gap it was hiding.
++
++### Constraints
++
++- C1 — Every entry derives solely from issues read from the tracked issue host. No
++  backlog, sprint plan, product model, or work queue is consulted, and none is created.
++- C2 — Read only: the play never creates, edits, closes, comments on, labels, assigns or
++  otherwise writes to any issue, and never launches another play.
++- C3 — Every entry names its issue number and title and carries a non-empty plain-language
++  reason built from the signals that selected it, plus its kind. It carries a play to run
++  only when the table names one for that kind.
++- C4 — Output is capped at 10 entries. When more issues match the mode, the surplus is
++  counted and reported, never listed.
++- C5 — The mode is exactly one of `today`, `review`, `recent`, with `today` as the
++  default. An unrecognised mode halts the play; it is never guessed or inferred.
++- C6 — `recent` reads issues closed inside the recency window (7 days). `today` and
++  `review` read open issues. A mode never returns an issue in the wrong state.
++- C7 — Selection and ordering are deterministic: the same captured issue set and the same
++  mode always yield the same ordered, capped list. No judgment is applied to selection,
++  ordering, or reason text.
++- C8 — When a mode matches nothing, the play says so plainly and stops. It never falls
++  back to another mode, widens the recency window, or relaxes the mode's filters.
++- C9 — The play leaves no working artifacts behind. Its only durable products are the
++  presented list and, when evidence recording is on, the evidence record. Every transient
++  working file is deleted once the list has been verified and presented. The evidence
++  record is never deleted.
++- C11 — An entry's kind and its recommended play come only from a fixed table keyed on the
++  issue's labels, held in a data file resolved at pre-flight. First matching row wins and
++  the row order is the precedence. A label set matching no row falls back to the table's
++  declared fallback. The play never infers a kind, never invents a play name, and never
++  derives a recommendation by reading the product model — model-derived recommendation is
++  `/next`'s responsibility, not this play's.
++- C12 — Silence beats a wrong answer. Where the table names no play for an entry — a
++  matched row with no command, or no matched row at all — the entry carries no
++  recommendation whatsoever: no default, no generic pointer, no substitute play name. It
++  states its kind, says it cannot tell, and stops. The count of entries carrying no
++  recommendation is reported, so the gap is visible rather than papered over.
++- C10 — The play ends by proving its Done means at close, never by its step list running
++  out. The proof is evaluated at close, before the self-clean removes the working folder;
++  the verdict's durable copy is the evidence record.
++
++### Failure conditions
++
++- F1 — The play writes to the issue host (creates, edits, closes, comments, labels or
++  assigns).
++- F2 — An entry is shown with no reason, or with no issue number.
++- F3 — The rendered list is longer than the cap, or the surplus is not reported.
++- F4 — An entry is in the wrong state for its mode (a closed issue under `today` or
++  `review`; an open issue, or one closed outside the window, under `recent`).
++- F5 — The mode argument is unrecognised and the play guesses a mode instead of halting.
++- F6 — The issue host call fails or returns partial data and the play presents the result
++  as a complete list.
++- F7 — Working files remain on disk after the run completes.
++- F8 — The close reports COMPLETED without the Done means held.
++- F9 — An entry carries a kind or a recommended play that the kind map does not contain —
++  an invented play name, a kind asserted without a matching label, or a recommendation
++  derived from the product model instead of the table.
++- F10 — An entry the table has no play for is given one anyway — a default, a generic
++  pointer, or a substitute — instead of carrying no recommendation.
++
++## Context
++
++- `/next` (`core/components/plays/next/`) is the model-side recommender. Its C1 forbids
++  reading any backlog or issue store, so `/focus` is the issue-side counterpart, not a
++  duplicate. Neither play reads the other's source.
++- The issue host is resolved from `.garura/core/config.yaml`; all live host reads go
++  through the `platform-adapter` skill's `list-issues` verb, invoked by the
++  `project-orchestrator` agent. Scripts never shell out to the host (layer rule).
++- The existing `manage-issue` skill's `list` action is hard-capped at 5 results and
++  pre-filtered to unassigned enhancement/no-label issues. That is too narrow for this
++  play, so `/focus` captures through `platform-adapter` directly.
++- The kind map lives at `reference/kind-map.yaml` beside the play, the same
++  data-file-beside-the-play pattern `/next` uses for its work-intelligence shelf. Its label
++  vocabulary matches garura's own issue standard (`standards/templates/github-issue.md`),
++  so a project opening issues through the pipeline lands on the right kind unaided. Note
++  that `start-change` does not itself apply a kind label — an unlabelled issue is expected
++  and reads as `unlabelled`, pointing at `/next`.
++- The cardinal rule this play implements — `standards/rules/no-unbacked-recommendation.md`.
++  `/focus` is its reference implementation: C12 is the rule, F10 its failure, S8 its
++  scenario, REC10 its strip-not-replace recovery. Any change here must keep that wiring.
++- Position `none`: read-only, runnable on any branch at any point in the pipeline.
++
++## Expectation
++
++### Success scenarios
++
++- S1 — **solo builder, "what do I pick up now"**
++  Given a repo with many open issues and no mode supplied.
++  Then the play runs in `today` and shows at most 10 open, unblocked issues, each with
++  its number, title and a plain reason.
++  Measure: every entry has `state: open`; entry count is at most 10; every entry has a
++  non-empty reason, an issue number and a kind; an entry has a play name only where the
++  table gives one, and every other entry has none.
++
++- S2 — **lead, "show me what is in flight"**
++  Given open issues, some assigned or carrying a linked branch or pull request, and some
++  untouched for weeks.
++  Then `--mode review` shows only in-flight or stale open issues; open issues with no
++  in-flight signal are absent.
++  Measure: every entry carries at least one in-flight signal (assignee, linked branch or
++  PR, or age past the stale bar); no entry lacking all three appears.
++
++- S3 — **anyone, "what got done"**
++  Given issues closed inside and outside the recency window.
++  Then `--mode recent` shows only issues closed inside the window; open issues never
++  appear.
++  Measure: every entry has `state: closed` and a `closed_at` inside the window; entry
++  count is at most 10.
++
++- S4 — **big repo, over the cap**
++  Given more issues match the mode than the cap allows.
++  Then the play lists exactly the cap and states plainly how many more matched.
++  Measure: exactly 10 entries are listed and the reported surplus equals matched minus 10.
++
++- S5 — **empty result**
++  Given no issue matches the chosen mode.
++  Then the play states that the mode found nothing and stops, without switching mode or
++  widening the window.
++  Measure: zero entries, an explicit empty message, and the recorded mode equals the
++  requested mode.
++
++- S7 — **full-garura project, labelled issues**
++  Given a repo whose issues carry the standard labels — one `defect`, one `epic`, one
++  `refactor`, one `feature`, and one with no labels at all.
++  Then each entry names the kind its label maps to and the play the table gives for that
++  kind, and the unlabelled one reads `unlabelled`, carries no recommendation at all, and
++  names no play.
++  Measure: the `defect` entry's command is `fix-bug`, the `epic` entry's is `grill`, the
++  `refactor` entry's is `refactor`, the `feature` entry's is `shape`; the unlabelled entry
++  has no command and no recommendation text naming any play; every command value that is
++  present appears in the kind map.
++
++- S8 — **operator, "why is this one blank"**
++  Given a run whose entries include kinds the table has no play for (documentation, chore)
++  and issues with no labels at all.
++  Then those entries carry no recommendation, the play states plainly that it cannot tell
++  and why, and it reports how many entries it could not recommend for.
++  Measure: no entry lacking a table command carries any play name; the reported
++  no-recommendation count equals the number of such entries; that count appears in the
++  presented list.
++
++- S6 — **audit, "it changed nothing"**
++  Given a run in any mode.
++  Then no issue on the host was created, edited, closed, commented on, labelled or
++  assigned.
++  Measure: the run's write-verb count against the issue host is 0 and the captured
++  issue set is byte-identical before and after selection.
++
++### Recovery
++
++- REC1 (F1) — trigger: a write verb is attempted against the issue host. Direction: halt
++  the run before the call lands and report the attempted verb; read-only is structural
++  and is never repaired by retry. Handoff: human.
++- REC2 (F2) — trigger: an entry has no reason or no issue number. Direction: drop the
++  malformed entry, re-render from the captured issue file, and record the drop.
++  Handoff: autonomous.
++- REC3 (F3) — trigger: the rendered list exceeds the cap, or the surplus count is absent.
++  Direction: re-apply the cap over the captured set and re-render with the surplus count.
++  Handoff: autonomous.
++- REC4 (F4) — trigger: an entry's state does not match its mode. Direction: re-run the
++  mode filter over the captured file and re-render. Handoff: autonomous.
++- REC5 (F5) — trigger: the mode argument is not one of the three named values.
++  Direction: halt and list the three valid modes; never guess. Handoff: human.
++- REC6 (F6) — trigger: the issue host call fails or returns partial data. Direction: halt
++  before rendering and report the host error and that no list was produced; never present
++  a partial list as complete. Handoff: human.
++- REC7 (F7) — trigger: working files remain after the run completes. Direction: delete
++  the working folder; the already-presented list is the only product. Handoff: autonomous.
++- REC9 (F9) — trigger: an entry's kind or recommended play is absent from the kind map.
++  Direction: re-derive both from `kind-map.yaml` over the captured labels and re-render; a
++  kind or command that still fails to resolve means the map is incomplete — record the gap
++  and fall the entry back to `unlabelled` + the `/next` pointer rather than naming a play
++  the table does not contain. Handoff: autonomous.
++- REC10 (F10) — trigger: an entry the table has no play for carries a recommendation.
++  Direction: strip the recommendation from that entry, re-render it as kind-only with the
++  map's no-command note, and re-report the no-recommendation count. Never repair by
++  choosing a different play — the absence is the correct answer. Handoff: autonomous.
++- REC8 (F8) — trigger: the close would report COMPLETED without the Done means held.
++  Direction: surface the unmet clauses and re-run the producing step to restore the
++  missing artifact, or close HALTED with the verdict recorded. Handoff: autonomous.
++
++### Done means
++
++- D1 — the captured issue set exists on disk. check: `artifact_exists` `issues.json`
++- D2 — the mode was resolved to one of the three named values. check: `field_equals`
++  `selection.json` field `mode_valid` equals `true`
++- D3 — the capped, ordered selection exists (machine form). check: `artifact_exists`
++  `selection.json`
++- D4 — every listed entry carries a reason, an issue number and a kind. check:
++  `field_equals` `selection.json` field `entries_missing_fields` equals `0`
++- D6 — every recommended play resolves in the kind map; none was invented, and no entry
++  the table has no play for was given one. check: `field_equals` `selection.json` field
++  `entries_off_map` equals `0`
++- D5 — the presented list exists (human form). check: `artifact_exists` `focus.md`
+diff --git a/core/components/plays/focus/reference/kind-map.yaml b/core/components/plays/focus/reference/kind-map.yaml
+new file mode 100644
+index 00000000..4e8eb3cd
+--- /dev/null
++++ b/core/components/plays/focus/reference/kind-map.yaml
+@@ -0,0 +1,68 @@
++# focus — the kind map.
++#
++# The single place /focus decides what an issue IS and which garura play to run
++# for it. Both are FIXED TABLE LOOKUPS over the issue's labels. Nothing here is
++# inferred, and /focus never reads the product model to work a play out — that is
++# /next's job, and a second recommender that disagrees with the first is worse
++# than none (C11).
++#
++# THE CARDINAL RULE (C12): silence beats a wrong answer. A row with no `command`,
++# and any label set that matches no row at all, produce NO recommendation — not a
++# generic pointer, not a safe-looking default. The entry shows what is known and
++# stops there. A recommendation appears only where THIS table names a play.
++#
++# A project with its own label vocabulary edits THIS file. No recompile needed.
++#
++# The label vocabulary matches garura's own issue standard —
++# standards/templates/github-issue.md, "Labels" — so a project that opens issues
++# through the pipeline lands on the right kind without extra work.
++
++schema: { name: kind-map }
++
++# Checked top to bottom; FIRST match wins. Order is the precedence: a broken thing
++# outranks a planned thing, so an issue labelled both `bug` and `feature` reads as a
++# defect. Precedence is part of the contract — reorder it and the play's answers change.
++kinds:
++  - kind: defect
++    labels: [defect, bug]
++    command: fix-bug
++    says: "a defect — trace it to root cause and fix it"
++
++  - kind: epic
++    labels: [epic]
++    command: grill
++    says: "an epic — cut it into user-testable delivery epics"
++
++  - kind: refactor
++    labels: [refactor]
++    command: refactor
++    says: "a refactor — improve the code without changing behaviour"
++
++  - kind: feature
++    labels: [feature, enhancement]
++    command: shape
++    says: "new capability — shape it into a slice before building"
++
++  # No `command`: the kind is known, but no single play covers it. Per the cardinal
++  # rule these render with no recommendation at all.
++  - kind: docs
++    labels: [documentation]
++    command: null
++    says: "documentation work"
++
++  - kind: chore
++    labels: [chore]
++    command: null
++    says: "maintenance work"
++
++# Used when no label in the set matches any row above — including an issue with no
++# labels at all. `command: null` means NO recommendation is rendered. The play states
++# that it cannot tell, and names why; it never substitutes a default.
++fallback:
++  kind: unlabelled
++  command: null
++  says: "no kind label — /focus cannot tell what this is"
++
++# Rendered in place of a recommendation wherever `command` is null. It is a statement of
++# what is not known, NOT a recommendation, and must never name a play.
++no_command_note: "no recommendation (label it to get one)"
+diff --git a/core/components/plays/focus/scripts/check_output.py b/core/components/plays/focus/scripts/check_output.py
+new file mode 100644
+index 00000000..decb7ada
+--- /dev/null
++++ b/core/components/plays/focus/scripts/check_output.py
+@@ -0,0 +1,228 @@
++#!/usr/bin/env python3
++"""
++check_output.py — grade /focus's output against every output rule.
++
++The enforcer. It proves mechanically what the play promises: read-only, capped,
++correctly stated for the mode, fully explained, deterministic, and honest about
++an empty or partial result. Nothing here is judgment.
++
++    python3 check_output.py --selection <path> --mode-record <path>
++                            --issues <path> --issues-after <path>
++                            --md <path> [--host-writes <path>]
++
++  --issues / --issues-after  the captured issue set before and after selection;
++                             identical content is the read-only proof (F1/C2)
++  --host-writes              optional file listing any write verb the run issued
++                             against the issue host; absent or empty means none
++
++Prints a PASS/GAP line per check. Exit 0 when every check passes, 1 on any GAP,
++2 when an input cannot be read.
++"""
++import argparse
++import datetime as dt
++import hashlib
++import json
++import os
++import re
++import sys
++
++WRITE_VERBS = ("create-issue", "close-issue", "comment-issue", "add-label",
++               "attach-sub-issue", "create-pr", "merge-pr", "comment-pr",
++               "request-changes", "update-comment", "add-reviewer")
++
++
++def sha(path):
++    h = hashlib.sha256()
++    with open(path, "rb") as fh:
++        for chunk in iter(lambda: fh.read(65536), b""):
++            h.update(chunk)
++    return h.hexdigest()
++
++
++def parse_ts(value):
++    if not value:
++        return None
++    text = str(value).strip().replace("Z", "+00:00")
++    try:
++        stamp = dt.datetime.fromisoformat(text)
++    except ValueError:
++        return None
++    if stamp.tzinfo is None:
++        stamp = stamp.replace(tzinfo=dt.timezone.utc)
++    return stamp.astimezone(dt.timezone.utc)
++
++
++def norm_state(value):
++    """Normalize the host's state word. GitLab says `opened`; GitHub says `OPEN`."""
++    state = str(value or "").strip().lower()
++    return "open" if state == "opened" else state
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--selection", required=True)
++    ap.add_argument("--mode-record", required=True)
++    ap.add_argument("--issues", required=True)
++    ap.add_argument("--issues-after", required=True)
++    ap.add_argument("--md", required=True)
++    ap.add_argument("--kind-map", default=None,
++                    help="path to the kind map, for the C11/F9 off-map guard")
++    ap.add_argument("--host-writes", default=None)
++    ap.add_argument("--now", default=None)
++    args = ap.parse_args()
++
++    try:
++        with open(args.selection, encoding="utf-8") as fh:
++            sel = json.load(fh)
++        with open(args.mode_record, encoding="utf-8") as fh:
++            mode_rec = json.load(fh)
++        with open(args.issues, encoding="utf-8") as fh:
++            capture = json.load(fh)
++        md = open(args.md, encoding="utf-8").read()
++    except (OSError, ValueError) as exc:
++        print("cannot read inputs: %s" % exc, file=sys.stderr)
++        return 2
++
++    now = parse_ts(args.now) or dt.datetime.now(dt.timezone.utc)
++    entries = sel.get("entries") or []
++    mode = sel.get("mode")
++    cap = int(sel.get("cap", 10))
++    window = int(sel.get("window_days", 7))
++    results = []
++
++    def check(cid, ok, detail):
++        results.append((cid, bool(ok), detail))
++
++    # --- C5/F5 — the mode is one of the three, and the selection used it -----
++    check("C5/F5 mode-enum",
++          mode_rec.get("mode_valid") is True
++          and mode in ("today", "review", "recent")
++          and sel.get("mode") == mode_rec.get("mode"),
++          "mode=%r valid=%r selection-matches-record=%r"
++          % (mode, mode_rec.get("mode_valid"), sel.get("mode") == mode_rec.get("mode")))
++
++    # --- C2/F1 — read only: the captured set is untouched, no write verb ------
++    same = os.path.exists(args.issues_after) and sha(args.issues) == sha(args.issues_after)
++    # Fail closed: a missing verb log is NOT proof of no writes. The capture step
++    # must record every platform-adapter verb it invoked, one per line.
++    log_present = bool(args.host_writes) and os.path.exists(args.host_writes)
++    writes = []
++    if log_present:
++        text = open(args.host_writes, encoding="utf-8").read()
++        writes = [v for v in WRITE_VERBS if v in text]
++    check("C2/F1 read-only", same and log_present and not writes,
++          "capture-unchanged=%r verb-log-present=%r write-verbs=%r"
++          % (same, log_present, writes))
++
++    # --- C4/F3 — the cap holds and the surplus is reported --------------------
++    matched = int(sel.get("matched_count", 0))
++    shown = len(entries)
++    surplus_ok = sel.get("surplus_count") == max(0, matched - shown)
++    reported = surplus_ok and (sel.get("surplus_count", 0) == 0
++                               or str(sel["surplus_count"]) in md)
++    check("C4/F3 cap+surplus", shown <= cap and shown == sel.get("shown_count") and reported,
++          "shown=%d cap=%d matched=%d surplus=%r reported-in-report=%r"
++          % (shown, cap, matched, sel.get("surplus_count"), reported))
++
++    # --- C3/F2 — every entry has a number, a title and a reason ---------------
++    bad = [e for e in entries
++           if not isinstance(e.get("number"), int)
++           or not (e.get("title") or "").strip()
++           or not (e.get("reason") or "").strip()]
++    rendered = all(re.search(r"#%d\b" % e["number"], md) for e in entries
++                   if isinstance(e.get("number"), int))
++    check("C3/F2 entry-shape",
++          not bad and rendered and sel.get("entries_missing_fields") == 0,
++          "malformed=%d all-numbers-rendered=%r missing_fields=%r"
++          % (len(bad), rendered, sel.get("entries_missing_fields")))
++
++    # --- C11/F9 — kind and recommendation came from the map, never invented ---
++    known = set()
++    map_read = False
++    if args.kind_map and os.path.exists(args.kind_map):
++        try:
++            import yaml
++            doc = yaml.safe_load(open(args.kind_map, encoding="utf-8")) or {}
++            known = {r.get("command") for r in (doc.get("kinds") or []) if r.get("command")}
++            valid_kinds = {r.get("kind") for r in (doc.get("kinds") or [])}
++            valid_kinds.add((doc.get("fallback") or {}).get("kind"))
++            map_read = True
++        except Exception:
++            valid_kinds = set()
++    else:
++        valid_kinds = set()
++    off_map = [e.get("number") for e in entries
++               if e.get("command") and e["command"] not in known]
++    bad_kind = [e.get("number") for e in entries
++                if not e.get("kind") or (valid_kinds and e["kind"] not in valid_kinds)]
++    check("C11/F9 kind+recommendation",
++          map_read and not off_map and not bad_kind and sel.get("entries_off_map") == 0,
++          "map-read=%r off-map=%r bad-kind=%r" % (map_read, off_map, bad_kind))
++
++    # --- C12/F10 — the cardinal rule: no table play means NO recommendation ----
++    # An entry the map has no command for must carry none: no default, no generic
++    # pointer, no substitute play name. Silence is the correct answer, and the count
++    # of such entries must be reported so the gap stays visible.
++    unbacked = [e.get("number") for e in entries
++                if not e.get("command") and e.get("recommendation")]
++    named_play = [e.get("number") for e in entries
++                  if not e.get("command")
++                  and re.search(r"/[a-z][a-z0-9-]{2,}", str(e.get("recommendation") or ""))]
++    blanks = [e for e in entries if not e.get("recommendation")]
++    counted = sel.get("entries_without_recommendation") == len(blanks)
++    surfaced = (not blanks) or (str(len(blanks)) in md)
++    check("C12/F10 no-unbacked-recommendation",
++          not unbacked and not named_play and counted and surfaced,
++          "recommendation-without-a-table-play=%r names-a-play-anyway=%r "
++          "count-correct=%r gap-stated-in-report=%r"
++          % (unbacked, named_play, counted, surfaced))
++
++    # --- C6/F4 — every entry is in the right state for its mode ---------------
++    wrong = []
++    for e in entries:
++        state = norm_state(e.get("state"))
++        if mode in ("today", "review"):
++            if state != "open":
++                wrong.append(e.get("number"))
++        elif mode == "recent":
++            closed = parse_ts(e.get("closed_at"))
++            age = (now - closed).days if closed else None
++            if state != "closed" or age is None or age > window or age < 0:
++                wrong.append(e.get("number"))
++    check("C6/F4 state-matches-mode", not wrong,
++          "wrong-state entries=%r window=%d" % (wrong, window))
++
++    # --- C7 — selection is deterministic over the captured set ----------------
++    order = [e.get("number") for e in entries]
++    check("C7 deterministic-order",
++          len(order) == len(set(order)) and all(isinstance(n, int) for n in order),
++          "order=%r (total order, no duplicates)" % order)
++
++    # --- C8/F6 — an empty result says so; a partial capture never renders -----
++    empty_ok = True
++    if shown == 0:
++        empty_ok = bool(sel.get("empty")) and ("Nothing matched" in md)
++    check("C8 empty-is-explicit", empty_ok,
++          "shown=%d empty-flag=%r message-present=%r"
++          % (shown, sel.get("empty"), "Nothing matched" in md))
++
++    check("F6 capture-complete",
++          bool(sel.get("capture_complete")) and bool(capture.get("capture_complete")),
++          "capture_complete=%r" % sel.get("capture_complete"))
++
++    # --- C1 — nothing outside the captured issue set reached the output -------
++    captured_numbers = {i.get("number") for i in capture.get("issues") or []}
++    strays = [n for n in order if n not in captured_numbers]
++    check("C1 issues-only", not strays,
++          "entries not present in the captured set=%r" % strays)
++
++    gaps = 0
++    for cid, ok, detail in results:
++        print("%-28s %s  %s" % (cid, "PASS" if ok else "GAP ", detail))
++        gaps += 0 if ok else 1
++    print("---\n%d check(s), %d gap(s)" % (len(results), gaps))
++    return 0 if gaps == 0 else 1
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/core/components/plays/focus/scripts/check_stop_condition.py b/core/components/plays/focus/scripts/check_stop_condition.py
+new file mode 100644
+index 00000000..1e801d47
+--- /dev/null
++++ b/core/components/plays/focus/scripts/check_stop_condition.py
+@@ -0,0 +1,136 @@
++#!/usr/bin/env python3
++"""
++check_stop_condition.py — evaluate a play's baked stop condition (#464).
++
++A play ends because "done" was PROVEN, not because its step list ran out.
++The proof is this script: it reads the play's compiled stop-condition
++manifest (stop-condition.yaml, baked by play-creator from the ICE's
++"### Done means" section) and evaluates every clause against what actually
++exists on disk at close. Pure assertions — it executes nothing, so the
++close gate stays instant and side-effect-free (implement's hand-built
++check_done.py pattern, made play-agnostic).
++
++Clause types (mechanical, closed set):
++    artifact_exists     {path}                       — glob ok, ≥1 match
++    field_equals        {file, field, equals}        — dot-path into JSON/YAML
++    gate_outcomes_pass  {file}                       — run-quality-gates output: ok == true
++
++Manifest shape (content.done is the clause list):
++    schema: {name: stop-condition}
++    content:
++      done:
++        - id: D1
++          says: "the commits exist and the tree is clean"   # human sentence
++          check: {type: artifact_exists, path: "...commits.yaml"}
++
++Usage:
++    python3 check_stop_condition.py --manifest <stop-condition.yaml> \
++        --base <run/STM root for relative paths> --out <verdict.yaml>
++
++Verdict: {stop_condition: held|unmet, clauses: [{id, says, status, detail}]}
++Exit 0 held, 1 unmet, 2 manifest/clause error (an unevaluable clause is an
++error, never a silent pass — the run-quality-gates rule, reused).
++"""
++
++import argparse
++import glob
++import json
++import os
++import sys
++
++try:
++    import yaml
++except ImportError:
++    print("PyYAML required: pip install pyyaml", file=sys.stderr)
++    sys.exit(2)
++
++
++def load_doc(path):
++    with open(path, "r", encoding="utf-8") as fh:
++        if path.endswith(".json"):
++            return json.load(fh)
++        return yaml.safe_load(fh)
++
++
++def dot_get(doc, field):
++    cur = doc
++    for part in field.split("."):
++        if isinstance(cur, list):
++            cur = cur[int(part)]
++        elif isinstance(cur, dict) and part in cur:
++            cur = cur[part]
++        else:
++            return None, False
++    return cur, True
++
++
++def eval_clause(clause, base):
++    check = clause.get("check") or {}
++    ctype = check.get("type")
++    try:
++        if ctype == "artifact_exists":
++            pattern = os.path.join(base, check["path"])
++            hits = glob.glob(pattern)
++            return ("held" if hits else "unmet",
++                    f"{len(hits)} match(es) for {check['path']}")
++        if ctype == "field_equals":
++            fpath = os.path.join(base, check["file"])
++            if not os.path.exists(fpath):
++                return "unmet", f"file missing: {check['file']}"
++            value, found = dot_get(load_doc(fpath), check["field"])
++            if not found:
++                return "unmet", f"field missing: {check['field']}"
++            ok = value == check["equals"]
++            return ("held" if ok else "unmet",
++                    f"{check['field']} = {value!r} (want {check['equals']!r})")
++        if ctype == "gate_outcomes_pass":
++            fpath = os.path.join(base, check["file"])
++            if not os.path.exists(fpath):
++                return "unmet", f"gate outcomes missing: {check['file']}"
++            doc = load_doc(fpath)
++            ok = bool(doc.get("ok"))
++            counts = doc.get("counts", {})
++            return ("held" if ok else "unmet", f"gates ok={ok} counts={counts}")
++        return "error", f"unknown check type: {ctype!r}"
++    except Exception as exc:  # noqa: BLE001 — an unevaluable clause is an error
++        return "error", f"clause evaluation failed: {exc}"
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--manifest", required=True)
++    ap.add_argument("--base", required=True,
++                    help="root for the manifest's relative paths (the run's STM)")
++    ap.add_argument("--out", required=True)
++    args = ap.parse_args()
++
++    doc = load_doc(args.manifest) or {}
++    clauses = (doc.get("content") or {}).get("done") or []
++    if not clauses:
++        verdict = {"stop_condition": "error",
++                   "clauses": [],
++                   "detail": "manifest has no content.done clauses"}
++        code = 2
++    else:
++        results = []
++        for c in clauses:
++            status, detail = eval_clause(c, args.base)
++            results.append({"id": c.get("id"), "says": c.get("says"),
++                            "status": status, "detail": detail})
++        if any(r["status"] == "error" for r in results):
++            overall, code = "error", 2
++        elif all(r["status"] == "held" for r in results):
++            overall, code = "held", 0
++        else:
++            overall, code = "unmet", 1
++        verdict = {"stop_condition": overall, "clauses": results}
++
++    os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
++    with open(args.out, "w", encoding="utf-8") as fh:
++        yaml.safe_dump(verdict, fh, sort_keys=False)
++    print(json.dumps(verdict, indent=2))
++    sys.exit(code)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/core/components/plays/focus/scripts/preflight.py b/core/components/plays/focus/scripts/preflight.py
+new file mode 100644
+index 00000000..1e99c109
+--- /dev/null
++++ b/core/components/plays/focus/scripts/preflight.py
+@@ -0,0 +1,180 @@
++#!/usr/bin/env python3
++"""
++preflight.py — resolve a play's pre-flight facts to JSON.
++
++The mechanical hand of a play's Pre-flight phase. The play (orchestrator) decides
++what to HALT on; this script does the deterministic resolution the orchestrator
++should never burn inference on — parse config, derive the path tokens, resolve the
++evidence flag, extract the issue from the branch, and report the changeset state.
++
++Harness-led split:
++  - This script computes FACTS (config tokens, evidence_record, branch, issue,
++    on_default_branch, changes_present, worktree, platform).
++  - The SKILL keeps POLICY — which fact maps to a hard halt vs a graceful exit,
++    which differs per play (commit-change halts when there are NO changes;
++    propose-change halts when the tree is NOT clean — same fact, opposite action).
++
++Layer rule: this script does NOT shell out to git/gh. The orchestrator captures
++the two live reads it needs (current branch via `git branch --show-current`, and
++`git status --porcelain` into a file) and passes them in. Everything else here is
++pure parsing and derivation, so the script is unit-testable with fixtures.
++
++    python3 preflight.py --play <name> [--config <path>] [--branch <name>]
++                         [--porcelain-file <path>]
++
++  --play            the calling play's name (for the per-play evidence override)
++  --config          path to config.yaml (default .garura/core/config.yaml)
++  --branch          current branch name (orchestrator passes `git branch --show-current`)
++  --porcelain-file  file holding `git status --porcelain` output (changes_present)
++
++Prints a single JSON object to stdout. Exit 0 on success, 2 if config is unreadable.
++No third-party packages — runs in any installed target.
++"""
++
++import argparse
++import json
++import os
++import re
++import sys
++
++DEFAULT_BRANCHES = {"main", "master"}
++
++
++def fail(msg):
++    sys.stderr.write(f"preflight.py: {msg}\n")
++    sys.exit(2)
++
++
++# --- minimal indent-aware config reader (dependency-free) --------------------
++
++def parse_config(text):
++    """Parse the simple nested `key: value` YAML garura config uses into a dict.
++
++    Handles 2-space nesting, scalar values, inline ` #` comments and full-line
++    comments. Does not handle YAML lists/anchors — the keys preflight needs are
++    all plain nested scalars, so this is sufficient and has no dependency.
++    """
++    root = {}
++    # stack of (indent, dict) frames; root is indent -1
++    stack = [(-1, root)]
++    for raw in text.splitlines():
++        if not raw.strip() or raw.lstrip().startswith("#"):
++            continue
++        indent = len(raw) - len(raw.lstrip(" "))
++        line = raw.strip()
++        # strip an inline comment (" #..."), leave URLs (which have no " #") intact
++        hashpos = line.find(" #")
++        if hashpos != -1:
++            line = line[:hashpos].rstrip()
++        if ":" not in line:
++            continue
++        key, _, val = line.partition(":")
++        key = key.strip()
++        val = val.strip()
++        # pop frames that are siblings/parents of this indent
++        while stack and indent <= stack[-1][0]:
++            stack.pop()
++        parent = stack[-1][1] if stack else root
++        if val == "":
++            child = {}
++            parent[key] = child
++            stack.append((indent, child))
++        else:
++            parent[key] = _scalar(val.strip("'\""))
++    return root
++
++
++def _scalar(v):
++    low = v.lower()
++    if low == "true":
++        return True
++    if low == "false":
++        return False
++    return v
++
++
++def _get(cfg, *path, default=None):
++    cur = cfg
++    for p in path:
++        if not isinstance(cur, dict) or p not in cur:
++            return default
++        cur = cur[p]
++    return cur
++
++
++# --- resolution --------------------------------------------------------------
++
++def resolve(cfg, play, branch, porcelain_text):
++    stm_base = _get(cfg, "stm", "base-path")
++    product_base = _get(cfg, "product", "base-path")
++
++    # evidence: per-play override wins, then global, then default True
++    ev_play = _get(cfg, "evidence", "plays", play)
++    ev_global = _get(cfg, "evidence", "record")
++    evidence_record = ev_play if ev_play is not None else (
++        ev_global if ev_global is not None else True)
++
++    issue = None
++    on_default = False
++    if branch:
++        m = re.search(r"/(\d+)", branch)
++        if m:
++            issue = m.group(1)
++        on_default = branch in DEFAULT_BRANCHES
++
++    changes_present = None
++    if porcelain_text is not None:
++        changes_present = any(l.strip() for l in porcelain_text.splitlines())
++
++    has_product_ltm = False
++    if product_base:
++        has_product_ltm = os.path.isdir(os.path.join(product_base, "architecture"))
++
++    return {
++        "play": play,
++        "stm_base": stm_base,
++        "stm_pending": _get(cfg, "stm", "pending-path"),
++        "stm_archive": _get(cfg, "stm", "archive-path"),
++        "ltm_project_target": _get(cfg, "ltm", "project-target"),
++        "product_base": product_base,
++        "has_product_ltm": has_product_ltm,
++        "evidence_record": bool(evidence_record),
++        "platform": _get(cfg, "platform"),
++        "worktree": bool(_get(cfg, play, "worktree", default=False)),
++        "branch": branch,
++        "issue": issue,
++        "on_default_branch": on_default,
++        "changes_present": changes_present,
++    }
++
++
++def main(argv=None):
++    ap = argparse.ArgumentParser(description="Resolve a play's pre-flight facts to JSON.")
++    ap.add_argument("--play", required=True, help="calling play name (for evidence override)")
++    ap.add_argument("--config", default=".garura/core/config.yaml", help="path to config.yaml")
++    ap.add_argument("--branch", default=None, help="current branch (from git branch --show-current)")
++    ap.add_argument("--porcelain-file", default=None,
++                    help="file with git status --porcelain output (for changes_present)")
++    args = ap.parse_args(argv)
++
++    try:
++        with open(args.config, encoding="utf-8") as fh:
++            cfg = parse_config(fh.read())
++    except OSError as exc:
++        fail(f"cannot read config {args.config}: {exc}")
++
++    porcelain_text = None
++    if args.porcelain_file:
++        try:
++            with open(args.porcelain_file, encoding="utf-8") as fh:
++                porcelain_text = fh.read()
++        except OSError as exc:
++            fail(f"cannot read porcelain file {args.porcelain_file}: {exc}")
++
++    facts = resolve(cfg, args.play, args.branch, porcelain_text)
++    print(json.dumps(facts, indent=2))
++    return 0
++
++
++if __name__ == "__main__":
++    sys.exit(main(sys.argv[1:]))
+diff --git a/core/components/plays/focus/scripts/resolve_mode.py b/core/components/plays/focus/scripts/resolve_mode.py
+new file mode 100644
+index 00000000..cd2cb8e0
+--- /dev/null
++++ b/core/components/plays/focus/scripts/resolve_mode.py
+@@ -0,0 +1,71 @@
++#!/usr/bin/env python3
++"""
++resolve_mode.py — resolve /focus's mode argument to one of three named values.
++
++Deterministic enum resolution (C5/F5). The mode is a fixed choice, never inferred
++from free text and never resolved at run time by reasoning. An unrecognised value
++halts; the script never guesses.
++
++    python3 resolve_mode.py [--mode <raw>] [--window-days 7] [--cap 10]
++                            --out <path>
++
++  --mode          raw mode argument as typed; absent or empty means the default
++  --window-days   recency window for `recent` (default 7)
++  --cap           maximum entries in the output list (default 10)
++  --out           where to write the resolved mode record (JSON)
++
++Prints the JSON record to stdout too. Exit 0 when the mode resolved, 2 when it
++did not (the play halts and lists the valid modes — REC5).
++"""
++import argparse
++import json
++import os
++import sys
++
++MODES = {
++    "today":  {"state": "open",   "label": "open work you could pick up now"},
++    "review": {"state": "open",   "label": "open work already in flight"},
++    "recent": {"state": "closed", "label": "issues closed inside the recency window"},
++}
++DEFAULT_MODE = "today"
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--mode", default="")
++    ap.add_argument("--window-days", type=int, default=7)
++    ap.add_argument("--cap", type=int, default=10)
++    ap.add_argument("--out", required=True)
++    args = ap.parse_args()
++
++    raw = (args.mode or "").strip().lower()
++    mode = DEFAULT_MODE if raw == "" else raw
++    valid = mode in MODES
++
++    record = {
++        "requested_mode": raw or None,
++        "mode": mode if valid else None,
++        "mode_valid": valid,
++        "defaulted": raw == "",
++        "valid_modes": sorted(MODES),
++        "expected_state": MODES[mode]["state"] if valid else None,
++        "label": MODES[mode]["label"] if valid else None,
++        "window_days": args.window_days,
++        "cap": args.cap,
++    }
++    if not valid:
++        record["error"] = (
++            "unrecognised mode %r — valid modes are: %s"
++            % (raw, ", ".join(sorted(MODES)))
++        )
++
++    os.makedirs(os.path.dirname(os.path.abspath(args.out)) or ".", exist_ok=True)
++    with open(args.out, "w", encoding="utf-8") as fh:
++        json.dump(record, fh, indent=2, sort_keys=True)
++        fh.write("\n")
++    print(json.dumps(record, indent=2, sort_keys=True))
++    return 0 if valid else 2
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/core/components/plays/focus/scripts/select_focus.py b/core/components/plays/focus/scripts/select_focus.py
+new file mode 100644
+index 00000000..72af7da0
+--- /dev/null
++++ b/core/components/plays/focus/scripts/select_focus.py
+@@ -0,0 +1,379 @@
++#!/usr/bin/env python3
++"""
++select_focus.py — turn a captured issue set into /focus's ordered, capped list.
++
++The deterministic heart of the play (C6, C7, C4, C3, C8). Given the issues the
++capture step wrote to disk and the resolved mode record, it applies that mode's
++filter table, orders the survivors by fixed rules, caps the list, counts the
++surplus, and builds each entry's plain-language reason from the very signals
++that selected it. It also stamps each entry's KIND and the play to run for it, both
++by fixed table lookup over the issue's own labels (the kind map). No judgment, no
++inference, no host access, and never a play name worked out from the product model —
++same inputs always give the same output.
++
++Layer rule: this script never shells out to git/gh. It only reads the issue set a
++prior skill/agent step captured to disk.
++
++    python3 select_focus.py --issues <path> --mode-record <path>
++                            --out-json <path> --out-md <path>
++
++Exit 0 always when the inputs parse; the enforcer (check_output.py) is what
++grades the result. Exit 2 when an input is missing or unusable.
++"""
++import argparse
++import datetime as dt
++import json
++import os
++import sys
++
++try:
++    import yaml
++except ImportError:  # pragma: no cover — the play's pre-flight resolves the map
++    yaml = None
++
++STALE_DAYS = 14          # `review`: an open issue untouched this long is in-flight-stale
++
++
++# ---------- helpers -------------------------------------------------------
++
++def parse_ts(value):
++    """Parse an ISO-8601 timestamp to an aware UTC datetime, or None."""
++    if not value:
++        return None
++    text = str(value).strip().replace("Z", "+00:00")
++    try:
++        stamp = dt.datetime.fromisoformat(text)
++    except ValueError:
++        return None
++    if stamp.tzinfo is None:
++        stamp = stamp.replace(tzinfo=dt.timezone.utc)
++    return stamp.astimezone(dt.timezone.utc)
++
++
++def days_since(stamp, now):
++    if stamp is None:
++        return None
++    return (now - stamp).days
++
++
++def norm_state(issue):
++    """Normalize the host's state word. GitLab says `opened`; GitHub says `OPEN`."""
++    state = str(issue.get("state", "")).strip().lower()
++    return "open" if state == "opened" else state
++
++
++def label_names(issue):
++    out = []
++    for lab in issue.get("labels") or []:
++        name = lab.get("name") if isinstance(lab, dict) else lab
++        if name:
++            out.append(str(name))
++    return sorted(out)
++
++
++def assignee_logins(issue):
++    out = []
++    for who in issue.get("assignees") or []:
++        login = who.get("login") if isinstance(who, dict) else who
++        if login:
++            out.append(str(login))
++    return sorted(out)
++
++
++def has_link(issue):
++    """True when the issue carries a linked branch or pull request."""
++    for key in ("linkedBranches", "linked_branches", "linkedPullRequests",
++                "linked_pull_requests", "closedByPullRequestsReferences"):
++        if issue.get(key):
++            return True
++    return bool(issue.get("linked"))
++
++
++def is_blocked(issue, labels):
++    """Blocked is read from the issue's own labels — never inferred."""
++    lowered = {name.lower() for name in labels}
++    return bool(lowered & {"blocked", "on-hold", "on hold", "waiting"})
++
++
++def phrase(items):
++    items = [i for i in items if i]
++    if not items:
++        return ""
++    if len(items) == 1:
++        return items[0]
++    return ", ".join(items[:-1]) + " and " + items[-1]
++
++
++# ---------- the kind map (C11) --------------------------------------------
++
++def load_kind_map(path):
++    """Load the fixed label -> kind -> play table. Never inferred, never derived
++    from the product model — /next owns model-derived recommendation, not this play."""
++    if yaml is None:
++        raise RuntimeError("pyyaml is required to read the kind map")
++    with open(path, encoding="utf-8") as fh:
++        doc = yaml.safe_load(fh) or {}
++    rows = doc.get("kinds") or []
++    fallback = doc.get("fallback") or {"kind": "unlabelled", "command": None, "says": ""}
++    # The cardinal rule (C12): this is a statement of what is NOT known, never a
++    # substitute recommendation, and it must never name a play.
++    note = doc.get("no_command_note") or "no recommendation (label it to get one)"
++    return rows, fallback, note
++
++
++def resolve_kind(labels, rows, fallback):
++    """First matching row wins; row order IS the precedence. No match -> fallback."""
++    lowered = {str(name).strip().lower() for name in labels}
++    for row in rows:
++        if lowered & {str(l).strip().lower() for l in (row.get("labels") or [])}:
++            return {"kind": row.get("kind"),
++                    "command": row.get("command"),
++                    "says": row.get("says", ""),
++                    "matched_label": sorted(
++                        lowered & {str(l).strip().lower() for l in row["labels"]})[0]}
++    return {"kind": fallback.get("kind"), "command": fallback.get("command"),
++            "says": fallback.get("says", ""), "matched_label": None}
++
++
++# ---------- mode filters --------------------------------------------------
++
++def evaluate(issue, mode, window_days, operator, now):
++    """Return (keep, signals, sort_key) for one issue under one mode."""
++    state = norm_state(issue)
++    labels = label_names(issue)
++    assignees = assignee_logins(issue)
++    mine = bool(operator) and operator in assignees
++    updated = parse_ts(issue.get("updatedAt") or issue.get("updated_at"))
++    closed = parse_ts(issue.get("closedAt") or issue.get("closed_at"))
++    age = days_since(updated, now)
++    linked = has_link(issue)
++    blocked = is_blocked(issue, labels)
++    signals = []
++
++    if mode == "today":
++        if state != "open":
++            return False, [], None
++        if blocked:
++            return False, [], None
++        if assignees and not mine:
++            return False, [], None
++        signals.append("yours" if mine else "unassigned")
++        signals.append("not blocked")
++        if labels:
++            signals.append("labelled " + phrase(labels))
++        if age is not None:
++            signals.append("last touched %d day%s ago" % (age, "" if age == 1 else "s"))
++        # Freshest first; issue number breaks ties so ordering is total.
++        sort_key = (0 if mine else 1, -(updated.timestamp() if updated else 0),
++                    issue.get("number", 0))
++        return True, signals, sort_key
++
++    if mode == "review":
++        if state != "open":
++            return False, [], None
++        stale = age is not None and age >= STALE_DAYS
++        if not (assignees or linked or stale):
++            return False, [], None
++        if assignees:
++            signals.append("assigned to " + phrase(assignees))
++        if linked:
++            signals.append("has a branch or PR open")
++        if stale:
++            signals.append("stale — untouched for %d days" % age)
++        if blocked:
++            signals.append("labelled blocked")
++        # Stalest first: the thing most at risk leads.
++        sort_key = (0 if stale else 1, updated.timestamp() if updated else 0,
++                    issue.get("number", 0))
++        return True, signals, sort_key
++
++    if mode == "recent":
++        if state != "closed":
++            return False, [], None
++        if closed is None:
++            return False, [], None
++        closed_age = days_since(closed, now)
++        if closed_age is None or closed_age > window_days or closed_age < 0:
++            return False, [], None
++        signals.append("closed %d day%s ago" % (closed_age, "" if closed_age == 1 else "s"))
++        if assignees:
++            signals.append("worked by " + phrase(assignees))
++        if labels:
++            signals.append("labelled " + phrase(labels))
++        # Most recently closed first.
++        sort_key = (0, -closed.timestamp(), issue.get("number", 0))
++        return True, signals, sort_key
++
++    return False, [], None
++
++
++# ---------- rendering -----------------------------------------------------
++
++def render_md(record):
++    mode = record["mode"]
++    lines = ["# focus — %s" % record["label"], ""]
++    lines.append("Mode `%s`%s · %d matched · showing %d"
++                 % (mode,
++                    " (default)" if record["defaulted"] else "",
++                    record["matched_count"], record["shown_count"]))
++    if mode == "recent":
++        lines[-1] += " · window %d days" % record["window_days"]
++    lines.append("")
++
++    if record["shown_count"] == 0:
++        lines.append("Nothing matched mode `%s`." % mode)
++        lines.append("")
++        lines.append("No other mode was tried and no filter was relaxed. "
++                     "Run `/focus --mode today`, `--mode review` or `--mode recent` "
++                     "to look at a different slice.")
++        return "\n".join(lines) + "\n"
++
++    for pos, entry in enumerate(record["entries"], start=1):
++        lines.append("%d. **#%d — %s**" % (pos, entry["number"], entry["title"]))
++        lines.append("   %s" % entry["reason"])
++        if entry["recommendation"]:
++            lines.append("   %s — %s" % (entry["kind"], entry["recommendation"]))
++        else:
++            # C12 — say what is not known. Never fill the gap with a default.
++            lines.append("   %s — %s" % (entry["kind"], record["no_command_note"]))
++        if entry.get("url"):
++            lines.append("   %s" % entry["url"])
++        lines.append("")
++
++    if record["entries_without_recommendation"] > 0:
++        n = record["entries_without_recommendation"]
++        lines.append("%d of the %d shown carr%s no recommendation — /focus could not tell "
++                     "what %s from the labels on %s."
++                     % (n, record["shown_count"], "ies" if n == 1 else "y",
++                        "it is" if n == 1 else "they are",
++                        "it" if n == 1 else "them"))
++        lines.append("")
++
++    if record["surplus_count"] > 0:
++        lines.append("%d more issue%s matched mode `%s` and are not listed."
++                     % (record["surplus_count"],
++                        "" if record["surplus_count"] == 1 else "s", mode))
++        lines.append("")
++    return "\n".join(lines) + "\n"
++
++
++# ---------- main ----------------------------------------------------------
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--issues", required=True)
++    ap.add_argument("--mode-record", required=True)
++    ap.add_argument("--kind-map", required=True,
++                    help="path to reference/kind-map.yaml (C11)")
++    ap.add_argument("--out-json", required=True)
++    ap.add_argument("--out-md", required=True)
++    ap.add_argument("--now", default=None,
++                    help="ISO-8601 override for the clock (tests only)")
++    args = ap.parse_args()
++
++    try:
++        with open(args.issues, encoding="utf-8") as fh:
++            capture = json.load(fh)
++        with open(args.mode_record, encoding="utf-8") as fh:
++            mode_rec = json.load(fh)
++    except (OSError, ValueError) as exc:
++        print("cannot read inputs: %s" % exc, file=sys.stderr)
++        return 2
++
++    try:
++        kind_rows, kind_fallback, no_command_note = load_kind_map(args.kind_map)
++    except (OSError, ValueError, RuntimeError) as exc:
++        print("cannot read the kind map: %s" % exc, file=sys.stderr)
++        return 2
++    known_commands = {r.get("command") for r in kind_rows if r.get("command")}
++
++    if not mode_rec.get("mode_valid"):
++        print("mode record is not valid — halt before selection (REC5)", file=sys.stderr)
++        return 2
++
++    mode = mode_rec["mode"]
++    cap = int(mode_rec.get("cap", 10))
++    window_days = int(mode_rec.get("window_days", 7))
++    operator = capture.get("operator") or None
++    now = parse_ts(args.now) or dt.datetime.now(dt.timezone.utc)
++
++    kept = []
++    for issue in capture.get("issues") or []:
++        keep, signals, sort_key = evaluate(issue, mode, window_days, operator, now)
++        if not keep:
++            continue
++        number = issue.get("number")
++        title = (issue.get("title") or "").strip()
++        reason = phrase(signals)
++        if reason:
++            reason = reason[0].upper() + reason[1:] + "."
++        resolved = resolve_kind(label_names(issue), kind_rows, kind_fallback)
++        kept.append((sort_key, {
++            "number": number,
++            "kind": resolved["kind"],
++            "kind_says": resolved["says"],
++            "kind_from_label": resolved["matched_label"],
++            "command": resolved["command"],
++            # C12 — a recommendation exists ONLY where the table names a play. No
++            # default, no pointer, no substitute. Absence is the correct answer.
++            "recommendation": ("/%s" % resolved["command"]) if resolved["command"] else None,
++            "title": title,
++            "state": norm_state(issue),
++            "url": issue.get("url") or issue.get("web_url") or "",
++            "closed_at": issue.get("closedAt") or issue.get("closed_at") or None,
++            "updated_at": issue.get("updatedAt") or issue.get("updated_at") or None,
++            "signals": signals,
++            "reason": reason,
++        }))
++
++    kept.sort(key=lambda pair: pair[0])
++    entries = [item for _, item in kept][:cap]
++    matched = len(kept)
++
++    missing = sum(1 for e in entries
++                  if not e["reason"] or not isinstance(e["number"], int)
++                  or not e.get("kind"))
++    # C11/F9 — a command must come from the map or be absent. Never invented.
++    # C12/F10 — and an entry with no command must carry no recommendation at all.
++    off_map = sum(1 for e in entries
++                  if (e.get("command") and e["command"] not in known_commands)
++                  or (not e.get("command") and e.get("recommendation")))
++    no_rec = sum(1 for e in entries if not e.get("recommendation"))
++
++    record = {
++        "mode": mode,
++        "mode_valid": True,
++        "defaulted": bool(mode_rec.get("defaulted")),
++        "label": mode_rec.get("label", ""),
++        "expected_state": mode_rec.get("expected_state"),
++        "window_days": window_days,
++        "cap": cap,
++        "operator": operator,
++        "capture_complete": bool(capture.get("capture_complete")),
++        "issues_captured": len(capture.get("issues") or []),
++        "matched_count": matched,
++        "shown_count": len(entries),
++        "surplus_count": max(0, matched - len(entries)),
++        "entries_missing_fields": missing,
++        "entries_off_map": off_map,
++        "kind_map": os.path.abspath(args.kind_map),
++        "known_commands": sorted(known_commands),
++        "no_command_note": no_command_note,
++        "entries_without_recommendation": no_rec,
++        "empty": len(entries) == 0,
++        "entries": entries,
++    }
++
++    for path, payload in ((args.out_json, json.dumps(record, indent=2, sort_keys=True) + "\n"),
++                          (args.out_md, render_md(record))):
++        os.makedirs(os.path.dirname(os.path.abspath(path)) or ".", exist_ok=True)
++        with open(path, "w", encoding="utf-8") as fh:
++            fh.write(payload)
++
++    print("mode=%s matched=%d shown=%d surplus=%d"
++          % (mode, matched, len(entries), record["surplus_count"]))
++    return 0
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/core/components/plays/focus/scripts/session_stamp.py b/core/components/plays/focus/scripts/session_stamp.py
+new file mode 100644
+index 00000000..dd9171e6
+--- /dev/null
++++ b/core/components/plays/focus/scripts/session_stamp.py
+@@ -0,0 +1,129 @@
++#!/usr/bin/env python3
++"""
++session_stamp.py — the session identity stamp (#463).
++
++Binds a play run to the exact slice of the Claude Code session ledger that
++produced it, so spend and behavior are computable OFFLINE (token-burn-dash)
++with zero in-run cost. No parsing, no summing: one directory listing, one
++line read, one file size.
++
++The ledger: Claude Code writes one JSONL per session under
++~/.claude/projects/<cwd-slug>/<session-id>.jsonl. Every line carries
++sessionId and gitBranch; assistant lines carry token usage. This script
++never reads more than the last line of a candidate file.
++
++Phases (mirrors the status-marker lifecycle):
++    --phase start  → resolve the live session (prefer the ledger whose last
++                     line's gitBranch matches --branch, else newest mtime),
++                     write {session_id, ledger_file, start_offset, started_at}
++                     to --marker.
++    --phase close  → read --marker, take the ledger's current size as
++                     end_offset, emit the stamp JSON to stdout (the play close
++                     copies the fields into the evidence frontmatter).
++
++Canonical copy: play-creator/references/session_stamp.py — stamped into each
++play's scripts/ by play-creator (Standard Play Close, G12), same discipline
++as preflight.py. Failures are soft: a missing ledger yields a stamp with
++nulls and "ledger_resolved": false — the close never blocks on the stamp.
++"""
++
++import argparse
++import json
++import sys
++import time
++from pathlib import Path
++
++
++def cwd_slug(cwd):
++    return "".join(ch if ch.isalnum() else "-" for ch in str(cwd))
++
++
++def last_line(path, max_tail=65536):
++    """Read the final line of a (possibly large) file without loading it."""
++    try:
++        with open(path, "rb") as fh:
++            fh.seek(0, 2)
++            size = fh.tell()
++            fh.seek(max(0, size - max_tail))
++            tail = fh.read().decode("utf-8", errors="replace")
++        lines = [l for l in tail.strip().splitlines() if l.strip()]
++        return json.loads(lines[-1]) if lines else None
++    except Exception:
++        return None
++
++
++def resolve_ledger(projects_dir, cwd, branch):
++    """The live session's ledger: prefer last-line gitBranch == branch,
++    fall back to newest mtime. Returns (path, session_id) or (None, None)."""
++    slug_dir = Path(projects_dir) / cwd_slug(cwd)
++    if not slug_dir.is_dir():
++        return None, None
++    candidates = sorted(slug_dir.glob("*.jsonl"),
++                        key=lambda p: p.stat().st_mtime, reverse=True)
++    newest = None
++    for p in candidates[:10]:  # only recent files can be the live session
++        rec = last_line(p)
++        if rec is None:
++            continue
++        sid = rec.get("sessionId")
++        if newest is None and sid:
++            newest = (p, sid)
++        if branch and rec.get("gitBranch") == branch and sid:
++            return p, sid
++    return newest if newest else (None, None)
++
++
++def phase_start(args):
++    ledger, session_id = resolve_ledger(args.projects_dir, args.cwd, args.branch)
++    marker = {
++        "ledger_resolved": ledger is not None,
++        "session_id": session_id,
++        "ledger_file": str(ledger) if ledger else None,
++        "start_offset": ledger.stat().st_size if ledger else None,
++        "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
++    }
++    Path(args.marker).parent.mkdir(parents=True, exist_ok=True)
++    with open(args.marker, "w", encoding="utf-8") as fh:
++        json.dump(marker, fh, indent=2)
++    print(json.dumps(marker, indent=2))
++
++
++def phase_close(args):
++    try:
++        with open(args.marker, "r", encoding="utf-8") as fh:
++            marker = json.load(fh)
++    except Exception:
++        marker = {"ledger_resolved": False, "session_id": None,
++                  "ledger_file": None, "start_offset": None}
++    ledger = marker.get("ledger_file")
++    end_offset = None
++    if ledger and Path(ledger).exists():
++        end_offset = Path(ledger).stat().st_size
++    stamp = {
++        "ledger_resolved": bool(marker.get("ledger_resolved") and end_offset is not None),
++        "session_id": marker.get("session_id"),
++        "ledger_file": ledger,
++        "ledger_start_offset": marker.get("start_offset"),
++        "ledger_end_offset": end_offset,
++    }
++    print(json.dumps(stamp, indent=2))
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--phase", required=True, choices=["start", "close"])
++    ap.add_argument("--marker", required=True,
++                    help="status-marker path for the stamp (per play run)")
++    ap.add_argument("--cwd", default=str(Path.cwd()),
++                    help="project root the session runs in")
++    ap.add_argument("--branch", default=None,
++                    help="current git branch (start phase; ledger match hint)")
++    ap.add_argument("--projects-dir",
++                    default=str(Path.home() / ".claude" / "projects"))
++    args = ap.parse_args()
++    phase_start(args) if args.phase == "start" else phase_close(args)
++
++
++if __name__ == "__main__":
++    main()
++    sys.exit(0)
+diff --git a/core/components/plays/focus/stop-condition.yaml b/core/components/plays/focus/stop-condition.yaml
+new file mode 100644
+index 00000000..780b64be
+--- /dev/null
++++ b/core/components/plays/focus/stop-condition.yaml
+@@ -0,0 +1,26 @@
++# focus stop condition — baked from reference/ice.md "### Done means" (#464).
++# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close —
++# BEFORE Step 7's self-clean (C9) deletes the working folder; the verdict's durable copy
++# is the evidence record. Paths are relative to the run's working folder
++# (<working> = ${product_base}_status/focus/ — /focus is product-scoped).
++schema: { name: stop-condition }
++content:
++  done:
++    - id: D1
++      says: "the captured issue set exists on disk (the play's only source)"
++      check: { type: artifact_exists, path: "issues.json" }
++    - id: D2
++      says: "the mode was resolved to one of the three named values"
++      check: { type: field_equals, file: "selection.json", field: "mode_valid", equals: true }
++    - id: D3
++      says: "the capped, ordered selection exists (machine form)"
++      check: { type: artifact_exists, path: "selection.json" }
++    - id: D4
++      says: "every listed entry carries a reason, an issue number and a kind"
++      check: { type: field_equals, file: "selection.json", field: "entries_missing_fields", equals: 0 }
++    - id: D5
++      says: "the presented list exists (human form)"
++      check: { type: artifact_exists, path: "focus.md" }
++    - id: D6
++      says: "every recommendation resolves in the kind map; none invented, none substituted where the table had no play"
++      check: { type: field_equals, file: "selection.json", field: "entries_off_map", equals: 0 }
+diff --git a/core/components/plays/install-garura/scripts/install.py b/core/components/plays/install-garura/scripts/install.py
+index dd8c3855..80a1cab4 100644
+--- a/core/components/plays/install-garura/scripts/install.py
++++ b/core/components/plays/install-garura/scripts/install.py
+@@ -163,6 +163,10 @@ def transform_config(content, project_name, tool):
+             "play-creator", "play-editor",
+             "start-change", "commit-change", "propose-change",
+             "review-change", "merge-change",
++            # focus is harness-class: it reads the HOST REPO's issue tracker, so it
++            # works in a harness repo exactly as it does in a product one. Its only
++            # workers are platform-adapter + project-orchestrator, both already kept.
++            "focus",
+         },
+         "skills": {
+             "analyze-changes", "analyze-pr", "create-commit", "manage-issue",
+diff --git a/core/components/plays/play-creator/SKILL.md b/core/components/plays/play-creator/SKILL.md
+index 17185651..d9c24540 100644
+--- a/core/components/plays/play-creator/SKILL.md
++++ b/core/components/plays/play-creator/SKILL.md
+@@ -265,6 +265,25 @@ injection.
+ 
+ **Durable model writes ride the end pipeline (D2b, #437).** A play that persists durable product-model artifacts (an Apply/Persist phase, an `apply_*.py` call) must declare `position: end` or `both` — or record an explicit `| position_exception | <reason> |` metadata row. `lint_play.py` fails the play otherwise.
+ 
++### 4c — The cardinal rule: no unbacked recommendation
++If the play **recommends, suggests, advises, or ranks** anything for the user, wire
++[`standards/rules/no-unbacked-recommendation.md`](../../memory/standards/rules/no-unbacked-recommendation.md)
++into it. Silence beats a wrong answer: every recommendation must trace to a source the
++play can name, and where it cannot, the entry carries **no** recommendation — never a
++default, a generic pointer, or another play's name. Emit four things, not a sentiment:
++
++- a **constraint** stating the rule, including that the count of un-recommendable entries
++  is reported to the user (an invisible gap is the same failure one step later);
++- a **failure condition** for an entry that was given a recommendation the play cannot back;
++- a **step eval** that fails when any such entry carries one, when the substituted text
++  names a play, or when the count is wrong or missing from the output;
++- a **recovery** whose direction is to **strip** the recommendation — never to pick a
++  different one. Absence is the correct answer, so recovery must not repair it into a guess.
++
++`/focus` is the reference implementation (C12 / F10 / S8 / REC10). `lint_play.py`'s
++`no-unbacked-recommendation` check fails any recommending play that does not carry this
++wiring, so emit it here rather than discovering it at step 7.
++
+ ### 5 — Evals
+ Generate the checks that prove the play works. Do not hand-wave these — each must be
+ objectively checkable:
+@@ -387,6 +406,10 @@ the user wants the gaps fixed, they correct the intent and re-run the skill (or
+   both for `both`, nothing for `none` — as explicit named sub-play steps, never an opaque
+   one-liner, and never injected into a member play itself
+   (`standards/rules/pipeline-position.md`).
++- Always wire the cardinal rule (`no-unbacked-recommendation.md`) into any play that
++  recommends, suggests, advises, or ranks — constraint + failure condition + step eval +
++  strip-not-replace recovery. A default offered where the play cannot back an answer is
++  worse than the gap it hides.
+ - Always classify constraints before generating evals; always run the linter
+   (`scripts/lint_play.py`) and clear every gap before declaring the play done.
+ - Always wire the **Next** command. Every user-invocable compiled play must have an entry
+diff --git a/core/components/plays/play-creator/scripts/lint_play.py b/core/components/plays/play-creator/scripts/lint_play.py
+index f166e47c..b388bfd3 100755
+--- a/core/components/plays/play-creator/scripts/lint_play.py
++++ b/core/components/plays/play-creator/scripts/lint_play.py
+@@ -366,6 +366,59 @@ def check_fanout_declaration(ctx):
+                                   + " and ".join(missing))]
+ 
+ 
++# --- no unbacked recommendation (the cardinal rule) -------------------------------
++def check_unbacked_recommendation(ctx):
++    # Fires ONLY on a play that says it recommends. The trigger is the frontmatter
++    # description — a play whose stated job is to advise is in scope; a play that
++    # merely mentions the word in passing is not. See
++    # standards/rules/no-unbacked-recommendation.md.
++    #
++    # Convergence-lint, same shape as check_fanout_declaration: the linter proves the
++    # guard is WIRED, the play's own eval proves a given run. A recommending play must
++    # cite the rule and carry both a constraint and a failure condition for it, so an
++    # unbacked default cannot be added later without something failing.
++    if not ctx["fm"]:
++        return []
++    dm = re.search(r"(?ms)^description:\s*(.*?)(?=^\w+:|\Z)", ctx["fm"].group(1))
++    if not dm:
++        return []
++    desc = dm.group(1).lower()
++    # Strip NEGATED mentions first — a play that advertises "no recommendations
++    # attached" (grill) is declaring it does not advise, and must not be dragged in
++    # scope by its own disclaimer.
++    desc = re.sub(r"\b(no|never|without|not)\s+(any\s+)?(recommend\w*|suggest\w*"
++                  r"|advis\w*|rank\w*)", " ", desc)
++    if not re.search(r"\brecommend|\bsuggests?\b|\badvises?\b|\branks?\b", desc):
++        return []
++
++    text = ctx["text"]
++    cites = "no-unbacked-recommendation" in text
++    if not cites:
++        return [(False, "no-unbacked-recommendation",
++                 "this play's description says it recommends — it must cite "
++                 "standards/rules/no-unbacked-recommendation.md and wire the rule "
++                 "(constraint + failure condition + step eval + strip-not-replace recovery)")]
++
++    low = text.lower()
++    missing = []
++    # The rule must be a guarantee, not a sentiment: a constraint AND a failure.
++    if not re.search(r"(?m)^\s*-\s*C\d+\s*[—-].*(no recommendation|unbacked|cannot back"
++                     r"|silence beats)", text, re.I) \
++       and not re.search(r"C\d+[^\n]{0,200}(no recommendation|unbacked|silence beats)",
++                         text, re.I):
++        missing.append("a constraint stating the rule")
++    if not re.search(r"F\d+[^\n]{0,200}(unbacked|given (a recommendation|one) anyway"
++                     r"|default|generic pointer|substitute)", text, re.I):
++        missing.append("a failure condition for a substituted recommendation")
++    if "no recommendation" not in low:
++        missing.append("a named no-recommendation state")
++    ok = not missing
++    return [(ok, "no-unbacked-recommendation",
++             "recommending play cites the rule and wires it (constraint + failure + "
++             "no-recommendation state)" if ok
++             else "cites the rule but is missing: " + "; ".join(missing))]
++
++
+ CHECKS = [
+     check_sections,
+     check_coverage,
+@@ -379,6 +432,7 @@ def check_fanout_declaration(ctx):
+     check_fingerprint,
+     check_next_command,
+     check_fanout_declaration,
++    check_unbacked_recommendation,
+ ]
+ 
+ 
+diff --git a/core/components/plays/play-editor/SKILL.md b/core/components/plays/play-editor/SKILL.md
+index 0599712c..90465561 100644
+--- a/core/components/plays/play-editor/SKILL.md
++++ b/core/components/plays/play-editor/SKILL.md
+@@ -157,6 +157,12 @@ coverage and the no-orphans check pass. The blast radius should be visible at a
+   a contract handoff into inline data.
+ - Re-run the linter (`scripts/lint_play.py`), clear every gap, and update the fingerprint
+   (`shasum -a 256`) before declaring the edit done.
++- Keep the cardinal rule wired. If the play recommends, suggests, advises, or ranks, it
++  must keep citing `standards/rules/no-unbacked-recommendation.md` and keep all four
++  pieces — the constraint, the failure condition, the step eval, and the strip-not-replace
++  recovery. An edit must never introduce a default, generic pointer, or substitute play
++  name where the play cannot back an answer; the linter's `no-unbacked-recommendation`
++  check enforces it.
+ - Keep the **Next** command wired. The play must have an entry in
+   `standards/rules/pipeline-next.md` (or be `meta_exempt` there), and the recompiled
+   Standard Play Close must render its Next line from that map — the linter's
+diff --git a/core/components/skills/platform-adapter/reference/github/verbs.md b/core/components/skills/platform-adapter/reference/github/verbs.md
+index 7111abf9..6deb60a0 100644
+--- a/core/components/skills/platform-adapter/reference/github/verbs.md
++++ b/core/components/skills/platform-adapter/reference/github/verbs.md
+@@ -96,10 +96,16 @@ List open issues matching a search query:
+ gh issue list \
+   --state {state} \
+   --search "{query}" \
+-  --json number,title,updatedAt,labels,state \
++  --json {fields} \
+   --limit {limit}
+ ```
+ 
++`{fields}` is optional. When the caller does not pass it, substitute the default
++`number,title,updatedAt,labels,state` — existing callers are unchanged. A caller
++that needs more (e.g. `/focus` selecting by assignee, age, or close date) passes
++its own comma-separated `gh` JSON field list, such as
++`number,title,url,state,createdAt,updatedAt,closedAt,labels,assignees`.
++
+ ## close-issue
+ 
+ Close an issue:
+diff --git a/docs/components/plays.md b/docs/components/plays.md
+index 4aa23064..0cd1d7e0 100644
+--- a/docs/components/plays.md
++++ b/docs/components/plays.md
+@@ -335,6 +335,7 @@ Recovery reasoning is loaded from LTM: `docs/framework/intent-driven-recovery.md
+ | `run` | Write a slice's run lens — narrative run.md plus machine-readable run.yaml environments |
+ | `grill` | Cut one realized slice into user-testable delivery epics |
+ | `next` | Recommend what to do next on the product from the model's current state |
++| `focus` | Show the tracked issues worth attention now — three fixed modes, capped list, kind + play per entry |
+ | `implement` | Build one ready epic to done via a test-first plan with spec separation |
+ | `validate` | Independently verify one built epic — the deep gate of the execute pipeline |
+ | `launch` | Land one validated epic on a human's evidenced acceptance (HITL gate) |

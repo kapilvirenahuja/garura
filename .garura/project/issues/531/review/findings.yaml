@@ -1,0 +1,95 @@
+pr: 532
+issue: 531
+base: main
+findings:
+- category: harness
+  severity: P4
+  id: H-1
+  file: core/components/plays/focus/SKILL.md
+  summary: "focus/SKILL.md's Agent boundaries section states \"project-orchestrator is the single domain agent this play uses\
+    \ (1 of the \u22645 budget)\" \u2014 restating a governance ceiling ADR 017 explicitly removed from the framework."
+  basis: docs/adr/017-folder-whitelist.md (section 'Play levels and agent-count budgets retired'); corroborated by docs/philosophy/architecture.md
+    line 48.
+  layer: design-grounding
+- category: harness
+  severity: P4
+  id: H-2
+  file: core/components/plays/play-creator/scripts/lint_play.py
+  summary: none
+  basis: "core/components/plays/focus/SKILL.md's own text describing check_unbacked_recommendation as 'same shape as check_fanout_declaration'\
+    \ \u2014 verified against git show main:core/components/plays/play-creator"
+  layer: design-grounding
+- category: memory
+  severity: P3
+  id: memory-001
+  file: core/components/memory/standards/rules/_index.md
+  summary: 'The new row lists `lint-components` as a consumer of `no-unbacked-recommendation.md`. Verified read-only: `lint-components`
+    (core/tools/lint-components, a separate Node tool from play-creator''s `lint_play.py`) contains no reference to "no-unbacked"
+    or the rule anywhere in its rule set. Only `lint_play.py` enforces this rule today. The row overstates coverage the committed
+    convention requires to be'
+  basis: core/components/memory/standards/rules/_index.md (as committed on main)
+  layer: design-grounding
+- category: memory
+  severity: P3
+  id: memory-002
+  file: core/components/memory/standards/rules/no-unbacked-recommendation.md
+  summary: "Rule item 4 states four required pieces: \"a step eval that fails when an unbacked recommendation is present,\
+    \ and a recovery whose direction is to strip the recommendation \u2014 never to choose a different one.\" Read-only inspection\
+    \ of the cited linter (`lint_play.py`, function `check_unbacked_recommendation`, lines 370-419) shows it checks only:\
+    \ (a) the rule is cited in the play text, (b) a constraint"
+  basis: "core/components/memory/standards/rules/evidence-recording.md and play-close.md (as committed on main) \u2014 establish\
+    \ the convergence-lint pattern this file explicitly claims to follow"
+  layer: design-grounding
+- category: memory
+  severity: P4
+  id: memory-003
+  file: core/components/memory/standards/rules/_index.md
+  summary: 'The new row uses a plain date, "(2026-09-08)", in place of an issue/ADR number, and puts run-state prose ("wired
+    in `/focus`; caught-not-yet-wired in `/next` and `/review-change`") into the Consumers column. This is accurate as of
+    this PR (verified: a sweep of `lint_play.py` against every play''s SKILL.md confirms exactly these three plays are in
+    scope, matching the claim), but it is a point-in-tim'
+  basis: "core/components/memory/standards/rules/_index.md (as committed on main) \u2014 row shapes for evidence-recording.md,\
+    \ pipeline-position.md, surface-contract.md, concurrent-fanout.md"
+  layer: design-grounding
+- category: memory
+  severity: P3
+  id: memory-004
+  file: core/components/memory/standards/rules/no-unbacked-recommendation.md
+  summary: "This rule instead determines scope by regex-matching the frontmatter `description` string for recommending verbs\
+    \ (`recommend`, `suggest`, `advise`, `rank`), then has to separately strip negated mentions so a play that merely disclaims\
+    \ recommending (`grill`) is not dragged into scope by its own words. Keying enforcement to prose wording is more fragile\
+    \ than the committed declared-field pattern \u2014 a "
+  basis: core/components/memory/standards/rules/pipeline-position.md (as committed on main)
+  layer: design-grounding
+- category: code
+  severity: P4
+  id: ruff-E741-a
+  file: core/components/plays/focus/scripts/select_focus.py
+  summary: Two E741 'ambiguous variable name l' at lines 128 and 133. Introduced by this branch.
+  basis: ruff E741, executed against the diff's Python
+  layer: runnable-check
+- category: code
+  severity: P4
+  id: ruff-E741-b
+  file: core/components/plays/focus/scripts/{preflight,session_stamp}.py
+  summary: 'Two E741 in verbatim canonical copies. Confirmed pre-existing: ruff on the main version of play-creator/references/
+    reports the same. NOT introduced here.'
+  basis: ruff E741 vs git show main:...
+  layer: runnable-check
+- category: harness
+  severity: P4
+  id: shelf-gap
+  file: (review shelf)
+  summary: The 10 STM run artifacts under issues/531/context/ form a category with no playbook on the review shelf ('playbook
+    missing'). A gap in the shelf, not in this change.
+  basis: "knowledge/review/_index.md \u2014 no covering playbook"
+  layer: assessment
+- category: code
+  severity: P3
+  id: taxonomy-blindspot
+  file: (standards/rules/pr.md taxonomy)
+  summary: quality-check-scoped classifies everything under core/components/** as garura prose before checking extension,
+    so all 8 Python scripts here were never code-scanned. Its 0 findings means 'not examined'. Orchestrator ran ruff + py_compile
+    + a dangerous-call grep instead. Pre-existing taxonomy gap, outside this diff.
+  basis: quality-check-scoped artifact-type table (committed)
+  layer: standards-linter
