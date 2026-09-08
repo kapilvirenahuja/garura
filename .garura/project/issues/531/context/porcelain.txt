@@ -1,0 +1,11 @@
+ M .garura/install-manifest.json
+ M core/components/memory/standards/rules/_index.md
+ M core/components/memory/standards/rules/pipeline-next.md
+ M core/components/plays/install-garura/scripts/install.py
+ M core/components/plays/play-creator/SKILL.md
+ M core/components/plays/play-creator/scripts/lint_play.py
+ M core/components/plays/play-editor/SKILL.md
+ M core/components/skills/platform-adapter/reference/github/verbs.md
+?? .garura/project/issues/531/context/porcelain.txt
+?? core/components/memory/standards/rules/no-unbacked-recommendation.md
+?? core/components/plays/focus/
