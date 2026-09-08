@@ -366,6 +366,59 @@ def check_fanout_declaration(ctx):
                                   + " and ".join(missing))]
 
 
+# --- no unbacked recommendation (the cardinal rule) -------------------------------
+def check_unbacked_recommendation(ctx):
+    # Fires ONLY on a play that says it recommends. The trigger is the frontmatter
+    # description — a play whose stated job is to advise is in scope; a play that
+    # merely mentions the word in passing is not. See
+    # standards/rules/no-unbacked-recommendation.md.
+    #
+    # Convergence-lint, same shape as check_fanout_declaration: the linter proves the
+    # guard is WIRED, the play's own eval proves a given run. A recommending play must
+    # cite the rule and carry both a constraint and a failure condition for it, so an
+    # unbacked default cannot be added later without something failing.
+    if not ctx["fm"]:
+        return []
+    dm = re.search(r"(?ms)^description:\s*(.*?)(?=^\w+:|\Z)", ctx["fm"].group(1))
+    if not dm:
+        return []
+    desc = dm.group(1).lower()
+    # Strip NEGATED mentions first — a play that advertises "no recommendations
+    # attached" (grill) is declaring it does not advise, and must not be dragged in
+    # scope by its own disclaimer.
+    desc = re.sub(r"\b(no|never|without|not)\s+(any\s+)?(recommend\w*|suggest\w*"
+                  r"|advis\w*|rank\w*)", " ", desc)
+    if not re.search(r"\brecommend|\bsuggests?\b|\badvises?\b|\branks?\b", desc):
+        return []
+
+    text = ctx["text"]
+    cites = "no-unbacked-recommendation" in text
+    if not cites:
+        return [(False, "no-unbacked-recommendation",
+                 "this play's description says it recommends — it must cite "
+                 "standards/rules/no-unbacked-recommendation.md and wire the rule "
+                 "(constraint + failure condition + step eval + strip-not-replace recovery)")]
+
+    low = text.lower()
+    missing = []
+    # The rule must be a guarantee, not a sentiment: a constraint AND a failure.
+    if not re.search(r"(?m)^\s*-\s*C\d+\s*[—-].*(no recommendation|unbacked|cannot back"
+                     r"|silence beats)", text, re.I) \
+       and not re.search(r"C\d+[^\n]{0,200}(no recommendation|unbacked|silence beats)",
+                         text, re.I):
+        missing.append("a constraint stating the rule")
+    if not re.search(r"F\d+[^\n]{0,200}(unbacked|given (a recommendation|one) anyway"
+                     r"|default|generic pointer|substitute)", text, re.I):
+        missing.append("a failure condition for a substituted recommendation")
+    if "no recommendation" not in low:
+        missing.append("a named no-recommendation state")
+    ok = not missing
+    return [(ok, "no-unbacked-recommendation",
+             "recommending play cites the rule and wires it (constraint + failure + "
+             "no-recommendation state)" if ok
+             else "cites the rule but is missing: " + "; ".join(missing))]
+
+
 CHECKS = [
     check_sections,
     check_coverage,
@@ -379,6 +432,7 @@ CHECKS = [
     check_fingerprint,
     check_next_command,
     check_fanout_declaration,
+    check_unbacked_recommendation,
 ]
 
 
