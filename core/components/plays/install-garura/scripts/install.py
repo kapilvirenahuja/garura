@@ -163,6 +163,10 @@ SCOPES = {
             "play-creator", "play-editor",
             "start-change", "commit-change", "propose-change",
             "review-change", "merge-change",
+            # focus is harness-class: it reads the HOST REPO's issue tracker, so it
+            # works in a harness repo exactly as it does in a product one. Its only
+            # workers are platform-adapter + project-orchestrator, both already kept.
+            "focus",
         },
         "skills": {
             "analyze-changes", "analyze-pr", "create-commit", "manage-issue",
