@@ -1,0 +1,116 @@
+category: memory
+playbook: review/memory
+grounded_by: change-reviewer
+grounding_method: >
+  Principles reconstructed from committed (base-ref) sources only: `_index.md` as
+  committed on main (its "When to Add Here" rules and its existing row shapes for
+  evidence-recording.md, pipeline-position.md, surface-contract.md, concurrent-fanout.md,
+  play-close.md), the committed `pipeline-next.md` (its own map + its "null command"
+  convention), `pr.md`'s severity taxonomy text, and read-only checks against the
+  repo's actual linter behavior (`lint_play.py`, `lint-components`) to test whether
+  the branch's new file's own enforcement claims hold. No principle was taken from
+  the new `no-unbacked-recommendation.md` file's own prose.
+notes: >
+  pr.md carries no Standard-ID rows for prose/memory findings (its taxonomy is code-diff
+  grep/path rules; its own artifact-type scoping excludes prose from code-defect rows).
+  Severities below are drawn from the P1-P4 bucket definitions at the top of pr.md
+  (Blocker/Major/Minor/Nit), not from a taxonomy row match — consolidator should not
+  apply F3 row-rejection to these findings.
+findings:
+  - id: memory-001
+    file: core/components/memory/standards/rules/_index.md
+    severity: P3
+    principle: >
+      A rule's Consumers column names the components that actually read or enforce it
+      (see the committed play-close.md, evidence-recording.md, pipeline-position.md,
+      and surface-contract.md rows — each lists only tools/plays that mechanically
+      touch the rule).
+    committed_source: "core/components/memory/standards/rules/_index.md (as committed on main)"
+    violation: >
+      The new row lists `lint-components` as a consumer of `no-unbacked-recommendation.md`.
+      Verified read-only: `lint-components` (core/tools/lint-components, a separate
+      Node tool from play-creator's `lint_play.py`) contains no reference to
+      "no-unbacked" or the rule anywhere in its rule set. Only `lint_play.py` enforces
+      this rule today. The row overstates coverage the committed convention requires
+      to be accurate.
+    recommendation: >
+      Drop `lint-components` from the Consumers list until (or unless) that tool is
+      extended to check this rule, or add a tracked follow-up task if the extension is
+      intended.
+
+  - id: memory-002
+    file: core/components/memory/standards/rules/no-unbacked-recommendation.md
+    severity: P3
+    principle: >
+      A rule's "Enforced" section should describe only what a cited linter mechanically
+      checks — the committed convergence-lint pattern (evidence-recording.md, play-close.md)
+      keeps the stated guarantee and the linter's actual assertions in lockstep, naming
+      only the checks the code performs.
+    committed_source: "core/components/memory/standards/rules/evidence-recording.md and play-close.md (as committed on main) — establish the convergence-lint pattern this file explicitly claims to follow"
+    violation: >
+      Rule item 4 states four required pieces: "a step eval that fails when an unbacked
+      recommendation is present, and a recovery whose direction is to strip the
+      recommendation — never to choose a different one." Read-only inspection of the
+      cited linter (`lint_play.py`, function `check_unbacked_recommendation`, lines
+      370-419) shows it checks only: (a) the rule is cited in the play text, (b) a
+      constraint mentioning the rule exists, (c) a failure condition exists, and (d)
+      the literal substring "no recommendation" appears somewhere in the compiled
+      play. It does not check for a step eval, and it does not check that any
+      recovery direction is "strip, not substitute" — a play could satisfy the linter
+      with a recovery that silently swaps in a different recommendation, which is the
+      exact failure the rule exists to stop. The "it is enforced, not intended" claim
+      in item 4 is broader than what is mechanically checked.
+    recommendation: >
+      Either narrow the "Enforced" section to name only what lint_play.py actually
+      checks (cite + constraint + failure + a no-recommendation marker string), or
+      extend the linter to check for the step-eval and strip-not-replace recovery
+      pieces the rule claims are required.
+
+  - id: memory-003
+    file: core/components/memory/standards/rules/_index.md
+    severity: P4
+    principle: >
+      Committed rows keep provenance in the Description column as a stable issue/ADR
+      reference (`#434`, `ADR 022, #442`, `#468, epic #460`), and keep the Consumers
+      column limited to component/play names — not prose describing a play's current
+      pass/fail state.
+    committed_source: "core/components/memory/standards/rules/_index.md (as committed on main) — row shapes for evidence-recording.md, pipeline-position.md, surface-contract.md, concurrent-fanout.md"
+    violation: >
+      The new row uses a plain date, "(2026-09-08)", in place of an issue/ADR number,
+      and puts run-state prose ("wired in `/focus`; caught-not-yet-wired in `/next`
+      and `/review-change`") into the Consumers column. This is accurate as of this
+      PR (verified: a sweep of `lint_play.py` against every play's SKILL.md confirms
+      exactly these three plays are in scope, matching the claim), but it is a
+      point-in-time fact recorded in a place the committed convention reserves for
+      stable references — it goes stale the moment `/next` or `/review-change` is
+      wired, with nothing to flag the drift.
+    recommendation: >
+      Move the wiring-state detail into the rule file's own body (it is already there,
+      in the "State today" table) and keep the `_index.md` row to a stable
+      description + an issue number, matching the other rows.
+
+  - id: memory-004
+    file: core/components/memory/standards/rules/no-unbacked-recommendation.md
+    severity: P3
+    principle: >
+      The committed pipeline-position.md rule establishes the precedent for how a play
+      opts into cross-cutting compiler-injected behavior: a declared frontmatter field
+      (`position: start|end|both|none`) that the compiler reads directly, not an
+      inference over free-text prose.
+    committed_source: "core/components/memory/standards/rules/pipeline-position.md (as committed on main)"
+    violation: >
+      This rule instead determines scope by regex-matching the frontmatter
+      `description` string for recommending verbs (`recommend`, `suggest`, `advise`,
+      `rank`), then has to separately strip negated mentions so a play that merely
+      disclaims recommending (`grill`) is not dragged into scope by its own words.
+      Keying enforcement to prose wording is more fragile than the committed
+      declared-field pattern — a future rewording of a play's description (independent
+      of any behavior change) can silently flip whether the rule applies, and the
+      linter's negation-stripping regex is itself an incomplete heuristic over natural
+      language.
+    recommendation: >
+      Consider a declared frontmatter field (e.g. `recommends: true`) analogous to
+      `position:`, checked directly by the linter, instead of inferring scope from
+      description prose. Flagged as a design question for the maintainer to weigh,
+      not a blocking defect — the current approach works for the three plays checked
+      today.

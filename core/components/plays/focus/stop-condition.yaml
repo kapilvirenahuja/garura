@@ -1,0 +1,26 @@
+# focus stop condition — baked from reference/ice.md "### Done means" (#464).
+# Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close —
+# BEFORE Step 7's self-clean (C9) deletes the working folder; the verdict's durable copy
+# is the evidence record. Paths are relative to the run's working folder
+# (<working> = ${product_base}_status/focus/ — /focus is product-scoped).
+schema: { name: stop-condition }
+content:
+  done:
+    - id: D1
+      says: "the captured issue set exists on disk (the play's only source)"
+      check: { type: artifact_exists, path: "issues.json" }
+    - id: D2
+      says: "the mode was resolved to one of the three named values"
+      check: { type: field_equals, file: "selection.json", field: "mode_valid", equals: true }
+    - id: D3
+      says: "the capped, ordered selection exists (machine form)"
+      check: { type: artifact_exists, path: "selection.json" }
+    - id: D4
+      says: "every listed entry carries a reason, an issue number and a kind"
+      check: { type: field_equals, file: "selection.json", field: "entries_missing_fields", equals: 0 }
+    - id: D5
+      says: "the presented list exists (human form)"
+      check: { type: artifact_exists, path: "focus.md" }
+    - id: D6
+      says: "every recommendation resolves in the kind map; none invented, none substituted where the table had no play"
+      check: { type: field_equals, file: "selection.json", field: "entries_off_map", equals: 0 }

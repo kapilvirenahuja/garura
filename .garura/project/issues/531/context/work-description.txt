@@ -1,0 +1,27 @@
+[FEAT] Add /focus play and the no-unbacked-recommendation guardrail
+
+Two related pieces of work, already built and sitting uncommitted on main.
+
+1. A new play, /focus. It is the issue-side counterpart to /next: /next reads the
+   product model and is forbidden from reading issues; /focus reads the tracked issue
+   host and never touches the model. It cuts a long issue list to at most 10 entries
+   using one of three fixed modes — today (open work you could pick up now), review
+   (open work already in flight), recent (issues closed inside the last 7 days). Each
+   entry carries its number, title, a plain-language reason built from the signals that
+   selected it, its kind, and — only where the kind map names one — the garura play to
+   run for it. Selection, ordering, kind and recommendation are all deterministic
+   scripts; there is no inference after the issue capture.
+
+2. The cardinal rule, as a garura-wide guardrail. Silence beats a wrong answer: a play
+   that recommends must be able to name what backs it, and where it cannot it says
+   nothing rather than offering a default. This came from a real miss — /focus rendered
+   "run /next" on eight unlabelled issues, two of which were plainly defects. The rule
+   is now a standard, enforced by a new lint_play.py check on any play whose description
+   says it recommends, and emitted by play-creator / preserved by play-editor.
+
+Also in scope: an additive optional fields argument on platform-adapter's GitHub
+list-issues verb (default preserves the old field list), a pipeline-next map entry for
+focus, and focus added to install-garura's harness scope so it deploys as a meta play.
+
+Follow-ups already logged separately: #529 (cheat sheet drift) and #530 (/next and
+/review-change not yet wired to the cardinal rule).

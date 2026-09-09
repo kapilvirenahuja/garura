@@ -1,0 +1,130 @@
+pr_number: '532'
+base: main
+categorized_by: change-reviewer
+notes: >
+  categories derived by reading each changed file's content, not by pattern-matching
+  a fixed list. review_shelf read at /Users/kapilahuja/.garura/core/memory/knowledge/review/.
+  Committed files outside the diff were read read-only, only to confirm existing linter
+  tooling paths (core/tools/lint-components, quality-check-scoped) referenced by the
+  playbooks -- not to ground design (that is Layer 2's job, run per-category).
+
+categories:
+  - category: harness
+    playbook: review/harness
+    design_bearing: true
+    evidence:
+      - core/components/plays/focus/SKILL.md
+      - core/components/plays/focus/reference/ice.md
+      - core/components/plays/focus/reference/kind-map.yaml
+      - core/components/plays/focus/stop-condition.yaml
+      - core/components/plays/play-creator/SKILL.md
+      - core/components/plays/play-editor/SKILL.md
+      - core/components/skills/platform-adapter/reference/github/verbs.md
+    reasoning: >
+      A brand-new play (/focus: SKILL.md + its ICE source, kind-map.yaml -- the fixed
+      lookup table that IS the play's decision logic, not a generic path pointer -- and
+      stop-condition.yaml), plus edits to two existing plays' compiled SKILL.md
+      (play-creator, play-editor) and a skill's reference doc (platform-adapter's
+      GitHub verbs, widening close-issue's field list). These are the MD-defined
+      "code" of the agentic system.
+    runnable_checks:
+      - "python3 core/components/plays/play-creator/scripts/lint_play.py core/components/plays/focus  (structural conformance: constraint/failure/scenario coverage, recovery-per-failure, intent fingerprint)"
+      - "same lint_play.py invocation against play-creator/ and play-editor/ for their SKILL.md edits"
+      - "core/tools/lint-components (skill/agent shape) against core/components/skills/platform-adapter"
+
+  - category: code
+    playbook: review/code
+    design_bearing: false
+    evidence:
+      - core/components/plays/focus/scripts/check_output.py
+      - core/components/plays/focus/scripts/check_stop_condition.py
+      - core/components/plays/focus/scripts/preflight.py
+      - core/components/plays/focus/scripts/resolve_mode.py
+      - core/components/plays/focus/scripts/select_focus.py
+      - core/components/plays/focus/scripts/session_stamp.py
+      - core/components/plays/install-garura/scripts/install.py
+      - core/components/plays/play-creator/scripts/lint_play.py
+    reasoning: >
+      Real executed Python -- the /focus play's deterministic selection/kind/stop
+      scripts, an install-garura installer fix, and an edit to lint_play.py itself
+      (the linter is also code, per code.md's own recognise list). code.md is explicit
+      that scripts inside plays/skills belong to this category, not harness, even
+      though they sit in the same play directories as the harness .md files above.
+    runnable_checks:
+      - "python3 -m py_compile on each changed script (syntax gate)"
+      - "quality-check-scoped against the diff using pr.md taxonomy rows (SEC-*, CODE-*, PERF-*)"
+      - "no in-repo ruff/pyflakes config found for core/components/plays/** -- language linter is a gap for this tree"
+
+  - category: memory
+    playbook: review/memory
+    design_bearing: true
+    evidence:
+      - core/components/memory/standards/rules/_index.md
+      - core/components/memory/standards/rules/no-unbacked-recommendation.md
+      - core/components/memory/standards/rules/pipeline-next.md
+    reasoning: >
+      A new garura-wide standards rule (no-unbacked-recommendation.md -- "silence beats
+      a wrong answer") plus its index registration and an edit to the existing
+      pipeline-next.md rule. These shape what every downstream agent/play is held to,
+      matching memory.md's signal "standards/rules/**".
+    runnable_checks:
+      - "core/tools/lint-components (partial coverage per playbook) against core/components/memory/standards/rules"
+      - "manual cross-reference check: does _index.md list no-unbacked-recommendation.md and does the new file follow the rules _TEMPLATE shape (no dedicated cross-reference linter committed -- playbook-noted gap)"
+
+  - category: config-maps
+    playbook: review/config-maps
+    design_bearing: false
+    evidence:
+      - .garura/install-manifest.json
+    reasoning: >
+      A generated record that lists installed component paths (.claude/agents/**,
+      .claude/skills/** etc) -- exactly config-maps.md's "file whose job is to point
+      at other files/dirs by path." It changed because install-garura's own script
+      changed. No design principle to conform to; the only question is whether every
+      listed path resolves.
+    runnable_checks:
+      - "resolve every path listed under record.components against the working tree -- no committed config-map linter exists yet (playbook-noted gap); this run performed the resolution manually as part of Layer 1"
+
+  - category: docs
+    playbook: review/docs
+    design_bearing: false
+    evidence:
+      - docs/components/plays.md
+    reasoning: >
+      Human-facing prose describing plays; not itself a play/skill/agent/ADR/memory
+      file, so it belongs here rather than to harness.
+    runnable_checks:
+      - "no markdownlint/link-checker config found in-repo -- prose linter is a noted gap; spelling/dead-link/heading checks would need to be done by direct read"
+
+  - category: issue-stm-context-artifacts
+    playbook: null
+    playbook_missing_reason: >
+      No seeded playbook covers generated STM/process-evidence snapshots committed
+      under a tracked issue's context/ folder (analysis output, branch/commit/PR
+      metadata, resolved-rules pointer, self-review report, raw work description).
+      These are captured facts about the build process, not authored design,
+      knowledge, or code -- none of the seven seeded categories' "what it is"
+      descriptions fit. A follow-up task is filed to add a playbook for this
+      category (or to fold it under a "process evidence" heading) since PRs built
+      via this pipeline will keep carrying it.
+    design_bearing: false
+    evidence:
+      - .garura/project/issues/531/context/analysis.yaml
+      - .garura/project/issues/531/context/branch.json
+      - .garura/project/issues/531/context/commits.yaml
+      - .garura/project/issues/531/context/issue.json
+      - .garura/project/issues/531/context/porcelain.txt
+      - .garura/project/issues/531/context/pr-body.md
+      - .garura/project/issues/531/context/pr.json
+      - .garura/project/issues/531/context/resolved-rules.json
+      - .garura/project/issues/531/context/self-review.md
+      - .garura/project/issues/531/context/work-description.txt
+    reasoning: >
+      All ten files are auto-captured snapshots of this same PR's own build/context
+      state (git branch/commit/PR metadata, a resolved-rules pointer, a self-review
+      report, the raw feature description) written into the whitelisted
+      project/issues/{n}/context/ folder. They are evidence of process, not a design
+      surface -- no principle to ground them against, and reviewing them is a
+      well-formedness/consistency check at most (e.g. does pr.json actually match
+      the PR under review), not a linter run.
+    runnable_checks: []

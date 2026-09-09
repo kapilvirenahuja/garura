@@ -1,0 +1,74 @@
+---
+# analyze_changeset.py output (C8 fast path) — REPLACED by analyze-changes agent (needs_judgment resolved)
+# issue: 531
+needs_judgment: false
+
+change_groups:
+  - commit_type: feat
+    scope: focus
+    subject: add focus play surfacing tracked issues worth attention now
+    issue: 531
+    files:
+      - core/components/plays/focus/SKILL.md
+      - core/components/plays/focus/reference/ice.md
+      - core/components/plays/focus/reference/kind-map.yaml
+      - core/components/plays/focus/stop-condition.yaml
+      - core/components/plays/focus/scripts/check_output.py
+      - core/components/plays/focus/scripts/check_stop_condition.py
+      - core/components/plays/focus/scripts/preflight.py
+      - core/components/plays/focus/scripts/resolve_mode.py
+      - core/components/plays/focus/scripts/select_focus.py
+      - core/components/plays/focus/scripts/session_stamp.py
+      - core/components/memory/standards/rules/pipeline-next.md
+
+  - commit_type: feat
+    scope: guardrails
+    subject: add no-unbacked-recommendation standards rule
+    issue: 531
+    files:
+      - core/components/memory/standards/rules/no-unbacked-recommendation.md
+      - core/components/memory/standards/rules/_index.md
+
+  - commit_type: feat
+    scope: play-compiler
+    subject: enforce no-unbacked-recommendation rule in play compiler and editor
+    issue: 531
+    files:
+      - core/components/plays/play-creator/scripts/lint_play.py
+      - core/components/plays/play-creator/SKILL.md
+      - core/components/plays/play-editor/SKILL.md
+
+  - commit_type: feat
+    scope: platform-adapter
+    subject: add optional fields argument to list-issues verb
+    issue: 531
+    files:
+      - core/components/skills/platform-adapter/reference/github/verbs.md
+
+  - commit_type: chore
+    scope: install-garura
+    subject: add focus play to harness install scope
+    issue: 531
+    files:
+      - core/components/plays/install-garura/scripts/install.py
+
+exclusions:
+  - path: .garura/install-manifest.json
+    reason: regenerated run state produced by running the installer, not authored work
+  - path: .garura/project/issues/531/context/analysis.yaml
+    reason: this is the plan artifact being written by this analysis step, not a source change
+  - path: .garura/project/issues/531/context/porcelain.txt
+    reason: scratch git-status snapshot used during analysis, not authored work
+
+risks:
+  sensitive_files:
+    []
+  breaking_changes:
+    []
+  ambiguous_types:
+    []
+  hotfix_branch: false
+
+eval_gates:
+  SE-1: {status: PASS, evidence: "all 20 changed paths grouped by concern (5 groups) or excluded with reason; none dropped"}
+  SE-5: {status: PASS, evidence: "no sensitive patterns matched"}

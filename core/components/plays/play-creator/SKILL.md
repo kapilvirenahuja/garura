@@ -265,6 +265,25 @@ injection.
 
 **Durable model writes ride the end pipeline (D2b, #437).** A play that persists durable product-model artifacts (an Apply/Persist phase, an `apply_*.py` call) must declare `position: end` or `both` — or record an explicit `| position_exception | <reason> |` metadata row. `lint_play.py` fails the play otherwise.
 
+### 4c — The cardinal rule: no unbacked recommendation
+If the play **recommends, suggests, advises, or ranks** anything for the user, wire
+[`standards/rules/no-unbacked-recommendation.md`](../../memory/standards/rules/no-unbacked-recommendation.md)
+into it. Silence beats a wrong answer: every recommendation must trace to a source the
+play can name, and where it cannot, the entry carries **no** recommendation — never a
+default, a generic pointer, or another play's name. Emit four things, not a sentiment:
+
+- a **constraint** stating the rule, including that the count of un-recommendable entries
+  is reported to the user (an invisible gap is the same failure one step later);
+- a **failure condition** for an entry that was given a recommendation the play cannot back;
+- a **step eval** that fails when any such entry carries one, when the substituted text
+  names a play, or when the count is wrong or missing from the output;
+- a **recovery** whose direction is to **strip** the recommendation — never to pick a
+  different one. Absence is the correct answer, so recovery must not repair it into a guess.
+
+`/focus` is the reference implementation (C12 / F10 / S8 / REC10). `lint_play.py`'s
+`no-unbacked-recommendation` check fails any recommending play that does not carry this
+wiring, so emit it here rather than discovering it at step 7.
+
 ### 5 — Evals
 Generate the checks that prove the play works. Do not hand-wave these — each must be
 objectively checkable:
@@ -387,6 +406,10 @@ the user wants the gaps fixed, they correct the intent and re-run the skill (or 
   both for `both`, nothing for `none` — as explicit named sub-play steps, never an opaque
   one-liner, and never injected into a member play itself
   (`standards/rules/pipeline-position.md`).
+- Always wire the cardinal rule (`no-unbacked-recommendation.md`) into any play that
+  recommends, suggests, advises, or ranks — constraint + failure condition + step eval +
+  strip-not-replace recovery. A default offered where the play cannot back an answer is
+  worse than the gap it hides.
 - Always classify constraints before generating evals; always run the linter
   (`scripts/lint_play.py`) and clear every gap before declaring the play done.
 - Always wire the **Next** command. Every user-invocable compiled play must have an entry

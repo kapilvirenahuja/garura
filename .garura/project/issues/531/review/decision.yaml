@@ -1,0 +1,10 @@
+decision: approve
+decided_by: harness
+gate: off (gates.plays.review-change)
+reason: no P1 findings; confidence acceptable
+blocking: []
+counts:
+  P4: 6
+  P3: 4
+note: Recommendation recorded verbatim. A reject here would stand exactly as a human
+  reject.

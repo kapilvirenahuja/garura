@@ -1,0 +1,10 @@
+core/components/plays/focus/scripts/check_output.py
+core/components/plays/focus/scripts/check_stop_condition.py
+core/components/plays/focus/scripts/preflight.py
+core/components/plays/focus/scripts/resolve_mode.py
+core/components/plays/focus/scripts/select_focus.py
+core/components/plays/focus/scripts/session_stamp.py
+core/components/plays/install-garura/scripts/install.py
+core/components/plays/play-creator/scripts/lint_play.py
+.garura/install-manifest.json
+docs/components/plays.md

@@ -157,6 +157,12 @@ coverage and the no-orphans check pass. The blast radius should be visible at a 
   a contract handoff into inline data.
 - Re-run the linter (`scripts/lint_play.py`), clear every gap, and update the fingerprint
   (`shasum -a 256`) before declaring the edit done.
+- Keep the cardinal rule wired. If the play recommends, suggests, advises, or ranks, it
+  must keep citing `standards/rules/no-unbacked-recommendation.md` and keep all four
+  pieces — the constraint, the failure condition, the step eval, and the strip-not-replace
+  recovery. An edit must never introduce a default, generic pointer, or substitute play
+  name where the play cannot back an answer; the linter's `no-unbacked-recommendation`
+  check enforces it.
 - Keep the **Next** command wired. The play must have an entry in
   `standards/rules/pipeline-next.md` (or be `meta_exempt` there), and the recompiled
   Standard Play Close must render its Next line from that map — the linter's
