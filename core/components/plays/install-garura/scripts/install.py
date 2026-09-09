@@ -16,8 +16,9 @@ host coding tool can discover them in the target.
 
   --target        the project directory to install into (a path, created if absent)
   --tool          which host tool to target: claude (default) or codex
-  --scope         which component set to install: full (default, everything) or
-                  harness (meta plays + change chain + their workers only)
+  --scope         which component set to install: full (default, every
+                  component except the meta harness plays) or harness (meta
+                  plays + change chain + their workers only)
   --source        the garura checkout to install FROM (auto-derived if omitted)
   --memory-dest   where shared memory goes (default ~/.garura/core/memory)
   --force-config  overwrite an existing target .garura/core/config.yaml
@@ -151,13 +152,21 @@ STATUS_GITIGNORE = (
 
 # A scope names WHICH components a target receives; everything else about the
 # install (shared memory, config, STM scaffold, manifest) is unchanged. `full`
-# is the default and installs every component. `harness` is for garura-style
-# harness repos that must carry only the meta plays, the change chain, and the
-# workers those plays dispatch — nothing product-facing. Membership is explicit
-# and deterministic: when a kept play gains a new worker skill or agent, add it
-# here in the same change.
+# is the default and installs every component EXCEPT the meta harness plays —
+# a product project's ADLC has no use for garura's own build tooling. `harness`
+# is for garura-style harness repos that must carry only the meta plays, the
+# change chain, and the workers those plays dispatch — nothing product-facing.
+# Membership is explicit and deterministic: when a kept play gains a new
+# worker skill or agent, add it here in the same change.
+
+# The meta harness plays are garura's own build tooling — they compile and deploy
+# garura itself. A product project's ADLC has no use for them, so no target ever
+# receives them under `full`. (`harness` is an explicit allow-list and names the
+# two it does want.)
+META_PLAYS = {"play-creator", "play-editor", "install-garura", "uninstall-garura"}
+
 SCOPES = {
-    "full": None,  # no filter — every component installs
+    "full": None,  # marker only — resolved at run time by resolve_scope()
     "harness": {
         "plays": {
             "play-creator", "play-editor",
@@ -179,6 +188,20 @@ SCOPES = {
         },
     },
 }
+
+
+def resolve_scope(scope, components):
+    """Per-kind allow sets for an install scope.
+
+    A value of None for a kind means "install every component of that kind".
+    `harness` is a fixed allow-list. `full` is everything on disk EXCEPT the
+    meta harness plays, so it is resolved against the source tree at run time.
+    """
+    if scope != "full":
+        return SCOPES[scope]
+    plays_dir = os.path.join(components, "plays")
+    plays = set(os.listdir(plays_dir)) if os.path.isdir(plays_dir) else set()
+    return {"plays": plays - META_PLAYS, "skills": None, "agents": None}
 
 
 # --- the install --------------------------------------------------------------
@@ -205,7 +228,7 @@ def install(source, target, tool, force, quiet, memory_dest, scope="full"):
 
     # 1. components — the host surface, owned by the adapter; the scope filter
     #    decides which components the adapter may lay down
-    allow = SCOPES[scope]
+    allow = resolve_scope(scope, components)
     paths, counts, _ = adapter.lay_components(components, target, _info, allow=allow)
     record["components"] = paths
     record["counts"] = counts
@@ -303,7 +326,8 @@ def main(argv=None):
     ap.add_argument("--tool", default="claude", choices=known(),
                     help="host tool to target (default: claude)")
     ap.add_argument("--scope", default="full", choices=sorted(SCOPES),
-                    help="component set to install: full (default) or harness "
+                    help="component set to install: full (default, every component "
+                         "except the meta harness plays) or harness "
                          "(meta plays + change chain + their workers)")
     ap.add_argument("--source", help="garura checkout to install from (auto-derived if omitted)")
     ap.add_argument("--memory-dest", default="~/.garura/core/memory",

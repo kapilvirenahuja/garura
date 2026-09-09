@@ -1,0 +1,49 @@
+meta:
+  generated_at: "2026-09-09T13:27:51Z"
+  diff_path: ".garura/project/issues/546/review/pr.diff"
+  taxonomy_path: "core/components/memory/standards/rules/pr.md"
+  changed_paths_count: 3
+  scan_coverage: 1.0000
+  standards_relevant: 0
+  catchall:
+    CODE-20: 3
+  category: code
+  category_playbook: /Users/kapilahuja/.garura/core/memory/knowledge/review/code.md
+  scoped_paths:
+    - core/components/plays/install-garura/scripts/install.py
+    - core/components/plays/install-garura/scripts/adapters/claude.py
+    - core/components/plays/install-garura/scripts/adapters/codex.py
+  scope_note: >
+    Scoped per dispatch to the "code" category's three files only. The "harness"
+    category's structural lint and "stm_run_records" are handled by a separate
+    dispatch and were not reviewed here.
+  checks_run:
+    - tool: scan_taxonomy.py
+      command: "python3 core/components/skills/quality-check-scoped/scripts/scan_taxonomy.py --taxonomy core/components/memory/standards/rules/pr.md --diff .garura/project/issues/546/review/pr.diff --paths <code-scoped-paths>"
+      result: "P1=0 P2=0 P3=0 P4=0 (all 3 files classify as artifact_type=garura-prose per pr.md's Artifact-Type Scoping table — path glob core/components/** — so grep: rules are ineligible and no path: rule's matched glob is docs-targeting; only the CODE-20 **/* catch-all counted, 3 files, no per-file finding per #454)"
+    - tool: ruff check (default ruleset)
+      command: "ruff check install.py adapters/claude.py adapters/codex.py"
+      result: "All checks passed! (exit 0)"
+    - tool: manual data-safety/idempotency trace (code.md: \"review the data-safety and idempotency paths hard\")
+      result: >
+        Traced resolve_scope()'s new full-scope exclusion of META_PLAYS end-to-end:
+        (1) executed resolve_scope("full", ...) and resolve_scope("harness", ...)
+        against this checkout's real core/components/plays/ tree — full correctly
+        excludes all 4 META_PLAYS, harness allow-list unchanged from pre-#546
+        behavior (install-garura/uninstall-garura were never in the harness
+        allow-list, confirmed by cross-checking scripts/install.py's SCOPES table
+        and this repo's own .claude/skills/, which has neither deployed); (2) both
+        adapters' allow[kind] is not None guard was checked against both call
+        sites (claude.py's "skills"/"plays" loop and "agents" branch; codex.py's
+        equivalent) so a per-kind None correctly means "install all of this kind"
+        with no path where a None allow set is mistaken for an empty one; (3) the
+        retirement/idempotency behavior this change interacts with (manifest-driven
+        retirement of components no longer in scope) is pre-existing and documented
+        in SKILL.md, unchanged by this diff. No destructive-path defect found.
+  errors: []
+findings: []
+counts:
+  P1: 0
+  P2: 0
+  P3: 0
+  P4: 0

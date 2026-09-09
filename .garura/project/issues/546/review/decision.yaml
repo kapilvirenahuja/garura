@@ -1,0 +1,14 @@
+# decision.yaml — PR #547
+# Gate resolution: gates.plays.review-change = off (config, #467 Batch C ruling).
+# The computed recommendation therefore BECOMES the decision, recorded as a harness verdict.
+decided_by: harness
+gate: "gates.plays.review-change: off"
+decision: approve
+reason: "no P1 findings; confidence acceptable"
+blocking: []
+counts:
+  P4: 1
+confidence: 0.9
+threshold: 0.5
+recommendation_source: .garura/project/issues/546/review/recommended_verdict.yaml
+verbatim_from_recommendation: true

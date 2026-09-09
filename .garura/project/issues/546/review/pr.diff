@@ -1,0 +1,498 @@
+diff --git a/.garura/project/issues/546/context/analysis.yaml b/.garura/project/issues/546/context/analysis.yaml
+new file mode 100644
+index 00000000..9c881ab2
+--- /dev/null
++++ b/.garura/project/issues/546/context/analysis.yaml
+@@ -0,0 +1,59 @@
++# analyze_changeset.py output (C8 fast path)
++# issue: 546
++needs_judgment: false
++
++change_groups:
++  - commit_type: fix
++    scope: install-garura
++    issue: 546
++    subject: exclude meta harness plays from the full install scope
++    files:
++      - core/components/plays/install-garura/scripts/install.py
++      - core/components/plays/install-garura/scripts/adapters/claude.py
++      - core/components/plays/install-garura/scripts/adapters/codex.py
++      - core/components/plays/install-garura/SKILL.md
++
++  - commit_type: chore
++    scope: stm
++    issue: 546
++    subject: record change-analysis run artifact
++    files:
++      - .garura/project/issues/546/context/porcelain.txt
++
++exclusions:
++  []
++
++risks:
++  sensitive_files:
++    []
++  breaking_changes:
++    []
++  ambiguous_types:
++    []
++  hotfix_branch: false
++
++eval_gates:
++  SE-1:
++    status: PASS
++    evidence: >
++      Read the full diff (git diff) for all four modified files. All four
++      changes are one concern: install.py adds META_PLAYS + resolve_scope()
++      so `full` scope is resolved against the source tree minus the four
++      meta harness plays instead of a None (no-filter) marker; both
++      adapters' lay_components() allow-filter is taught to accept a
++      per-kind None (needed because resolve_scope() now leaves
++      skills/agents unfiltered while plays gets an explicit set); SKILL.md
++      documents the corrected `full` semantics and carries the required
++      #546 direct-edit deviation note per CLAUDE.md's play-pipeline rule
++      (non-intent surface-prose edit to a compiled play, not an ICE
++      rebuild). None of the four files stand alone as a coherent change —
++      the adapter signature change only makes sense paired with the
++      install.py caller that now passes a per-kind None, and the SKILL.md
++      note documents exactly that pairing. Kept as a single fix group. The
++      untracked porcelain.txt under .garura/project/issues/546/context/ is
++      an STM run artifact (this skill's own scan output), not part of the
++      code fix, so it is split into its own chore(stm) group per the plan
++      contract's rule to list STM artifacts last in their own group.
++  SE-5:
++    status: PASS
++    evidence: "No sensitive file patterns (.env, credentials, keys, secrets) matched in the changeset."
+diff --git a/.garura/project/issues/546/context/branch.json b/.garura/project/issues/546/context/branch.json
+new file mode 100644
+index 00000000..9335e089
+--- /dev/null
++++ b/.garura/project/issues/546/context/branch.json
+@@ -0,0 +1,6 @@
++{
++  "branch_name": "feature/546-install-full-scope-excludes-meta-plays",
++  "base_sha": "dc33a0c986c05d980b285405a7c627794917e0c1",
++  "on_default_branch": false,
++  "worktree_path": null
++}
+\ No newline at end of file
+diff --git a/.garura/project/issues/546/context/commits.yaml b/.garura/project/issues/546/context/commits.yaml
+new file mode 100644
+index 00000000..2212ebf8
+--- /dev/null
++++ b/.garura/project/issues/546/context/commits.yaml
+@@ -0,0 +1,20 @@
++commits:
++  - sha: ed5417f7
++    message: "fix(install-garura): exclude meta harness plays from the full install scope (#546)"
++    files:
++      - core/components/plays/install-garura/scripts/install.py
++      - core/components/plays/install-garura/scripts/adapters/claude.py
++      - core/components/plays/install-garura/scripts/adapters/codex.py
++      - core/components/plays/install-garura/SKILL.md
++    branch: feature/546-install-full-scope-excludes-meta-plays
++  - sha: bf464474
++    message: "chore(stm): record change-analysis run artifact (#546)"
++    files:
++      - .garura/project/issues/546/context/porcelain.txt
++    branch: feature/546-install-full-scope-excludes-meta-plays
++excluded_files:
++  []
++leftover_count: 0
++tree_clean: true
++pushed: false
++run_state_committed: true
+diff --git a/.garura/project/issues/546/context/issue.json b/.garura/project/issues/546/context/issue.json
+new file mode 100644
+index 00000000..ae9ac963
+--- /dev/null
++++ b/.garura/project/issues/546/context/issue.json
+@@ -0,0 +1,6 @@
++{
++  "resolved": false,
++  "issue_number": 546,
++  "title": "[BUG] install-garura: full scope ships meta harness plays into target projects",
++  "created": true
++}
+diff --git a/.garura/project/issues/546/context/porcelain.txt b/.garura/project/issues/546/context/porcelain.txt
+new file mode 100644
+index 00000000..46bbabf2
+--- /dev/null
++++ b/.garura/project/issues/546/context/porcelain.txt
+@@ -0,0 +1,5 @@
++ M core/components/plays/install-garura/SKILL.md
++ M core/components/plays/install-garura/scripts/adapters/claude.py
++ M core/components/plays/install-garura/scripts/adapters/codex.py
++ M core/components/plays/install-garura/scripts/install.py
++?? .garura/project/issues/546/context/porcelain.txt
+diff --git a/.garura/project/issues/546/context/pr-body.md b/.garura/project/issues/546/context/pr-body.md
+new file mode 100644
+index 00000000..2fc185d9
+--- /dev/null
++++ b/.garura/project/issues/546/context/pr-body.md
+@@ -0,0 +1,71 @@
++## What this fixes
++
++Closes #546.
++
++A `full` install was shipping garura's own build tooling into every target project.
++`SCOPES["full"]` was `None` — "no filter" — so `play-creator`, `play-editor`,
++`install-garura` and `uninstall-garura` landed in each product project's `.claude/skills/`.
++Those four plays exist to build and maintain garura itself; a product project's ADLC has no
++use for them. The `harness` scope was not the answer either — it is the opposite subset
++(meta plays plus the change chain, for garura-style harness repos). No scope gave a target
++the product plays without the meta plays, which is the most common install case.
++
++## The change
++
++- `scripts/install.py` — new `META_PLAYS` set and a `resolve_scope(scope, components)`
++  function. `full` is now resolved against the source tree at run time: every play on disk
++  minus `META_PLAYS`, with skills and agents left unfiltered (a per-kind `None`). `harness`
++  is untouched — it stays a fixed allow-list and still names `play-creator` and
++  `play-editor`, which is how garura installs its own build tooling into itself. The scope
++  comment, the module docstring and the argparse help no longer claim `full` means
++  everything.
++- `scripts/adapters/claude.py`, `scripts/adapters/codex.py` — the `allow` filter in both
++  `lay_components` now treats a per-kind `None` as "install every component of this kind",
++  which is what `resolve_scope` hands it for skills and agents.
++- `SKILL.md` — the frontmatter description and the `--scope` bullet corrected, plus a
++  `Direct-edit deviation note (#546)`. `install-garura` is a hand-authored bootstrap
++  meta-play with no ICE source, so these are direct edits, not a play-editor recompile.
++
++The command line is unchanged: `full` keeps its name and stays the default.
++
++## Verification
++
++| Run | Result |
++|-----|--------|
++| `--tool claude` into a temp dir | four meta plays absent; 26 plays installed of 30 on disk |
++| `--tool codex` into a temp dir (isolated `CODEX_HOME`) | four meta plays absent |
++| `--scope harness` into a temp dir | `play-creator` and `play-editor` present; 18 skills — unchanged |
++| real install into `~/cto/nagarro/offering-scorer` | four absent; the project's own `resync-word` skill and `settings.json` untouched |
++
++Manifest counts on the `full` run: 11 agents, 46 skills, 26 plays. 30 − 4 = 26, so exactly
++the four meta plays were dropped and nothing else.
++
++`uninstall-garura` needs no change — it reverses what the manifest records, and a scoped
++manifest records exactly what was placed.
++
++## Self-review
++
++# Self-Review — Issue #546
++
++Rules source: `/Users/kapilahuja/.garura/core/memory/standards/rules/self-review.md` (base, `is_override: false` — no project override in force; see `resolved-rules.json`).
++
++Branch: `feature/546-install-full-scope-excludes-meta-plays` vs `main` (4 commits ahead, tree clean, not yet pushed).
++
++## Scope checks
++
++- **Matches the issue.** PASS. Issue #546 is: `full` install scope ships garura's four meta harness plays (play-creator, play-editor, install-garura, uninstall-garura) into every target project, when it shouldn't. The diff adds `META_PLAYS` and `resolve_scope()` to `install.py` so `full` is computed at run time as "every play on disk minus `META_PLAYS`", teaches both host adapters (`claude.py`, `codex.py`) to treat a per-kind `None` inside the `allow` dict as "install every component of that kind" (needed because `resolve_scope()` now leaves `skills`/`agents` unfiltered but gives `plays` an explicit set), and updates `SKILL.md` prose plus adds the required `#546` direct-edit deviation note. This is exactly the fix the issue describes, nothing more.
++- **No scope creep.** PASS. Four code/doc files touched, all inside `core/components/plays/install-garura/`, all load-bearing for the one fix. The remaining six changed files are STM workspace evidence under `.garura/project/issues/546/context/` — standard pipeline output (issue.json, branch.json, commits.yaml, analysis.yaml, work-description.txt, porcelain.txt), not scope creep.
++- **Reasonable size.** PASS. +194/-21 across 4 code-bearing files; small, single-concern, reviewable in one sitting.
++- **No stray artifacts.** PASS. No commented-out code, no debug prints, no scratch files. `porcelain.txt` and the other context files are the play's own STM run records, expected by the pipeline, not accidental commits.
++
++## Quality checks
++
++- **Tests present.** REVIEW. No automated test file changed — this repo's install path is verified by scripted end-to-end installs, not a unit-test suite. The author reports (and this reviewer takes as author-verified evidence, not independently re-run): Claude-tool install into a temp dir (4 meta plays absent, 26/30 plays installed), Codex-tool install into a temp dir with isolated `CODEX_HOME` (4 meta plays absent), harness-scope install into a temp dir (play-creator and play-editor still present, 18 skills), and a real install into `~/cto/nagarro/offering-scorer`. That covers both adapters and both scopes. Static review of the code (below) confirms the logic matches those claims. Flagging REVIEW rather than PASS only because this reviewer did not re-execute the installs itself — not because evidence is missing.
++- **Commits are clean.** PASS. `ed5417f7 fix(install-garura): exclude meta harness plays from the full install scope (#546)` is the single behavior commit, conventional format, references the issue. The three `chore(stm): record ... (#546)` commits are the pipeline's own evidence commits, also conventional and issue-referenced.
++- **No secrets.** PASS. Diff scanned; no credentials, tokens, keys, or `.env`/`.pem` content. `analysis.yaml`'s own SE-5 gate independently confirms the same.
++- **Docs in step.** PASS. `SKILL.md` description and the `--scope` help text were both updated to say `full` now means "every component except the meta harness plays," and a `Direct-edit deviation note (#546)` was added per this repo's play-pipeline rule (non-intent surface-prose edit to a compiled play — not an ICE rebuild, correctly handled as a direct edit with a footer).
++- **Nothing obviously broken.** PASS, with one non-blocking observation. `resolve_scope()` builds the `plays` allow-set with a raw `set(os.listdir(plays_dir))` — it does not apply the `common.skippable()` filter (dotfiles, `_`-prefixed templates, `.bak` files) that the adapters themselves apply when walking the same directory. This is not a correctness bug: both adapters' `lay_components()` loops check `common.skippable(name)` **before** consulting the `allow` set, so any such junk entry that slipped into the `plays` allow-set would still be filtered out at the point of actual use. It is a minor precision gap (the allow-set can contain names that would never be installed anyway) rather than a functional defect. Not blocking.
++
++## Verdict
++
++**CLEAN.** No blocking findings. One non-blocking observation noted above (the `resolve_scope()` listdir not pre-filtering skippable names) — it does not change behavior because the adapters re-check `skippable()` independently, so it is left as-is rather than requested as a fix.
+diff --git a/.garura/project/issues/546/context/pr.json b/.garura/project/issues/546/context/pr.json
+new file mode 100644
+index 00000000..36cc7373
+--- /dev/null
++++ b/.garura/project/issues/546/context/pr.json
+@@ -0,0 +1,6 @@
++{
++  "number": 547,
++  "url": "https://github.com/kapilvirenahuja/garura/pull/547",
++  "state": "OPEN",
++  "base": "main"
++}
+\ No newline at end of file
+diff --git a/.garura/project/issues/546/context/resolved-rules.json b/.garura/project/issues/546/context/resolved-rules.json
+new file mode 100644
+index 00000000..70b8f431
+--- /dev/null
++++ b/.garura/project/issues/546/context/resolved-rules.json
+@@ -0,0 +1,6 @@
++{
++  "resolved": true,
++  "path": "/Users/kapilahuja/.garura/core/memory/standards/rules/self-review.md",
++  "source": "/Users/kapilahuja/.garura/core/memory/standards/rules",
++  "is_override": false
++}
+diff --git a/.garura/project/issues/546/context/self-review.md b/.garura/project/issues/546/context/self-review.md
+new file mode 100644
+index 00000000..38d144b3
+--- /dev/null
++++ b/.garura/project/issues/546/context/self-review.md
+@@ -0,0 +1,24 @@
++# Self-Review — Issue #546
++
++Rules source: `/Users/kapilahuja/.garura/core/memory/standards/rules/self-review.md` (base, `is_override: false` — no project override in force; see `resolved-rules.json`).
++
++Branch: `feature/546-install-full-scope-excludes-meta-plays` vs `main` (4 commits ahead, tree clean, not yet pushed).
++
++## Scope checks
++
++- **Matches the issue.** PASS. Issue #546 is: `full` install scope ships garura's four meta harness plays (play-creator, play-editor, install-garura, uninstall-garura) into every target project, when it shouldn't. The diff adds `META_PLAYS` and `resolve_scope()` to `install.py` so `full` is computed at run time as "every play on disk minus `META_PLAYS`", teaches both host adapters (`claude.py`, `codex.py`) to treat a per-kind `None` inside the `allow` dict as "install every component of that kind" (needed because `resolve_scope()` now leaves `skills`/`agents` unfiltered but gives `plays` an explicit set), and updates `SKILL.md` prose plus adds the required `#546` direct-edit deviation note. This is exactly the fix the issue describes, nothing more.
++- **No scope creep.** PASS. Four code/doc files touched, all inside `core/components/plays/install-garura/`, all load-bearing for the one fix. The remaining six changed files are STM workspace evidence under `.garura/project/issues/546/context/` — standard pipeline output (issue.json, branch.json, commits.yaml, analysis.yaml, work-description.txt, porcelain.txt), not scope creep.
++- **Reasonable size.** PASS. +194/-21 across 4 code-bearing files; small, single-concern, reviewable in one sitting.
++- **No stray artifacts.** PASS. No commented-out code, no debug prints, no scratch files. `porcelain.txt` and the other context files are the play's own STM run records, expected by the pipeline, not accidental commits.
++
++## Quality checks
++
++- **Tests present.** REVIEW. No automated test file changed — this repo's install path is verified by scripted end-to-end installs, not a unit-test suite. The author reports (and this reviewer takes as author-verified evidence, not independently re-run): Claude-tool install into a temp dir (4 meta plays absent, 26/30 plays installed), Codex-tool install into a temp dir with isolated `CODEX_HOME` (4 meta plays absent), harness-scope install into a temp dir (play-creator and play-editor still present, 18 skills), and a real install into `~/cto/nagarro/offering-scorer`. That covers both adapters and both scopes. Static review of the code (below) confirms the logic matches those claims. Flagging REVIEW rather than PASS only because this reviewer did not re-execute the installs itself — not because evidence is missing.
++- **Commits are clean.** PASS. `ed5417f7 fix(install-garura): exclude meta harness plays from the full install scope (#546)` is the single behavior commit, conventional format, references the issue. The three `chore(stm): record ... (#546)` commits are the pipeline's own evidence commits, also conventional and issue-referenced.
++- **No secrets.** PASS. Diff scanned; no credentials, tokens, keys, or `.env`/`.pem` content. `analysis.yaml`'s own SE-5 gate independently confirms the same.
++- **Docs in step.** PASS. `SKILL.md` description and the `--scope` help text were both updated to say `full` now means "every component except the meta harness plays," and a `Direct-edit deviation note (#546)` was added per this repo's play-pipeline rule (non-intent surface-prose edit to a compiled play — not an ICE rebuild, correctly handled as a direct edit with a footer).
++- **Nothing obviously broken.** PASS, with one non-blocking observation. `resolve_scope()` builds the `plays` allow-set with a raw `set(os.listdir(plays_dir))` — it does not apply the `common.skippable()` filter (dotfiles, `_`-prefixed templates, `.bak` files) that the adapters themselves apply when walking the same directory. This is not a correctness bug: both adapters' `lay_components()` loops check `common.skippable(name)` **before** consulting the `allow` set, so any such junk entry that slipped into the `plays` allow-set would still be filtered out at the point of actual use. It is a minor precision gap (the allow-set can contain names that would never be installed anyway) rather than a functional defect. Not blocking.
++
++## Verdict
++
++**CLEAN.** No blocking findings. One non-blocking observation noted above (the `resolve_scope()` listdir not pre-filtering skippable names) — it does not change behavior because the adapters re-check `skippable()` independently, so it is left as-is rather than requested as a fix.
+diff --git a/.garura/project/issues/546/context/work-description.txt b/.garura/project/issues/546/context/work-description.txt
+new file mode 100644
+index 00000000..c808a507
+--- /dev/null
++++ b/.garura/project/issues/546/context/work-description.txt
+@@ -0,0 +1,36 @@
++[BUG] install-garura full scope ships meta harness plays into every target project
++
++The `full` install scope in the install-garura play installs every play in
++core/components/plays/, with no filter. See
++core/components/plays/install-garura/scripts/install.py:161 — SCOPES["full"] is
++set to None, and None means "no filter applied".
++
++That means the four meta harness plays — play-creator, play-editor,
++install-garura and uninstall-garura — land in every product project that garura
++is installed into. Those plays exist to build and maintain garura itself. They
++have no role in a product project's ADLC. A product team seeing /play-creator in
++their command list is being offered a tool that does not belong to them, and the
++"harness" scope is not the answer either, because that scope is the opposite
++subset (meta plays plus the change chain, for garura-style harness repos).
++
++There is no scope today that gives a target the product plays without the meta
++plays, which is the single most common install case.
++
++Fix:
++
++1. In install.py, define an explicit META_PLAYS set — play-creator, play-editor,
++   install-garura, uninstall-garura — and make SCOPES["full"] filter those plays
++   out. Skills and agents stay unfiltered. Keep the scope name `full` and keep it
++   as the default so no command line breaks.
++2. The `harness` scope is unchanged; garura installs into itself with that scope
++   and must keep working.
++3. Correct the prose that now states the wrong thing: the scope comment block
++   around install.py:152-159, the argparse help at install.py:305-307, and the
++   "full = everything" wording in the play's SKILL.md description and body.
++
++install-garura is a hand-authored bootstrap meta-play with no ICE source, so
++these are direct edits to its SKILL.md and scripts, not a play-editor recompile.
++
++Verification: install into a throwaway directory and confirm none of the four
++meta play folders appear under .claude/skills/, and that the manifest play count
++drops by exactly four. Then confirm the same in a real target install.
+diff --git a/core/components/plays/install-garura/SKILL.md b/core/components/plays/install-garura/SKILL.md
+index 0866acea..d13bafd1 100644
+--- a/core/components/plays/install-garura/SKILL.md
++++ b/core/components/plays/install-garura/SKILL.md
+@@ -1,6 +1,6 @@
+ ---
+ name: install-garura
+-description: 'Install Garura into a target project or repository so its skills, agents, and plays become discoverable by a host coding tool — Claude Code or the OpenAI Codex CLI. Reads this garura checkout''s core/components and runs a per-tool ADAPTER that lays them down in the host''s native shape: for claude, .claude/ skills + agents with model tiers resolved to Claude models; for codex, .agents/skills Agent Skills plus AGENTS.md and ~/.codex model/sandbox/approval profiles. Always writes a .garura/ tooling tree (config + STM scaffold) and copies shared memory to the machine-global ~/.garura, and records an install manifest so uninstall-garura can reverse exactly what was placed. Use when the user wants to install, set up, bootstrap, add, or enable Garura in another folder or repo for claude or codex — "install garura into X", "set up garura in this repo for codex", "bootstrap garura", "make codex see the garura skills". Takes the target path, an optional --tool, and an optional --scope (full = everything, the default; harness = meta plays + change chain + their workers only). For the reverse, see uninstall-garura.'
++description: 'Install Garura into a target project or repository so its skills, agents, and plays become discoverable by a host coding tool — Claude Code or the OpenAI Codex CLI. Reads this garura checkout''s core/components and runs a per-tool ADAPTER that lays them down in the host''s native shape: for claude, .claude/ skills + agents with model tiers resolved to Claude models; for codex, .agents/skills Agent Skills plus AGENTS.md and ~/.codex model/sandbox/approval profiles. Always writes a .garura/ tooling tree (config + STM scaffold) and copies shared memory to the machine-global ~/.garura, and records an install manifest so uninstall-garura can reverse exactly what was placed. Use when the user wants to install, set up, bootstrap, add, or enable Garura in another folder or repo for claude or codex — "install garura into X", "set up garura in this repo for codex", "bootstrap garura", "make codex see the garura skills". Takes the target path, an optional --tool, and an optional --scope (full = every component except the meta harness plays, the default; harness = meta plays + change chain + their workers only). For the reverse, see uninstall-garura.'
+ user-invocable: true
+ ---
+ 
+@@ -104,10 +104,11 @@ python3 core/components/plays/install-garura/scripts/install.py --target <path>
+ 
+ Options:
+ - `--tool claude|codex` — which host tool to target (default `claude`).
+-- `--scope full|harness` — which component set the target receives (default `full`,
+-  everything). `harness` installs only the meta plays (play-creator, play-editor), the five
+-  *change plays, and the worker skills/agents those plays dispatch — for harness-type repos
+-  (garura itself) that must not carry product plays. The scope filters **components only**;
++- `--scope full|harness` — which component set the target receives (default `full`, every
++  component except the meta harness plays). `harness` installs only the meta plays
++  (play-creator, play-editor), the five *change plays, and the worker skills/agents those
++  plays dispatch — for harness-type repos (garura itself) that must not carry product
++  plays. The scope filters **components only**;
+   shared memory, config, the STM scaffold, and the manifest are written the same either way.
+   The manifest records the scope, and since retirement is manifest-driven, re-running with
+   `--scope harness` over a previously full install retires the out-of-scope components
+@@ -169,6 +170,14 @@ adapters' `lay_components` (an `allow` filter) — same bootstrap-meta-play path
+ source exists to recompile. Uninstall needs no change: it reverses what the manifest records,
+ and a scoped manifest records exactly what was placed.
+ 
++**Direct-edit deviation note (#546):** `full` no longer means *everything*. The four meta
++harness plays (play-creator, play-editor, install-garura, uninstall-garura) are garura's own
++build tooling and are excluded from every target install; `full` is now resolved against the
++source tree at run time (`META_PLAYS` + `resolve_scope` in `scripts/install.py`), and both
++adapters' `allow` filter learned a per-kind `None` ("install all of this kind"). `harness` is
++unchanged — it is an explicit allow-list and still names play-creator and play-editor, which
++is how garura installs its own build tooling into itself.
++
+ Level 3 note (#466): bootstrap meta-play — exempt from the goal-loop recompile (no ICE
+ source, like play-creator); runs are session-stamped by the host play when invoked through
+ the pipeline.
+diff --git a/core/components/plays/install-garura/scripts/adapters/claude.py b/core/components/plays/install-garura/scripts/adapters/claude.py
+index ae9f0793..7e22fd84 100644
+--- a/core/components/plays/install-garura/scripts/adapters/claude.py
++++ b/core/components/plays/install-garura/scripts/adapters/claude.py
+@@ -59,7 +59,9 @@ def _rewrite_md(path, *, drop_model):
+ 
+ def lay_components(components, target, info, allow=None):
+     """allow: per-kind name sets from the orchestrator's install scope
+-    ({"plays": {...}, "skills": {...}, "agents": {...}}), or None for all."""
++    ({"plays": {...}, "skills": {...}, "agents": {...}}), or None for all.
++    A per-kind value may itself be None, meaning every component of that
++    kind installs."""
+     claude = os.path.join(target, ".claude")
+     skills_dest = os.path.join(claude, "skills")
+     agents_dest = os.path.join(claude, "agents")
+@@ -76,7 +78,8 @@ def lay_components(components, target, info, allow=None):
+         for name in sorted(os.listdir(src)):
+             if common.skippable(name) or not name.endswith(".md"):
+                 continue
+-            if allow is not None and name[:-3] not in allow["agents"]:
++            if allow is not None and allow["agents"] is not None \
++                    and name[:-3] not in allow["agents"]:
+                 continue
+             if common.file_is_deprecated(os.path.join(src, name)):
+                 deprecated += 1
+@@ -96,7 +99,8 @@ def lay_components(components, target, info, allow=None):
+         for name in sorted(os.listdir(src)):
+             if common.skippable(name) or name in common.EXCLUDED_SKILLS:
+                 continue
+-            if allow is not None and name not in allow[kind]:
++            if allow is not None and allow[kind] is not None \
++                    and name not in allow[kind]:
+                 continue
+             sp = os.path.join(src, name)
+             # a folder without a SKILL.md is not an installable artifact
+diff --git a/core/components/plays/install-garura/scripts/adapters/codex.py b/core/components/plays/install-garura/scripts/adapters/codex.py
+index 15b3b735..e9acd0eb 100644
+--- a/core/components/plays/install-garura/scripts/adapters/codex.py
++++ b/core/components/plays/install-garura/scripts/adapters/codex.py
+@@ -124,7 +124,9 @@ def _emit_skill(md_path, sid, src_dir, skills_root, paths):
+ 
+ def lay_components(components, target, info, allow=None):
+     """allow: per-kind name sets from the orchestrator's install scope
+-    ({"plays": {...}, "skills": {...}, "agents": {...}}), or None for all."""
++    ({"plays": {...}, "skills": {...}, "agents": {...}}), or None for all.
++    A per-kind value may itself be None, meaning every component of that
++    kind installs."""
+     skills_root = os.path.join(target, ".agents", "skills")
+     os.makedirs(skills_root, exist_ok=True)
+ 
+@@ -140,7 +142,8 @@ def lay_components(components, target, info, allow=None):
+         for name in sorted(os.listdir(src)):
+             if common.skippable(name) or name in common.EXCLUDED_SKILLS:
+                 continue
+-            if allow is not None and name not in allow[kind]:
++            if allow is not None and allow[kind] is not None \
++                    and name not in allow[kind]:
+                 continue
+             sp = os.path.join(src, name)
+             md = os.path.join(sp, "SKILL.md")
+@@ -159,7 +162,8 @@ def lay_components(components, target, info, allow=None):
+         for name in sorted(os.listdir(src)):
+             if common.skippable(name) or not name.endswith(".md"):
+                 continue
+-            if allow is not None and name[:-3] not in allow["agents"]:
++            if allow is not None and allow["agents"] is not None \
++                    and name[:-3] not in allow["agents"]:
+                 continue
+             if common.file_is_deprecated(os.path.join(src, name)):
+                 deprecated += 1
+diff --git a/core/components/plays/install-garura/scripts/install.py b/core/components/plays/install-garura/scripts/install.py
+index 80a1cab4..ead2f90e 100644
+--- a/core/components/plays/install-garura/scripts/install.py
++++ b/core/components/plays/install-garura/scripts/install.py
+@@ -16,8 +16,9 @@
+ 
+   --target        the project directory to install into (a path, created if absent)
+   --tool          which host tool to target: claude (default) or codex
+-  --scope         which component set to install: full (default, everything) or
+-                  harness (meta plays + change chain + their workers only)
++  --scope         which component set to install: full (default, every
++                  component except the meta harness plays) or harness (meta
++                  plays + change chain + their workers only)
+   --source        the garura checkout to install FROM (auto-derived if omitted)
+   --memory-dest   where shared memory goes (default ~/.garura/core/memory)
+   --force-config  overwrite an existing target .garura/core/config.yaml
+@@ -151,13 +152,21 @@ def transform_config(content, project_name, tool):
+ 
+ # A scope names WHICH components a target receives; everything else about the
+ # install (shared memory, config, STM scaffold, manifest) is unchanged. `full`
+-# is the default and installs every component. `harness` is for garura-style
+-# harness repos that must carry only the meta plays, the change chain, and the
+-# workers those plays dispatch — nothing product-facing. Membership is explicit
+-# and deterministic: when a kept play gains a new worker skill or agent, add it
+-# here in the same change.
++# is the default and installs every component EXCEPT the meta harness plays —
++# a product project's ADLC has no use for garura's own build tooling. `harness`
++# is for garura-style harness repos that must carry only the meta plays, the
++# change chain, and the workers those plays dispatch — nothing product-facing.
++# Membership is explicit and deterministic: when a kept play gains a new
++# worker skill or agent, add it here in the same change.
++
++# The meta harness plays are garura's own build tooling — they compile and deploy
++# garura itself. A product project's ADLC has no use for them, so no target ever
++# receives them under `full`. (`harness` is an explicit allow-list and names the
++# two it does want.)
++META_PLAYS = {"play-creator", "play-editor", "install-garura", "uninstall-garura"}
++
+ SCOPES = {
+-    "full": None,  # no filter — every component installs
++    "full": None,  # marker only — resolved at run time by resolve_scope()
+     "harness": {
+         "plays": {
+             "play-creator", "play-editor",
+@@ -181,6 +190,20 @@ def transform_config(content, project_name, tool):
+ }
+ 
+ 
++def resolve_scope(scope, components):
++    """Per-kind allow sets for an install scope.
++
++    A value of None for a kind means "install every component of that kind".
++    `harness` is a fixed allow-list. `full` is everything on disk EXCEPT the
++    meta harness plays, so it is resolved against the source tree at run time.
++    """
++    if scope != "full":
++        return SCOPES[scope]
++    plays_dir = os.path.join(components, "plays")
++    plays = set(os.listdir(plays_dir)) if os.path.isdir(plays_dir) else set()
++    return {"plays": plays - META_PLAYS, "skills": None, "agents": None}
++
++
+ # --- the install --------------------------------------------------------------
+ 
+ def install(source, target, tool, force, quiet, memory_dest, scope="full"):
+@@ -205,7 +228,7 @@ def _info(msg):
+ 
+     # 1. components — the host surface, owned by the adapter; the scope filter
+     #    decides which components the adapter may lay down
+-    allow = SCOPES[scope]
++    allow = resolve_scope(scope, components)
+     paths, counts, _ = adapter.lay_components(components, target, _info, allow=allow)
+     record["components"] = paths
+     record["counts"] = counts
+@@ -303,7 +326,8 @@ def main(argv=None):
+     ap.add_argument("--tool", default="claude", choices=known(),
+                     help="host tool to target (default: claude)")
+     ap.add_argument("--scope", default="full", choices=sorted(SCOPES),
+-                    help="component set to install: full (default) or harness "
++                    help="component set to install: full (default, every component "
++                         "except the meta harness plays) or harness "
+                          "(meta plays + change chain + their workers)")
+     ap.add_argument("--source", help="garura checkout to install from (auto-derived if omitted)")
+     ap.add_argument("--memory-dest", default="~/.garura/core/memory",

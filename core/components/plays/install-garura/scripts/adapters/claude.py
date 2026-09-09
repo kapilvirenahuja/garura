@@ -59,7 +59,9 @@ def _rewrite_md(path, *, drop_model):
 
 def lay_components(components, target, info, allow=None):
     """allow: per-kind name sets from the orchestrator's install scope
-    ({"plays": {...}, "skills": {...}, "agents": {...}}), or None for all."""
+    ({"plays": {...}, "skills": {...}, "agents": {...}}), or None for all.
+    A per-kind value may itself be None, meaning every component of that
+    kind installs."""
     claude = os.path.join(target, ".claude")
     skills_dest = os.path.join(claude, "skills")
     agents_dest = os.path.join(claude, "agents")
@@ -76,7 +78,8 @@ def lay_components(components, target, info, allow=None):
         for name in sorted(os.listdir(src)):
             if common.skippable(name) or not name.endswith(".md"):
                 continue
-            if allow is not None and name[:-3] not in allow["agents"]:
+            if allow is not None and allow["agents"] is not None \
+                    and name[:-3] not in allow["agents"]:
                 continue
             if common.file_is_deprecated(os.path.join(src, name)):
                 deprecated += 1
@@ -96,7 +99,8 @@ def lay_components(components, target, info, allow=None):
         for name in sorted(os.listdir(src)):
             if common.skippable(name) or name in common.EXCLUDED_SKILLS:
                 continue
-            if allow is not None and name not in allow[kind]:
+            if allow is not None and allow[kind] is not None \
+                    and name not in allow[kind]:
                 continue
             sp = os.path.join(src, name)
             # a folder without a SKILL.md is not an installable artifact

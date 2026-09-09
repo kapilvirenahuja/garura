@@ -1,0 +1,36 @@
+[BUG] install-garura full scope ships meta harness plays into every target project
+
+The `full` install scope in the install-garura play installs every play in
+core/components/plays/, with no filter. See
+core/components/plays/install-garura/scripts/install.py:161 — SCOPES["full"] is
+set to None, and None means "no filter applied".
+
+That means the four meta harness plays — play-creator, play-editor,
+install-garura and uninstall-garura — land in every product project that garura
+is installed into. Those plays exist to build and maintain garura itself. They
+have no role in a product project's ADLC. A product team seeing /play-creator in
+their command list is being offered a tool that does not belong to them, and the
+"harness" scope is not the answer either, because that scope is the opposite
+subset (meta plays plus the change chain, for garura-style harness repos).
+
+There is no scope today that gives a target the product plays without the meta
+plays, which is the single most common install case.
+
+Fix:
+
+1. In install.py, define an explicit META_PLAYS set — play-creator, play-editor,
+   install-garura, uninstall-garura — and make SCOPES["full"] filter those plays
+   out. Skills and agents stay unfiltered. Keep the scope name `full` and keep it
+   as the default so no command line breaks.
+2. The `harness` scope is unchanged; garura installs into itself with that scope
+   and must keep working.
+3. Correct the prose that now states the wrong thing: the scope comment block
+   around install.py:152-159, the argparse help at install.py:305-307, and the
+   "full = everything" wording in the play's SKILL.md description and body.
+
+install-garura is a hand-authored bootstrap meta-play with no ICE source, so
+these are direct edits to its SKILL.md and scripts, not a play-editor recompile.
+
+Verification: install into a throwaway directory and confirm none of the four
+meta play folders appear under .claude/skills/, and that the manifest play count
+drops by exactly four. Then confirm the same in a real target install.

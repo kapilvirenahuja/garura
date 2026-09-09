@@ -124,7 +124,9 @@ def _emit_skill(md_path, sid, src_dir, skills_root, paths):
 
 def lay_components(components, target, info, allow=None):
     """allow: per-kind name sets from the orchestrator's install scope
-    ({"plays": {...}, "skills": {...}, "agents": {...}}), or None for all."""
+    ({"plays": {...}, "skills": {...}, "agents": {...}}), or None for all.
+    A per-kind value may itself be None, meaning every component of that
+    kind installs."""
     skills_root = os.path.join(target, ".agents", "skills")
     os.makedirs(skills_root, exist_ok=True)
 
@@ -140,7 +142,8 @@ def lay_components(components, target, info, allow=None):
         for name in sorted(os.listdir(src)):
             if common.skippable(name) or name in common.EXCLUDED_SKILLS:
                 continue
-            if allow is not None and name not in allow[kind]:
+            if allow is not None and allow[kind] is not None \
+                    and name not in allow[kind]:
                 continue
             sp = os.path.join(src, name)
             md = os.path.join(sp, "SKILL.md")
@@ -159,7 +162,8 @@ def lay_components(components, target, info, allow=None):
         for name in sorted(os.listdir(src)):
             if common.skippable(name) or not name.endswith(".md"):
                 continue
-            if allow is not None and name[:-3] not in allow["agents"]:
+            if allow is not None and allow["agents"] is not None \
+                    and name[:-3] not in allow["agents"]:
                 continue
             if common.file_is_deprecated(os.path.join(src, name)):
                 deprecated += 1
