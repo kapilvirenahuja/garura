@@ -1,0 +1,90 @@
+# categories.yaml — PR #547 (branch feature/546-install-full-scope-excludes-meta-plays, base main)
+# Written by change-reviewer, Job 1 (categorize the diff)
+
+observations:
+  - note: >
+      context.yaml records review_shelf as "./.garura/core/memory/knowledge/review/",
+      which does not exist on disk. standards_order is [kb, ltm, stm] (kb first), so the
+      live shelf used for this categorization is the global one at
+      /Users/kapilahuja/.garura/core/memory/knowledge/review/. This is a pre-existing path
+      discrepancy in fetch_pr_context.py, not introduced by this diff — recorded here as an
+      observation only, NOT as a finding against PR #547.
+  - note: >
+      Diff file count verified: `grep -c '^diff --git'` on pr.diff returns 14, matching
+      changed_paths' 14 entries in context.yaml. No mismatch.
+
+categories:
+  - name: harness
+    what_it_is: >
+      The install-garura play's own compiled definition and its scripts — the MD-defined
+      "code" of the agentic system, including the .py scripts that live inside the play's
+      scripts/ directory. The harness rubric explicitly covers whether a change "keeps the
+      play→agent→skill→script wiring intact," so the play's scripts belong to this
+      category, not a separate one.
+    playbook: review/harness
+    playbook_path: /Users/kapilahuja/.garura/core/memory/knowledge/review/harness.md
+    design_bearing: true
+    evidence_paths:
+      - core/components/plays/install-garura/SKILL.md
+      - core/components/plays/install-garura/scripts/install.py
+      - core/components/plays/install-garura/scripts/adapters/claude.py
+      - core/components/plays/install-garura/scripts/adapters/codex.py
+    note: >
+      This is a direct-edit (non-intent) change per the play-pipeline rule in CLAUDE.md.
+      SKILL.md carries the required "Direct-edit deviation note (#546)" footer, which the
+      harness playbook's rubric checks for (does an intent change trace to its ICE source).
+
+  - name: code
+    what_it_is: >
+      Real executable Python source: install.py's new META_PLAYS set and resolve_scope()
+      function, and the per-kind None handling added to both host adapters' lay_components()
+      filters. These are the same three files listed under "harness" above (a file can sit
+      in two categories) — here reviewed against the industry-best-practice / data-safety
+      rubric rather than the framework-design rubric, since install.py performs filesystem
+      writes into a target project.
+    playbook: review/code
+    playbook_path: /Users/kapilahuja/.garura/core/memory/knowledge/review/code.md
+    design_bearing: false
+    evidence_paths:
+      - core/components/plays/install-garura/scripts/install.py
+      - core/components/plays/install-garura/scripts/adapters/claude.py
+      - core/components/plays/install-garura/scripts/adapters/codex.py
+    note: >
+      code.md: "Design-grounding: no — the standard is industry best practice... review the
+      data-safety and idempotency paths hard." Layer 1 only (quality-check-scoped + pr.md
+      taxonomy, language linter).
+
+  - name: stm_run_records
+    what_it_is: >
+      This PR's own pipeline-run evidence for issue #546 — analysis, branch/commit ledger,
+      issue/PR metadata, porcelain snapshot, resolved-rules snapshot, work description, and
+      the author's self-review.
+    playbook: null
+    design_bearing: false
+    evidence_paths:
+      - .garura/project/issues/546/context/analysis.yaml
+      - .garura/project/issues/546/context/branch.json
+      - .garura/project/issues/546/context/commits.yaml
+      - .garura/project/issues/546/context/issue.json
+      - .garura/project/issues/546/context/porcelain.txt
+      - .garura/project/issues/546/context/pr-body.md
+      - .garura/project/issues/546/context/pr.json
+      - .garura/project/issues/546/context/resolved-rules.json
+      - .garura/project/issues/546/context/self-review.md
+      - .garura/project/issues/546/context/work-description.txt
+    note: >
+      Playbook missing. None of the seeded review/ categories (decision records, docs,
+      harness, memory, code, config-maps, tests) describe pipeline-run STM evidence for the
+      *-change sequence itself. These are administrative/evidentiary artifacts, not a
+      design-bearing kind of work. A prior run (issue #500) hit the same gap and used the
+      same category name "stm_run_records" — reused here for shelf consistency. This agent's
+      dispatch does not carry TaskCreate; the follow-up ("write a playbook, or an explicit
+      no-design/no-linter ruling, for stm_run_records") could not be filed from here and
+      needs the parent (or play) to create it.
+
+categories_absent:
+  - Decision records (adrs) — no docs/adr/** paths changed.
+  - Documentation (docs) — no docs/** or README/CONTRIBUTING/CHANGELOG paths changed.
+  - Memory — no memory/standards or memory/knowledge paths changed.
+  - Config maps — no CLAUDE.md/AGENTS.md/config.yaml paths changed.
+  - Tests — no test/spec/runner paths changed.

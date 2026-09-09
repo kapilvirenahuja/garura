@@ -1,0 +1,26 @@
+{
+  "pr_number": "547",
+  "base": "main",
+  "changed_paths": [
+    ".garura/project/issues/546/context/analysis.yaml",
+    ".garura/project/issues/546/context/branch.json",
+    ".garura/project/issues/546/context/commits.yaml",
+    ".garura/project/issues/546/context/issue.json",
+    ".garura/project/issues/546/context/porcelain.txt",
+    ".garura/project/issues/546/context/pr-body.md",
+    ".garura/project/issues/546/context/pr.json",
+    ".garura/project/issues/546/context/resolved-rules.json",
+    ".garura/project/issues/546/context/self-review.md",
+    ".garura/project/issues/546/context/work-description.txt",
+    "core/components/plays/install-garura/SKILL.md",
+    "core/components/plays/install-garura/scripts/adapters/claude.py",
+    "core/components/plays/install-garura/scripts/adapters/codex.py",
+    "core/components/plays/install-garura/scripts/install.py"
+  ],
+  "standards_order": [
+    "kb",
+    "ltm",
+    "stm"
+  ],
+  "review_shelf": "./.garura/core/memory/knowledge/review/"
+}

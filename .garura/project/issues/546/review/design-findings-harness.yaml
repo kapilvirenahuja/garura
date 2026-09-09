@@ -1,0 +1,122 @@
+# design-findings-harness.yaml — PR #547 (branch feature/546-install-full-scope-excludes-meta-plays)
+# Written by change-reviewer, Job 2 (design-grounding, category: harness)
+#
+# Scope: core/components/plays/install-garura/SKILL.md and its three scripts
+# (install.py, adapters/claude.py, adapters/codex.py). Category "code" and
+# "stm_run_records" are owned by other dispatches and are not touched here.
+
+principles_grounded:
+  - id: bootstrap-meta-play-is-direct-edit
+    statement: >
+      install-garura is a hand-authored bootstrap meta-play with no ICE source.
+      A change to it that does not alter its intent (guarantee/decision/eval) is
+      a direct edit to the compiled SKILL.md, not a /play-editor rebuild, and
+      must carry a "**Direct-edit deviation note ({issue}):**" footer.
+    committed_source: >
+      main:CLAUDE.md, "Play Pipeline Rules" section (non-intent change ->
+      direct edit -> deviation-note footer requirement); reinforced by
+      main:core/components/plays/install-garura/SKILL.md's own prior deviation
+      note "(#434): this bootstrap meta-play is hand-authored (no ICE source)"
+      and its precedent note "(#478): the --scope option ... same
+      bootstrap-meta-play path as #434".
+  - id: orchestrator-computes-allow-adapter-applies-it
+    statement: >
+      Host-specific layout and model-naming live in the per-tool adapter; the
+      orchestrator (install.py) decides WHICH components are in scope and
+      hands the adapter a per-kind allow filter. The adapter's job is to lay
+      components down in the host's native shape and respect that filter, not
+      to decide scope membership itself.
+    committed_source: >
+      main:core/components/plays/install-garura/scripts/install.py, comment at
+      the components step ("components — the host surface, owned by the
+      adapter; the scope filter decides which components the adapter may lay
+      down") and the pre-existing adapter docstring ("allow: per-kind name
+      sets from the orchestrator's install scope ... or None for all") in both
+      main:.../scripts/adapters/claude.py and main:.../scripts/adapters/codex.py.
+  - id: uninstall-is-manifest-driven-only
+    statement: >
+      uninstall-garura reverses exactly what install-garura's manifest
+      recorded — "Manifest-driven only. Remove exactly what the manifest
+      records. Never delete a [file it cannot prove the installer placed]."
+      It has no independent notion of "full" vs "harness"; whatever the
+      installer actually laid down is what gets recorded and later removed.
+    committed_source: >
+      main:core/components/plays/uninstall-garura/SKILL.md, "What makes this
+      safe: the manifest" section and the "Manifest-driven only" design rule.
+  - id: source-artifact-skip-filter
+    statement: >
+      Source-tree entries starting with "_" or "." (templates, dotfiles) are
+      never real components and must never deploy. Every traversal of a
+      components directory in the adapters applies this filter before
+      treating a directory entry as an installable component.
+    committed_source: >
+      main:core/components/plays/install-garura/scripts/adapters/common.py,
+      skippable() ("Source artifacts starting with `_`/`.` (templates,
+      dotfiles) never deploy."), applied at every os.listdir(src) traversal in
+      main:.../adapters/claude.py and main:.../adapters/codex.py.
+
+conformance_checks:
+  - principle: bootstrap-meta-play-is-direct-edit
+    result: conforms
+    detail: >
+      SKILL.md carries "**Direct-edit deviation note (#546):**" in the exact
+      footer form the base-ref precedent (#434, #478) established, describing
+      a non-intent behavior correction (full's filter semantics) to the
+      bootstrap meta-play. Matches the committed pattern exactly.
+
+  - principle: orchestrator-computes-allow-adapter-applies-it
+    result: conforms
+    detail: >
+      resolve_scope() is added to install.py (the orchestrator), not to
+      either adapter. It still returns a per-kind allow dict the adapters
+      consume unchanged in shape; the only adapter-side change is teaching
+      the existing `allow[kind] not in allow[kind]` check to also accept a
+      per-kind None, which is a narrowing of the same seam, not a new one.
+      The seam (orchestrator decides scope, adapter applies + lays down) is
+      preserved.
+
+  - principle: uninstall-is-manifest-driven-only
+    result: conforms
+    detail: >
+      install.py's record["components"] is still populated from whatever the
+      adapter's lay_components() actually returns after applying the (now
+      run-time-resolved) allow filter — resolve_scope() only changes what
+      full computes as in-scope, not how the manifest is built or how
+      uninstall-garura consumes it. Uninstall-garura is untouched by this
+      diff and still reverses exactly the recorded set.
+
+  - id: F-546-01
+    principle: source-artifact-skip-filter
+    result: violation
+    severity: P4
+    file: core/components/plays/install-garura/scripts/install.py
+    finding: >
+      resolve_scope()'s `full` branch computes
+      `plays = set(os.listdir(plays_dir))` directly, without applying
+      common.skippable() the way every other traversal of a components
+      directory does in claude.py and codex.py. Today core/components/plays/
+      holds only real play directories (no dotfile/template/`_`-prefixed
+      entries), so the allow-set resolve_scope() builds happens to be correct
+      in practice: the adapters still apply skippable() themselves when they
+      actually lay files down, so no component would incorrectly install. But
+      resolve_scope() is silently relying on the source tree staying clean of
+      skippable entries rather than reusing the canonical filter, which is an
+      inconsistency against the committed skippable() contract. If a
+      `_scratch`/`.template` directory is ever added under plays/, "full"
+      would compute an allow-set containing a phantom entry (harmless to
+      installs, but a latent divergence from the documented single source of
+      truth for "what counts as a real component").
+    basis: >
+      main:core/components/plays/install-garura/scripts/adapters/common.py
+      skippable() docstring, and its use at every os.listdir(src) site in
+      main:.../adapters/claude.py and main:.../adapters/codex.py.
+
+findings_summary:
+  by_severity:
+    P1: 0
+    P2: 0
+    P3: 0
+    P4: 1
+  total: 1
+
+grounding_gaps: []

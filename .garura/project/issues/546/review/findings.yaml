@@ -1,0 +1,64 @@
+# findings.yaml — PR #547, consolidated. Grouped by category, each finding classified
+# P1-P4 and carrying a cited basis. Assembled by the play from:
+#   quality-findings.yaml          (Layer 1, standards linter — quality-auditor)
+#   bundled-linter-findings.yaml   (Layer 1, structural linters — play-run)
+#   design-findings-harness.yaml   (Layer 2, design-grounding — change-reviewer)
+# The Layer-2 fan-out was width one (a single design-bearing category) and was joined
+# before this consolidation read any of its output.
+
+confidence: 0.9
+
+categories_reviewed:
+  - name: harness
+    design_bearing: true
+    layers_run: [layer1_bundled_linters, layer2_design_grounding]
+  - name: code
+    design_bearing: false
+    layers_run: [layer1_standards_linter]
+  - name: stm_run_records
+    design_bearing: false
+    layers_run: []
+    note: "playbook missing on the review shelf; no treatment resolvable, so no layer ran"
+
+categories_absent: [adrs, docs, memory, config-maps, tests]
+
+findings:
+  - id: F-546-01
+    category: harness
+    severity: P4
+    file: core/components/plays/install-garura/scripts/install.py
+    title: "resolve_scope()'s full branch lists plays/ without the canonical skippable() filter"
+    summary: >
+      The new full-scope branch computes `plays = set(os.listdir(plays_dir))` directly,
+      where every other traversal of a components directory applies common.skippable()
+      first. Harmless today — plays/ holds no dotfile or underscore-prefixed entries, and
+      both adapters re-apply skippable() before laying anything down, so nothing wrong can
+      install. It is a second, quieter definition of "what counts as a real component"
+      living outside the one place that is supposed to own it. A future `_scratch` or
+      `.template` folder under plays/ would put a phantom entry in the allow-set.
+    basis: >
+      main:core/components/plays/install-garura/scripts/adapters/common.py — skippable()
+      ("Source artifacts starting with `_`/`.` (templates, dotfiles) never deploy"), and
+      its use at every os.listdir(src) site in main:.../adapters/claude.py and
+      main:.../adapters/codex.py. Committed source, base ref — not diff-added.
+    raised_by: [design-grounding (change-reviewer), author self-review]
+
+principles_grounded:
+  - {id: bootstrap-meta-play-is-direct-edit, result: conforms, source: "main:CLAUDE.md Play Pipeline Rules; main:install-garura/SKILL.md notes #434/#478"}
+  - {id: orchestrator-computes-allow-adapter-applies-it, result: conforms, source: "main:install.py components-step comment; main:adapters/{claude,codex}.py allow docstring"}
+  - {id: uninstall-is-manifest-driven-only, result: conforms, source: "main:uninstall-garura/SKILL.md 'Manifest-driven only'"}
+  - {id: source-artifact-skip-filter, result: violation (P4, F-546-01), source: "main:adapters/common.py skippable()"}
+
+runnable_checks_executed:
+  - {check: "ruff check (3 changed .py files)", result: pass}
+  - {check: "resolve_scope() executed against the real component tree", result: pass}
+  - {check: "python3 -m ast.parse on all 3 changed .py files", result: pass}
+  - {check: "lint_play.py on install-garura/SKILL.md", result: "FAIL (5 gaps) — pre-existing, identical on main; not a finding"}
+  - {check: "lint-components --target core/components", result: "3 errors on the changed play — pre-existing, identical class on untouched uninstall-garura; not a finding"}
+  - {check: "install --tool claude / --tool codex / --scope harness into temp dirs", result: pass (author-run, code-verified on inspection)}
+
+observations_not_findings:
+  - "context.yaml binds review_shelf to ./.garura/core/memory/knowledge/review/, which does not exist on disk; standards_order puts kb first, so the live global shelf was used. Pre-existing bug in fetch_pr_context.py, outside this diff."
+  - "The pr.md severity taxonomy classifies core/components/** as garura-prose, so its grep-based security rules cannot fire on these three real Python files. Pre-existing taxonomy-table tension; the linter compensated with ruff plus a manual data-safety trace."
+  - "stm_run_records has no playbook on the review shelf (same gap issue #500 hit). A follow-up to write one, or to record an explicit no-design/no-linter ruling, is unfiled."
+  - "lint_play.py and lint-components both fail on hand-authored bootstrap meta-plays as a class (install-garura and the untouched uninstall-garura alike). Whether they should exempt that class is a real open question, repo-wide and pre-existing."

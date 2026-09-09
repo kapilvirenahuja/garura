@@ -1,0 +1,48 @@
+# Layer 1 — bundled structural linters for the `harness` category.
+# Run by the play (orchestrator), not an agent. Bounded to the diff's harness paths.
+
+runs:
+  - tool: lint_play.py
+    command: "python3 .claude/skills/play-creator/scripts/lint_play.py core/components/plays/install-garura/SKILL.md"
+    executed: true
+    verdict: FAIL (5 gaps)
+    gaps:
+      - "required sections missing: Compiled From, Role, Task DAG, Workflow, Scenario Validation, Recovery, Pause and Resume, Compilation Metadata"
+      - "declared set: could not read C/F/S ranges from 'Compiled From'"
+      - "pipeline position (D2): frontmatter has no 'position' field"
+      - "standard play close (D1): anchors missing"
+      - "fingerprint: missing or placeholder"
+
+  - tool: lint-components
+    command: "node core/tools/lint-components/index.js --target core/components"
+    executed: true
+    repo_wide_summary: {errors: 113, warnings: 2, infos: 0}
+    violations_on_diff_paths:
+      - {file: "core/components/plays/install-garura/SKILL.md", rule: "structural/missing-section", severity: error, message: "Missing required section: ## Compiled From"}
+      - {file: "core/components/plays/install-garura/SKILL.md", rule: "structural/missing-section", severity: error, message: "Missing required section: ## Role"}
+      - {file: "core/components/plays/install-garura/SKILL.md", rule: "structural/missing-standard-play-close", severity: error, message: "Standard Play Close anchors must appear exactly once each (found opener 0, closer 0)"}
+
+findings: []
+
+baseline_note: >
+  BOTH linter results are PRE-EXISTING and NOT attributable to this diff, so neither
+  produces a finding against PR #547. Proof, from committed sources only:
+
+  1. lint_play.py run against `git show main:core/components/plays/install-garura/SKILL.md`
+     returns the IDENTICAL verdict — FAIL, the same 5 gaps. The baseline is unchanged.
+
+  2. `git diff main...HEAD -- core/components/plays/install-garura/SKILL.md | grep -E '^[+-]## '`
+     returns nothing: this diff added and removed ZERO section headings. Section counts are
+     identical either side (Compiled From + Role = 0 on main, 0 on HEAD; Standard Play Close
+     anchors = 0 on main, 0 on HEAD).
+
+  3. `uninstall-garura/SKILL.md` — untouched by this PR — carries the identical three
+     lint-components errors, confirming the gaps belong to the bootstrap meta-play class,
+     not to this change.
+
+  Both `install-garura` and `uninstall-garura` are hand-authored bootstrap meta-plays with
+  no ICE source (stated in the committed SKILL.md on main: "This is a bootstrap meta-play —
+  like play-creator, it is hand-authored, not compiled from an ICE source"). The compiled-play
+  sections these linters require do not exist for that class by design. Whether the linters
+  should exempt the bootstrap class is a real question, but it is a pre-existing repo-wide
+  gap and outside this diff's scope.
