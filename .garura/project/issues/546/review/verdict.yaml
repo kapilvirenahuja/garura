@@ -1,0 +1,20 @@
+# verdict.yaml — PR #547 — the run's canonical verdict artifact.
+#
+# NOTE (run-state fix, REC9): the play body names this artifact `decision.yaml`, but the
+# baked stop-condition manifest checks for `review/verdict.yaml` (D2). The manifest was
+# baked before the #467 recompile renamed the artifact and was never updated with it.
+# Same content, both names, so D2 evaluates. The naming split is a pre-existing defect in
+# review-change, not in this run.
+# Gate resolution: gates.plays.review-change = off (config, #467 Batch C ruling).
+# The computed recommendation therefore BECOMES the decision, recorded as a harness verdict.
+decided_by: harness
+gate: "gates.plays.review-change: off"
+decision: approve
+reason: "no P1 findings; confidence acceptable"
+blocking: []
+counts:
+  P4: 1
+confidence: 0.9
+threshold: 0.5
+recommendation_source: .garura/project/issues/546/review/recommended_verdict.yaml
+verbatim_from_recommendation: true
