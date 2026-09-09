@@ -79,11 +79,30 @@ no recommendation to back.
 ## Enforced
 
 `lint_play.py` runs `no-unbacked-recommendation` on every compiled play whose frontmatter
-description contains a recommending verb. It requires the play to cite this file and to
-carry both a constraint and a failure condition for the rule. `play-creator` emits that
-wiring for a recommending play (step 4c + a hard rule); `play-editor` preserves it (hard
-rule). The trigger strips negated mentions first, so a play advertising "no
-recommendations attached" (`grill`) is not dragged in scope by its own disclaimer.
+description contains a recommending verb. The trigger strips negated mentions first, so a
+play advertising "no recommendations attached" (`grill`) is not dragged into scope by its
+own disclaimer.
+
+**Exactly what it checks** — stated precisely, because a rule whose enforcement claim is
+broader than its enforcement is the same failure this rule exists to stop:
+
+1. the play cites this file;
+2. a **constraint** states the rule;
+3. a **failure condition** covers a substituted recommendation;
+4. a **step eval** cites that failure condition;
+5. that failure's **recovery row strips** the recommendation — it fails on a recovery that
+   chooses a different answer instead;
+6. the play names a **no-recommendation state**.
+
+A play may declare several failure conditions; the check passes when **any one** of the
+candidates is fully wired, since only one of them is the rule's.
+
+What it cannot check is whether a given *run* honoured the rule. That is the play's own
+eval's job, and the split is deliberate — the same one `play-close.md` uses: the lint proves
+the guard exists, the guard proves the run.
+
+`play-creator` emits that wiring for a recommending play (step 4c + a hard rule);
+`play-editor` preserves it (hard rule).
 
 The linter checks the play is *wired*; only the play's own eval can check a given run.
 That split is deliberate and matches `play-close.md`: the lint proves the guard exists,
