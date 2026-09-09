@@ -1,0 +1,20 @@
+commits:
+  - sha: ed5417f7
+    message: "fix(install-garura): exclude meta harness plays from the full install scope (#546)"
+    files:
+      - core/components/plays/install-garura/scripts/install.py
+      - core/components/plays/install-garura/scripts/adapters/claude.py
+      - core/components/plays/install-garura/scripts/adapters/codex.py
+      - core/components/plays/install-garura/SKILL.md
+    branch: feature/546-install-full-scope-excludes-meta-plays
+  - sha: bf464474
+    message: "chore(stm): record change-analysis run artifact (#546)"
+    files:
+      - .garura/project/issues/546/context/porcelain.txt
+    branch: feature/546-install-full-scope-excludes-meta-plays
+excluded_files:
+  []
+leftover_count: 0
+tree_clean: true
+pushed: false
+run_state_committed: true

@@ -1,0 +1,59 @@
+# analyze_changeset.py output (C8 fast path)
+# issue: 546
+needs_judgment: false
+
+change_groups:
+  - commit_type: fix
+    scope: install-garura
+    issue: 546
+    subject: exclude meta harness plays from the full install scope
+    files:
+      - core/components/plays/install-garura/scripts/install.py
+      - core/components/plays/install-garura/scripts/adapters/claude.py
+      - core/components/plays/install-garura/scripts/adapters/codex.py
+      - core/components/plays/install-garura/SKILL.md
+
+  - commit_type: chore
+    scope: stm
+    issue: 546
+    subject: record change-analysis run artifact
+    files:
+      - .garura/project/issues/546/context/porcelain.txt
+
+exclusions:
+  []
+
+risks:
+  sensitive_files:
+    []
+  breaking_changes:
+    []
+  ambiguous_types:
+    []
+  hotfix_branch: false
+
+eval_gates:
+  SE-1:
+    status: PASS
+    evidence: >
+      Read the full diff (git diff) for all four modified files. All four
+      changes are one concern: install.py adds META_PLAYS + resolve_scope()
+      so `full` scope is resolved against the source tree minus the four
+      meta harness plays instead of a None (no-filter) marker; both
+      adapters' lay_components() allow-filter is taught to accept a
+      per-kind None (needed because resolve_scope() now leaves
+      skills/agents unfiltered while plays gets an explicit set); SKILL.md
+      documents the corrected `full` semantics and carries the required
+      #546 direct-edit deviation note per CLAUDE.md's play-pipeline rule
+      (non-intent surface-prose edit to a compiled play, not an ICE
+      rebuild). None of the four files stand alone as a coherent change —
+      the adapter signature change only makes sense paired with the
+      install.py caller that now passes a per-kind None, and the SKILL.md
+      note documents exactly that pairing. Kept as a single fix group. The
+      untracked porcelain.txt under .garura/project/issues/546/context/ is
+      an STM run artifact (this skill's own scan output), not part of the
+      code fix, so it is split into its own chore(stm) group per the plan
+      contract's rule to list STM artifacts last in their own group.
+  SE-5:
+    status: PASS
+    evidence: "No sensitive file patterns (.env, credentials, keys, secrets) matched in the changeset."
