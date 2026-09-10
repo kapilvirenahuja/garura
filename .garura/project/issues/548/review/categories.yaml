@@ -1,0 +1,114 @@
+# categories.yaml — Job 1 (assessment) output for PR #549 / issue 548
+#
+# INPUT DEFECT: the contract's review_shelf path
+# "./.garura/core/memory/knowledge/review/" does not exist anywhere under the repo working
+# directory — resolved to the machine-global deployed shelf at
+# ~/.garura/core/memory/knowledge/review/ instead. Confirmed by `diff -rq` that the deployed
+# shelf is byte-identical to the committed source at
+# core/components/memory/knowledge/review/, so the categorisation below is unaffected — but
+# the parent's path-resolution step handed this agent a path that does not resolve, and that
+# should be fixed upstream (a run on a machine without this deployed shelf would fail here).
+#
+# SHELF OVERLAP: harness.md and code.md both list `plays/**` (and effectively
+# `plays/**/scripts/*.py`) in their `signals`. code.md's own Recognise section resolves this
+# in garura's favour ("in garura this is mostly the python scripts inside plays/skills",
+# naming lint_play.py — a sibling of the scripts changed in this diff — as its example), so
+# the scripts below were filed under `code`, not `harness`. The shelf should make this
+# disambiguation explicit rather than relying on prose in code.md's Recognise section.
+
+categories:
+  - name: harness
+    design_bearing: true
+    playbook: review/harness
+    playbook_path: harness.md
+    evidence:
+      - core/components/agents/product-os-keeper.md
+      - core/components/plays/ux/SKILL.md
+      - core/components/plays/ux/reference/ice.md
+      - core/components/skills/author-ux-lens/SKILL.md
+    note: >
+      The MD-defined "code" of the agentic system: an agent's routing table
+      (product-os-keeper), the ux play's compiled SKILL.md plus its ICE source, and the
+      authoring skill. Verified directly against pr.diff (not taken from the PR body):
+      reference/ice.md has a real diff hunk, and SKILL.md's recorded fingerprint line changed
+      from sha256:0d18d26d... to sha256:bb3f4957... (of reference/ice.md) — consistent with
+      an ICE edit followed by recompilation, not a hand-patch of the compiled file. Whether
+      that recompilation was done correctly is Layer-2 design-grounding work, not this
+      assessment.
+
+  - name: code
+    design_bearing: false
+    playbook: review/code
+    playbook_path: code.md
+    evidence:
+      - core/components/plays/ux/scripts/lint_grounding.py
+      - core/components/plays/ux/scripts/validate_ux.py
+      - core/components/plays/agentic/scripts/lint_grounding.py
+      - core/components/plays/arch/scripts/lint_grounding.py
+      - core/components/plays/grill/scripts/lint_grounding.py
+      - core/components/plays/learn/scripts/lint_grounding.py
+      - core/components/plays/marketing/scripts/lint_grounding.py
+      - core/components/plays/measure/scripts/lint_grounding.py
+      - core/components/plays/quality/scripts/lint_grounding.py
+      - core/components/plays/run/scripts/lint_grounding.py
+      - core/components/plays/vision/scripts/lint_grounding.py
+    note: >
+      The mechanical python scripts inside the plays' scripts/ folders. code.md explicitly
+      claims this exact shape ("in garura this is mostly the python scripts inside
+      plays/skills", naming lint_play.py as its example) as its own domain, reviewed Layer 1
+      only against industry best practice — not design-grounded. Verified directly against
+      pr.diff (not taken from the PR body): all 10 lint_grounding.py copies carry the
+      identical one-line hunk at line ~106 (adds "Flows" to the lens-ux heading list, 
+      "Intent, Screens, States, Visual core" -> "Intent, Screens, Flows, States, Visual
+      core"); validate_ux.py's diff (283 added lines) adds a def check_flows(...) function
+      and a --lens CLI argument.
+
+  - name: memory
+    design_bearing: true
+    playbook: review/memory
+    playbook_path: memory.md
+    evidence:
+      - core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+      - core/components/memory/standards/schemas/product-os/lens/ux.yaml
+    note: >
+      The locked UX-lens schema (typed lens/ux.yaml, LOCKED #434) and its grounding-doc
+      template/contract under memory/standards/schemas/** — the standards artifacts every
+      downstream agent reads to know the lens's shape. Changed in the same PR to match the
+      new five-section contract.
+
+  - name: stm_run_artifacts
+    design_bearing: false
+    playbook: null
+    playbook_path: null
+    note: "playbook missing"
+    evidence:
+      - .garura/project/issues/548/context/analysis.yaml
+      - .garura/project/issues/548/context/branch.json
+      - .garura/project/issues/548/context/commits.yaml
+      - .garura/project/issues/548/context/issue.json
+      - .garura/project/issues/548/context/porcelain.txt
+      - .garura/project/issues/548/context/pr-body.md
+      - .garura/project/issues/548/context/pr.json
+      - .garura/project/issues/548/context/resolved-rules.json
+      - .garura/project/issues/548/context/self-review.md
+      - .garura/project/issues/548/context/work-description.txt
+    rationale: >
+      Machine-generated STM run records for issue #548 itself (branch/commit/PR snapshots,
+      resolved-rules trace, self-review, work description) — not knowledge the agents read
+      (not `memory/**`), not harness code, not human-authored prose docs, not an ADR, not test
+      code, not a path-wiring config map. None of the seven seeded categories in
+      knowledge/review/_index.md recognise this artifact kind by its signals. Recorded as its
+      own category rather than force-fit into "docs" or "memory". A follow-up task should
+      confirm whether this needs its own playbook or is an intentional review exemption
+      (STM/evidence records are process byproducts, not design claims) — not assumed here.
+      NOTE ON design_bearing: false here means "no linter is named for this category and none
+      should be assumed" — it is NOT an instruction to run a generic Layer 1 check. Until a
+      playbook exists, treat this category as unreviewed, not as passing Layer 1 by default.
+      FOLLOW-UP NOT FILED: this agent has no TaskCreate tool; the parent/orchestrator should
+      file the "missing playbook for stm_run_artifacts" follow-up task.
+
+absent_categories_note: >
+  No decision records (docs/adr/**), no plain human-facing documentation outside the harness/
+  memory template docs above, no config maps (CLAUDE.md/AGENTS.md/config.yaml path wiring),
+  and no automated test files are present in this diff. These are simply absent, not reviewed
+  as empty categories.

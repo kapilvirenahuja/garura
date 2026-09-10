@@ -1,0 +1,127 @@
+category: memory
+task_id: "548-review-design-ground-memory"
+grounded_principles:
+  - id: P-SCHEMA-EVOLUTION-PARKED
+    statement: >
+      Schema evolution for the permanent product-os schemas (the lens/ family included)
+      is explicitly PARKED for v1: "a dedicated schema-evolution play will own it later,
+      and it implies migrating existing records to the new shape."
+    source: "core/components/memory/standards/schemas/product-os/_index.md (main, unedited by this PR)"
+
+  - id: P-LOCKED-434-IS-PROVENANCE-NOT-A-MECHANICAL-FREEZE
+    statement: >
+      "LOCKED #434" is the same marker carried by every sibling lens schema (quality.yaml,
+      agentic.yaml, run.yaml, architecture.yaml) — all five were introduced in the single
+      #434/#453 refactor commit and none has been touched since. No committed rule defines
+      "LOCKED #<issue>" on a core/components schema file as an enforcement mechanism; the
+      only formally defined LOCKED/DRAFT vocabulary in the repo is resolution.md's, and it
+      governs a disjoint object (project LTM artifacts named in ltm_context.locked_artifacts),
+      not design-time schema templates under core/components/memory/standards/schemas.
+    source: "core/components/memory/standards/rules/resolution.md (R2, 'LOCKED determination'); sibling lens/*.yaml headers (main)"
+
+  - id: P-TWO-ARTIFACTS-STAY-IN-STEP
+    statement: >
+      Where a lens is split into a narrative (.md) and a machine record (.yaml), the house
+      norm is that the two must agree and be kept in step — stated explicitly for the run
+      lens ("Two artifacts, one lens... Keep the two in step") and implicit in every other
+      lens pairing.
+    source: "core/components/memory/standards/schemas/product-os/grounding/lens/run.md (main, unedited)"
+
+  - id: P-ACCESSIBILITY-LIVES-IN-MARKETING
+    statement: >
+      Accessibility is a full section of the marketing lens contract, with a gold example
+      and the explicit note "(This moved here from the profile.)" — confirming marketing.md
+      is the current, correct owner of accessibility, not the product profile.
+    source: "core/components/memory/standards/schemas/product-os/grounding/lens/marketing.md (main, unedited)"
+
+  - id: P-LENS-INDEX-IS-THE-SHARED-MAP
+    statement: >
+      lens/_index.md is the shared, cross-lens map of what each lens schema holds ("The
+      lenses" table) — the document an agent or reader consults to know a lens's shape
+      without opening the individual schema file.
+    source: "core/components/memory/standards/schemas/product-os/lens/_index.md (main, unedited by this PR)"
+
+  - id: P-CONTENT-STANDARD-BAR
+    statement: >
+      Every grounding-doc section must be self-explaining, discrete, pass the stranger
+      test, and (for cross-references) resolve to something real — the locked quality bar
+      every lens template and gold example is scored against.
+    source: "core/components/memory/standards/schemas/product-os/grounding/_content-standard.md (main, unedited)"
+
+locked_marker_verdict: >
+  Editing lens/ux.yaml and its ux.md contract, despite the "LOCKED #434" header, is not
+  forbidden by any committed rule I could find — "LOCKED #434" is a provenance note shared
+  verbatim by every sibling lens schema, not a defined freeze mechanism (the repo's only
+  formal LOCKED semantics, in resolution.md, govern a different object: project LTM
+  artifacts, not core/components schema templates). BUT the PR does not go through the
+  process the repo's own index says schema changes of this kind require: "Schema evolution
+  is parked for v1: a dedicated schema-evolution play will own it later, and it implies
+  migrating existing records to the new shape" (product-os/_index.md). This PR performs a
+  structural, breaking schema change on a declared-"permanent" record type — `states` moves
+  from `[string]` to `[{name, trigger, sees, next}]`, and a new required `flows` array and
+  a new required per-screen `object` field are added — with no schema-evolution play, no
+  version bump, and no migration note for any lens/ux.yaml record authored under the old
+  shape. So: legitimate to touch the file at all, not legitimate to do so as an ad hoc
+  direct edit outside the parked evolution process, silently.
+
+findings:
+  - id: F1
+    severity: P2
+    file: core/components/memory/standards/schemas/product-os/lens/ux.yaml
+    finding: >
+      Structural, breaking change to a schema explicitly documented as PERMANENT
+      (product-os/_index.md: "lens/ (one file per type) | ... | permanent") without using
+      the dedicated schema-evolution process the same index says such changes require,
+      and without any migration note for existing records built against the old `states:
+      [string]` shape or missing the new required `object`/`flows` fields.
+    principle_violated: P-SCHEMA-EVOLUTION-PARKED
+    committed_source: core/components/memory/standards/schemas/product-os/_index.md (main)
+
+  - id: F2
+    severity: P2
+    file: core/components/memory/standards/schemas/product-os/lens/ux.yaml
+    finding: >
+      The schema's own header comment still says "Accessibility is NOT restated here — it
+      lives in the product profile" — unchanged by this PR even though the PR rewrote the
+      two adjacent lines in the same comment block. This now disagrees with (a) this PR's
+      own ux.md, which says accessibility "lives in the marketing lens," and (b) the
+      marketing lens contract, which documents accessibility as having moved OUT of the
+      profile and into marketing. The narrative and the machine record for one lens no
+      longer agree on where accessibility lives.
+    principle_violated: P-TWO-ARTIFACTS-STAY-IN-STEP, P-ACCESSIBILITY-LIVES-IN-MARKETING
+    committed_source: >
+      core/components/memory/standards/schemas/product-os/grounding/lens/run.md (main);
+      core/components/memory/standards/schemas/product-os/grounding/lens/marketing.md (main)
+
+  - id: F3
+    severity: P3
+    file: core/components/memory/standards/schemas/product-os/lens/_index.md
+    finding: >
+      Not touched by this PR, but now stale: its "The lenses" table still describes
+      ux.yaml as "screens (with low-fidelity layout), states, visual core... a11y lives in
+      the profile; flows are derived by the build" — describing the pre-PR shape on both
+      counts (flows are now specified in-lens, not derived by the build; a11y is stated
+      elsewhere in this same PR to live in marketing, not the profile). A reader consulting
+      the shared map gets the wrong shape for ux.yaml.
+    principle_violated: P-LENS-INDEX-IS-THE-SHARED-MAP
+    committed_source: core/components/memory/standards/schemas/product-os/lens/_index.md (main)
+
+  - id: F4
+    severity: P4
+    file: core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+    finding: >
+      The gold example's Flows section covers only the dashboard-operator persona's goal,
+      even though the Screens section names the CTO as a second, independent opener of the
+      Source coverage view (for a distinct goal — judging trust directly, not preparing the
+      review). The contract's stated completeness check ("every screen reached by at least
+      one flow step") is satisfied because the operator's flow happens to touch both
+      screens, but the gold example does not itself demonstrate a second persona+goal
+      block, which is otherwise the norm the contract sets ("A persona chasing two
+      different goals gets two blocks"). Noted as a nit, not a contract violation — the
+      contract only mandates screen-reachability, not per-named-opener flow coverage.
+    principle_violated: none (informational — no contract line mandates this)
+    committed_source: null
+
+summary:
+  principles_grounded: 6
+  findings_by_severity: { P1: 0, P2: 2, P3: 1, P4: 1 }

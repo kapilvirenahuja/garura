@@ -1,0 +1,83 @@
+pr: 549
+issue: 548
+categories_reviewed:
+- harness (design-grounded)
+- code (linted)
+- memory (design-grounded)
+- stm_run_artifacts (no playbook)
+counts:
+  total: 4
+  P2: 2
+  P3: 1
+  P4: 1
+findings:
+- id: F1
+  severity: P2
+  file: core/components/memory/standards/schemas/product-os/lens/ux.yaml
+  finding: 'Structural, breaking change to a schema explicitly documented as PERMANENT
+    (product-os/_index.md: "lens/ (one file per type) | ... | permanent") without
+    using the dedicated schema-evolution process the same index says such changes
+    require, and without any migration note for existing records built against the
+    old `states: [string]` shape or missing the new required `object`/`flows` fields.
+
+    '
+  principle_violated: P-SCHEMA-EVOLUTION-PARKED
+  committed_source: core/components/memory/standards/schemas/product-os/_index.md
+    (main)
+  category: memory
+  basis: P-SCHEMA-EVOLUTION-PARKED
+- id: F2
+  severity: P2
+  file: core/components/memory/standards/schemas/product-os/lens/ux.yaml
+  finding: 'The schema''s own header comment still says "Accessibility is NOT restated
+    here — it lives in the product profile" — unchanged by this PR even though the
+    PR rewrote the two adjacent lines in the same comment block. This now disagrees
+    with (a) this PR''s own ux.md, which says accessibility "lives in the marketing
+    lens," and (b) the marketing lens contract, which documents accessibility as having
+    moved OUT of the profile and into marketing. The narrative and the machine record
+    for one lens no longer agree on where accessibility lives.
+
+    '
+  principle_violated: P-TWO-ARTIFACTS-STAY-IN-STEP, P-ACCESSIBILITY-LIVES-IN-MARKETING
+  committed_source: 'core/components/memory/standards/schemas/product-os/grounding/lens/run.md
+    (main); core/components/memory/standards/schemas/product-os/grounding/lens/marketing.md
+    (main)
+
+    '
+  category: memory
+  basis: P-TWO-ARTIFACTS-STAY-IN-STEP, P-ACCESSIBILITY-LIVES-IN-MARKETING
+- id: F3
+  severity: P3
+  file: core/components/memory/standards/schemas/product-os/lens/_index.md
+  finding: 'Not touched by this PR, but now stale: its "The lenses" table still describes
+    ux.yaml as "screens (with low-fidelity layout), states, visual core... a11y lives
+    in the profile; flows are derived by the build" — describing the pre-PR shape
+    on both counts (flows are now specified in-lens, not derived by the build; a11y
+    is stated elsewhere in this same PR to live in marketing, not the profile). A
+    reader consulting the shared map gets the wrong shape for ux.yaml.
+
+    '
+  principle_violated: P-LENS-INDEX-IS-THE-SHARED-MAP
+  committed_source: core/components/memory/standards/schemas/product-os/lens/_index.md
+    (main)
+  category: memory
+  basis: P-LENS-INDEX-IS-THE-SHARED-MAP
+- id: F4
+  severity: P4
+  file: core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+  finding: 'The gold example''s Flows section covers only the dashboard-operator persona''s
+    goal, even though the Screens section names the CTO as a second, independent opener
+    of the Source coverage view (for a distinct goal — judging trust directly, not
+    preparing the review). The contract''s stated completeness check ("every screen
+    reached by at least one flow step") is satisfied because the operator''s flow
+    happens to touch both screens, but the gold example does not itself demonstrate
+    a second persona+goal block, which is otherwise the norm the contract sets ("A
+    persona chasing two different goals gets two blocks"). Noted as a nit, not a contract
+    violation — the contract only mandates screen-reachability, not per-named-opener
+    flow coverage.
+
+    '
+  principle_violated: none (informational — no contract line mandates this)
+  committed_source: null
+  category: memory
+  basis: none (informational — no contract line mandates this)

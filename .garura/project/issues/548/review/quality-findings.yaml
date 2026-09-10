@@ -1,0 +1,66 @@
+meta:
+  generated_at: "2026-09-10T03:33:03Z"
+  category: code
+  playbook: review/code
+  playbook_path: core/components/memory/knowledge/review/code.md
+  diff_path: .garura/project/issues/548/review/pr.diff
+  taxonomy_path: core/components/memory/standards/rules/pr.md
+  changed_paths_count: 11
+  scan_coverage: 1.0
+  standards_relevant: 0
+  catchall:
+    CODE-20: 11
+  checks_run:
+    - name: quality-check-scoped taxonomy scan (scan_taxonomy.py)
+      command: >-
+        python3 core/components/skills/quality-check-scoped/scripts/scan_taxonomy.py
+        --taxonomy core/components/memory/standards/rules/pr.md
+        --diff .garura/project/issues/548/review/pr.diff
+        --paths <11 code-category paths> --out <scan-out.yaml>
+      exit_code: 0
+      result: "P1=0 P2=0 P3=0 P4=0, CODE-20 catch-all=11, errors=0"
+    - name: py_compile (per changed python file, per instruction)
+      command: "python3 -m py_compile <file>"
+      files:
+        - core/components/plays/ux/scripts/lint_grounding.py
+        - core/components/plays/ux/scripts/validate_ux.py
+        - core/components/plays/agentic/scripts/lint_grounding.py
+        - core/components/plays/arch/scripts/lint_grounding.py
+        - core/components/plays/grill/scripts/lint_grounding.py
+        - core/components/plays/learn/scripts/lint_grounding.py
+        - core/components/plays/marketing/scripts/lint_grounding.py
+        - core/components/plays/measure/scripts/lint_grounding.py
+        - core/components/plays/quality/scripts/lint_grounding.py
+        - core/components/plays/run/scripts/lint_grounding.py
+        - core/components/plays/vision/scripts/lint_grounding.py
+      exit_code: 0
+      result: "all 11 files compile cleanly, no syntax errors"
+    - name: validate_ux.py --lens smoke test (runnable check, actually executed per instruction)
+      note: >-
+        No live product-os ux.md/manifest/slice fixture exists in this self-hosting repo
+        (validate_ux.py runs against a target product's model, not garura's own). Built a
+        minimal synthetic manifest + slice-file + lens ux.md pair to actually execute the
+        new check_flows() function (added by this diff) end to end, rather than merely
+        reading its source.
+      runs:
+        - case: "well-formed flow (all 7 fields, step names an existing screen, decision names both branches)"
+          command: >-
+            python3 core/components/plays/ux/scripts/validate_ux.py --manifest <manifest.yaml>
+            --slice-file <slice.yaml> --lens <ux-good.md>
+          exit_code: 0
+          result: "ok:true, 0 errors, flows=1, screens=1, unreachable_screens=0"
+        - case: "malformed flow (missing Failure field, step names a screen absent from Screens, decision omits a destination, resulting screen unreachable)"
+          command: >-
+            python3 core/components/plays/ux/scripts/validate_ux.py --manifest <manifest.yaml>
+            --slice-file <slice.yaml> --lens <ux-bad.md>
+          exit_code: 1
+          result: "ok:false, 4 errors correctly raised (missing field / unknown screen / undestined decision / unreachable screen), all tagged C14/F15 or C6/C14/F15"
+      conclusion: >-
+        check_flows() behaves correctly on both a conforming and a non-conforming lens doc —
+        no defect found in the new runnable logic.
+findings: []
+counts:
+  P1: 0
+  P2: 0
+  P3: 0
+  P4: 0
