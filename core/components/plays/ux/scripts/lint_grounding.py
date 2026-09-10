@@ -103,7 +103,7 @@ CONTRACTS = {
     "lens-quality": {"title": "Quality Lens", "exact_title": True,
                      "h2": ["Intent", "Gates"]},
     "lens-ux": {"title": "UX Lens", "exact_title": True,
-                "h2": ["Intent", "Screens", "States", "Visual core"]},
+                "h2": ["Intent", "Screens", "Flows", "States", "Visual core"]},
     "lens-agentic": {"title": "Agentic Lens", "exact_title": True,
                      "h2": ["Is it an agent?", "Load weights", "Controls"]},
     "lens-architecture": {"title": "Architecture Lens", "exact_title": True,
