@@ -1,4 +1,10 @@
-Closes #552, #554, #555, #556, #557, #558, #563.
+Closes #552.
+Closes #554.
+Closes #555.
+Closes #556.
+Closes #557.
+Closes #558.
+Closes #563.
 
 ## Why
 
