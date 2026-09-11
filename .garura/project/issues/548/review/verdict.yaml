@@ -1,11 +1,14 @@
 decided_by: harness
 gate: "off per gates.plays.review-change"
+pass: 2
 decision: approve
 reason: "no P1 findings; confidence acceptable"
 blocking: []
-non_blocking_cited:
-  - { id: F1, severity: P2, category: memory, file: "core/components/memory/standards/schemas/product-os/lens/ux.yaml", basis: P-SCHEMA-EVOLUTION-PARKED }
-  - { id: F2, severity: P2, category: memory, file: "core/components/memory/standards/schemas/product-os/lens/ux.yaml", basis: "P-TWO-ARTIFACTS-STAY-IN-STEP, P-ACCESSIBILITY-LIVES-IN-MARKETING" }
-  - { id: F3, severity: P3, category: memory, file: "core/components/memory/standards/schemas/product-os/lens/_index.md", basis: P-LENS-INDEX-IS-THE-SHARED-MAP }
-  - { id: F4, severity: P4, category: memory, file: "core/components/memory/standards/schemas/product-os/grounding/lens/ux.md", basis: informational }
-counts: { P1: 0, P2: 2, P3: 1, P4: 1 }
+resolved_from_pass_1: [F1, F2, F3]
+open_non_blocking:
+  - { id: F6, severity: P3, category: memory, file: "core/components/memory/standards/schemas/product-os/lens/ux.yaml",
+      basis: "accuracy of a committed claim",
+      remediation: "fixed in e408b9ba; author-verified, not reviewer-verified" }
+left_as_is:
+  - { id: F4, severity: P4, note: "no contract line mandates a flow per screen opener" }
+counts: { P1: 0, P2: 0, P3: 1, P4: 0 }

@@ -545,6 +545,2505 @@ index 00000000..1b388fc6
 +- Sample bad output (griffin project, worktree):
 +  `/Users/kapilahuja/cto/builder/griffin/.claude/worktrees/ux-trusted-local-collection/.garura/product/product-os/team-token-reporting/slices/slice-trusted-local-collection/lens/ux.md`
 +- Play source: `core/components/plays/ux/`
+diff --git a/.garura/project/issues/548/review/categories.yaml b/.garura/project/issues/548/review/categories.yaml
+new file mode 100644
+index 00000000..9c3b6428
+--- /dev/null
++++ b/.garura/project/issues/548/review/categories.yaml
+@@ -0,0 +1,114 @@
++# categories.yaml — Job 1 (assessment) output for PR #549 / issue 548
++#
++# INPUT DEFECT: the contract's review_shelf path
++# "./.garura/core/memory/knowledge/review/" does not exist anywhere under the repo working
++# directory — resolved to the machine-global deployed shelf at
++# ~/.garura/core/memory/knowledge/review/ instead. Confirmed by `diff -rq` that the deployed
++# shelf is byte-identical to the committed source at
++# core/components/memory/knowledge/review/, so the categorisation below is unaffected — but
++# the parent's path-resolution step handed this agent a path that does not resolve, and that
++# should be fixed upstream (a run on a machine without this deployed shelf would fail here).
++#
++# SHELF OVERLAP: harness.md and code.md both list `plays/**` (and effectively
++# `plays/**/scripts/*.py`) in their `signals`. code.md's own Recognise section resolves this
++# in garura's favour ("in garura this is mostly the python scripts inside plays/skills",
++# naming lint_play.py — a sibling of the scripts changed in this diff — as its example), so
++# the scripts below were filed under `code`, not `harness`. The shelf should make this
++# disambiguation explicit rather than relying on prose in code.md's Recognise section.
++
++categories:
++  - name: harness
++    design_bearing: true
++    playbook: review/harness
++    playbook_path: harness.md
++    evidence:
++      - core/components/agents/product-os-keeper.md
++      - core/components/plays/ux/SKILL.md
++      - core/components/plays/ux/reference/ice.md
++      - core/components/skills/author-ux-lens/SKILL.md
++    note: >
++      The MD-defined "code" of the agentic system: an agent's routing table
++      (product-os-keeper), the ux play's compiled SKILL.md plus its ICE source, and the
++      authoring skill. Verified directly against pr.diff (not taken from the PR body):
++      reference/ice.md has a real diff hunk, and SKILL.md's recorded fingerprint line changed
++      from sha256:0d18d26d... to sha256:bb3f4957... (of reference/ice.md) — consistent with
++      an ICE edit followed by recompilation, not a hand-patch of the compiled file. Whether
++      that recompilation was done correctly is Layer-2 design-grounding work, not this
++      assessment.
++
++  - name: code
++    design_bearing: false
++    playbook: review/code
++    playbook_path: code.md
++    evidence:
++      - core/components/plays/ux/scripts/lint_grounding.py
++      - core/components/plays/ux/scripts/validate_ux.py
++      - core/components/plays/agentic/scripts/lint_grounding.py
++      - core/components/plays/arch/scripts/lint_grounding.py
++      - core/components/plays/grill/scripts/lint_grounding.py
++      - core/components/plays/learn/scripts/lint_grounding.py
++      - core/components/plays/marketing/scripts/lint_grounding.py
++      - core/components/plays/measure/scripts/lint_grounding.py
++      - core/components/plays/quality/scripts/lint_grounding.py
++      - core/components/plays/run/scripts/lint_grounding.py
++      - core/components/plays/vision/scripts/lint_grounding.py
++    note: >
++      The mechanical python scripts inside the plays' scripts/ folders. code.md explicitly
++      claims this exact shape ("in garura this is mostly the python scripts inside
++      plays/skills", naming lint_play.py as its example) as its own domain, reviewed Layer 1
++      only against industry best practice — not design-grounded. Verified directly against
++      pr.diff (not taken from the PR body): all 10 lint_grounding.py copies carry the
++      identical one-line hunk at line ~106 (adds "Flows" to the lens-ux heading list, 
++      "Intent, Screens, States, Visual core" -> "Intent, Screens, Flows, States, Visual
++      core"); validate_ux.py's diff (283 added lines) adds a def check_flows(...) function
++      and a --lens CLI argument.
++
++  - name: memory
++    design_bearing: true
++    playbook: review/memory
++    playbook_path: memory.md
++    evidence:
++      - core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
++      - core/components/memory/standards/schemas/product-os/lens/ux.yaml
++    note: >
++      The locked UX-lens schema (typed lens/ux.yaml, LOCKED #434) and its grounding-doc
++      template/contract under memory/standards/schemas/** — the standards artifacts every
++      downstream agent reads to know the lens's shape. Changed in the same PR to match the
++      new five-section contract.
++
++  - name: stm_run_artifacts
++    design_bearing: false
++    playbook: null
++    playbook_path: null
++    note: "playbook missing"
++    evidence:
++      - .garura/project/issues/548/context/analysis.yaml
++      - .garura/project/issues/548/context/branch.json
++      - .garura/project/issues/548/context/commits.yaml
++      - .garura/project/issues/548/context/issue.json
++      - .garura/project/issues/548/context/porcelain.txt
++      - .garura/project/issues/548/context/pr-body.md
++      - .garura/project/issues/548/context/pr.json
++      - .garura/project/issues/548/context/resolved-rules.json
++      - .garura/project/issues/548/context/self-review.md
++      - .garura/project/issues/548/context/work-description.txt
++    rationale: >
++      Machine-generated STM run records for issue #548 itself (branch/commit/PR snapshots,
++      resolved-rules trace, self-review, work description) — not knowledge the agents read
++      (not `memory/**`), not harness code, not human-authored prose docs, not an ADR, not test
++      code, not a path-wiring config map. None of the seven seeded categories in
++      knowledge/review/_index.md recognise this artifact kind by its signals. Recorded as its
++      own category rather than force-fit into "docs" or "memory". A follow-up task should
++      confirm whether this needs its own playbook or is an intentional review exemption
++      (STM/evidence records are process byproducts, not design claims) — not assumed here.
++      NOTE ON design_bearing: false here means "no linter is named for this category and none
++      should be assumed" — it is NOT an instruction to run a generic Layer 1 check. Until a
++      playbook exists, treat this category as unreviewed, not as passing Layer 1 by default.
++      FOLLOW-UP NOT FILED: this agent has no TaskCreate tool; the parent/orchestrator should
++      file the "missing playbook for stm_run_artifacts" follow-up task.
++
++absent_categories_note: >
++  No decision records (docs/adr/**), no plain human-facing documentation outside the harness/
++  memory template docs above, no config maps (CLAUDE.md/AGENTS.md/config.yaml path wiring),
++  and no automated test files are present in this diff. These are simply absent, not reviewed
++  as empty categories.
+diff --git a/.garura/project/issues/548/review/context.yaml b/.garura/project/issues/548/review/context.yaml
+new file mode 100644
+index 00000000..635e44c8
+--- /dev/null
++++ b/.garura/project/issues/548/review/context.yaml
+@@ -0,0 +1,39 @@
++{
++  "pr_number": "549",
++  "base": "main",
++  "changed_paths": [
++    ".garura/project/issues/548/context/analysis.yaml",
++    ".garura/project/issues/548/context/branch.json",
++    ".garura/project/issues/548/context/commits.yaml",
++    ".garura/project/issues/548/context/issue.json",
++    ".garura/project/issues/548/context/porcelain.txt",
++    ".garura/project/issues/548/context/pr-body.md",
++    ".garura/project/issues/548/context/pr.json",
++    ".garura/project/issues/548/context/resolved-rules.json",
++    ".garura/project/issues/548/context/self-review.md",
++    ".garura/project/issues/548/context/work-description.txt",
++    "core/components/agents/product-os-keeper.md",
++    "core/components/memory/standards/schemas/product-os/grounding/lens/ux.md",
++    "core/components/memory/standards/schemas/product-os/lens/ux.yaml",
++    "core/components/plays/agentic/scripts/lint_grounding.py",
++    "core/components/plays/arch/scripts/lint_grounding.py",
++    "core/components/plays/grill/scripts/lint_grounding.py",
++    "core/components/plays/learn/scripts/lint_grounding.py",
++    "core/components/plays/marketing/scripts/lint_grounding.py",
++    "core/components/plays/measure/scripts/lint_grounding.py",
++    "core/components/plays/quality/scripts/lint_grounding.py",
++    "core/components/plays/run/scripts/lint_grounding.py",
++    "core/components/plays/ux/SKILL.md",
++    "core/components/plays/ux/reference/ice.md",
++    "core/components/plays/ux/scripts/lint_grounding.py",
++    "core/components/plays/ux/scripts/validate_ux.py",
++    "core/components/plays/vision/scripts/lint_grounding.py",
++    "core/components/skills/author-ux-lens/SKILL.md"
++  ],
++  "standards_order": [
++    "kb",
++    "ltm",
++    "stm"
++  ],
++  "review_shelf": "./.garura/core/memory/knowledge/review/"
++}
+\ No newline at end of file
+diff --git a/.garura/project/issues/548/review/decision-comment.md b/.garura/project/issues/548/review/decision-comment.md
+new file mode 100644
+index 00000000..d4eeb56a
+--- /dev/null
++++ b/.garura/project/issues/548/review/decision-comment.md
+@@ -0,0 +1,57 @@
++**Harness verdict (gate off per `gates.plays.review-change`): APPROVE**
++
++This decision was computed by the harness, not typed by a human reviewer. It equals the computed recommendation verbatim: no P1 findings, so approve.
++
++## What was reviewed
++
++The work categories were assessed from the diff itself, not presumed. Four are present:
++
++| Category | Treatment | Result |
++|---|---|---|
++| harness (4 paths) | design-grounded from committed sources | clean, 0 findings |
++| code (11 paths) | standards linter + runnable checks executed | clean, 0 findings |
++| memory (2 paths) | design-grounded from committed sources | 2×P2, 1×P3, 1×P4 |
++| stm_run_artifacts (10 paths) | no playbook on the shelf — recorded as a gap | — |
++
++## Harness — verified, not assumed
++
++The PR claims this went through the intent pipeline (ICE edited, play recompiled) rather than a hand-patch of the compiled `SKILL.md`. That claim was tested independently:
++
++- `shasum -a 256` over `reference/ice.md` matches the fingerprint recorded in `SKILL.md`.
++- `lint_play.py` passes with 0 gaps — constraints, failures, scenarios and recovery stay 1:1 with no orphans.
++- The element counts in the ICE (14 constraints / 15 failures / 7 scenarios / 15 recovery) match what the play's own recompile note claims changed.
++
++Grounded against `CLAUDE.md`'s play-pipeline rule, the base-ref `SKILL.md`'s own no-hand-edit statement, and the agent-vs-skill boundary — all committed on `main`, none from this branch.
++
++## Code — executed, not read
++
++- Standards linter over the 11 code paths: exit 0, no rule fired.
++- `python3 -m py_compile` on all 11 changed Python files: clean.
++- The new `check_flows()` logic in `validate_ux.py` was run against a purpose-built good document and a broken one. It passed the good one and caught all four seeded problems in the bad one.
++- The ten `lint_grounding.py` copies carry the identical one-line change; nothing else drifted.
++
++## Memory — four cited findings, none blocking
++
++**F1 (P2)** — `lens/ux.yaml` takes a structurally breaking change (`states` goes from a list of strings to a list of objects, plus new required fields) on a schema the product-os index calls permanent. That index says such changes belong to a dedicated schema-evolution process and imply migrating existing records. This PR does it as a direct edit with no migration note.
++Basis: `P-SCHEMA-EVOLUTION-PARKED` — `core/components/memory/standards/schemas/product-os/_index.md` (main).
++
++**F2 (P2)** — `lens/ux.yaml`'s header still reads "Accessibility is NOT restated here — it lives in the product profile", even though this PR rewrote the two adjacent lines in the same comment block. That now contradicts this PR's own `grounding/lens/ux.md` and the marketing lens contract on `main`, which owns accessibility and says so explicitly.
++Basis: `P-TWO-ARTIFACTS-STAY-IN-STEP` (`grounding/lens/run.md`, main) and `P-ACCESSIBILITY-LIVES-IN-MARKETING` (`grounding/lens/marketing.md`, main).
++
++**F3 (P3)** — `lens/_index.md` is untouched by this PR but is now stale: its lenses table still describes `ux.yaml` as having no flows and accessibility in the profile.
++Basis: `P-LENS-INDEX-IS-THE-SHARED-MAP` — `lens/_index.md` (main).
++
++**F4 (P4, informational)** — the gold example's Flows section covers one persona's goal, while Screens names a second opener with an arguably distinct goal. No contract line mandates more.
++
++## On the `LOCKED #434` marker
++
++The reviewer checked what that lock actually means rather than assuming. `LOCKED #<issue>` on a schema file is a provenance note shared verbatim by all five sibling lens schemas; the repo's only formally defined LOCKED/DRAFT mechanism (`resolution.md`) governs project LTM artifacts, not design-time schema templates. So editing the file is legitimate. The objection that stands is F1 — not that it was touched, but that a breaking schema change was made outside the process the repo says such changes need.
++
++## Process notes for the record
++
++- `context.yaml` resolved the review shelf to `./.garura/core/memory/knowledge/review/`, which does not exist in the repo. The reviewer fell back to the machine-global deployed copy and confirmed it is byte-identical to the committed source, so this run's answer is unaffected — but the path resolution is wrong and should be fixed.
++- `stm_run_artifacts` has no playbook on the review shelf. Recorded as a gap; no follow-up issue was filed.
++
++## Routing
++
++Approve. `review-pr.bypass` is `true` for this repo, so the verdict does not hard-block the merge either way. The two P2 findings are cited above and are the natural follow-up — F2 in particular is a one-line contradiction introduced by this change.
+diff --git a/.garura/project/issues/548/review/decision.yaml b/.garura/project/issues/548/review/decision.yaml
+new file mode 100644
+index 00000000..8a10ea38
+--- /dev/null
++++ b/.garura/project/issues/548/review/decision.yaml
+@@ -0,0 +1,11 @@
++decided_by: harness
++gate: "off per gates.plays.review-change"
++decision: approve
++reason: "no P1 findings; confidence acceptable"
++blocking: []
++non_blocking_cited:
++  - { id: F1, severity: P2, category: memory, file: "core/components/memory/standards/schemas/product-os/lens/ux.yaml", basis: P-SCHEMA-EVOLUTION-PARKED }
++  - { id: F2, severity: P2, category: memory, file: "core/components/memory/standards/schemas/product-os/lens/ux.yaml", basis: "P-TWO-ARTIFACTS-STAY-IN-STEP, P-ACCESSIBILITY-LIVES-IN-MARKETING" }
++  - { id: F3, severity: P3, category: memory, file: "core/components/memory/standards/schemas/product-os/lens/_index.md", basis: P-LENS-INDEX-IS-THE-SHARED-MAP }
++  - { id: F4, severity: P4, category: memory, file: "core/components/memory/standards/schemas/product-os/grounding/lens/ux.md", basis: informational }
++counts: { P1: 0, P2: 2, P3: 1, P4: 1 }
+diff --git a/.garura/project/issues/548/review/design-findings-harness.yaml b/.garura/project/issues/548/review/design-findings-harness.yaml
+new file mode 100644
+index 00000000..9d67d000
+--- /dev/null
++++ b/.garura/project/issues/548/review/design-findings-harness.yaml
+@@ -0,0 +1,87 @@
++# design-findings-harness.yaml — Layer 2 (design-grounding) output for PR #549 / issue 548
++# Category: harness only. Grounded exclusively from committed sources (base ref `main`,
++# CLAUDE.md, memory/standards/rules/**). No principle below is sourced from content the
++# diff adds or rewrites.
++
++category: harness
++task_id: null
++
++grounded_principles:
++  - id: PPR-1
++    principle: >
++      A play change is one of two kinds. An INTENT change (touching the intent statement,
++      constraints C-, failure conditions F-, scenarios S-, the agent/skill flow, or evals)
++      MUST go through the play's ICE source (reference/ice.md) and be recompiled via
++      /play-editor — never a hand-patch of the compiled SKILL.md. A non-intent change is a
++      direct edit to the compiled SKILL.md with a recorded deviation-note footer.
++    source: "CLAUDE.md (main, unchanged by this diff) — 'Play Pipeline Rules' section"
++
++  - id: PPR-2
++    principle: >
++      To modify a compiled play, update reference/ice.md and recompile with play-editor;
++      the compiled SKILL.md is a compiled artifact and must not be edited manually.
++    source: "core/components/plays/ux/SKILL.md at main (git show main:core/components/plays/ux/SKILL.md), 'This play was compiled from the ux ICE...Do NOT edit this file manually' line"
++
++  - id: PPR-3
++    principle: >
++      Every failure condition must have exactly one recovery entry (1:1), every failure has
++      a step eval, every scenario has a scenario eval, every constraint appears in pre-flight
++      or a step eval, and there must be no references to undeclared C/F/S ("no orphans").
++      These are the mechanical gates enforced by lint_play.py (the compiler's own linter,
++      itself a committed, unedited-by-this-diff script).
++    source: ".claude/skills/play-editor/scripts/lint_play.py (unmodified by this diff; run directly against the branch's compiled SKILL.md)"
++
++  - id: PPR-4
++    principle: >
++      Agents hold the role of context crafting only — their job is to gather context and put
++      it on files; the actual work is done by skills, which agents invoke. An agent's routing
++      table describes what a skill does; it does not do the skill's work itself.
++    source: "CLAUDE.md (main, unchanged by this diff), Behavioral Rule 4 — 'Agents hold the role of Context Crafting'"
++
++  - id: PPR-5
++    principle: >
++      The User-Facing Voice rule governs replies the harness makes TO THE USER (checkpoints,
++      summaries, status updates, close reports, ad-hoc conversation) — not the internal
++      artifact templates a play instructs its sub-agents to produce. Extending it to
++      artifact templates was explicitly explored and dropped.
++    source: "core/components/memory/standards/rules/user-facing-voice.md (main, unchanged by this diff) — 'Scope' section"
++
++verification_performed:
++  - check: "Fingerprint recomputed over the branch's reference/ice.md"
++    command: "shasum -a 256 core/components/plays/ux/reference/ice.md"
++    result: "sha256:bb3f495716006f133664a01fc4c4eb15ac95dc0535628d27ae47f4ec15673a9f"
++    compared_against: "SKILL.md fingerprint field on the branch (sha256:bb3f4957...) — MATCH"
++  - check: "Compiled-play structural lint"
++    command: "python3 .claude/skills/play-editor/scripts/lint_play.py core/components/plays/ux/SKILL.md"
++    result: "VERDICT: PASS (0 gaps) — all 13 checks pass, incl. failure coverage, scenario coverage, constraint coverage, recovery 1:1, no orphans, fingerprint present"
++  - check: "C/F/S/REC count cross-check (independent of lint_play.py, grepped directly against reference/ice.md)"
++    result: "14 constraints (C1-C14), 15 failure conditions (F1-F15), 7 success scenarios (S1-S7), 15 recovery entries (REC1-REC15) — matches the counts SKILL.md's fingerprint block and Recompile note claim (13->14 constraints, 14->15 failures, 6->7 scenarios, 14->15 step evals, 6->7 scenario evals, 14->15 recovery)"
++
++conformance_assessment: >
++  The branch's own claim — that this is an ICE-sourced intent change, recompiled, with the
++  fingerprint recomputed rather than a hand-patch of SKILL.md — holds up against PPR-1/PPR-2:
++  reference/ice.md carries the real content diff (new "flows" concept, C14/F15/S7 added,
++  C3/C6/C11/F3/REC3/S1/S6 amended), SKILL.md's fingerprint line was updated to the hash of the
++  edited ice.md (independently reverified above, byte-exact match), and a "Recompile note
++  (#548...)" section in SKILL.md documents which constraints/failures/scenarios changed —
++  consistent with play-editor's compiler output pattern, not a manual edit. lint_play.py
++  confirms the compiled artifact still satisfies PPR-3's mechanical 1:1 discipline after the
++  edit (0 gaps). product-os-keeper.md's change is confined to updating its routing-table
++  description of what author-ux-lens now covers (screens/flows/states/visual core) — it does
++  not have the agent performing artifact-writing work itself, so PPR-4 is not violated.
++  author-ux-lens/SKILL.md's changes (flow-drawing step, flow-grounding manifest fields, the
++  "four things only" boundary restated as flows-inclusive) are consistent with, and only as
++  detailed as, the ICE's own C3/C14 — no invented scope beyond what reference/ice.md now
++  specifies. PPR-5 is noted as inapplicable rather than violated: none of the four changed
++  harness files are a reply to the user, so the voice rule does not bind their content.
++
++findings: []
++
++summary:
++  total_findings: 0
++  by_severity: { P1: 0, P2: 0, P3: 0, P4: 0 }
++  note: >
++    No conformance violations found in the harness category against the reconstructed,
++    committed-source principles above. The branch's ICE-pipeline claim is independently
++    verified (hash match + lint_play.py PASS + manual C/F/S/REC count check), not merely
++    asserted by the branch's own prose.
+diff --git a/.garura/project/issues/548/review/design-findings-memory.yaml b/.garura/project/issues/548/review/design-findings-memory.yaml
+new file mode 100644
+index 00000000..78cd325e
+--- /dev/null
++++ b/.garura/project/issues/548/review/design-findings-memory.yaml
+@@ -0,0 +1,127 @@
++category: memory
++task_id: "548-review-design-ground-memory"
++grounded_principles:
++  - id: P-SCHEMA-EVOLUTION-PARKED
++    statement: >
++      Schema evolution for the permanent product-os schemas (the lens/ family included)
++      is explicitly PARKED for v1: "a dedicated schema-evolution play will own it later,
++      and it implies migrating existing records to the new shape."
++    source: "core/components/memory/standards/schemas/product-os/_index.md (main, unedited by this PR)"
++
++  - id: P-LOCKED-434-IS-PROVENANCE-NOT-A-MECHANICAL-FREEZE
++    statement: >
++      "LOCKED #434" is the same marker carried by every sibling lens schema (quality.yaml,
++      agentic.yaml, run.yaml, architecture.yaml) — all five were introduced in the single
++      #434/#453 refactor commit and none has been touched since. No committed rule defines
++      "LOCKED #<issue>" on a core/components schema file as an enforcement mechanism; the
++      only formally defined LOCKED/DRAFT vocabulary in the repo is resolution.md's, and it
++      governs a disjoint object (project LTM artifacts named in ltm_context.locked_artifacts),
++      not design-time schema templates under core/components/memory/standards/schemas.
++    source: "core/components/memory/standards/rules/resolution.md (R2, 'LOCKED determination'); sibling lens/*.yaml headers (main)"
++
++  - id: P-TWO-ARTIFACTS-STAY-IN-STEP
++    statement: >
++      Where a lens is split into a narrative (.md) and a machine record (.yaml), the house
++      norm is that the two must agree and be kept in step — stated explicitly for the run
++      lens ("Two artifacts, one lens... Keep the two in step") and implicit in every other
++      lens pairing.
++    source: "core/components/memory/standards/schemas/product-os/grounding/lens/run.md (main, unedited)"
++
++  - id: P-ACCESSIBILITY-LIVES-IN-MARKETING
++    statement: >
++      Accessibility is a full section of the marketing lens contract, with a gold example
++      and the explicit note "(This moved here from the profile.)" — confirming marketing.md
++      is the current, correct owner of accessibility, not the product profile.
++    source: "core/components/memory/standards/schemas/product-os/grounding/lens/marketing.md (main, unedited)"
++
++  - id: P-LENS-INDEX-IS-THE-SHARED-MAP
++    statement: >
++      lens/_index.md is the shared, cross-lens map of what each lens schema holds ("The
++      lenses" table) — the document an agent or reader consults to know a lens's shape
++      without opening the individual schema file.
++    source: "core/components/memory/standards/schemas/product-os/lens/_index.md (main, unedited by this PR)"
++
++  - id: P-CONTENT-STANDARD-BAR
++    statement: >
++      Every grounding-doc section must be self-explaining, discrete, pass the stranger
++      test, and (for cross-references) resolve to something real — the locked quality bar
++      every lens template and gold example is scored against.
++    source: "core/components/memory/standards/schemas/product-os/grounding/_content-standard.md (main, unedited)"
++
++locked_marker_verdict: >
++  Editing lens/ux.yaml and its ux.md contract, despite the "LOCKED #434" header, is not
++  forbidden by any committed rule I could find — "LOCKED #434" is a provenance note shared
++  verbatim by every sibling lens schema, not a defined freeze mechanism (the repo's only
++  formal LOCKED semantics, in resolution.md, govern a different object: project LTM
++  artifacts, not core/components schema templates). BUT the PR does not go through the
++  process the repo's own index says schema changes of this kind require: "Schema evolution
++  is parked for v1: a dedicated schema-evolution play will own it later, and it implies
++  migrating existing records to the new shape" (product-os/_index.md). This PR performs a
++  structural, breaking schema change on a declared-"permanent" record type — `states` moves
++  from `[string]` to `[{name, trigger, sees, next}]`, and a new required `flows` array and
++  a new required per-screen `object` field are added — with no schema-evolution play, no
++  version bump, and no migration note for any lens/ux.yaml record authored under the old
++  shape. So: legitimate to touch the file at all, not legitimate to do so as an ad hoc
++  direct edit outside the parked evolution process, silently.
++
++findings:
++  - id: F1
++    severity: P2
++    file: core/components/memory/standards/schemas/product-os/lens/ux.yaml
++    finding: >
++      Structural, breaking change to a schema explicitly documented as PERMANENT
++      (product-os/_index.md: "lens/ (one file per type) | ... | permanent") without using
++      the dedicated schema-evolution process the same index says such changes require,
++      and without any migration note for existing records built against the old `states:
++      [string]` shape or missing the new required `object`/`flows` fields.
++    principle_violated: P-SCHEMA-EVOLUTION-PARKED
++    committed_source: core/components/memory/standards/schemas/product-os/_index.md (main)
++
++  - id: F2
++    severity: P2
++    file: core/components/memory/standards/schemas/product-os/lens/ux.yaml
++    finding: >
++      The schema's own header comment still says "Accessibility is NOT restated here — it
++      lives in the product profile" — unchanged by this PR even though the PR rewrote the
++      two adjacent lines in the same comment block. This now disagrees with (a) this PR's
++      own ux.md, which says accessibility "lives in the marketing lens," and (b) the
++      marketing lens contract, which documents accessibility as having moved OUT of the
++      profile and into marketing. The narrative and the machine record for one lens no
++      longer agree on where accessibility lives.
++    principle_violated: P-TWO-ARTIFACTS-STAY-IN-STEP, P-ACCESSIBILITY-LIVES-IN-MARKETING
++    committed_source: >
++      core/components/memory/standards/schemas/product-os/grounding/lens/run.md (main);
++      core/components/memory/standards/schemas/product-os/grounding/lens/marketing.md (main)
++
++  - id: F3
++    severity: P3
++    file: core/components/memory/standards/schemas/product-os/lens/_index.md
++    finding: >
++      Not touched by this PR, but now stale: its "The lenses" table still describes
++      ux.yaml as "screens (with low-fidelity layout), states, visual core... a11y lives in
++      the profile; flows are derived by the build" — describing the pre-PR shape on both
++      counts (flows are now specified in-lens, not derived by the build; a11y is stated
++      elsewhere in this same PR to live in marketing, not the profile). A reader consulting
++      the shared map gets the wrong shape for ux.yaml.
++    principle_violated: P-LENS-INDEX-IS-THE-SHARED-MAP
++    committed_source: core/components/memory/standards/schemas/product-os/lens/_index.md (main)
++
++  - id: F4
++    severity: P4
++    file: core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
++    finding: >
++      The gold example's Flows section covers only the dashboard-operator persona's goal,
++      even though the Screens section names the CTO as a second, independent opener of the
++      Source coverage view (for a distinct goal — judging trust directly, not preparing the
++      review). The contract's stated completeness check ("every screen reached by at least
++      one flow step") is satisfied because the operator's flow happens to touch both
++      screens, but the gold example does not itself demonstrate a second persona+goal
++      block, which is otherwise the norm the contract sets ("A persona chasing two
++      different goals gets two blocks"). Noted as a nit, not a contract violation — the
++      contract only mandates screen-reachability, not per-named-opener flow coverage.
++    principle_violated: none (informational — no contract line mandates this)
++    committed_source: null
++
++summary:
++  principles_grounded: 6
++  findings_by_severity: { P1: 0, P2: 2, P3: 1, P4: 1 }
+diff --git a/.garura/project/issues/548/review/findings.yaml b/.garura/project/issues/548/review/findings.yaml
+new file mode 100644
+index 00000000..b5cfe59e
+--- /dev/null
++++ b/.garura/project/issues/548/review/findings.yaml
+@@ -0,0 +1,83 @@
++pr: 549
++issue: 548
++categories_reviewed:
++- harness (design-grounded)
++- code (linted)
++- memory (design-grounded)
++- stm_run_artifacts (no playbook)
++counts:
++  total: 4
++  P2: 2
++  P3: 1
++  P4: 1
++findings:
++- id: F1
++  severity: P2
++  file: core/components/memory/standards/schemas/product-os/lens/ux.yaml
++  finding: 'Structural, breaking change to a schema explicitly documented as PERMANENT
++    (product-os/_index.md: "lens/ (one file per type) | ... | permanent") without
++    using the dedicated schema-evolution process the same index says such changes
++    require, and without any migration note for existing records built against the
++    old `states: [string]` shape or missing the new required `object`/`flows` fields.
++
++    '
++  principle_violated: P-SCHEMA-EVOLUTION-PARKED
++  committed_source: core/components/memory/standards/schemas/product-os/_index.md
++    (main)
++  category: memory
++  basis: P-SCHEMA-EVOLUTION-PARKED
++- id: F2
++  severity: P2
++  file: core/components/memory/standards/schemas/product-os/lens/ux.yaml
++  finding: 'The schema''s own header comment still says "Accessibility is NOT restated
++    here — it lives in the product profile" — unchanged by this PR even though the
++    PR rewrote the two adjacent lines in the same comment block. This now disagrees
++    with (a) this PR''s own ux.md, which says accessibility "lives in the marketing
++    lens," and (b) the marketing lens contract, which documents accessibility as having
++    moved OUT of the profile and into marketing. The narrative and the machine record
++    for one lens no longer agree on where accessibility lives.
++
++    '
++  principle_violated: P-TWO-ARTIFACTS-STAY-IN-STEP, P-ACCESSIBILITY-LIVES-IN-MARKETING
++  committed_source: 'core/components/memory/standards/schemas/product-os/grounding/lens/run.md
++    (main); core/components/memory/standards/schemas/product-os/grounding/lens/marketing.md
++    (main)
++
++    '
++  category: memory
++  basis: P-TWO-ARTIFACTS-STAY-IN-STEP, P-ACCESSIBILITY-LIVES-IN-MARKETING
++- id: F3
++  severity: P3
++  file: core/components/memory/standards/schemas/product-os/lens/_index.md
++  finding: 'Not touched by this PR, but now stale: its "The lenses" table still describes
++    ux.yaml as "screens (with low-fidelity layout), states, visual core... a11y lives
++    in the profile; flows are derived by the build" — describing the pre-PR shape
++    on both counts (flows are now specified in-lens, not derived by the build; a11y
++    is stated elsewhere in this same PR to live in marketing, not the profile). A
++    reader consulting the shared map gets the wrong shape for ux.yaml.
++
++    '
++  principle_violated: P-LENS-INDEX-IS-THE-SHARED-MAP
++  committed_source: core/components/memory/standards/schemas/product-os/lens/_index.md
++    (main)
++  category: memory
++  basis: P-LENS-INDEX-IS-THE-SHARED-MAP
++- id: F4
++  severity: P4
++  file: core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
++  finding: 'The gold example''s Flows section covers only the dashboard-operator persona''s
++    goal, even though the Screens section names the CTO as a second, independent opener
++    of the Source coverage view (for a distinct goal — judging trust directly, not
++    preparing the review). The contract''s stated completeness check ("every screen
++    reached by at least one flow step") is satisfied because the operator''s flow
++    happens to touch both screens, but the gold example does not itself demonstrate
++    a second persona+goal block, which is otherwise the norm the contract sets ("A
++    persona chasing two different goals gets two blocks"). Noted as a nit, not a contract
++    violation — the contract only mandates screen-reachability, not per-named-opener
++    flow coverage.
++
++    '
++  principle_violated: none (informational — no contract line mandates this)
++  committed_source: null
++  category: memory
++  basis: none (informational — no contract line mandates this)
+diff --git a/.garura/project/issues/548/review/posted.json b/.garura/project/issues/548/review/posted.json
+new file mode 100644
+index 00000000..f62dd089
+--- /dev/null
++++ b/.garura/project/issues/548/review/posted.json
+@@ -0,0 +1,5 @@
++{
++  "posted": true,
++  "comment_url": "https://github.com/kapilvirenahuja/garura/pull/549#issuecomment-5612384617",
++  "pr_number": "549"
++}
+\ No newline at end of file
+diff --git a/.garura/project/issues/548/review/pr.diff b/.garura/project/issues/548/review/pr.diff
+new file mode 100644
+index 00000000..e0860ff6
+--- /dev/null
++++ b/.garura/project/issues/548/review/pr.diff
+@@ -0,0 +1,1813 @@
++diff --git a/.garura/project/issues/548/context/analysis.yaml b/.garura/project/issues/548/context/analysis.yaml
++new file mode 100644
++index 00000000..bd47c2fd
++--- /dev/null
+++++ b/.garura/project/issues/548/context/analysis.yaml
++@@ -0,0 +1,118 @@
+++# analyze_changeset.py output (C8 fast path) + analyze-changes agent judgment
+++# issue: 548
+++needs_judgment: false
+++
+++change_groups:
+++  - commit_type: feat
+++    scope: ux
+++    issue: 548
+++    subject: add flows to the UX lens so it covers what a screen is about and how a person moves through it
+++    files:
+++      - core/components/plays/ux/reference/ice.md
+++      - core/components/plays/ux/SKILL.md
+++
+++  - commit_type: feat
+++    scope: product-os
+++    issue: 548
+++    subject: extend the UX lens contract with a Flows section, per-screen object, and per-state trigger
+++    files:
+++      - core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+++      - core/components/memory/standards/schemas/product-os/lens/ux.yaml
+++
+++  - commit_type: chore
+++    scope: lint-grounding
+++    issue: 548
+++    subject: teach the structural linter's UX heading list to require Flows
+++    files:
+++      - core/components/plays/agentic/scripts/lint_grounding.py
+++      - core/components/plays/arch/scripts/lint_grounding.py
+++      - core/components/plays/grill/scripts/lint_grounding.py
+++      - core/components/plays/learn/scripts/lint_grounding.py
+++      - core/components/plays/marketing/scripts/lint_grounding.py
+++      - core/components/plays/measure/scripts/lint_grounding.py
+++      - core/components/plays/quality/scripts/lint_grounding.py
+++      - core/components/plays/run/scripts/lint_grounding.py
+++      - core/components/plays/ux/scripts/lint_grounding.py
+++      - core/components/plays/vision/scripts/lint_grounding.py
+++
+++  - commit_type: feat
+++    scope: ux
+++    issue: 548
+++    subject: mechanically cross-check flows against screens so no flow or screen is left dangling
+++    files:
+++      - core/components/plays/ux/scripts/validate_ux.py
+++
+++  - commit_type: feat
+++    scope: author-ux-lens
+++    issue: 548
+++    subject: draft flows alongside screens and states when authoring the UX lens
+++    files:
+++      - core/components/skills/author-ux-lens/SKILL.md
+++      - core/components/agents/product-os-keeper.md
+++
+++  - commit_type: chore
+++    scope: stm
+++    issue: 548
+++    subject: record change-analysis run artifacts
+++    files:
+++      - .garura/project/issues/548/context/analysis.yaml
+++      - .garura/project/issues/548/context/porcelain.txt
+++
+++exclusions:
+++  []
+++
+++risks:
+++  sensitive_files:
+++    []
+++  breaking_changes:
+++    []
+++  ambiguous_types:
+++    []
+++  hotfix_branch: false
+++
+++eval_gates:
+++  SE-1:
+++    status: PASS
+++    evidence: >
+++      Read the real diffs for all 18 files (18 tracked M + 2 untracked STM), not just the file
+++      list. This is one intent change (the /ux play's ICE source was edited to make the lens
+++      five sections instead of four, adding Flows and naming the one object per screen) plus its
+++      propagation, split into six concern-groups:
+++
+++      (1) ice.md + SKILL.md — the play's own intent source and its recompiled output; C3/C6/C11
+++      and F3 were rewritten in ice.md to require Flows and per-screen object, and a new C14/F15
+++      pair was added for flow completeness; SKILL.md is ice.md's compiled artifact, so they stay
+++      one group (the same class of edit as #546's SKILL.md deviation note, except here it's a
+++      full recompile, not a direct-edit).
+++
+++      (2) the memory-side lens contract — schemas/product-os/grounding/lens/ux.md (the human
+++      template + heading contract, now Intent/Screens/Flows/States/Visual core) and
+++      schemas/product-os/lens/ux.yaml (the machine schema, now carrying `flows:` and
+++      `object:`/`trigger:` fields) are the same contract in two forms (prose template + typed
+++      schema) — verified both diffs add the identical concept (flows, object, trigger) — so one
+++      group.
+++
+++      (3) the ten bundled `lint_grounding.py` copies — diffed the ux copy and the agentic copy
+++      byte-for-byte identical: a single-line change to the `lens-ux` CONTRACTS entry adding
+++      "Flows" to the h2 list. This is the same generated change stamped once per play (bundling
+++      artifact of the play-compiler, not ten independent decisions), kept as one chore group per
+++      the plan contract's instruction to group by real concern, not by folder.
+++
+++      (4) validate_ux.py — read the diff: adds a wholly new mechanical cross-check (screen/flow
+++      reachability, decision-branch completeness) satisfying the new C14/F15 constraints from
+++      group (1)'s ice.md. This is substantial new logic (not a doc/template change), kept as its
+++      own feat group distinct from (1) because it's a different artifact class (script vs
+++      play/schema prose) doing enforcement rather than defining intent.
+++
+++      (5) author-ux-lens/SKILL.md + product-os-keeper.md — the authoring skill's process steps
+++      now include "Draw the flows" as step 3, and the agent's own routing table/trigger-phrase
+++      row for author-ux-lens was updated to mention flows. Read both diffs: product-os-keeper.md
+++      only touches the two lines describing author-ux-lens (no other agent content changed), so
+++      it travels with the skill it dispatches, not as a separate group.
+++
+++      (6) the two untracked STM files under .garura/project/issues/548/context/ (this skill's own
+++      scan output, analysis.yaml + porcelain.txt) are run artifacts, not part of the code change,
+++      split into their own chore(stm) group last per the plan contract.
+++  SE-5:
+++    status: PASS
+++    evidence: "No sensitive file patterns (.env, credentials, keys, secrets) matched in the changeset; scan script already confirmed no sensitive files."
++diff --git a/.garura/project/issues/548/context/branch.json b/.garura/project/issues/548/context/branch.json
++new file mode 100644
++index 00000000..b03ef75f
++--- /dev/null
+++++ b/.garura/project/issues/548/context/branch.json
++@@ -0,0 +1,6 @@
+++{
+++  "branch_name": "feature/548-ux-lens-ia-and-task-flows",
+++  "base_sha": "edeb05b80498b3a829e4bc360acb70691bb458c4",
+++  "on_default_branch": false,
+++  "worktree_path": null
+++}
++\ No newline at end of file
++diff --git a/.garura/project/issues/548/context/commits.yaml b/.garura/project/issues/548/context/commits.yaml
++new file mode 100644
++index 00000000..871c8506
++--- /dev/null
+++++ b/.garura/project/issues/548/context/commits.yaml
++@@ -0,0 +1,50 @@
+++commits:
+++  - sha: df59d9f9
+++    message: "feat(ux): add flows to the UX lens so it covers what a screen is about and how a person moves through it (#548)"
+++    files:
+++      - core/components/plays/ux/reference/ice.md
+++      - core/components/plays/ux/SKILL.md
+++    branch: feature/548-ux-lens-ia-and-task-flows
+++  - sha: 9c010d41
+++    message: "feat(product-os): extend the UX lens contract with a Flows section, per-screen object, and per-state trigger (#548)"
+++    files:
+++      - core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+++      - core/components/memory/standards/schemas/product-os/lens/ux.yaml
+++    branch: feature/548-ux-lens-ia-and-task-flows
+++  - sha: b2bfb98e
+++    message: "chore(lint-grounding): teach the structural linter's UX heading list to require Flows (#548)"
+++    files:
+++      - core/components/plays/agentic/scripts/lint_grounding.py
+++      - core/components/plays/arch/scripts/lint_grounding.py
+++      - core/components/plays/grill/scripts/lint_grounding.py
+++      - core/components/plays/learn/scripts/lint_grounding.py
+++      - core/components/plays/marketing/scripts/lint_grounding.py
+++      - core/components/plays/measure/scripts/lint_grounding.py
+++      - core/components/plays/quality/scripts/lint_grounding.py
+++      - core/components/plays/run/scripts/lint_grounding.py
+++      - core/components/plays/ux/scripts/lint_grounding.py
+++      - core/components/plays/vision/scripts/lint_grounding.py
+++    branch: feature/548-ux-lens-ia-and-task-flows
+++  - sha: b166fab0
+++    message: "feat(ux): mechanically cross-check flows against screens so no flow or screen is left dangling (#548)"
+++    files:
+++      - core/components/plays/ux/scripts/validate_ux.py
+++    branch: feature/548-ux-lens-ia-and-task-flows
+++  - sha: 30713e22
+++    message: "feat(author-ux-lens): draft flows alongside screens and states when authoring the UX lens (#548)"
+++    files:
+++      - core/components/skills/author-ux-lens/SKILL.md
+++      - core/components/agents/product-os-keeper.md
+++    branch: feature/548-ux-lens-ia-and-task-flows
+++  - sha: d993f7bc
+++    message: "chore(stm): record change-analysis run artifacts (#548)"
+++    files:
+++      - .garura/project/issues/548/context/analysis.yaml
+++      - .garura/project/issues/548/context/porcelain.txt
+++    branch: feature/548-ux-lens-ia-and-task-flows
+++excluded_files:
+++  []
+++leftover_count: 0
+++tree_clean: true
+++pushed: false
+++run_state_committed: true
++diff --git a/.garura/project/issues/548/context/issue.json b/.garura/project/issues/548/context/issue.json
++new file mode 100644
++index 00000000..7c50b15d
++--- /dev/null
+++++ b/.garura/project/issues/548/context/issue.json
++@@ -0,0 +1,6 @@
+++{
+++  "resolved": false,
+++  "issue_number": 548,
+++  "title": "[BUG] /ux lens output is a screen catalogue, not information architecture and task flows",
+++  "created": true
+++}
++diff --git a/.garura/project/issues/548/context/porcelain.txt b/.garura/project/issues/548/context/porcelain.txt
++new file mode 100644
++index 00000000..b0e1c813
++--- /dev/null
+++++ b/.garura/project/issues/548/context/porcelain.txt
++@@ -0,0 +1,18 @@
+++ M core/components/agents/product-os-keeper.md
+++ M core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+++ M core/components/memory/standards/schemas/product-os/lens/ux.yaml
+++ M core/components/plays/agentic/scripts/lint_grounding.py
+++ M core/components/plays/arch/scripts/lint_grounding.py
+++ M core/components/plays/grill/scripts/lint_grounding.py
+++ M core/components/plays/learn/scripts/lint_grounding.py
+++ M core/components/plays/marketing/scripts/lint_grounding.py
+++ M core/components/plays/measure/scripts/lint_grounding.py
+++ M core/components/plays/quality/scripts/lint_grounding.py
+++ M core/components/plays/run/scripts/lint_grounding.py
+++ M core/components/plays/ux/SKILL.md
+++ M core/components/plays/ux/reference/ice.md
+++ M core/components/plays/ux/scripts/lint_grounding.py
+++ M core/components/plays/ux/scripts/validate_ux.py
+++ M core/components/plays/vision/scripts/lint_grounding.py
+++ M core/components/skills/author-ux-lens/SKILL.md
+++?? .garura/project/issues/548/context/porcelain.txt
++diff --git a/.garura/project/issues/548/context/pr-body.md b/.garura/project/issues/548/context/pr-body.md
++new file mode 100644
++index 00000000..678b2f26
++--- /dev/null
+++++ b/.garura/project/issues/548/context/pr-body.md
++@@ -0,0 +1,137 @@
+++## What this change does
+++
+++The `/ux` play used to write a UX lens doc with four sections and **no flows** — its own
+++intent said "flows are the build's to derive". The result was a screen catalogue: a UX
+++researcher reading it could find neither the information architecture nor the task flows.
+++
+++The lens is now **five sections** — `Intent / Screens / Flows / States / Visual core`.
+++
+++- Each **screen** names the one object the user works with there. That line carries the
+++  information architecture, which is why there is deliberately no separate IA section.
+++- **Flows** are new: one block per persona + goal, in a fixed field order — Persona, Goal,
+++  Entry, Steps (each naming a real screen), Decisions (where each branch goes), Failure,
+++  Exit. It reads as a story for a researcher and parses as a graph for an agent.
+++- **States** now name the trigger that puts a screen in them, not just a label.
+++
+++Boundary: these flows are the paths **inside this slice's screens**. The person's wider
+++journey across the product stays out — that is the proposed `/story` play (#528).
+++
+++## How it was done
+++
+++Intent change through the play pipeline: `core/components/plays/ux/reference/ice.md` edited,
+++play recompiled, fingerprint recomputed. Not a hand-patch of the compiled `SKILL.md`.
+++
+++ICE changed: the intent paragraph, C3, C6, C11, F3, REC3, S1, S6.
+++ICE added: C14, F15, REC15, S7, plus evals SE-14 and SCE-7. Nothing removed.
+++Counts: constraints 13 → 14, failures 14 → 15, scenarios 6 → 7, recovery 14 → 15.
+++
+++`lint_play.py`: **PASS, 0 gaps**.
+++
+++## Propagation
+++
+++| Target | Change |
+++|---|---|
+++| Lens contract + gold example | rewritten to five sections; example verified by the real linter |
+++| `lens/ux.yaml` typed schema | flows block, per-screen object, per-state trigger |
+++| `lint_grounding.py` × 10 | heading list now requires `Flows` |
+++| `validate_ux.py` | new optional `--lens` flag + mechanical flow cross-check |
+++| `author-ux-lens` skill | writes the Flows section; manifest gains a `flows:` block |
+++| `product-os-keeper` agent | skill catalogue no longer says "no flows" |
+++
+++The flow cross-check proves: every flow step names a screen that exists, every screen is
+++reached by at least one flow, every fork names where both branches go, every flow names all
+++seven fields, and every flow traces to a persona or journey of the hub. Smoke-tested both
+++ways — a good doc passes, a broken one fails with a named reason.
+++
+++## Two things a reviewer should know
+++
+++1. `standards/schemas/product-os/lens/ux.yaml` carries a `LOCKED #434` marker. It was
+++   updated to match the new contract — leaving it stating the old one would be worse. Say so
+++   if that lock meant more than "do not drift".
+++2. The deployed copies under `.claude/` still carry the four-section contract. They pick this
+++   up on the next `install-garura`, which is deliberately not part of this change.
+++
+++## Self-review
+++
+++# Self-Review — Issue #548
+++
+++Source: `core/components/memory/standards/rules/self-review.md` (base, `is_override: false`,
+++resolved path recorded in `resolved-rules.json`).
+++
+++Diff reviewed: `main..HEAD`, 7 commits, 23 files changed (17 source files + 6 STM context
+++artifacts).
+++
+++**Verdict: PASS — 0 blocking findings.**
+++
+++## What the change is
+++
+++`/ux` used to write a UX lens with four sections (Intent/Screens/States/Visual core) and no
+++flows — a screen catalogue, not something a UX researcher could actually review. This change
+++adds a fifth section, Flows, and a per-screen "one object" field: every screen now names the
+++one thing the user works with there, and every flow is a fixed-order block (Persona, Goal,
+++Entry, Steps, Decisions, Failure, Exit) tied to one persona and one goal. This is an intent
+++change — the play's ICE source was edited and recompiled, and the edit propagates through the
+++lens contract, ten copies of the structural linter's heading list, a new mechanical flow
+++cross-check script, the authoring skill, and the dispatching agent's routing table.
+++
+++## Scope checks
+++
+++- **Matches the issue.** Every one of the 17 source files touched is part of the stated
+++  propagation chain: ICE → compiled SKILL.md → lens contract (`ux.yaml` + grounding doc
+++  template) → 10 `lint_grounding.py` heading lists → `validate_ux.py` → `author-ux-lens` skill
+++  → `product-os-keeper` agent routing table. Nothing outside that chain was touched.
+++- **No scope creep.** Confirmed no unrelated files in `git diff --name-only main..HEAD`.
+++- **Reasonable size.** ~880 lines added across 7 commits, each commit a single coherent step
+++  (contract, linter, validator, authoring skill) — reviewable in one sitting.
+++- **No stray artifacts.** No commented-out code, debug prints, or scratch files. Grep for
+++  `TODO|FIXME|console.log|debugger|XXX` in the diff returned nothing.
+++
+++## Quality checks
+++
+++- **Tests present (mechanical).** The new flow cross-check is code, not prose: `validate_ux.py`
+++  gained a `check_flows()` function (parses `## Screens` / `## Flows`, verifies every flow
+++  names all 7 fields, every step resolves to a real screen, every screen is reached by ≥1 flow
+++  step, and every decision names both branches) plus a manifest-side grounding check
+++  (`C14/F15`: a flow's persona must trace to a real persona/journal source). Read the full
+++  ~250-line addition; the logic is internally consistent — field parsing, screen matching
+++  (exact + normalized substring), and unreachable-screen detection all tie back into the error
+++  list correctly, and it degrades to a warning (not silently skipped) when `--lens` is omitted.
+++- **Commits are clean.** All 7 commits are conventional-format, each a single concern, each
+++  referencing `#548` (`git log --format` verified).
+++- **No secrets.** Diff scanned for credential/key/token patterns — only match is a doc string
+++  describing the *absence* of secrets in an evidence template; no actual sensitive value in
+++  the diff.
+++- **Docs in step.** The interface-facing docs (agent routing table, ICE, SKILL.md, lens
+++  contract, grounding-doc template) were all updated in the same change; nothing was left
+++  describing the old four-section shape.
+++- **Nothing obviously broken.**
+++  - `shasum -a 256 core/components/plays/ux/reference/ice.md` → matches the fingerprint
+++    recorded in the compiled `SKILL.md` (`sha256:bb3f495716...`).
+++  - `python3 .claude/skills/play-editor/scripts/lint_play.py core/components/plays/ux/SKILL.md`
+++    → `VERDICT: PASS (0 gap(s))` — constraints/failures/scenarios/recovery are 1:1, no orphans
+++    (C1–C14, F1–F15, S1–S7, one recovery per failure, all confirmed by the linter itself, not
+++    just visual read).
+++  - The ten `lint_grounding.py` copies (agentic, arch, grill, learn, marketing, measure,
+++    quality, run, ux, vision) carry the exact same one-line diff — `"h2": [...States...]` →
+++    `"h2": [...Flows, States...]` — confirmed by diffing each file individually; no other
+++    drift in any copy.
+++
+++## Project notes (recorded, not flagged)
+++
+++- `standards/schemas/product-os/lens/ux.yaml` carries a `LOCKED #434` marker and was updated to
+++  match the new five-section contract — deliberate, per project note.
+++- Deployed copies under `.claude/` are intentionally stale until `install-garura` runs after
+++  merge — deliberate, per project note.
+++
+++## Evidence
+++
+++- `shasum -a 256 core/components/plays/ux/reference/ice.md` = fingerprint in `SKILL.md` line 536.
+++- `python3 .claude/skills/play-editor/scripts/lint_play.py core/components/plays/ux/SKILL.md` = PASS, 0 gaps.
+++- `git diff main..HEAD -- core/components/plays/*/scripts/lint_grounding.py` = identical one-line change across all 10 copies.
+++- `git diff main..HEAD -- core/components/plays/ux/scripts/validate_ux.py` = read in full; logic reviewed for correctness.
+++- `git log main..HEAD --format="%H%n%s%n%b%n---"` = 7 commits, all conventional, all reference #548.
+++- Secret/debug grep over the diff = no hits.
+++
+++---
+++
+++Closes #548
++diff --git a/.garura/project/issues/548/context/pr.json b/.garura/project/issues/548/context/pr.json
++new file mode 100644
++index 00000000..bd4761b2
++--- /dev/null
+++++ b/.garura/project/issues/548/context/pr.json
++@@ -0,0 +1,6 @@
+++{
+++  "number": 549,
+++  "url": "https://github.com/kapilvirenahuja/garura/pull/549",
+++  "state": "OPEN",
+++  "base": "main"
+++}
++\ No newline at end of file
++diff --git a/.garura/project/issues/548/context/resolved-rules.json b/.garura/project/issues/548/context/resolved-rules.json
++new file mode 100644
++index 00000000..52d10be3
++--- /dev/null
+++++ b/.garura/project/issues/548/context/resolved-rules.json
++@@ -0,0 +1,6 @@
+++{
+++  "resolved": true,
+++  "path": "core/components/memory/standards/rules/self-review.md",
+++  "source": "core/components/memory/standards/rules",
+++  "is_override": false
+++}
++diff --git a/.garura/project/issues/548/context/self-review.md b/.garura/project/issues/548/context/self-review.md
++new file mode 100644
++index 00000000..af6a4e2c
++--- /dev/null
+++++ b/.garura/project/issues/548/context/self-review.md
++@@ -0,0 +1,78 @@
+++# Self-Review — Issue #548
+++
+++Source: `core/components/memory/standards/rules/self-review.md` (base, `is_override: false`,
+++resolved path recorded in `resolved-rules.json`).
+++
+++Diff reviewed: `main..HEAD`, 7 commits, 23 files changed (17 source files + 6 STM context
+++artifacts).
+++
+++**Verdict: PASS — 0 blocking findings.**
+++
+++## What the change is
+++
+++`/ux` used to write a UX lens with four sections (Intent/Screens/States/Visual core) and no
+++flows — a screen catalogue, not something a UX researcher could actually review. This change
+++adds a fifth section, Flows, and a per-screen "one object" field: every screen now names the
+++one thing the user works with there, and every flow is a fixed-order block (Persona, Goal,
+++Entry, Steps, Decisions, Failure, Exit) tied to one persona and one goal. This is an intent
+++change — the play's ICE source was edited and recompiled, and the edit propagates through the
+++lens contract, ten copies of the structural linter's heading list, a new mechanical flow
+++cross-check script, the authoring skill, and the dispatching agent's routing table.
+++
+++## Scope checks
+++
+++- **Matches the issue.** Every one of the 17 source files touched is part of the stated
+++  propagation chain: ICE → compiled SKILL.md → lens contract (`ux.yaml` + grounding doc
+++  template) → 10 `lint_grounding.py` heading lists → `validate_ux.py` → `author-ux-lens` skill
+++  → `product-os-keeper` agent routing table. Nothing outside that chain was touched.
+++- **No scope creep.** Confirmed no unrelated files in `git diff --name-only main..HEAD`.
+++- **Reasonable size.** ~880 lines added across 7 commits, each commit a single coherent step
+++  (contract, linter, validator, authoring skill) — reviewable in one sitting.
+++- **No stray artifacts.** No commented-out code, debug prints, or scratch files. Grep for
+++  `TODO|FIXME|console.log|debugger|XXX` in the diff returned nothing.
+++
+++## Quality checks
+++
+++- **Tests present (mechanical).** The new flow cross-check is code, not prose: `validate_ux.py`
+++  gained a `check_flows()` function (parses `## Screens` / `## Flows`, verifies every flow
+++  names all 7 fields, every step resolves to a real screen, every screen is reached by ≥1 flow
+++  step, and every decision names both branches) plus a manifest-side grounding check
+++  (`C14/F15`: a flow's persona must trace to a real persona/journal source). Read the full
+++  ~250-line addition; the logic is internally consistent — field parsing, screen matching
+++  (exact + normalized substring), and unreachable-screen detection all tie back into the error
+++  list correctly, and it degrades to a warning (not silently skipped) when `--lens` is omitted.
+++- **Commits are clean.** All 7 commits are conventional-format, each a single concern, each
+++  referencing `#548` (`git log --format` verified).
+++- **No secrets.** Diff scanned for credential/key/token patterns — only match is a doc string
+++  describing the *absence* of secrets in an evidence template; no actual sensitive value in
+++  the diff.
+++- **Docs in step.** The interface-facing docs (agent routing table, ICE, SKILL.md, lens
+++  contract, grounding-doc template) were all updated in the same change; nothing was left
+++  describing the old four-section shape.
+++- **Nothing obviously broken.**
+++  - `shasum -a 256 core/components/plays/ux/reference/ice.md` → matches the fingerprint
+++    recorded in the compiled `SKILL.md` (`sha256:bb3f495716...`).
+++  - `python3 .claude/skills/play-editor/scripts/lint_play.py core/components/plays/ux/SKILL.md`
+++    → `VERDICT: PASS (0 gap(s))` — constraints/failures/scenarios/recovery are 1:1, no orphans
+++    (C1–C14, F1–F15, S1–S7, one recovery per failure, all confirmed by the linter itself, not
+++    just visual read).
+++  - The ten `lint_grounding.py` copies (agentic, arch, grill, learn, marketing, measure,
+++    quality, run, ux, vision) carry the exact same one-line diff — `"h2": [...States...]` →
+++    `"h2": [...Flows, States...]` — confirmed by diffing each file individually; no other
+++    drift in any copy.
+++
+++## Project notes (recorded, not flagged)
+++
+++- `standards/schemas/product-os/lens/ux.yaml` carries a `LOCKED #434` marker and was updated to
+++  match the new five-section contract — deliberate, per project note.
+++- Deployed copies under `.claude/` are intentionally stale until `install-garura` runs after
+++  merge — deliberate, per project note.
+++
+++## Evidence
+++
+++- `shasum -a 256 core/components/plays/ux/reference/ice.md` = fingerprint in `SKILL.md` line 536.
+++- `python3 .claude/skills/play-editor/scripts/lint_play.py core/components/plays/ux/SKILL.md` = PASS, 0 gaps.
+++- `git diff main..HEAD -- core/components/plays/*/scripts/lint_grounding.py` = identical one-line change across all 10 copies.
+++- `git diff main..HEAD -- core/components/plays/ux/scripts/validate_ux.py` = read in full; logic reviewed for correctness.
+++- `git log main..HEAD --format="%H%n%s%n%b%n---"` = 7 commits, all conventional, all reference #548.
+++- Secret/debug grep over the diff = no hits.
++diff --git a/.garura/project/issues/548/context/work-description.txt b/.garura/project/issues/548/context/work-description.txt
++new file mode 100644
++index 00000000..1b388fc6
++--- /dev/null
+++++ b/.garura/project/issues/548/context/work-description.txt
++@@ -0,0 +1,60 @@
+++[BUG] /ux lens output is a screen catalogue, not information architecture and task flows
+++
+++## The problem in plain words
+++
+++The /ux play writes a `lens/ux.md` file for a slice. What it actually produces is a
+++prose catalogue: an Intent paragraph, a bullet per screen describing what that screen
+++prints, a bullet per screen listing its states, and a closing "Visual core" paragraph
+++about colour and typography.
+++
+++A user experience researcher reading that file cannot answer the two questions they
+++open a UX document to answer:
+++
+++1. **What is the information architecture?** What objects exist in this slice, how do
+++   they nest, what is the primary object on each surface, and how do surfaces relate
+++   to each other. Today the file lists screens side by side with no structure between
+++   them.
+++2. **How does a person actually move through it?** Persona, goal, entry point, the
+++   ordered steps, the decision points, what happens on failure, and where the flow
+++   exits. Today states are listed as an unordered set of labels per screen, with no
+++   transitions between them and no path from one screen to the next.
+++
+++The result reads as a specification of what each screen prints, not as a description
+++of how a person moves through the product. It also buries the useful signal in long
+++run-on sentences, so neither a human nor an agent can extract the structure reliably.
+++
+++## Why this matters
+++
+++`ux.md` is the UX lens artifact that later plays (arch, implement) read as the
+++authority on the user-facing shape of a slice. If it does not carry the information
+++architecture and the flows, every downstream play is reasoning from a screen list.
+++And a UX researcher cannot review it, so the lens gets no human check at all.
+++
+++## What good looks like
+++
+++The file must satisfy two readers at once:
+++
+++- A UX researcher should read it and say "yes, that is the information architecture,
+++  and yes, that is how a person moves through this."
+++- An agent should be able to parse it deterministically — named sections, one idea per
+++  entry, explicit transitions, no meaning hidden inside prose paragraphs.
+++
+++That means the fix is a **structure change** to the artifact (its sections and the
+++shape of each entry), not merely better writing inside the current sections. At
+++minimum the artifact needs: an information architecture section (objects, hierarchy,
+++relationships), a task-flow section (per persona and goal, with ordered steps, entry,
+++decision points, failure paths, exit), explicit screen-to-screen transitions, and
+++states expressed as a state model with triggers rather than a flat label list.
+++
+++## Likely fix path (not decided here)
+++
+++Changing what `ux.md` contains changes what the /ux play guarantees, so this is
+++expected to be an **intent change**: edit `core/components/plays/ux/reference/ice.md`
+++and the UX lens template in memory, then recompile with `/play-editor`. It should not
+++be a direct edit to the compiled `SKILL.md`. The implementing change decides this.
+++
+++## Evidence
+++
+++- Sample bad output (griffin project, worktree):
+++  `/Users/kapilahuja/cto/builder/griffin/.claude/worktrees/ux-trusted-local-collection/.garura/product/product-os/team-token-reporting/slices/slice-trusted-local-collection/lens/ux.md`
+++- Play source: `core/components/plays/ux/`
++diff --git a/core/components/agents/product-os-keeper.md b/core/components/agents/product-os-keeper.md
++index 38254014..7e49e15a 100644
++--- a/core/components/agents/product-os-keeper.md
+++++ b/core/components/agents/product-os-keeper.md
++@@ -64,7 +64,7 @@ intent and execute.
++ | `author-shape-bundle` | Draft one domain's selection bundle — confirm/prune capabilities against the firmed profile + KB, select functionalities, author build-unit functionality ICE, persona + journey records, and the prune/selection decisions — with stable ids. Reads the profile (never writes it); draft only. | /shape |
++ | `author-roadmap` | Draft the plan for /roadmap over /shape's vertical slices — for each slice estimate effort, resolve its dependency_notes (+ shared functionalities + their ICE depends_on) into concrete depends_on slice ids, and propose a value order. Writes `plan-draft.yaml` only — no final order numbers, no topological sort/cycle logic (those are the play's `compute_plan.py`), never the live model. | /roadmap |
++ | `author-quality-lens` | Draft the quality lens for /quality — for one SLICE, turn the profile targets that apply + the slice's functionalities' ICE constraints/failures into a grounded, checkable list of pass/fail gates, plus a decision for any material choice. The first realize lens: reads only the slice's hub (its functionalities' ICE + profile), never another lens. Draft only. | /quality |
++-| `author-ux-lens` | Draft the ux lens for /ux — for one SLICE, turn its functionalities' ICE and personas/journeys into low-fidelity screens (each with a layout), the states each screen holds, and the product's visual core (color + typography) recorded as a decision; cover every functionality the slice bundles so a human can validate the shape. Just enough to anchor intent — no flows, no a11y block (a11y lives in the profile). Reads the slice's hub, never another lens. Draft only. | /ux |
+++| `author-ux-lens` | Draft the ux lens for /ux — for one SLICE, turn its functionalities' ICE and personas/journeys into low-fidelity screens (each naming the one object the user works with there, with a layout), the flows a person takes through those screens (per persona and goal: entry, ordered steps naming screens, forks, failure path, exit), the states each screen holds (each with its trigger), and the product's visual core (color + typography) recorded as a decision; cover every functionality the slice bundles so a human can validate the shape, and leave no screen unreachable. Just enough to anchor intent — no a11y block (a11y lives in the profile), and no journey that leaves this slice's screens (that is /story's). Reads the slice's hub, never another lens. Draft only. | /ux |
++ | `author-agentic-lens` | Draft the agentic lens for /agentic — for one SLICE, decide is_agent (by how much load to offload) and rate five axes on low→ultra: the three weights (cognitive/creative/logistical = degree of offload) + controls (guardrails, handoff), grounding each in the slice's hub (its functionalities' ICE). A slice that offloads nothing comes out is_agent=false. Records a decision for any material autonomy choice. Reads the hub, never another lens. Draft only. | /agentic |
++ | `author-architecture-lens` | Draft the architecture lens for /arch — for one SLICE, select the horizontal components it threads (from its functionalities' ICE `context.systems` + the profile surfaces, each in a layer with the part it occupies), draw the contracts (seams) between them with the data that flows, and pick the stack (tech + versions) sized by the profile box, plus a decision for any material choice. The build is one vertical end-to-end slice through the components (acyclic, orphan-free). Reads the slice's hub + the profile box; may read the lens trinity (quality, ux, agentic — decision 23); never the measure or run lens. Draft only. | /arch |
++ | `author-run-lens` | Draft the run lens for /run — for one SLICE, how it is deployed, runs, and what it costs to own: environments, rollout (flags + strategy), migrations stance, config/secrets, CI/CD, a run target for every architecture component, and the TCO (hyperscaler decision, concrete service map, user/load simulation, monthly cost range, guardrails). Reads the hub + the ARCHITECTURE lens (run deploys arch's parts) + the KB; may read the lens trinity (decision 23); never the measure lens's content (presence only via lines-up); grounds every operational/platform/cost choice in a matched learning or a recorded gap proposal. The sixth and last realize lens. Draft only. | /run |
++@@ -86,7 +86,7 @@ intent and execute.
++ | "select functionalities", "shape this domain", "confirm/prune capabilities", "personas + journeys" | "Shape the order-management domain" | `author-shape-bundle` | Generative draft of the selection bundle (functionalities + ICE + personas + journeys + decisions) against the firmed profile |
++ | "plan the roadmap", "order the slices", "estimate effort", "resolve dependencies" | "Plan the vertical slices into a build order" | `author-roadmap` | Effort + dependency + value judgment over /shape's slices; the play's `compute_plan.py` turns it into the dependency-correct global order |
++ | "write the quality lens", "the gates", "quality bar for this capability" | "Write the quality lens for the checkout capability" | `author-quality-lens` | Turns applicable profile targets + ICE constraints/failures into grounded pass/fail gates (the first realize lens) |
++-| "write the ux lens", "screens + states", "the layouts", "the visual core / color + typography", "let me validate the shape" | "Write the ux lens for the checkout capability" | `author-ux-lens` | Turns the shaped slices + personas/journeys into low-fidelity screens (with layouts) + states + the product visual core that visualize the shape for human validation |
+++| "write the ux lens", "screens + flows + states", "the layouts", "the user journey through the screens", "the visual core / color + typography", "let me validate the shape" | "Write the ux lens for the checkout capability" | `author-ux-lens` | Turns the shaped slices + personas/journeys into low-fidelity screens (with layouts) + the flows through them + states + the product visual core that visualize the shape for human validation |
++ | "write the agentic lens", "how much of an agent", "the weights", "cognitive/creative/logistical", "the agent bounds / hard limits" | "Write the agentic lens for the checkout capability" | `author-agentic-lens` | Rates the three autonomy weights + writes the hard bounds, grounded in the capability's ICE (all-none when there is no agent) |
++ | "write the architecture lens", "the components / platforms / tiers", "the contracts / seams", "the stack + versions", "the shape of the software" | "Write the architecture lens for the checkout slice" | `author-architecture-lens` | Selects the horizontal components the slice threads + the contracts between them + the versioned stack, grounded in the slice's functionalities' ICE systems + the profile box (the fourth realize lens; may read the lens trinity) |
++ | "write the run lens", "how does this slice run / deploy", "environments + rollout + migrations + CI/CD", "the run targets", "what does it cost to own / the TCO" | "Write the run lens for the checkout slice" | `author-run-lens` | Turns the hub + the architecture lens + the KB into the operational and ownership picture — a target per component, KB-grounded choices, and the TCO the owner approves on (the sixth and last realize lens) |
++diff --git a/core/components/memory/standards/schemas/product-os/grounding/lens/ux.md b/core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
++index ab91a028..3d919ae0 100644
++--- a/core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+++++ b/core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
++@@ -1,10 +1,18 @@
++ # UX Lens Grounding Doc — TEMPLATE & CONTRACT
++ 
++-> Locked contract for a slice's `lens/ux.md` — the **functional** UX lens. It describes the
++-> screens the slice exposes, their states, and the visual core — at LOW fidelity (named and
++-> described in prose, never pixel-designed). Flows are derived by the build; accessibility now
++-> lives in the marketing lens. The linter enforces the heading set; the content-quality eval
++-> scores it against `_content-standard.md`. Written by `/ux`.
+++> Locked contract for a slice's `lens/ux.md` — the **functional** UX lens. It answers the two
+++> questions a UX researcher opens it to answer: **what the user is dealing with** (the screens,
+++> each naming the one object it is about) and **how a person moves through it** (the flows —
+++> ordered paths through those screens, with their forks, their failure path, and their exit). It
+++> also names the states each screen can hold and the visual core. Everything is LOW fidelity —
+++> described in prose, never pixel-designed. The flows are written here, not left to the build,
+++> and they cover the path **inside this slice's screens only**; the person's wider journey across
+++> the product belongs to the proposed `/story` play (#528), not to this lens. There is no separate
+++> information-architecture section — the "one object the user works with" line on each screen
+++> carries the IA. Accessibility is not in this lens; it lives in the marketing lens. The linter
+++> enforces the heading set, `validate_ux.py` mechanically cross-checks the flows against the
+++> screens, and the content-quality eval scores the doc against `_content-standard.md`. Written by
+++> `/ux`.
++ 
++ ## Heading contract (required, in order)
++ 
++@@ -12,19 +20,63 @@
++ # UX Lens
++ ## Intent
++ ## Screens
+++## Flows
++ ## States
++ ## Visual core
++ ```
++ 
++ ## Per-section guidance
++ 
++-- **Intent** — what the slice's surface is for, from the user's side: who opens it and what
++-  they need to see or do, and why this surface and not another. A short paragraph.
++-- **Screens** — each screen the slice exposes: its name, who opens it, and a LOW-FIDELITY
++-  layout in prose (the regions and what each holds). Never pixel-perfect design. One per
++-  surface the slice names.
++-- **States** — the states each screen can be in (loading, empty, error, partial, populated)
++-  and what the user sees in each — so no state is an afterthought.
+++- **Intent** — what the slice's surface is for, from the user's side: who opens it and what they
+++  need to see or do, and why this surface and not another. A short paragraph.
+++
+++- **Screens** — one entry per screen the slice exposes. Each entry names four things, in this
+++  order:
+++  1. **The screen's name** — the name a flow step will use to refer to it.
+++  2. **Who opens it** — the persona or role that arrives here.
+++  3. **The one object the user works with there** — the single thing this screen is *about*
+++     (a coverage list, a fixture set, an invoice, a run record). One object per screen. This
+++     line is the information architecture of the slice; there is deliberately no separate IA
+++     section, so if a screen cannot name one object, the screen is doing two jobs and should be
+++     split.
+++  4. **A low-fidelity layout in prose** — the regions of the screen and what each region holds.
+++     Regions and content, never pixels, never colors, never component libraries.
+++
+++  Every functionality the slice bundles must be visible on at least one screen, and every screen
+++  must be reached by at least one flow step below.
+++
+++- **Flows** — one block per persona **and** goal. A persona chasing two different goals gets two
+++  blocks. Each block uses this fixed field order, so a researcher can read it as a story and an
+++  agent can parse it as a graph:
+++
+++  - **Persona** — who is moving. Must be a persona or journey actor that already exists in the
+++    slice's hub; never invented here.
+++  - **Goal** — what they are trying to get done, in their words, not the system's.
+++  - **Entry** — where they start: the screen they land on and what put them there.
+++  - **Steps** — an ordered, numbered list. Each step names a screen **that exists in Screens**
+++    above, plus the action the person takes on it. One action per step.
+++  - **Decisions** — every fork point in the steps. For each fork, say what is being decided and
+++    where **each** branch goes — name the step or screen for every branch, never just the happy
+++    one.
+++  - **Failure** — what happens when a step fails: which step, what the person sees, and what
+++    they can do about it. At least one real failure path per flow.
+++  - **Exit** — where the person ends up and what they now have.
+++
+++  Scope boundary: flows describe movement **within this slice's screens**. Do not write the
+++  person's wider journey across the whole product — arriving from another slice, or what they do
+++  afterwards elsewhere. That cross-product journey is the job of the proposed `/story` play
+++  (#528). A flow that leaves this slice's screens fails the contract.
+++
+++- **States** — grouped by screen, one entry per state. A flat list of state labels fails. Each
+++  state names three things:
+++  1. **Its trigger** — what puts the screen into this state.
+++  2. **What the user sees** — the visible difference, in words.
+++  3. **What they can do next** — the action available from here, or plainly that there is none
+++     but wait.
+++
+++  Cover the honest states, not just the happy one: loading, empty, partial, error, and blocked
+++  belong here whenever they can happen.
+++
++ - **Visual core** — the color direction and typography direction in words (not a full design
++   system), enough to keep the build coherent.
++ 
++@@ -34,27 +86,83 @@
++ # UX Lens
++ 
++ ## Intent
++-The Trusted Source Coverage slice gives a CTO one screen to answer "can I trust this data?"
++-before reading any number. They open it to scan every source at a glance and see, honestly,
++-which resolved, which are partial, and which couldn't be read — so the surface's whole job is
++-legibility-at-a-glance and honesty, not depth.
+++The Trusted Source Coverage slice gives a CTO and their dashboard operator one place to answer
+++"can I trust this data?" before anyone reads a number. They open it to scan every expected source
+++at a glance and see, honestly, which resolved, which came back partial, and which could not be
+++read at all. The surface's whole job is legibility-at-a-glance and honesty — not depth, not
+++analysis.
++ 
++ ## Screens
++-- **Source coverage view** — opened by the CTO or dashboard operator. Layout: a header strip
++-  with the loaded fixture set and last-refresh time; a full-width table, one row per expected
++-  source, with columns for source name, resolved state, freshness, and privacy-trust label; a
++-  legend panel explaining each state. No drill-down on this slice — that accretes later.
+++
+++- **Source coverage view** — opened by the CTO, or by the dashboard operator preparing the
+++  morning review.
+++  - The one object: the **coverage list** — one entry per source the slice expects to read.
+++  - Layout: a header strip naming the loaded fixture set and its last-refresh time; below it a
+++    full-width table, one row per expected source, with columns for source name, resolved state,
+++    freshness, and privacy-trust label; a legend panel down the side explaining what each state
+++    label means. No drill-down in this slice — that accretes later.
+++
+++- **Fixture set loader** — opened by the dashboard operator, when no fixture set is loaded yet or
+++  they want to swap in a different one.
+++  - The one object: the **fixture set** — a named folder of source files the slice reads from.
+++  - Layout: a single centered panel listing the fixture sets found on disk, each showing its name
+++    and how many records it holds; a confirm action on the selected set; a footer line naming the
+++    folder that was searched, so a missing set is diagnosable without leaving the screen.
+++
+++## Flows
+++
+++### Operator prepares the morning review
+++
+++- **Persona** — the dashboard operator, the person who loads the sources and gets the review
+++  ready for the CTO.
+++- **Goal** — get a coverage picture in front of the CTO that they can trust, before the morning
+++  review starts.
+++- **Entry** — opens the dashboard link and lands on the Source coverage view.
+++- **Steps** — the ordered path, each step taken on a named screen:
+++  1. **Source coverage view** — reads the header strip to see which fixture set is loaded, if any.
+++  2. **Fixture set loader** — picks a fixture set from the list and confirms the load.
+++  3. **Source coverage view** — scans the table row by row and reads each source's resolved state.
+++  4. **Source coverage view** — opens the legend panel to check any state label they do not
+++     recognize.
+++- **Decisions** — the fork points, and where each branch goes:
+++  - After step 1 — *is a fixture set already loaded?* **No** → step 2, the Fixture set loader.
+++    **Yes** → skip step 2 and go straight to step 3 on the Source coverage view.
+++  - After step 3 — *did any source come back partial, unavailable, or privacy-blocked?* **Yes** →
+++    the operator stops here, copies the reason text from that row, and exits on the Source
+++    coverage view with the review flagged as not-ready. **No** → step 4, then exit.
+++- **Failure** — the chosen fixture set cannot be read at step 2. The Fixture set loader stays on
+++  screen, names the file it could not read and why, and keeps the list available so the operator
+++  can pick a different set. They are never dropped onto a coverage table built from a half-read
+++  set.
+++- **Exit** — the operator ends on the Source coverage view, with every expected source showing a
+++  state and no row left blank: either cleared for the review, or flagged as not-ready with a
+++  named reason.
++ 
++ ## States
++-- Loading — a table skeleton with a "reading fixtures…" note.
++-- Populated — every expected source as a row with its resolved state and labels.
++-- Partial — a source that read some records shows "partial" with read/skipped counts.
++-- Unavailable — a source that couldn't be read shows "unavailable" with a reason, never blank,
++-  never dropped.
++-- Empty — no fixtures loaded yet: a prompt to load the fixture set, not a blank screen.
+++
+++**Source coverage view**
+++- *Loading* — trigger: the view has asked for coverage and no answer has come back yet. Sees: a
+++  table skeleton with a "reading fixtures…" note. Next: nothing but wait; no row is actionable.
+++- *Empty* — trigger: no fixture set is loaded. Sees: a short prompt explaining what a fixture set
+++  is and that none is loaded — not a blank screen. Next: open the Fixture set loader.
+++- *Populated* — trigger: coverage came back and every expected source resolved cleanly. Sees: one
+++  row per source with its state, freshness, and privacy-trust label. Next: read the legend, or go
+++  back to the loader for a different set.
+++- *Populated with gaps* — trigger: at least one source came back partial, unavailable, or
+++  privacy-blocked. Sees: those rows carry their own label plus a plain-words reason — never blank,
+++  never silently dropped. Next: copy the reason and take it to the source owner.
+++
+++**Fixture set loader**
+++- *Ready* — trigger: opened with at least one readable fixture set on disk. Sees: the sets listed
+++  with name and record count. Next: select one and confirm the load.
+++- *No sets found* — trigger: opened and the fixture folder holds nothing readable. Sees: the
+++  folder path that was searched and what a valid set looks like. Next: put a set in that folder
+++  and reopen the loader.
+++- *Load failed* — trigger: the confirmed set could not be read. Sees: the file name and the
+++  reason, with the list still on screen. Next: pick a different set.
++ 
++ ## Visual core
++-Calm and data-first: a neutral background with one accent reserved for trust-state badges
++-(green resolved, amber partial, grey unavailable, red privacy-blocked). Typography: a single
++-legible sans for the data, slightly heavier weight on the state badges so honesty reads first.
+++Calm and data-first: a neutral background with one accent reserved for trust-state badges (green
+++resolved, amber partial, grey unavailable, red privacy-blocked). Typography: a single legible sans
+++for the data, with slightly heavier weight on the state badges so the honest signal reads first.
++ ```
++diff --git a/core/components/memory/standards/schemas/product-os/lens/ux.yaml b/core/components/memory/standards/schemas/product-os/lens/ux.yaml
++index c054f08c..f4378d33 100644
++--- a/core/components/memory/standards/schemas/product-os/lens/ux.yaml
+++++ b/core/components/memory/standards/schemas/product-os/lens/ux.yaml
++@@ -2,12 +2,14 @@
++ #
++ # Scope (#434): the ux lens drives INTENT, not a full spec. It anchors the experience
++ # with just enough that the build can figure the rest on the fly:
++-#   - screens (each with a low-fidelity layout) that make the shaped slices visible,
++-#   - the states each screen can hold,
+++#   - screens (each naming the one object the user works with there, with a low-fidelity
+++#     layout) that make the shaped slices visible,
+++#   - the flows — per persona and goal, the ordered path through those screens,
+++#   - the states each screen can hold, each with the trigger that puts it there,
++ #   - the product's visual core (color + typography).
++ # Accessibility is NOT restated here — it lives in the product profile, and the build
++-# connects it. Flows are NOT specified here — the build derives them from the screens +
++-# the capability's journeys.
+++# connects it. The flows here are the paths INSIDE this lens's screens; the person's wider
+++# journey across the product is not this lens's to write (that is /story's, #528). (#548)
++ 
++ schema:
++   name: lens
++@@ -17,11 +19,29 @@ content:
++   screens:              # the surfaces this capability needs, made visible to validate the shape
++     - name: string
++       purpose: string
+++      object: string    # the ONE thing the user works with on this screen — this is where
+++                        # the information architecture lives (no separate IA section)
++       layout: string    # low-fidelity layout — the blocks/regions on the screen and what
++                         # each holds (where the slice's functionality sits). NOT pixel design.
+++  flows:                # per persona + goal: the ordered path through the screens above
+++    - persona: string   # who is taking this path — traces to a persona/journey of the hub
+++      goal: string      # what they are trying to get done
+++      entry: string     # where the path starts
+++      steps:            # ordered; each step names a screen from `screens` above
+++        - screen: string
+++          action: string
+++      decisions:        # each fork point, and where EACH branch goes
+++        - at: string    # the step the fork happens at
+++          branches: [string]
+++      failure: string   # what happens when a step fails
+++      exit: string      # where the person ends up
++   states:               # per screen
++     - screen: string
++-      states: [string]  # idle | submitting | error | locked | success | empty | loading
+++      states:           # each state names what puts the screen in it
+++        - name: string  # idle | submitting | error | locked | success | empty | loading
+++          trigger: string
+++          sees: string
+++          next: string
++   design_system:        # the product's visual core (set once, referenced by every capability)
++     palette: string     # the core colors + mood (e.g. "ink #11181C on paper #FCFCFD, brand teal #0E7C86")
++     typography: string  # the type character (e.g. "Inter for UI, Spectral for long-form")
++diff --git a/core/components/plays/agentic/scripts/lint_grounding.py b/core/components/plays/agentic/scripts/lint_grounding.py
++index 443ac5d4..9dda532b 100644
++--- a/core/components/plays/agentic/scripts/lint_grounding.py
+++++ b/core/components/plays/agentic/scripts/lint_grounding.py
++@@ -103,7 +103,7 @@
++     "lens-quality": {"title": "Quality Lens", "exact_title": True,
++                      "h2": ["Intent", "Gates"]},
++     "lens-ux": {"title": "UX Lens", "exact_title": True,
++-                "h2": ["Intent", "Screens", "States", "Visual core"]},
+++                "h2": ["Intent", "Screens", "Flows", "States", "Visual core"]},
++     "lens-agentic": {"title": "Agentic Lens", "exact_title": True,
++                      "h2": ["Is it an agent?", "Load weights", "Controls"]},
++     "lens-architecture": {"title": "Architecture Lens", "exact_title": True,
++diff --git a/core/components/plays/arch/scripts/lint_grounding.py b/core/components/plays/arch/scripts/lint_grounding.py
++index 443ac5d4..9dda532b 100644
++--- a/core/components/plays/arch/scripts/lint_grounding.py
+++++ b/core/components/plays/arch/scripts/lint_grounding.py
++@@ -103,7 +103,7 @@
++     "lens-quality": {"title": "Quality Lens", "exact_title": True,
++                      "h2": ["Intent", "Gates"]},
++     "lens-ux": {"title": "UX Lens", "exact_title": True,
++-                "h2": ["Intent", "Screens", "States", "Visual core"]},
+++                "h2": ["Intent", "Screens", "Flows", "States", "Visual core"]},
++     "lens-agentic": {"title": "Agentic Lens", "exact_title": True,
++                      "h2": ["Is it an agent?", "Load weights", "Controls"]},
++     "lens-architecture": {"title": "Architecture Lens", "exact_title": True,
++diff --git a/core/components/plays/grill/scripts/lint_grounding.py b/core/components/plays/grill/scripts/lint_grounding.py
++index 443ac5d4..9dda532b 100644
++--- a/core/components/plays/grill/scripts/lint_grounding.py
+++++ b/core/components/plays/grill/scripts/lint_grounding.py
++@@ -103,7 +103,7 @@
++     "lens-quality": {"title": "Quality Lens", "exact_title": True,
++                      "h2": ["Intent", "Gates"]},
++     "lens-ux": {"title": "UX Lens", "exact_title": True,
++-                "h2": ["Intent", "Screens", "States", "Visual core"]},
+++                "h2": ["Intent", "Screens", "Flows", "States", "Visual core"]},
++     "lens-agentic": {"title": "Agentic Lens", "exact_title": True,
++                      "h2": ["Is it an agent?", "Load weights", "Controls"]},
++     "lens-architecture": {"title": "Architecture Lens", "exact_title": True,
++diff --git a/core/components/plays/learn/scripts/lint_grounding.py b/core/components/plays/learn/scripts/lint_grounding.py
++index 443ac5d4..9dda532b 100644
++--- a/core/components/plays/learn/scripts/lint_grounding.py
+++++ b/core/components/plays/learn/scripts/lint_grounding.py
++@@ -103,7 +103,7 @@
++     "lens-quality": {"title": "Quality Lens", "exact_title": True,
++                      "h2": ["Intent", "Gates"]},
++     "lens-ux": {"title": "UX Lens", "exact_title": True,
++-                "h2": ["Intent", "Screens", "States", "Visual core"]},
+++                "h2": ["Intent", "Screens", "Flows", "States", "Visual core"]},
++     "lens-agentic": {"title": "Agentic Lens", "exact_title": True,
++                      "h2": ["Is it an agent?", "Load weights", "Controls"]},
++     "lens-architecture": {"title": "Architecture Lens", "exact_title": True,
++diff --git a/core/components/plays/marketing/scripts/lint_grounding.py b/core/components/plays/marketing/scripts/lint_grounding.py
++index 443ac5d4..9dda532b 100644
++--- a/core/components/plays/marketing/scripts/lint_grounding.py
+++++ b/core/components/plays/marketing/scripts/lint_grounding.py
++@@ -103,7 +103,7 @@
++     "lens-quality": {"title": "Quality Lens", "exact_title": True,
++                      "h2": ["Intent", "Gates"]},
++     "lens-ux": {"title": "UX Lens", "exact_title": True,
++-                "h2": ["Intent", "Screens", "States", "Visual core"]},
+++                "h2": ["Intent", "Screens", "Flows", "States", "Visual core"]},
++     "lens-agentic": {"title": "Agentic Lens", "exact_title": True,
++                      "h2": ["Is it an agent?", "Load weights", "Controls"]},
++     "lens-architecture": {"title": "Architecture Lens", "exact_title": True,
++diff --git a/core/components/plays/measure/scripts/lint_grounding.py b/core/components/plays/measure/scripts/lint_grounding.py
++index 443ac5d4..9dda532b 100644
++--- a/core/components/plays/measure/scripts/lint_grounding.py
+++++ b/core/components/plays/measure/scripts/lint_grounding.py
++@@ -103,7 +103,7 @@
++     "lens-quality": {"title": "Quality Lens", "exact_title": True,
++                      "h2": ["Intent", "Gates"]},
++     "lens-ux": {"title": "UX Lens", "exact_title": True,
++-                "h2": ["Intent", "Screens", "States", "Visual core"]},
+++                "h2": ["Intent", "Screens", "Flows", "States", "Visual core"]},
++     "lens-agentic": {"title": "Agentic Lens", "exact_title": True,
++                      "h2": ["Is it an agent?", "Load weights", "Controls"]},
++     "lens-architecture": {"title": "Architecture Lens", "exact_title": True,
++diff --git a/core/components/plays/quality/scripts/lint_grounding.py b/core/components/plays/quality/scripts/lint_grounding.py
++index 443ac5d4..9dda532b 100644
++--- a/core/components/plays/quality/scripts/lint_grounding.py
+++++ b/core/components/plays/quality/scripts/lint_grounding.py
++@@ -103,7 +103,7 @@
++     "lens-quality": {"title": "Quality Lens", "exact_title": True,
++                      "h2": ["Intent", "Gates"]},
++     "lens-ux": {"title": "UX Lens", "exact_title": True,
++-                "h2": ["Intent", "Screens", "States", "Visual core"]},
+++                "h2": ["Intent", "Screens", "Flows", "States", "Visual core"]},
++     "lens-agentic": {"title": "Agentic Lens", "exact_title": True,
++                      "h2": ["Is it an agent?", "Load weights", "Controls"]},
++     "lens-architecture": {"title": "Architecture Lens", "exact_title": True,
++diff --git a/core/components/plays/run/scripts/lint_grounding.py b/core/components/plays/run/scripts/lint_grounding.py
++index 443ac5d4..9dda532b 100644
++--- a/core/components/plays/run/scripts/lint_grounding.py
+++++ b/core/components/plays/run/scripts/lint_grounding.py
++@@ -103,7 +103,7 @@
++     "lens-quality": {"title": "Quality Lens", "exact_title": True,
++                      "h2": ["Intent", "Gates"]},
++     "lens-ux": {"title": "UX Lens", "exact_title": True,
++-                "h2": ["Intent", "Screens", "States", "Visual core"]},
+++                "h2": ["Intent", "Screens", "Flows", "States", "Visual core"]},
++     "lens-agentic": {"title": "Agentic Lens", "exact_title": True,
++                      "h2": ["Is it an agent?", "Load weights", "Controls"]},
++     "lens-architecture": {"title": "Architecture Lens", "exact_title": True,
++diff --git a/core/components/plays/ux/SKILL.md b/core/components/plays/ux/SKILL.md
++index 90660222..cd3a7902 100644
++--- a/core/components/plays/ux/SKILL.md
+++++ b/core/components/plays/ux/SKILL.md
++@@ -1,14 +1,15 @@
++ ---
++ name: ux
++ position: start
++-description: 'Write a SLICE''s UX lens as a grounding doc (ux.md) — the screens (each with a low-fidelity layout) that make the slice''s functionalities visible, the states each holds, and the product''s visual core (color + typography) — directly in place on the live model. The START of the FUNCTIONAL realize pipe (ux → agentic → marketing), run on a shaped slice. Accessibility is not here (it lives in the marketing lens); flows are the build''s to derive. Reads the hub from the spine (functionality grounding + profile), never another lens. Writes only the slice''s ux lens and its visual-core decision.'
+++description: 'Write a SLICE''s UX lens as a grounding doc (ux.md) — the screens (each naming the object the user works with there, with a low-fidelity layout) that make the slice''s functionalities visible, the flows (per persona and goal: entry, ordered steps naming screens, forks, failure path, exit), the states each screen holds (each with its trigger), and the product''s visual core (color + typography) — directly in place on the live model. The START of the FUNCTIONAL realize pipe (ux → agentic → marketing), run on a shaped slice. Accessibility is not here (it lives in the marketing lens); the wider cross-product journey is not here either (that is /story''s). Reads the hub from the spine (functionality grounding + profile), never another lens. Writes only the slice''s ux lens and its visual-core decision.'
++ user-invocable: true
++ ---
++ 
++ # ux
++ 
++ Write a shaped slice's **UX lens** as the grounding doc `ux.md`: the screens that make every
++-functionality visible, the states each holds, and the product's visual core. Just enough to
+++functionality visible (each naming the one object the user works with there), the flows a person
+++takes through those screens, the states each screen holds, and the product's visual core. Just enough to
++ anchor the intended experience and let the build figure the rest. /ux reads the slice's **hub**
++ — its functionalities' grounding docs plus the profile (both from the spine) — and never another
++ realize lens.
++@@ -35,8 +36,8 @@ scoped guard (`scoped_write_guard.py`), not a draft.
++ This play was compiled from the ux ICE (`reference/ice.md`) by play-editor (#466 Batch C; #467
++ Batch B — the checkpoint upgraded to a conditional learned gate, see
++ `standards/rules/gate-config.md`; #500 — migrated to direct-model-write per ADR 026 and
++-`standards/rules/direct-model-write.md`). Intent defines constraints (C1–C13) and failure
++-conditions (F1–F14); the expectation defines success scenarios (S1–S6), a Done means (D1–D3, baked
+++`standards/rules/direct-model-write.md`). Intent defines constraints (C1–C14) and failure
+++conditions (F1–F15); the expectation defines success scenarios (S1–S7), a Done means (D1–D3, baked
++ to `stop-condition.yaml`), and one recovery entry per failure condition. To modify this play,
++ update `reference/ice.md` and recompile with play-editor. Do NOT edit this file manually — it is a
++ compiled artifact.
++@@ -63,7 +64,7 @@ product-os tree (C13/F14); closing COMPLETED without the stop-condition verdict
++ 
++ | Agent | Domain | Skill it invokes | Phases |
++ |-------|--------|------------------|--------|
++-| `product-os-keeper` | Author the slice's UX lens (screens + states + visual core) from the hub + KB pattern grounding — the `ux.md` written in place on the live model, and the visual-core decision emitted into the manifest | `kb-search`, `author-ux-lens` | Author |
+++| `product-os-keeper` | Author the slice's UX lens (screens + flows + states + visual core) from the hub + KB pattern grounding — the `ux.md` written in place on the live model, and the visual-core decision emitted into the manifest | `kb-search`, `author-ux-lens` | Author |
++ 
++ `product-os-keeper` is the single **domain agent** this play uses (1 of the ≤5 budget). The
++ utility work — cutting the branch and resolving the issue — is `start-change` (injected head), not
++@@ -180,15 +181,15 @@ this run's delta.
++ ### Phase: Author (write the doc to the live model, ADR 026)
++ 
++ **Step 1 — Author the lens (ux.md to live)** · Owner: `product-os-keeper` · Depends on: Step 0
++-The agent invokes `author-ux-lens` to write the slice's `ux.md` (screens + states + visual core,
++-per the UX lens template) from the hub (the functionality grounding docs + the profile) and KB
+++The agent invokes `author-ux-lens` to write the slice's `ux.md` (screens + flows + states +
+++visual core, per the UX lens template) from the hub (the functionality grounding docs + the profile) and KB
++ pattern grounding. Per ADR 026 the skill writes the per-node doc **straight to the live model** in
++ place, and emits the visual-core decision (with the grounding map) as structured data in
++ `ux-manifest.yaml` — it writes NO shared model file (`_spine.yaml`, the profile, or a
++ `decisions/*.yaml`):
++ 
++     {
++-      "task":    "author the slice's UX lens (screens/states/visual core) from its hub; write ux.md in place on the live model; ground screens to functionalities and the visual core to the KB or a decision; emit the visual-core decision delta into the manifest",
+++      "task":    "author the slice's UX lens (screens/flows/states/visual core) from its hub; write ux.md in place on the live model; ground screens to functionalities and flows to personas/journeys of the hub, and the visual core to the KB or a decision; every flow step names a real screen and every screen is reached by a flow; emit the visual-core decision delta into the manifest",
++       "inputs":  { "slice_ref": "<domain>/<slice>",
++                    "slice_file": "<slice record>",
++                    "functionality_groundings": "<from check_ready_slice>",
++@@ -212,7 +213,7 @@ visual-core decision has NOT yet been written for this run (the keyed persist ru
++ 
++ ```
++ python3 scripts/lint_grounding.py --doc <product_base>/product-os/<domain>/slices/<slice>/lens/ux.md
++-python3 scripts/validate_ux.py --manifest <working>/ux-manifest.yaml --slice-file <product_base>/<slice_file> --product-base <product_base>
+++python3 scripts/validate_ux.py --manifest <working>/ux-manifest.yaml --slice-file <product_base>/<slice_file> --product-base <product_base> --lens <product_base>/product-os/<domain>/slices/<slice>/lens/ux.md
++ python3 scripts/check_kb_grounding.py --manifest <working>/ux-manifest.yaml --kb-root <kb_root> --proposals-dir <working>/proposals
++ ```
++ 
++@@ -226,19 +227,25 @@ python3 scripts/grounding_gate.py --verdict <verdict.json>
++ ```
++ 
++ **SE-2 (F3/C3):** `lint_grounding.py` exits 0 — `ux.md` conforms to the UX lens template
++-(Intent/Screens/States/Visual core), no missing/extra/empty section.
+++(Intent/Screens/Flows/States/Visual core), no missing/extra/empty section.
++ **SE-3 (F4/C4):** the content-quality eval gate (`grounding_gate.py`) passes — `ux.md` is
++ self-explaining and clears the stranger test.
++ **SE-4 (F5/C5):** `validate_ux.py` — every screen in the manifest grounds to a functionality or a
++ persona/journey; the visual core grounds to the KB or a decision.
++ **SE-5 (F6/C6):** `validate_ux.py` — every functionality the slice bundles is visualized by at
++-least one screen (coverage).
+++least one screen (coverage), and every screen is reached by at least one flow step (no
+++unreachable screen).
++ **SE-6 (F7/C7):** `validate_ux.py` — no screen grounds on another realize lens.
++ **SE-7 (F8/C8):** `validate_ux.py` — the visual core names a decision (the manifest's
++ `decision_delta` or a reused product decision) that resolves; the keyed persist (Step 3) writes it.
++ **SE-8 (F10/C10):** `check_kb_grounding.py` exits 0 — the visual core, navigation, and responsive
++ choices trace to a KB learning or a recorded proposal.
++-On any GAP, apply the matching recovery (REC2–REC10) and re-run before the checkpoint — a
+++**SE-14 (F15/C14):** `validate_ux.py --lens` reports the flow cross-check ok — every flow names
+++its persona, goal, entry, ordered steps, decision points, failure path and exit; every step names
+++a screen that exists in Screens; every decision point names where each branch goes; every screen
+++is named by at least one flow step; and every flow's persona traces to a persona/journey of the
+++hub. A GAP is REC15: re-emit the Flows section to the fixed shape and re-run.
+++On any GAP, apply the matching recovery (REC2–REC10, REC15) and re-run before the checkpoint — a
++ content-eval fail (SE-3) is REC4: rewrite the failing section to the judge's cited fixes and
++ re-judge until the gate passes.
++ 
++@@ -331,7 +338,8 @@ python3 scripts/gate_eval.py append --ledger <gates.conditional.ledger> --play u
++ 
++ Anything else resolves the gate on (an explicit `gates.plays.ux: off` instead records `gate
++ skipped by config (<resolution path>)` as a Checkpoint Decisions row and proceeds). When on,
++-present the proposed screens (with layouts), states, and visual core, plus the decision, **inline
+++present the proposed screens (with layouts and the object each is about), flows, states, and
+++visual core, plus the decision, **inline
++ over the real model git diff** — render the approval prompt
++ (`standards/templates/approval-prompt.md`) and wait for the typed response. Approve → continue to
++ Step 6 (commit). **Cancel → revert the working tree (ADR 026 step 6):** the full delta is already
++@@ -377,7 +385,7 @@ its tree was already restored in Step 5:
++ 
++ ```
++ git add -- <product_base>product-os
++-git commit -m "feat(model): ux lens <slice> — screens, states, visual core (#<issue>)"
+++git commit -m "feat(model): ux lens <slice> — screens, flows, states, visual core (#<issue>)"
++ ```
++ **SE-12 (F12/C12):** the close is stop-condition gated — `check_stop_condition.py` over the baked
++ `stop-condition.yaml` (D1 the persist record `persist-manifest.json` exists; D2 it stamps
++@@ -391,18 +399,24 @@ land closes HALTED, never COMPLETED (REC12).
++ - **SCE-1 (S1 — product designer):** `ux.md` is a valid UX Lens doc clearing the linter + the
++   content eval, written in place on the live model, and the spine/slice/profile/other lenses are
++   byte-identical (the scoped-guard report reads `ok`); the stop-condition verdict reads held.
++-- **SCE-2 (S2 — product owner):** every functionality the slice bundles maps to ≥1 screen.
+++- **SCE-2 (S2 — product owner):** every functionality the slice bundles maps to ≥1 screen, and
+++  every screen is reached by ≥1 flow step.
++ - **SCE-3 (S3 — ux researcher):** every screen traces to a functionality or persona/journey; the
++   visual core to a decision that resolves.
++ - **SCE-4 (S4 — architect):** no other realize lens was read or written.
++ - **SCE-5 (S5 — product owner, re-run):** a re-run re-derives only `ux.md`; everything else
++   byte-identical; no accepted decision edited in place (the keyed persist skipped the existing
++   decision).
++-- **SCE-6 (S6 — reviewer):** the checkpoint showed the screens, states, and visual core inline
+++- **SCE-6 (S6 — reviewer):** the checkpoint showed the screens, flows, states, and visual core
+++  inline
++   over the real model git diff, and no product-model change was COMMITTED before approval — on
++   cancel the working tree returns byte-clean to HEAD — or, on the auto-pass path, the change shape
++   is policy-listed and a recorded auto-pass + live-eval ledger line + diff summary exist, with no
++   wait.
+++- **SCE-7 (S7 — ux researcher, reads the flows):** every screen names the one object it is
+++  about; every flow names persona, goal, entry, ordered steps, decision points, failure path
+++  and exit; every step resolves to a screen in Screens; every screen appears in at least one
+++  flow; `validate_ux.py --lens` reports the flow cross-check ok.
++ 
++ ### Phase: Evidence & Close
++ 
++@@ -456,7 +470,7 @@ and record `evidence skipped (record=false)`. Otherwise fill the `evidence-file.
++ `ux`, run_id `ux-${ts}`, slice slug, started/completed, status per C0, exit_reason; artifacts: the
++ slice's `ux.md`, the manifest, the visual-core decision, the persist manifest
++ (`persist-manifest.json`), the captured `guard-report.json`, the model-delta commit sha, the
++-stop-condition verdict; the content-eval verdict; step + scenario evals SE-1…SE-13 / SCE-1…SCE-6;
+++stop-condition verdict; the content-eval verdict; step + scenario evals SE-1…SE-14 / SCE-1…SCE-7;
++ checkpoint decision from Step 5 (incl. any `gate skipped by config` or `gate auto-passed by learned
++ policy` row) plus the gate ledger line(s) appended this run; the session identity stamp fields from
++ $session_stamp (#463): session_id, ledger_file, ledger_start_offset, ledger_end_offset (null when
++@@ -485,6 +499,7 @@ this slice), and a pointer to `$evidence_dest`. Always emitted.
++ | S4 — hub-only | architect | SCE-4 |
++ | S5 — re-run | product owner | SCE-5 |
++ | S6 — the checkpoint | reviewer | SCE-6 |
+++| S7 — reads the flows | ux researcher | SCE-7 |
++ 
++ ## Recovery
++ 
++@@ -492,7 +507,7 @@ this slice), and a pointer to `$evidence_dest`. Always emitted.
++ |-----|---------|-----------|---------|
++ | F1 | the slice is absent, a functionality does not resolve, or the profile is not firmed | halt and route to /shape or /understand before /ux runs | human |
++ | F2 | a write touched something beyond this slice's ux.md or its visual-core decision | the guard's `--restore` already reverted the out-of-scope write; re-run writing only the slice's ux.md and its decision | autonomous |
++-| F3 | ux.md fails the template/shape or carries out-of-scope content | re-emit to the UX lens template (Intent/Screens/States/Visual core only) | autonomous |
+++| F3 | ux.md fails the template/shape or carries out-of-scope content | re-emit to the UX lens template (Intent/Screens/Flows/States/Visual core only; accessibility belongs to marketing, the wider cross-product journey to /story) | autonomous |
++ | F4 | ux.md fails the content-quality eval | rewrite the failing section to the judge's cited fixes and re-judge until the gate passes | autonomous |
++ | F5 | an invented/ungrounded element | drop it, or re-tie the screen to a functionality or persona/journey, and the visual core to a decision | autonomous |
++ | F6 | a functionality is covered by no screen | add the screen(s) that visualize the missing functionality | autonomous |
++@@ -504,6 +519,7 @@ this slice), and a pointer to `$evidence_dest`. Always emitted.
++ | F12 | the run is about to close COMPLETED with the Done means unmet | close HALTED (`stop_condition_unmet`) with the unmet clauses named; fix the state — re-run the keyed persist, re-capture the scoped-write guard report, or make the model-delta commit — then re-evaluate; the close stays HALTED until the verdict reads held | autonomous |
++ | F13 | a conditional-gate crossing left no live-eval ledger line, or an auto-pass fired for a shape the policy does not list as auto (or with a blocking finding) | re-append the missing ledger line via gate_eval.py; when the auto-pass was unearned, revert any premature persist and re-run the gate as a live wait | autonomous |
++ | F14 | the product-os tree is dirty once start-change has cut the branch (uncommitted model edits present) | halt and ask for a clean model tree — commit or revert the pending model edits — before /ux writes the lens | human |
+++| F15 | a flow names no persona/goal/entry/failure/exit, a step names a screen that is not in Screens, a decision point does not say where a branch goes, a screen is reached by no flow, or a flow's persona traces to nothing in the hub | re-emit the Flows section to the fixed shape — add the missing field, rename the step to the real screen, name both branches of the fork, add the flow that reaches the orphan screen (or drop the screen if nothing reaches it), re-tie the persona to a persona/journey of the hub — then re-run `validate_ux.py --lens` until the flow cross-check reads ok | autonomous |
++ 
++ ## Pause and Resume
++ 
++@@ -517,8 +533,8 @@ start — a resume continues its own in-progress delta.
++ 
++ | Field | Value |
++ |-------|-------|
++-| fingerprint | sha256:0d18d26db5ffd9253213d30716f46e3caac8652d25cf8ef743a1e0b91a1805a7 (of `reference/ice.md`) |
++-| compiled_by | play-editor (#500 direct-model-write, ADR 026); prior: play-editor (#467 Batch B, #466 Batch C) |
+++| fingerprint | sha256:bb3f495716006f133664a01fc4c4eb15ac95dc0535628d27ae47f4ec15673a9f (of `reference/ice.md`) |
+++| compiled_by | play-editor (#548 flows + object-per-screen); prior: play-editor (#500 direct-model-write, ADR 026), play-editor (#467 Batch B, #466 Batch C) |
++ | pipeline_position | start (functional pipe head; the functional pipe closes at /marketing) |
++ | workflow_structure | A (single checkpoint — class: standard, conditional learned gate per gate-config.md #467; direct-model-write WRITE-THEN-REVIEW per ADR 026 — persist + guard + classify before the gate, commit after; stop-condition gated close) |
++ | stop_condition | stop-condition.yaml (D1–D3), gate live at Step C0 |
++@@ -526,9 +542,9 @@ start — a resume continues its own in-progress delta.
++ | utility_agents | 0 |
++ | skills_used | kb-search, author-ux-lens |
++ | scripts | 12 (preflight, check_ready_slice, lint_grounding, grounding_gate, validate_ux, check_kb_grounding, persist_ux — keyed in-place persist, scoped_write_guard — post-write containment, check_stop_condition — Done-means gate, session_stamp — #463 identity stamp, classify_change + gate_eval + distill_gate_policy — #467 conditional gate) |
++-| step_evals | 13 (SE-1…SE-13) |
++-| scenario_evals | 6 (SCE-1…SCE-6) |
++-| recovery_entries | 14 (one per failure condition; 11 autonomous / 3 human) |
+++| step_evals | 14 (SE-1…SE-14) |
+++| scenario_evals | 7 (SCE-1…SCE-7) |
+++| recovery_entries | 15 (one per failure condition; 12 autonomous / 3 human) |
++ 
++ **Recompiled note (#500, direct-model-write / ADR 026):** migrated from draft-then-apply to
++ direct-model-write. The old draft model tree and the `apply_ux.py`/`check_ux.py` promotion+verify
++@@ -564,3 +580,28 @@ Standard Play Close (evidence + delivery report) that /ux still runs; the close
++ retained (required by `lint-components` structural.js and the play-creator G12 emit on every play),
++ and the `feat(model)` commit is the separate lightweight persist step, so both coexist as C13
++ describes.
+++
+++
+++## Recompile note (#548, flows + the object per screen)
+++
+++Intent change via `reference/ice.md` → recompile. The UX lens was **four sections and no flows**
+++by design ("flows are the build's to derive"); a UX researcher reading the output could find
+++neither the information architecture nor the task flows, so the doc read as a screen catalogue.
+++The lens is now **five sections** — `Intent / Screens / Flows / States / Visual core`. Each screen
+++names the one object the user works with there (the information architecture is carried per screen;
+++there is deliberately no separate IA section). Flows are per persona + goal in a fixed field order
+++— Persona, Goal, Entry, Steps (each naming a real screen), Decisions (each branch's destination),
+++Failure, Exit — so the doc reads for a researcher and parses for an agent. States now carry the
+++trigger that puts a screen in them.
+++
+++Boundary: these flows are the paths INSIDE this slice's screens. The person's wider journey across
+++the product is not this lens's to write — that is the proposed `/story` play (#528).
+++
+++Changed: the intent paragraph, C3 (section shape), C6 (coverage now also screen reachability),
+++C11 (the checkpoint presents flows), F3, REC3, S1, S6. Added: C14 (flow completeness and internal
+++consistency, cross-checked mechanically), F15, REC15, S7, SE-14, SCE-7. `validate_ux.py` gained an
+++optional `--lens` argument and the flow cross-check; every play's `lint_grounding.py` copy carries
+++the new `lens-ux` heading list; the UX lens template/contract and the `author-ux-lens` skill were
+++re-emitted to the five-section shape. Constraints 13 → 14, failures 14 → 15, scenarios 6 → 7,
+++step evals 13 → 14, scenario evals 6 → 7, recovery 14 → 15. Fingerprint recomputed over the edited
+++ICE.
++diff --git a/core/components/plays/ux/reference/ice.md b/core/components/plays/ux/reference/ice.md
++index d29baa9d..eb47893b 100644
++--- a/core/components/plays/ux/reference/ice.md
+++++ b/core/components/plays/ux/reference/ice.md
++@@ -10,12 +10,17 @@ deliver — write its **UX lens** as a grounding doc (`ux.md`): just enough to a
++ intended experience and let the build figure the rest. The slice is the unit of realization; a
++ slice has no ICE of its own — its **hub** is the union of its functionalities' grounding docs
++ (`functionality.md`, which may span several capabilities) plus the product profile (read from
++-the spine). The lens is three things and only three: the **screens** the slice needs, each with
++-a low-fidelity layout; the **states** each screen can hold; and the product's **visual core** —
++-color and typography. The screens make every functionality of the slice visible, so a human can
++-confirm the shape and the intent under it. Accessibility is NOT in this lens — it lives in the
++-marketing lens now. Flows are not specified — the build derives them. Every screen is grounded in
++-one of the slice's functionalities or a persona/journey; the visual core is a deliberate choice
+++the spine). The lens is four things and only four: the **screens** the slice needs, each naming the
+++one object the user works with there plus a low-fidelity layout; the **flows** — for each persona
+++and goal, the ordered path through those screens, its forks, its failure path, and its exit; the
+++**states** each screen can hold, each with the trigger that puts the screen in it; and the
+++product's **visual core** — color and typography. Together the screens and the flows answer the
+++two questions a UX researcher opens this doc to answer — what the user is dealing with, and how a
+++person actually moves through it — and they make every functionality of the slice visible, so a
+++human can confirm the shape and the intent under it. Accessibility is NOT in this lens — it lives
+++in the marketing lens now. The flows here are the paths **inside this slice's screens**; the
+++person's wider journey across the product is not this lens's to write (that is /story's, #528).
+++Every screen is grounded in one of the slice's functionalities or a persona/journey; the visual core is a deliberate choice
++ recorded as a decision; the cross-cutting pattern choices (visual core, navigation, responsive
++ strategy) are grounded in the KB or recorded as a KB-learning-gap proposal. It writes only this
++ slice's `ux.md` (and the visual-core decision) — never the spine, the slice record, the profile,
++@@ -54,15 +59,20 @@ this run's delta and the next pipeline play (/agentic) enters clean.
++   keyed persist), in place on the live model in the slice's folder. Never the spine, the slice
++   record, the profile, another lens, the node tree, personas, journeys, or other slices.
++ - C3 — Shape: `ux.md` conforms to the UX lens template — the sections Intent, Screens (name +
++-  low-fidelity layout), States (per screen), and Visual core (palette + typography) — and the
++-  structural linter passes. No flows, no accessibility block, no gates/components/environments.
+++  who opens it + the one object the user works with there + low-fidelity layout), Flows (per
+++  persona and goal: entry point, ordered steps each naming a screen and the action, decision
+++  points naming where each branch goes, the failure path, and the exit), States (per screen, each
+++  state naming its trigger, what the user sees, and what they can do next), and Visual core
+++  (palette + typography) — and the structural linter passes. No accessibility block, no
+++  gates/components/environments, no journey that leaves this slice's screens.
++ - C4 — Content quality: `ux.md` clears the content-quality eval, not just the linter — each
++   section is self-explaining and the doc passes the stranger test.
++ - C5 — Grounded, not invented: every screen traces to one of the slice's functionalities or to a
++   persona/journey; the visual core (color + typography) is a deliberate choice recorded as a
++   decision. (Tracked in the grounding manifest.)
++ - C6 — Coverage: every functionality the slice bundles is visualized by at least one screen, so
++-  the human can validate the whole shaped increment. Nothing shaped is left unvisualized.
+++  the human can validate the whole shaped increment. Nothing shaped is left unvisualized, and no
+++  screen is left unreachable — every screen appears as a step in at least one flow.
++ - C7 — Reads the hub only: /ux derives from the slice's functionalities' grounding docs and the
++   profile — never from another realize lens (quality/agentic/architecture/run/measure/marketing).
++ - C8 — The visual core is a material choice recorded as a slice-level decision the whole product
++@@ -81,8 +91,8 @@ this run's delta and the next pipeline play (/agentic) enters clean.
++ - C10 — UX pattern choices are KB-grounded: the visual core, the navigation pattern, and the
++   responsive strategy trace to a best-fit learning on the KB's technology/architecture shelf
++   (matched via kb-search) or to a recorded KB-learning-gap proposal — never the model's taste.
++-- C11 — Exactly one human checkpoint, presenting the proposed screens (with layouts), states, and
++-  visual core, plus the decision. The checkpoint is a **conditional
+++- C11 — Exactly one human checkpoint, presenting the proposed screens (with layouts and the object
+++  each is about), flows, states, and visual core, plus the decision. The checkpoint is a **conditional
++   gate** (#467; `gate-config.md` three kinds — /ux is one of the eleven conditional document
++   plays). Resolution order: pinned (n/a here) → `gates.plays` override → the learned policy
++   (classify the working-tree change shape — the model tree's diff vs HEAD — with the bundled
++@@ -115,6 +125,14 @@ this run's delta and the next pipeline play (/agentic) enters clean.
++   enters a clean tree with a correct base. This model-delta commit is a lightweight persist step,
++   distinct from the Standard Play Close; it is not the pipeline end sequence.
++ 
+++- C14 — Flows are complete and internally consistent, so the doc is readable by a UX researcher
+++  and parseable by an agent: every flow names its persona, its goal, its entry point, its ordered
+++  steps, its decision points, its failure path, and its exit; every step names a screen that
+++  exists in the Screens section; every decision point names where each branch goes; and every
+++  screen is reached by at least one flow step. Every flow's persona traces to a persona or journey
+++  of the slice's hub, never an invented one. The cross-check is mechanical (the bundled
+++  `validate_ux.py`), not a prose claim.
+++
++ ### Failure conditions
++ 
++ - F1 — /ux ran on an unready slice — the slice is absent, a functionality does not resolve to a
++@@ -122,7 +140,7 @@ this run's delta and the next pipeline play (/agentic) enters clean.
++ - F2 — A write touched something other than this slice's `ux.md` or a decision (the spine, the
++   slice record, the profile, another lens, structure, a persona, a journey, or another slice).
++ - F3 — `ux.md` fails its template/shape (a missing or extra section, an empty or telegraphic
++-  section), or carries content outside screens/states/visual core.
+++  section), or carries content outside screens/flows/states/visual core.
++ - F4 — `ux.md` fails the content-quality eval.
++ - F5 — An element is invented — a screen with no functionality and no persona/journey behind it,
++   or a visual core with no recorded decision.
++@@ -145,13 +163,17 @@ this run's delta and the next pipeline play (/agentic) enters clean.
++   start-change had cut the branch), so the change-shape and the scoped guard could not be trusted
++   to reflect only this run's delta.
++ 
+++- F15 — A flow is unusable: it names no persona, goal, entry, failure path, or exit; a step names
+++  a screen that does not exist in Screens; a decision point does not say where a branch goes; a
+++  screen is reached by no flow; or a flow's persona traces to nothing in the hub.
+++
++ ## Expectation
++ 
++ ### Success scenarios
++ 
++ - S1 — (product designer, first run) Given a shaped slice whose functionalities resolve and a
++   firmed profile, when /ux runs and the checkpoint is approved, then `ux.md` is written as screens
++-  (with layouts), states, and a visual core — passing the linter and the content eval — and
+++  (with layouts), flows, states, and a visual core — passing the linter and the content eval — and
++   nothing else changes. Measure: `slices/{slice}/lens/ux.md` exists and is a valid UX Lens doc;
++   the content-eval gate passes; the spine, slice record, profile, and other lenses are
++   byte-identical.
++@@ -168,12 +190,20 @@ this run's delta and the next pipeline play (/agentic) enters clean.
++   Measure: only the slice's `ux.md` (and possibly a new decision) differ; the spine, slice record,
++   other lenses, and profile are byte-identical; no accepted decision edited in place.
++ - S6 — (reviewer, the checkpoint) Given the full delta is written in place, the checkpoint presents
++-  the screens (with layouts), states, and visual core, plus the decision, inline over the real
++-  model git diff. Measure: the checkpoint shows the lens inline; no product-model change is
+++  the screens (with layouts), flows, states, and visual core, plus the decision, inline over the
+++  real model git diff. Measure: the checkpoint shows the lens inline; no product-model change is
++   COMMITTED before approval, and on cancel the working tree returns byte-clean to HEAD (`git
++   restore` + `git clean`) — or, on the auto-pass path, the change shape is policy-listed and a
++   recorded auto-pass + live-eval ledger line + diff summary exist, with no wait.
++ 
+++- S7 — (ux researcher, reads the flows) Given the lens is drafted, a UX researcher can answer both
+++  of their questions from the doc alone: what the user is dealing with on each screen, and the
+++  exact path a given persona takes to reach their goal, including where it forks, what happens
+++  when it fails, and where it ends. Measure: every screen names the one object it is about; every
+++  flow names persona, goal, entry, ordered steps, decision points, failure path, and exit; every
+++  step resolves to a screen in Screens; every screen appears in at least one flow;
+++  `validate_ux.py` reports the flow cross-check ok.
+++
++ ### Done means
++ 
++ Paths are relative to the run's working root (`{stm_base}_realize/ux/<slice>/`).
++@@ -202,8 +232,9 @@ the always-written record, not a newly-added decision.
++   direction: revert the out-of-scope write; /ux writes only the slice's `ux.md` (and the
++   visual-core decision). handoff: autonomous.
++ - REC3 (F3) — trigger: `ux.md` fails the template/shape or carries out-of-scope content.
++-  direction: re-emit the doc to the UX lens template — Intent/Screens/States/Visual core only
++-  (accessibility belongs to marketing, flows to the build). handoff: autonomous.
+++  direction: re-emit the doc to the UX lens template — Intent/Screens/Flows/States/Visual core
+++  only (accessibility belongs to marketing; the wider cross-product journey belongs to /story).
+++  handoff: autonomous.
++ - REC4 (F4) — trigger: `ux.md` fails the content-quality eval. direction: rewrite the failing
++   section to the judge's cited fixes and re-judge until the gate passes. handoff: autonomous.
++ - REC5 (F5) — trigger: an invented/ungrounded element. direction: drop it, or re-tie the screen to
++@@ -240,3 +271,10 @@ the always-written record, not a newly-added decision.
++ - REC14 (F14) — trigger: the product-os tree is dirty once start-change has cut the branch
++   (uncommitted model edits present). direction: halt and ask for a clean model tree — commit or
++   revert the pending model edits — before /ux writes the lens. handoff: human.
+++- REC15 (F15) — trigger: a flow names no persona/goal/entry/failure/exit, a step names a screen
+++  that is not in Screens, a decision point does not say where a branch goes, a screen is reached
+++  by no flow, or a flow's persona traces to nothing in the hub. direction: re-emit the Flows
+++  section to the fixed shape — add the missing field, rename the step to the real screen, name
+++  both branches of the fork, add the flow that reaches the orphan screen (or drop the screen if
+++  nothing reaches it), and re-tie the persona to a persona/journey of the hub — then re-run
+++  `validate_ux.py` until the flow cross-check reads ok. handoff: autonomous.
++diff --git a/core/components/plays/ux/scripts/lint_grounding.py b/core/components/plays/ux/scripts/lint_grounding.py
++index 443ac5d4..9dda532b 100644
++--- a/core/components/plays/ux/scripts/lint_grounding.py
+++++ b/core/components/plays/ux/scripts/lint_grounding.py
++@@ -103,7 +103,7 @@
++     "lens-quality": {"title": "Quality Lens", "exact_title": True,
++                      "h2": ["Intent", "Gates"]},
++     "lens-ux": {"title": "UX Lens", "exact_title": True,
++-                "h2": ["Intent", "Screens", "States", "Visual core"]},
+++                "h2": ["Intent", "Screens", "Flows", "States", "Visual core"]},
++     "lens-agentic": {"title": "Agentic Lens", "exact_title": True,
++                      "h2": ["Is it an agent?", "Load weights", "Controls"]},
++     "lens-architecture": {"title": "Architecture Lens", "exact_title": True,
++diff --git a/core/components/plays/ux/scripts/validate_ux.py b/core/components/plays/ux/scripts/validate_ux.py
++index c612abe9..f8b9a13d 100644
++--- a/core/components/plays/ux/scripts/validate_ux.py
+++++ b/core/components/plays/ux/scripts/validate_ux.py
++@@ -4,19 +4,28 @@
++ 
++ Run over the manifest before the checkpoint (direct-model-write, ADR 026). The ux lens is an
++ MD grounding doc (`ux.md`) written straight to the live model; its SHAPE (the
++-Intent/Screens/States/Visual core sections, each substantive) is checked by
+++Intent/Screens/Flows/States/Visual core sections, each substantive) is checked by
++ `lint_grounding.py`, and its UNDERSTANDABILITY by the content eval — both run by the play's
++ validate step. THIS script checks the things the manifest carries, which the prose can't
++-enforce:
+++enforce, plus the one cross-check the doc's own text carries:
++ 
++   - C4/F4    grounded: every screen in the manifest names >=1 real source (a functionality of
++              the slice, or a persona/journey); the visual core grounds on the KB or a decision.
++-  - C7/F7    hub-only: no screen grounds on another lens (quality/agentic/architecture/run/...).
+++  - C7/F7    hub-only: no screen or flow grounds on another lens (quality/agentic/run/...).
+++  - C14/F15  flow grounding: every flow in the manifest names >=1 real source (a persona or
+++             journey of the hub) — the half of C14 the lens text alone cannot prove.
++   - C8/F8    decisions: a grounding flagged `material: true` names a `decision` that resolves —
++              either the manifest's `decision_delta` (the decision the keyed persist will write)
++              or a decision already on the live model (a reused product/slice decision).
++   - C6/F6    coverage: the slice's functionalities (read from the slice record) are each
++              grounded by at least one screen — nothing shaped is left unvisualized.
+++  - C14/F15  flows: parsed from the written `ux.md` itself (`--lens`) — every flow block names
+++             all seven fields (Persona, Goal, Entry, Steps, Decisions, Failure, Exit); every
+++             step names a screen that exists in `## Screens`; every screen in `## Screens` is
+++             named by at least one flow step (no unreachable screen); and every decision point
+++             says where each branch goes. Skipped with a warning when `--lens` is not passed.
+++             (The C14 clause that a flow's persona traces to a hub persona/journey is NOT
+++             mechanical here — it stays with the content eval.)
++ 
++ There is NO draft tree: the visual-core decision is carried in the manifest as `decision_delta`
++ until the keyed persist (`persist_ux.py`) writes it in place. Reused decisions are resolved
++@@ -25,7 +34,8 @@
++ Layer rule: reads files on disk only; no git/gh/network.
++ 
++     python3 validate_ux.py --manifest <ux-manifest.yaml> \
++-            --slice-file <live slice record .yaml> [--product-base <product_base>]
+++            --slice-file <live slice record .yaml> [--product-base <product_base>] \
+++            [--lens <live lens/ux.md>]
++ 
++ Prints {ok, errors[], warnings[], counts} JSON. Exit 0 clean, 1 on violation, 2 usage.
++ """
++@@ -34,6 +44,7 @@
++ import glob
++ import json
++ import os
+++import re
++ import sys
++ 
++ try:
++@@ -135,6 +146,22 @@ def walk(label, entries):
++     for s in (man.get("screens") or []):
++         walk(f"screen '{s.get('name', '<screen>')}'", s.get("grounds"))
++ 
+++    # C14/F15 — every flow's persona traces to a persona/journey of the hub, never an
+++    # invented one. The lens-side structural cross-check (check_flows) cannot see the hub;
+++    # this is the manifest half of the same constraint.
+++    for f in (man.get("flows") or []):
+++        label = f"flow '{f.get('id') or f.get('persona') or '<flow>'}'"
+++        gs = f.get("grounds") or []
+++        walk(label, gs)
+++        # C14 is narrower than the generic walk: a flow is a PERSON taking a path, so it must
+++        # name a persona or a journey. A functionality alone is not who.
+++        if gs and not any(
+++            (g or {}).get("source_type") in ("persona", "journey")
+++            for g in gs if isinstance(g, dict)
+++        ):
+++            errors.append(f"{label} names no persona/journey source — a flow traces to who "
+++                          f"takes it, not only to what it touches (C14/F15)")
+++
++     ds = man.get("design_system") or man.get("visual_core") or {}
++     vt = (ds.get("source_type") or "").strip().lower()
++     if vt not in ("kb", "decision"):
++@@ -157,11 +184,252 @@ def slice_functionalities(slice_file, errors):
++             if (f or {}).get("functionality_ref")}
++ 
++ 
+++# --------------------------------------------------------------------------------------
+++# C14/F15 — the flow cross-check, parsed from the written ux.md.
+++# Forgiving on formatting, strict on content: a field is matched case-insensitively at the
+++# start of a line, with or without bullet/bold markers, as long as a separator follows.
+++# --------------------------------------------------------------------------------------
+++
+++FLOW_FIELDS = ("persona", "goal", "entry", "steps", "decisions", "failure", "exit")
+++
+++# bullet/number marker, optional emphasis, the field word (with its common longer forms),
+++# then a separator (":" inside or outside the emphasis, or a dash).
+++FIELD_RE = re.compile(
+++    r"^(?P<indent>\s*)(?:[-*+]\s+|\d+[.)]\s+)?"
+++    r"(?:\*\*|__|\*|_)?\s*"
+++    r"(?P<field>persona|goal|entry(?:\s+point)?|steps?|decisions?(?:\s+points?)?"
+++    r"|failure(?:\s+paths?)?|exit(?:\s+point)?)"
+++    r"\s*(?P<sep1>[:：])?\s*(?:\*\*|__|\*|_)?\s*(?P<sep2>[:：—–-])?\s*(?P<value>.*)$",
+++    re.IGNORECASE,
+++)
+++HEADING_RE = re.compile(r"^(?P<hashes>#{1,6})\s+(?P<text>.*?)\s*#*\s*$")
+++BULLET_RE = re.compile(r"^(?P<indent>\s*)(?:[-*+]|\d+[.)])\s+(?P<text>.*)$")
+++BOLD_LEAD_RE = re.compile(r"^\s*(?:\*\*|__)(?P<name>[^*_]+?)(?:\*\*|__)")
+++ARROW_RE = re.compile(r"(?:→|->|=>|⟶)\s*(?P<target>[^.;\n]*)")
+++NO_DECISIONS = {"none", "n/a", "na", "-", "—", "–", "no forks", "none.", "n/a."}
+++
+++
+++def _norm(text):
+++    """Lowercase, strip markdown emphasis/backticks/punctuation noise, collapse whitespace."""
+++    t = re.sub(r"[*_`]+", " ", text or "")
+++    t = re.sub(r"\s+", " ", t)
+++    return t.strip().strip(" .,;:—–-").lower()
+++
+++
+++def _sections(lines):
+++    """Map H2 title (lowercased) -> list of its body lines."""
+++    out, cur = {}, None
+++    for line in lines:
+++        m = HEADING_RE.match(line)
+++        if m and len(m.group("hashes")) == 2:
+++            cur = m.group("text").strip().lower()
+++            out.setdefault(cur, [])
+++            continue
+++        if m and len(m.group("hashes")) == 1:
+++            cur = None
+++            continue
+++        if cur is not None:
+++            out[cur].append(line)
+++    return out
+++
+++
+++def _entries(lines):
+++    """Group lines into bullet/numbered entries, folding wrapped continuation lines in."""
+++    entries, cur = [], None
+++    for line in lines:
+++        if not line.strip():
+++            continue
+++        m = BULLET_RE.match(line)
+++        if m:
+++            if cur is not None:
+++                entries.append(cur)
+++            cur = m.group("text").strip()
+++        elif cur is not None:
+++            cur = cur + " " + line.strip()
+++    if cur is not None:
+++        entries.append(cur)
+++    return entries
+++
+++
+++def parse_screens(section_lines):
+++    """Screens are the bolded names of the section's top-level bullets."""
+++    bullets = [(len(m.group("indent")), m.group("text"))
+++               for m in (BULLET_RE.match(ln) for ln in section_lines) if m]
+++    names = []
+++    if bullets:
+++        top = min(i for i, _ in bullets)
+++        for indent, text in bullets:
+++            if indent != top:
+++                continue
+++            b = BOLD_LEAD_RE.match(text)
+++            if b:
+++                names.append(b.group("name").strip())
+++    if not names:  # forgiving fallback: a doc that uses H3 headings per screen
+++        for ln in section_lines:
+++            m = HEADING_RE.match(ln)
+++            if m and len(m.group("hashes")) >= 3:
+++                names.append(m.group("text").strip())
+++    return names
+++
+++
+++def parse_flows(section_lines):
+++    """Flow blocks under ## Flows -> [{name, fields: {field: {value, lines}}}].
+++
+++    A block starts at an H3+ heading, or at a Persona field when one is already open.
+++    """
+++    flows, cur, field = [], None, None
+++
+++    def start(name):
+++        nonlocal cur, field
+++        cur = {"name": name, "fields": {}}
+++        flows.append(cur)
+++        field = None
+++
+++    pending_name = None
+++    for line in section_lines:
+++        h = HEADING_RE.match(line)
+++        if h and len(h.group("hashes")) >= 3:
+++            start(h.group("text").strip())
+++            continue
+++        if not line.strip():
+++            continue
+++        m = FIELD_RE.match(line)
+++        if m and (m.group("sep1") or m.group("sep2")):
+++            name = m.group("field").split()[0].lower()
+++            name = "steps" if name == "step" else name
+++            name = "decisions" if name.startswith("decision") else name
+++            if name == "persona" and (cur is None or "persona" in cur["fields"]):
+++                start(pending_name or f"flow #{len(flows) + 1}")
+++                pending_name = None
+++            if cur is None:
+++                start(pending_name or f"flow #{len(flows) + 1}")
+++                pending_name = None
+++            if name in cur["fields"]:
+++                # A repeat of a field already named is body, not a new field header — a
+++                # "- Decision: ... → ..." sub-bullet under Decisions must not be swallowed.
+++                if field is not None:
+++                    cur["fields"][field]["lines"].append(line)
+++                continue
+++            field = name
+++            cur["fields"][field] = {"value": m.group("value").strip(), "lines": []}
+++            continue
+++        if cur is not None and field is not None:
+++            cur["fields"][field]["lines"].append(line)
+++        elif cur is None:
+++            b = BOLD_LEAD_RE.match(line.lstrip("-*+ 0123456789.)"))
+++            if b:
+++                pending_name = b.group("name").strip()
+++    return flows
+++
+++
+++def _field_items(fld):
+++    """The entries of a field: its sub-bullets, else its inline value split on arrows/semis."""
+++    items = _entries(fld["lines"])
+++    if items:
+++        return items
+++    val = fld["value"].strip()
+++    if not val:
+++        return []
+++    parts = re.split(r"(?:→|->|=>|;|\bthen\b)", val)
+++    return [p.strip() for p in parts if p.strip()]
+++
+++
+++def check_flows(lens_path, errors, warnings):
+++    """C14/F15 over the written ux.md. Returns (flows, screens, unreachable) counts."""
+++    counts = {"flows": 0, "screens": 0, "unreachable_screens": 0}
+++    try:
+++        with open(lens_path, encoding="utf-8") as fh:
+++            lines = fh.read().splitlines()
+++    except OSError as exc:
+++        errors.append(f"lens unreadable at {lens_path}: {exc} (C14/F15)")
+++        return counts
+++
+++    secs = _sections(lines)
+++    if "screens" not in secs:
+++        errors.append("lens has no '## Screens' section — flows cannot be cross-checked (C14/F15)")
+++        return counts
+++    if "flows" not in secs:
+++        errors.append("lens has no '## Flows' section (C14/F15)")
+++        return counts
+++
+++    screens = parse_screens(secs["screens"])
+++    counts["screens"] = len(screens)
+++    if not screens:
+++        errors.append("no screens found in '## Screens' — a screen is a bolded bullet name, "
+++                      "e.g. '- **Source coverage view**' (C14/F15)")
+++    by_norm = {}
+++    for s in screens:
+++        by_norm.setdefault(_norm(s), s)
+++
+++    flows = parse_flows(secs["flows"])
+++    counts["flows"] = len(flows)
+++    if not flows:
+++        errors.append("no flow blocks found in '## Flows' — a flow is a block naming Persona, "
+++                      "Goal, Entry, Steps, Decisions, Failure and Exit (C14/F15)")
+++
+++    reached = set()
+++    for flow in flows:
+++        label = f"flow '{flow['name']}'"
+++        for want in FLOW_FIELDS:
+++            fld = flow["fields"].get(want)
+++            if fld is None:
+++                errors.append(f"{label}: missing required field '{want.capitalize()}' — a flow "
+++                              f"names Persona, Goal, Entry, Steps, Decisions, Failure and Exit "
+++                              f"(C14/F15)")
+++            elif not fld["value"].strip() and not _field_items(fld):
+++                errors.append(f"{label}: field '{want.capitalize()}' is empty (C14/F15)")
+++
+++        steps_fld = flow["fields"].get("steps")
+++        if steps_fld is not None:
+++            steps = _field_items(steps_fld)
+++            if not steps:
+++                errors.append(f"{label}: 'Steps' names no step — a flow is an ordered list of "
+++                              f"steps, each naming a screen (C14/F15)")
+++            for i, step in enumerate(steps, 1):
+++                lead = BOLD_LEAD_RE.match(step)
+++                hit = None
+++                if lead and _norm(lead.group("name")) in by_norm:
+++                    hit = by_norm[_norm(lead.group("name"))]
+++                else:
+++                    nstep = _norm(step)
+++                    for key, real in by_norm.items():
+++                        if key and re.search(rf"(?<![a-z0-9]){re.escape(key)}(?![a-z0-9])", nstep):
+++                            hit = real
+++                            break
+++                if hit is None:
+++                    named = lead.group("name").strip() if lead else step[:60]
+++                    errors.append(f"{label} step {i} names '{named}', which is not a screen in "
+++                                  f"'## Screens' (C14/F15)")
+++                else:
+++                    reached.add(hit)
+++
+++        dec_fld = flow["fields"].get("decisions")
+++        if dec_fld is not None:
+++            inline = _norm(dec_fld["value"])
+++            declared_none = inline in NO_DECISIONS and not dec_fld["lines"]
+++            for dec in ([] if declared_none else _field_items(dec_fld)):
+++                if _norm(dec) in NO_DECISIONS:
+++                    continue
+++                targets = [t.strip() for t in ARROW_RE.findall(dec) if t.strip()]
+++                if len(targets) < 2:
+++                    errors.append(f"{label}: decision point \"{dec[:70].strip()}\" does not say "
+++                                  f"where each branch goes — name a destination for every branch, "
+++                                  f"as '<condition> → <destination>' (C14/F15)")
+++
+++    for s in screens:
+++        if s not in reached:
+++            counts["unreachable_screens"] += 1
+++            errors.append(f"screen '{s}' is unreachable — no flow step names it (C6/C14/F15)")
+++    return counts
+++
+++
++ def main(argv=None):
++     ap = argparse.ArgumentParser(description="Validate /ux's lens grounding + coverage.")
++     ap.add_argument("--manifest", required=True)
++     ap.add_argument("--slice-file", required=True)
++     ap.add_argument("--product-base", help="live model root — to resolve a reused decision")
+++    ap.add_argument("--lens", help="the written lens/ux.md — enables the C14/F15 flow "
+++                                   "cross-check (skipped with a warning when omitted)")
++     args = ap.parse_args(argv)
++ 
++     errors, warnings = [], []
++@@ -179,8 +447,17 @@ def main(argv=None):
++         if fid not in grounded_funcs:
++             errors.append(f"slice functionality {fid!r} is visualized by no screen (C6/F6)")
++ 
++-    counts = {"manifest_screens": len(man.get("screens") or []), "decisions": len(decision_ids),
+++    if args.lens:
+++        flow_counts = check_flows(args.lens, errors, warnings)
+++    else:
+++        flow_counts = {"flows": 0, "screens": 0, "unreachable_screens": 0}
+++        warnings.append("--lens was not passed: the C14/F15 flow cross-check was skipped "
+++                        "(pass --lens <slice>/lens/ux.md to run it)")
+++
+++    counts = {"manifest_screens": len(man.get("screens") or []),
+++              "manifest_flows": len(man.get("flows") or []), "decisions": len(decision_ids),
++               "to_cover": len(to_cover), "grounded_funcs": len(grounded_funcs)}
+++    counts.update(flow_counts)
++     result = {"ok": not errors, "errors": errors, "warnings": warnings, "counts": counts}
++     print(json.dumps(result, indent=2))
++     return 0 if not errors else 1
++diff --git a/core/components/plays/vision/scripts/lint_grounding.py b/core/components/plays/vision/scripts/lint_grounding.py
++index 443ac5d4..9dda532b 100644
++--- a/core/components/plays/vision/scripts/lint_grounding.py
+++++ b/core/components/plays/vision/scripts/lint_grounding.py
++@@ -103,7 +103,7 @@
++     "lens-quality": {"title": "Quality Lens", "exact_title": True,
++                      "h2": ["Intent", "Gates"]},
++     "lens-ux": {"title": "UX Lens", "exact_title": True,
++-                "h2": ["Intent", "Screens", "States", "Visual core"]},
+++                "h2": ["Intent", "Screens", "Flows", "States", "Visual core"]},
++     "lens-agentic": {"title": "Agentic Lens", "exact_title": True,
++                      "h2": ["Is it an agent?", "Load weights", "Controls"]},
++     "lens-architecture": {"title": "Architecture Lens", "exact_title": True,
++diff --git a/core/components/skills/author-ux-lens/SKILL.md b/core/components/skills/author-ux-lens/SKILL.md
++index c3831903..3ae781cd 100644
++--- a/core/components/skills/author-ux-lens/SKILL.md
+++++ b/core/components/skills/author-ux-lens/SKILL.md
++@@ -1,6 +1,6 @@
++ ---
++ name: author-ux-lens
++-description: Author a shaped slice's UX lens as an MD grounding doc — the screens (with low-fidelity layouts), the states each holds, and the product's visual core (color + typography) — from the slice's hub (its functionalities' grounding docs + the spine profile) and KB pattern grounding. Writes the per-node grounding doc ux.md STRAIGHT TO THE LIVE MODEL (conforming to the UX lens template) and emits the visual-core decision plus the grounding map as structured data in a manifest; it NEVER writes a shared model file (the spine _spine.yaml, the profile, or a decisions/*.yaml). Reads the functionality.md docs for the hub, never another lens. Generative artifact production for the /ux play under direct-model-write (ADR 026).
+++description: Author a shaped slice's UX lens as an MD grounding doc — the screens (with low-fidelity layouts), the flows each persona takes through them, the states each holds, and the product's visual core (color + typography) — from the slice's hub (its functionalities' grounding docs + the spine profile) and KB pattern grounding. Writes the per-node grounding doc ux.md STRAIGHT TO THE LIVE MODEL (conforming to the UX lens template) and emits the visual-core decision plus the grounding map as structured data in a manifest; it NEVER writes a shared model file (the spine _spine.yaml, the profile, or a decisions/*.yaml). Reads the functionality.md docs for the hub, never another lens. Generative artifact production for the /ux play under direct-model-write (ADR 026).
++ version: 0.5.0
++ user-invocable: false
++ model: opus
++@@ -11,8 +11,8 @@ allowed-tools: Read, Write, Bash, Glob
++ 
++ Turns a shaped slice's **hub** — the grounding docs of the functionalities it bundles, plus
++ the product profile — into the slice's **UX lens**, written as the grounding doc `ux.md`:
++-the screens that make every functionality visible, the states each screen holds, and the
++-product's visual core. It anchors the intended experience; it is not a full spec. It reads
+++the screens that make every functionality visible, the flows each persona takes through those
+++screens, the states each screen holds, and the product's visual core. It anchors the intended experience; it is not a full spec. It reads
++ the hub only (never another realize lens).
++ 
++ **Write discipline (ADR 026, `standards/rules/direct-model-write.md`).** This skill writes
++@@ -25,9 +25,11 @@ keyed to the slice and `skip-if-exists`. There is no draft tree.
++ ## What it produces (against the locked template)
++ 
++ `ux.md` conforms to `standards/schemas/product-os/grounding/lens/ux.md` — H1 `# UX Lens`,
++-sections **Intent**, **Screens** (each: name + low-fidelity layout in prose), **States**
++-(per screen), **Visual core** (color + typography direction). It must clear the linter
++-(shape) and the content-quality eval (the play runs both). Alongside the doc it writes a
+++sections **Intent**, **Screens** (each: name + who opens it + the one object the user works
+++with there + low-fidelity layout in prose), **Flows** (one block per persona + goal), **States**
+++(per screen, each state named with its trigger), **Visual core** (color + typography direction),
+++in that order. It must clear the linter (shape) and the content-quality eval (the play runs
+++both). Alongside the doc it writes a
++ structured `ux-manifest.yaml` (an STM, non-model artifact) carrying the machine-checkable
++ grounding the prose can't — which screen grounds to which functionality, the visual-core
++ grounding, and the visual-core **decision delta** for the keyed persist to write.
++@@ -49,25 +51,39 @@ grounding, and the visual-core **decision delta** for the keyed persist to write
++ 
++ ## Process
++ 
++-Reasoning (drawing screens, enumerating states, choosing the visual core) is yours. Template
++-conformance, grounding, and coverage are non-negotiable.
+++Reasoning (drawing screens, drawing flows, enumerating states, choosing the visual core) is
+++yours. Template conformance, grounding, and coverage are non-negotiable.
++ 
++ 1. **Read the hub.** Load each functionality's `functionality.md` (its behavior, acceptance,
++    boundary) and the profile box (stage / users / surfaces). Do NOT read any other lens.
++ 2. **Draw the screens.** For each functionality of the slice, the screen(s) that make it
++-   visible — a name and a LOW-FIDELITY layout in prose (regions and what each holds). Every
++-   functionality the slice bundles must be visualized by at least one screen (coverage).
++-3. **Enumerate the states.** For each screen, the states it can hold (loading, empty, error,
++-   partial, populated) and what the user sees in each.
++-4. **Choose the visual core.** The color and typography direction — grounded in a KB
+++   visible — a name, WHO opens it, THE ONE OBJECT the user works with there, and a LOW-FIDELITY
+++   layout in prose (regions and what each holds). The one object carries the information
+++   architecture; there is no separate IA section. Never pixel design. Every functionality the
+++   slice bundles must be visualized by at least one screen (coverage).
+++3. **Draw the flows.** One block per persona + goal, in this FIXED field order so a UX
+++   researcher can read it and an agent can parse it: **Persona**, **Goal**, **Entry**,
+++   **Steps**, **Decisions**, **Failure**, **Exit**. Write the flow from the persona's side —
+++   one step per real move the person makes, and each step names a screen from the Screens
+++   section plus the action taken there. Every decision point names each fork AND where EACH
+++   branch goes. Failure says what happens when a step fails. Exit says where the person lands.
+++   Cover only the path INSIDE this slice's screens — the wider cross-product journey is not this
+++   lens's job. Then check: every step names a screen that exists in Screens, and every screen is
+++   named by at least one step. If a screen is reached by no flow, add the flow that reaches it or
+++   drop the screen.
+++4. **Enumerate the states.** For each screen, the states it can hold (loading, empty, error,
+++   partial, populated). Name each state with its TRIGGER (what puts the screen in it), what the
+++   user sees in it, and what they can do next. Not a flat list of labels.
+++5. **Choose the visual core.** The color and typography direction — grounded in a KB
++    technology/architecture learning (matched to the product's conditions + surfaces via
++    `kb_search`), or a recorded KB-learning-gap proposal. If the product already carries a
++    visual-core decision (check under `product_base`), REUSE it — name it in the manifest and
++    emit NO new `decision_delta`. Otherwise emit the decision as manifest data for the keyed
++    persist to write (do NOT write the decision file yourself).
++-5. **Write the lens in place + the manifest.** Write `ux.md` to the LIVE lens path
+++6. **Write the lens in place + the manifest.** Write `ux.md` to the LIVE lens path
++    (`product_base` + `lens_rel`), per the template. Write `ux-manifest.yaml` to `manifest_path`
++-   (STM) carrying: every screen's `grounds` → a functionality_ref / persona / journey; the
+++   (STM) carrying: every screen's `grounds` → a functionality_ref / persona / journey; every
+++   flow's `grounds` → the persona/journey of the hub it traces to, plus its ordered `steps`; the
++    visual core's grounding → kb or the reused decision; and, when a new decision is needed, the
++    `decision_delta` (id, the slice-scoped `rel`, and the full `record` body). Write any KB
++    proposals under an STM proposals folder. Write NO shared model file — never `_spine.yaml`,
++@@ -93,6 +109,13 @@ ux:
++     - name: "Source coverage view"
++       grounds:
++         - { source_type: functionality, source: "func-source-coverage-freshness", functionality_ref: func-source-coverage-freshness }
+++  flows:                                          # one entry per persona + goal block in Flows
+++    - id: flow-analyst-confirm-coverage
+++      persona: "Analyst"
+++      goal: "Confirm every source is fresh before trusting the dashboard"
+++      grounds:                                    # the hub persona/journey the flow traces to
+++        - { source_type: persona, source: "persona-analyst", persona_ref: persona-analyst }
+++      steps: ["Source coverage view", "Source detail"]   # ordered; exact screens[].name values
++   design_system:                                  # the visual core grounding
++     source_type: decision                         # kb | decision
++     decision: dec-visual-core-token-dash
++@@ -114,14 +137,20 @@ Return the enriched contract with the live `lens_rel` written and the `ux-manife
++ 
++ - **Hub only.** Derive from the functionalities' grounding docs + the profile; never read or
++   ground on another realize lens.
++-- **Template-true.** `ux.md` conforms to the UX lens template (Intent/Screens/States/Visual
++-  core) and must clear the linter + the content eval — every item self-explaining.
++-- **Three things only.** Screens, states, visual core. No flows (the build derives them), no
++-  accessibility (that is the marketing lens now), no gates/components/environments.
+++- **Template-true.** `ux.md` conforms to the UX lens template (Intent/Screens/Flows/States/
+++  Visual core, in that order) and must clear the linter + the content eval — every item
+++  self-explaining.
+++- **Four things only.** Screens, flows, states, visual core. No accessibility (that is the
+++  marketing lens now), no gates/components/environments, no journey that leaves this slice's
+++  screens.
+++- **Flows resolve both ways.** No flow step may name a screen that is not in Screens, and no
+++  screen may be unreachable — every screen is named by at least one flow step. Fix the flow or
+++  drop the screen; never ship a dangling name either way.
++ - **Cover every functionality.** Every functionality the slice bundles is visualized by ≥1
++   screen, recorded in the manifest.
++ - **Grounded, not invented.** Every screen grounds to a functionality or a persona/journey;
++-  the visual core grounds to a KB learning or a proposal and is recorded as a decision.
+++  every flow's persona traces to a persona/journey of the hub, never an invented one; the
+++  visual core grounds to a KB learning or a proposal and is recorded as a decision.
++ - **One live doc; no shared file.** Write ONLY `ux.md` to the live model. The visual-core
++   decision goes into the manifest as `decision_delta` — the play's keyed persist writes it. Never
++   write `_spine.yaml`, the profile, or a `decisions/*.yaml`; never write to another slice.
+diff --git a/.garura/project/issues/548/review/quality-findings.yaml b/.garura/project/issues/548/review/quality-findings.yaml
+new file mode 100644
+index 00000000..f4967577
+--- /dev/null
++++ b/.garura/project/issues/548/review/quality-findings.yaml
+@@ -0,0 +1,66 @@
++meta:
++  generated_at: "2026-09-10T03:33:03Z"
++  category: code
++  playbook: review/code
++  playbook_path: core/components/memory/knowledge/review/code.md
++  diff_path: .garura/project/issues/548/review/pr.diff
++  taxonomy_path: core/components/memory/standards/rules/pr.md
++  changed_paths_count: 11
++  scan_coverage: 1.0
++  standards_relevant: 0
++  catchall:
++    CODE-20: 11
++  checks_run:
++    - name: quality-check-scoped taxonomy scan (scan_taxonomy.py)
++      command: >-
++        python3 core/components/skills/quality-check-scoped/scripts/scan_taxonomy.py
++        --taxonomy core/components/memory/standards/rules/pr.md
++        --diff .garura/project/issues/548/review/pr.diff
++        --paths <11 code-category paths> --out <scan-out.yaml>
++      exit_code: 0
++      result: "P1=0 P2=0 P3=0 P4=0, CODE-20 catch-all=11, errors=0"
++    - name: py_compile (per changed python file, per instruction)
++      command: "python3 -m py_compile <file>"
++      files:
++        - core/components/plays/ux/scripts/lint_grounding.py
++        - core/components/plays/ux/scripts/validate_ux.py
++        - core/components/plays/agentic/scripts/lint_grounding.py
++        - core/components/plays/arch/scripts/lint_grounding.py
++        - core/components/plays/grill/scripts/lint_grounding.py
++        - core/components/plays/learn/scripts/lint_grounding.py
++        - core/components/plays/marketing/scripts/lint_grounding.py
++        - core/components/plays/measure/scripts/lint_grounding.py
++        - core/components/plays/quality/scripts/lint_grounding.py
++        - core/components/plays/run/scripts/lint_grounding.py
++        - core/components/plays/vision/scripts/lint_grounding.py
++      exit_code: 0
++      result: "all 11 files compile cleanly, no syntax errors"
++    - name: validate_ux.py --lens smoke test (runnable check, actually executed per instruction)
++      note: >-
++        No live product-os ux.md/manifest/slice fixture exists in this self-hosting repo
++        (validate_ux.py runs against a target product's model, not garura's own). Built a
++        minimal synthetic manifest + slice-file + lens ux.md pair to actually execute the
++        new check_flows() function (added by this diff) end to end, rather than merely
++        reading its source.
++      runs:
++        - case: "well-formed flow (all 7 fields, step names an existing screen, decision names both branches)"
++          command: >-
++            python3 core/components/plays/ux/scripts/validate_ux.py --manifest <manifest.yaml>
++            --slice-file <slice.yaml> --lens <ux-good.md>
++          exit_code: 0
++          result: "ok:true, 0 errors, flows=1, screens=1, unreachable_screens=0"
++        - case: "malformed flow (missing Failure field, step names a screen absent from Screens, decision omits a destination, resulting screen unreachable)"
++          command: >-
++            python3 core/components/plays/ux/scripts/validate_ux.py --manifest <manifest.yaml>
++            --slice-file <slice.yaml> --lens <ux-bad.md>
++          exit_code: 1
++          result: "ok:false, 4 errors correctly raised (missing field / unknown screen / undestined decision / unreachable screen), all tagged C14/F15 or C6/C14/F15"
++      conclusion: >-
++        check_flows() behaves correctly on both a conforming and a non-conforming lens doc —
++        no defect found in the new runnable logic.
++findings: []
++counts:
++  P1: 0
++  P2: 0
++  P3: 0
++  P4: 0
+diff --git a/.garura/project/issues/548/review/recommended_verdict.yaml b/.garura/project/issues/548/review/recommended_verdict.yaml
+new file mode 100644
+index 00000000..dc7b54e4
+--- /dev/null
++++ b/.garura/project/issues/548/review/recommended_verdict.yaml
+@@ -0,0 +1,12 @@
++{
++  "verdict": "approve",
++  "reason": "no P1 findings; confidence acceptable",
++  "blocking": [],
++  "counts": {
++    "P2": 2,
++    "P3": 1,
++    "P4": 1
++  },
++  "confidence": null,
++  "threshold": 0.5
++}
+diff --git a/.garura/project/issues/548/review/verdict.yaml b/.garura/project/issues/548/review/verdict.yaml
+new file mode 100644
+index 00000000..8a10ea38
+--- /dev/null
++++ b/.garura/project/issues/548/review/verdict.yaml
+@@ -0,0 +1,11 @@
++decided_by: harness
++gate: "off per gates.plays.review-change"
++decision: approve
++reason: "no P1 findings; confidence acceptable"
++blocking: []
++non_blocking_cited:
++  - { id: F1, severity: P2, category: memory, file: "core/components/memory/standards/schemas/product-os/lens/ux.yaml", basis: P-SCHEMA-EVOLUTION-PARKED }
++  - { id: F2, severity: P2, category: memory, file: "core/components/memory/standards/schemas/product-os/lens/ux.yaml", basis: "P-TWO-ARTIFACTS-STAY-IN-STEP, P-ACCESSIBILITY-LIVES-IN-MARKETING" }
++  - { id: F3, severity: P3, category: memory, file: "core/components/memory/standards/schemas/product-os/lens/_index.md", basis: P-LENS-INDEX-IS-THE-SHARED-MAP }
++  - { id: F4, severity: P4, category: memory, file: "core/components/memory/standards/schemas/product-os/grounding/lens/ux.md", basis: informational }
++counts: { P1: 0, P2: 2, P3: 1, P4: 1 }
 diff --git a/core/components/agents/product-os-keeper.md b/core/components/agents/product-os-keeper.md
 index 38254014..7e49e15a 100644
 --- a/core/components/agents/product-os-keeper.md
@@ -767,11 +3266,24 @@ index ab91a028..3d919ae0 100644
 +resolved, amber partial, grey unavailable, red privacy-blocked). Typography: a single legible sans
 +for the data, with slightly heavier weight on the state badges so the honest signal reads first.
  ```
+diff --git a/core/components/memory/standards/schemas/product-os/lens/_index.md b/core/components/memory/standards/schemas/product-os/lens/_index.md
+index 64394890..383ece04 100644
+--- a/core/components/memory/standards/schemas/product-os/lens/_index.md
++++ b/core/components/memory/standards/schemas/product-os/lens/_index.md
+@@ -49,7 +49,7 @@ lens:
+ 
+ | File | Holds |
+ |------|-------|
+-| `ux.yaml` | screens (with low-fidelity layout), states, visual core (color + typography). a11y lives in the profile; flows are derived by the build |
++| `ux.yaml` | screens (each naming the one object the user works with there, with a low-fidelity layout), flows (per persona + goal: entry, ordered steps naming screens, forks, failure path, exit), states (each with its trigger), visual core (color + typography). a11y lives in the MARKETING lens; the wider cross-product journey is /story's, not this lens's (#548) |
+ | `architecture.yaml` | components, contracts, stack (versions), vertical-build |
+ | `run.yaml` | environments, rollout, migrations, config/secrets, CI/CD |
+ | `quality.yaml` | the gates the ICE must pass |
 diff --git a/core/components/memory/standards/schemas/product-os/lens/ux.yaml b/core/components/memory/standards/schemas/product-os/lens/ux.yaml
-index c054f08c..f4378d33 100644
+index c054f08c..f2fddd8a 100644
 --- a/core/components/memory/standards/schemas/product-os/lens/ux.yaml
 +++ b/core/components/memory/standards/schemas/product-os/lens/ux.yaml
-@@ -2,12 +2,14 @@
+@@ -2,12 +2,32 @@
  #
  # Scope (#434): the ux lens drives INTENT, not a full spec. It anchors the experience
  # with just enough that the build can figure the rest on the fly:
@@ -782,15 +3294,34 @@ index c054f08c..f4378d33 100644
 +#   - the flows — per persona and goal, the ordered path through those screens,
 +#   - the states each screen can hold, each with the trigger that puts it there,
  #   - the product's visual core (color + typography).
- # Accessibility is NOT restated here — it lives in the product profile, and the build
+-# Accessibility is NOT restated here — it lives in the product profile, and the build
 -# connects it. Flows are NOT specified here — the build derives them from the screens +
 -# the capability's journeys.
-+# connects it. The flows here are the paths INSIDE this lens's screens; the person's wider
-+# journey across the product is not this lens's to write (that is /story's, #528). (#548)
++# Accessibility is NOT restated here — it lives in the MARKETING lens (it moved there from
++# the product profile; see grounding/lens/marketing.md), and the build connects it. The flows
++# here are the paths INSIDE this lens's screens; the person's wider journey across the product
++# is not this lens's to write (that is /story's, #528). (#548)
++#
++# Schema evolution note (#548): `states` changed from a list of strings to a list of objects
++# (name + trigger + sees + next), `screens[].object` became required, and `flows` was added.
++# This is a BREAKING change to a permanent record type. Migration for any record written under
++# the prior shape: each bare state string becomes `{name: <the string>, trigger: "", sees: "",
++# next: ""}` and is then filled in; `screens[].object` is named per screen; `flows` is authored
++# fresh by /ux on the next run, which re-derives the whole lens anyway.
++#
++# Blast radius, stated accurately: /ux never writes a live `lens/ux.yaml` data file — only the
++# prose `ux.md` is written to a product (see plays/ux/scripts/persist_ux.py), unlike the run and
++# quality lenses which do write live yaml siblings. So this restructure breaks no live record
++# anywhere, and NO linter reads a live `lens/ux.yaml` — there is no automated net that would
++# catch an old-shape one. The only old-shape copy in this repo is the #434 design snapshot at
++# .garura/project/issues/434/specs/schemas-v1/lens/ux.yaml, which is a historical STM artifact
++# and is deliberately left untouched. Schema evolution remains parked for v1
++# (product-os/_index.md) — this note is the migration record that rule asks for, not a
++# substitute for the schema-evolution play.
  
  schema:
    name: lens
-@@ -17,11 +19,29 @@ content:
+@@ -17,11 +37,29 @@ content:
    screens:              # the surfaces this capability needs, made visible to validate the shape
      - name: string
        purpose: string
