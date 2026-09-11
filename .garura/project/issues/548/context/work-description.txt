@@ -1,0 +1,60 @@
+[BUG] /ux lens output is a screen catalogue, not information architecture and task flows
+
+## The problem in plain words
+
+The /ux play writes a `lens/ux.md` file for a slice. What it actually produces is a
+prose catalogue: an Intent paragraph, a bullet per screen describing what that screen
+prints, a bullet per screen listing its states, and a closing "Visual core" paragraph
+about colour and typography.
+
+A user experience researcher reading that file cannot answer the two questions they
+open a UX document to answer:
+
+1. **What is the information architecture?** What objects exist in this slice, how do
+   they nest, what is the primary object on each surface, and how do surfaces relate
+   to each other. Today the file lists screens side by side with no structure between
+   them.
+2. **How does a person actually move through it?** Persona, goal, entry point, the
+   ordered steps, the decision points, what happens on failure, and where the flow
+   exits. Today states are listed as an unordered set of labels per screen, with no
+   transitions between them and no path from one screen to the next.
+
+The result reads as a specification of what each screen prints, not as a description
+of how a person moves through the product. It also buries the useful signal in long
+run-on sentences, so neither a human nor an agent can extract the structure reliably.
+
+## Why this matters
+
+`ux.md` is the UX lens artifact that later plays (arch, implement) read as the
+authority on the user-facing shape of a slice. If it does not carry the information
+architecture and the flows, every downstream play is reasoning from a screen list.
+And a UX researcher cannot review it, so the lens gets no human check at all.
+
+## What good looks like
+
+The file must satisfy two readers at once:
+
+- A UX researcher should read it and say "yes, that is the information architecture,
+  and yes, that is how a person moves through this."
+- An agent should be able to parse it deterministically — named sections, one idea per
+  entry, explicit transitions, no meaning hidden inside prose paragraphs.
+
+That means the fix is a **structure change** to the artifact (its sections and the
+shape of each entry), not merely better writing inside the current sections. At
+minimum the artifact needs: an information architecture section (objects, hierarchy,
+relationships), a task-flow section (per persona and goal, with ordered steps, entry,
+decision points, failure paths, exit), explicit screen-to-screen transitions, and
+states expressed as a state model with triggers rather than a flat label list.
+
+## Likely fix path (not decided here)
+
+Changing what `ux.md` contains changes what the /ux play guarantees, so this is
+expected to be an **intent change**: edit `core/components/plays/ux/reference/ice.md`
+and the UX lens template in memory, then recompile with `/play-editor`. It should not
+be a direct edit to the compiled `SKILL.md`. The implementing change decides this.
+
+## Evidence
+
+- Sample bad output (griffin project, worktree):
+  `/Users/kapilahuja/cto/builder/griffin/.claude/worktrees/ux-trusted-local-collection/.garura/product/product-os/team-token-reporting/slices/slice-trusted-local-collection/lens/ux.md`
+- Play source: `core/components/plays/ux/`

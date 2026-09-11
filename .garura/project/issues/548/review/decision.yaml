@@ -1,0 +1,14 @@
+decided_by: harness
+gate: "off per gates.plays.review-change"
+pass: 2
+decision: approve
+reason: "no P1 findings; confidence acceptable"
+blocking: []
+resolved_from_pass_1: [F1, F2, F3]
+open_non_blocking:
+  - { id: F6, severity: P3, category: memory, file: "core/components/memory/standards/schemas/product-os/lens/ux.yaml",
+      basis: "accuracy of a committed claim",
+      remediation: "fixed in e408b9ba; author-verified, not reviewer-verified" }
+left_as_is:
+  - { id: F4, severity: P4, note: "no contract line mandates a flow per screen opener" }
+counts: { P1: 0, P2: 0, P3: 1, P4: 0 }

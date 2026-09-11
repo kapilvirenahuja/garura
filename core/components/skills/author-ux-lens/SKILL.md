@@ -1,6 +1,6 @@
 ---
 name: author-ux-lens
-description: Author a shaped slice's UX lens as an MD grounding doc — the screens (with low-fidelity layouts), the states each holds, and the product's visual core (color + typography) — from the slice's hub (its functionalities' grounding docs + the spine profile) and KB pattern grounding. Writes the per-node grounding doc ux.md STRAIGHT TO THE LIVE MODEL (conforming to the UX lens template) and emits the visual-core decision plus the grounding map as structured data in a manifest; it NEVER writes a shared model file (the spine _spine.yaml, the profile, or a decisions/*.yaml). Reads the functionality.md docs for the hub, never another lens. Generative artifact production for the /ux play under direct-model-write (ADR 026).
+description: Author a shaped slice's UX lens as an MD grounding doc — the screens (with low-fidelity layouts), the flows each persona takes through them, the states each holds, and the product's visual core (color + typography) — from the slice's hub (its functionalities' grounding docs + the spine profile) and KB pattern grounding. Writes the per-node grounding doc ux.md STRAIGHT TO THE LIVE MODEL (conforming to the UX lens template) and emits the visual-core decision plus the grounding map as structured data in a manifest; it NEVER writes a shared model file (the spine _spine.yaml, the profile, or a decisions/*.yaml). Reads the functionality.md docs for the hub, never another lens. Generative artifact production for the /ux play under direct-model-write (ADR 026).
 version: 0.5.0
 user-invocable: false
 model: opus
@@ -11,8 +11,8 @@ allowed-tools: Read, Write, Bash, Glob
 
 Turns a shaped slice's **hub** — the grounding docs of the functionalities it bundles, plus
 the product profile — into the slice's **UX lens**, written as the grounding doc `ux.md`:
-the screens that make every functionality visible, the states each screen holds, and the
-product's visual core. It anchors the intended experience; it is not a full spec. It reads
+the screens that make every functionality visible, the flows each persona takes through those
+screens, the states each screen holds, and the product's visual core. It anchors the intended experience; it is not a full spec. It reads
 the hub only (never another realize lens).
 
 **Write discipline (ADR 026, `standards/rules/direct-model-write.md`).** This skill writes
@@ -25,9 +25,11 @@ keyed to the slice and `skip-if-exists`. There is no draft tree.
 ## What it produces (against the locked template)
 
 `ux.md` conforms to `standards/schemas/product-os/grounding/lens/ux.md` — H1 `# UX Lens`,
-sections **Intent**, **Screens** (each: name + low-fidelity layout in prose), **States**
-(per screen), **Visual core** (color + typography direction). It must clear the linter
-(shape) and the content-quality eval (the play runs both). Alongside the doc it writes a
+sections **Intent**, **Screens** (each: name + who opens it + the one object the user works
+with there + low-fidelity layout in prose), **Flows** (one block per persona + goal), **States**
+(per screen, each state named with its trigger), **Visual core** (color + typography direction),
+in that order. It must clear the linter (shape) and the content-quality eval (the play runs
+both). Alongside the doc it writes a
 structured `ux-manifest.yaml` (an STM, non-model artifact) carrying the machine-checkable
 grounding the prose can't — which screen grounds to which functionality, the visual-core
 grounding, and the visual-core **decision delta** for the keyed persist to write.
@@ -49,25 +51,39 @@ grounding, and the visual-core **decision delta** for the keyed persist to write
 
 ## Process
 
-Reasoning (drawing screens, enumerating states, choosing the visual core) is yours. Template
-conformance, grounding, and coverage are non-negotiable.
+Reasoning (drawing screens, drawing flows, enumerating states, choosing the visual core) is
+yours. Template conformance, grounding, and coverage are non-negotiable.
 
 1. **Read the hub.** Load each functionality's `functionality.md` (its behavior, acceptance,
    boundary) and the profile box (stage / users / surfaces). Do NOT read any other lens.
 2. **Draw the screens.** For each functionality of the slice, the screen(s) that make it
-   visible — a name and a LOW-FIDELITY layout in prose (regions and what each holds). Every
-   functionality the slice bundles must be visualized by at least one screen (coverage).
-3. **Enumerate the states.** For each screen, the states it can hold (loading, empty, error,
-   partial, populated) and what the user sees in each.
-4. **Choose the visual core.** The color and typography direction — grounded in a KB
+   visible — a name, WHO opens it, THE ONE OBJECT the user works with there, and a LOW-FIDELITY
+   layout in prose (regions and what each holds). The one object carries the information
+   architecture; there is no separate IA section. Never pixel design. Every functionality the
+   slice bundles must be visualized by at least one screen (coverage).
+3. **Draw the flows.** One block per persona + goal, in this FIXED field order so a UX
+   researcher can read it and an agent can parse it: **Persona**, **Goal**, **Entry**,
+   **Steps**, **Decisions**, **Failure**, **Exit**. Write the flow from the persona's side —
+   one step per real move the person makes, and each step names a screen from the Screens
+   section plus the action taken there. Every decision point names each fork AND where EACH
+   branch goes. Failure says what happens when a step fails. Exit says where the person lands.
+   Cover only the path INSIDE this slice's screens — the wider cross-product journey is not this
+   lens's job. Then check: every step names a screen that exists in Screens, and every screen is
+   named by at least one step. If a screen is reached by no flow, add the flow that reaches it or
+   drop the screen.
+4. **Enumerate the states.** For each screen, the states it can hold (loading, empty, error,
+   partial, populated). Name each state with its TRIGGER (what puts the screen in it), what the
+   user sees in it, and what they can do next. Not a flat list of labels.
+5. **Choose the visual core.** The color and typography direction — grounded in a KB
    technology/architecture learning (matched to the product's conditions + surfaces via
    `kb_search`), or a recorded KB-learning-gap proposal. If the product already carries a
    visual-core decision (check under `product_base`), REUSE it — name it in the manifest and
    emit NO new `decision_delta`. Otherwise emit the decision as manifest data for the keyed
    persist to write (do NOT write the decision file yourself).
-5. **Write the lens in place + the manifest.** Write `ux.md` to the LIVE lens path
+6. **Write the lens in place + the manifest.** Write `ux.md` to the LIVE lens path
    (`product_base` + `lens_rel`), per the template. Write `ux-manifest.yaml` to `manifest_path`
-   (STM) carrying: every screen's `grounds` → a functionality_ref / persona / journey; the
+   (STM) carrying: every screen's `grounds` → a functionality_ref / persona / journey; every
+   flow's `grounds` → the persona/journey of the hub it traces to, plus its ordered `steps`; the
    visual core's grounding → kb or the reused decision; and, when a new decision is needed, the
    `decision_delta` (id, the slice-scoped `rel`, and the full `record` body). Write any KB
    proposals under an STM proposals folder. Write NO shared model file — never `_spine.yaml`,
@@ -93,6 +109,13 @@ ux:
     - name: "Source coverage view"
       grounds:
         - { source_type: functionality, source: "func-source-coverage-freshness", functionality_ref: func-source-coverage-freshness }
+  flows:                                          # one entry per persona + goal block in Flows
+    - id: flow-analyst-confirm-coverage
+      persona: "Analyst"
+      goal: "Confirm every source is fresh before trusting the dashboard"
+      grounds:                                    # the hub persona/journey the flow traces to
+        - { source_type: persona, source: "persona-analyst", persona_ref: persona-analyst }
+      steps: ["Source coverage view", "Source detail"]   # ordered; exact screens[].name values
   design_system:                                  # the visual core grounding
     source_type: decision                         # kb | decision
     decision: dec-visual-core-token-dash
@@ -114,14 +137,20 @@ Return the enriched contract with the live `lens_rel` written and the `ux-manife
 
 - **Hub only.** Derive from the functionalities' grounding docs + the profile; never read or
   ground on another realize lens.
-- **Template-true.** `ux.md` conforms to the UX lens template (Intent/Screens/States/Visual
-  core) and must clear the linter + the content eval — every item self-explaining.
-- **Three things only.** Screens, states, visual core. No flows (the build derives them), no
-  accessibility (that is the marketing lens now), no gates/components/environments.
+- **Template-true.** `ux.md` conforms to the UX lens template (Intent/Screens/Flows/States/
+  Visual core, in that order) and must clear the linter + the content eval — every item
+  self-explaining.
+- **Four things only.** Screens, flows, states, visual core. No accessibility (that is the
+  marketing lens now), no gates/components/environments, no journey that leaves this slice's
+  screens.
+- **Flows resolve both ways.** No flow step may name a screen that is not in Screens, and no
+  screen may be unreachable — every screen is named by at least one flow step. Fix the flow or
+  drop the screen; never ship a dangling name either way.
 - **Cover every functionality.** Every functionality the slice bundles is visualized by ≥1
   screen, recorded in the manifest.
 - **Grounded, not invented.** Every screen grounds to a functionality or a persona/journey;
-  the visual core grounds to a KB learning or a proposal and is recorded as a decision.
+  every flow's persona traces to a persona/journey of the hub, never an invented one; the
+  visual core grounds to a KB learning or a proposal and is recorded as a decision.
 - **One live doc; no shared file.** Write ONLY `ux.md` to the live model. The visual-core
   decision goes into the manifest as `decision_delta` — the play's keyed persist writes it. Never
   write `_spine.yaml`, the profile, or a `decisions/*.yaml`; never write to another slice.

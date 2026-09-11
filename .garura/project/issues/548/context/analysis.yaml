@@ -1,0 +1,118 @@
+# analyze_changeset.py output (C8 fast path) + analyze-changes agent judgment
+# issue: 548
+needs_judgment: false
+
+change_groups:
+  - commit_type: feat
+    scope: ux
+    issue: 548
+    subject: add flows to the UX lens so it covers what a screen is about and how a person moves through it
+    files:
+      - core/components/plays/ux/reference/ice.md
+      - core/components/plays/ux/SKILL.md
+
+  - commit_type: feat
+    scope: product-os
+    issue: 548
+    subject: extend the UX lens contract with a Flows section, per-screen object, and per-state trigger
+    files:
+      - core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+      - core/components/memory/standards/schemas/product-os/lens/ux.yaml
+
+  - commit_type: chore
+    scope: lint-grounding
+    issue: 548
+    subject: teach the structural linter's UX heading list to require Flows
+    files:
+      - core/components/plays/agentic/scripts/lint_grounding.py
+      - core/components/plays/arch/scripts/lint_grounding.py
+      - core/components/plays/grill/scripts/lint_grounding.py
+      - core/components/plays/learn/scripts/lint_grounding.py
+      - core/components/plays/marketing/scripts/lint_grounding.py
+      - core/components/plays/measure/scripts/lint_grounding.py
+      - core/components/plays/quality/scripts/lint_grounding.py
+      - core/components/plays/run/scripts/lint_grounding.py
+      - core/components/plays/ux/scripts/lint_grounding.py
+      - core/components/plays/vision/scripts/lint_grounding.py
+
+  - commit_type: feat
+    scope: ux
+    issue: 548
+    subject: mechanically cross-check flows against screens so no flow or screen is left dangling
+    files:
+      - core/components/plays/ux/scripts/validate_ux.py
+
+  - commit_type: feat
+    scope: author-ux-lens
+    issue: 548
+    subject: draft flows alongside screens and states when authoring the UX lens
+    files:
+      - core/components/skills/author-ux-lens/SKILL.md
+      - core/components/agents/product-os-keeper.md
+
+  - commit_type: chore
+    scope: stm
+    issue: 548
+    subject: record change-analysis run artifacts
+    files:
+      - .garura/project/issues/548/context/analysis.yaml
+      - .garura/project/issues/548/context/porcelain.txt
+
+exclusions:
+  []
+
+risks:
+  sensitive_files:
+    []
+  breaking_changes:
+    []
+  ambiguous_types:
+    []
+  hotfix_branch: false
+
+eval_gates:
+  SE-1:
+    status: PASS
+    evidence: >
+      Read the real diffs for all 18 files (18 tracked M + 2 untracked STM), not just the file
+      list. This is one intent change (the /ux play's ICE source was edited to make the lens
+      five sections instead of four, adding Flows and naming the one object per screen) plus its
+      propagation, split into six concern-groups:
+
+      (1) ice.md + SKILL.md — the play's own intent source and its recompiled output; C3/C6/C11
+      and F3 were rewritten in ice.md to require Flows and per-screen object, and a new C14/F15
+      pair was added for flow completeness; SKILL.md is ice.md's compiled artifact, so they stay
+      one group (the same class of edit as #546's SKILL.md deviation note, except here it's a
+      full recompile, not a direct-edit).
+
+      (2) the memory-side lens contract — schemas/product-os/grounding/lens/ux.md (the human
+      template + heading contract, now Intent/Screens/Flows/States/Visual core) and
+      schemas/product-os/lens/ux.yaml (the machine schema, now carrying `flows:` and
+      `object:`/`trigger:` fields) are the same contract in two forms (prose template + typed
+      schema) — verified both diffs add the identical concept (flows, object, trigger) — so one
+      group.
+
+      (3) the ten bundled `lint_grounding.py` copies — diffed the ux copy and the agentic copy
+      byte-for-byte identical: a single-line change to the `lens-ux` CONTRACTS entry adding
+      "Flows" to the h2 list. This is the same generated change stamped once per play (bundling
+      artifact of the play-compiler, not ten independent decisions), kept as one chore group per
+      the plan contract's instruction to group by real concern, not by folder.
+
+      (4) validate_ux.py — read the diff: adds a wholly new mechanical cross-check (screen/flow
+      reachability, decision-branch completeness) satisfying the new C14/F15 constraints from
+      group (1)'s ice.md. This is substantial new logic (not a doc/template change), kept as its
+      own feat group distinct from (1) because it's a different artifact class (script vs
+      play/schema prose) doing enforcement rather than defining intent.
+
+      (5) author-ux-lens/SKILL.md + product-os-keeper.md — the authoring skill's process steps
+      now include "Draw the flows" as step 3, and the agent's own routing table/trigger-phrase
+      row for author-ux-lens was updated to mention flows. Read both diffs: product-os-keeper.md
+      only touches the two lines describing author-ux-lens (no other agent content changed), so
+      it travels with the skill it dispatches, not as a separate group.
+
+      (6) the two untracked STM files under .garura/project/issues/548/context/ (this skill's own
+      scan output, analysis.yaml + porcelain.txt) are run artifacts, not part of the code change,
+      split into their own chore(stm) group last per the plan contract.
+  SE-5:
+    status: PASS
+    evidence: "No sensitive file patterns (.env, credentials, keys, secrets) matched in the changeset; scan script already confirmed no sensitive files."

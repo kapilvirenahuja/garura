@@ -1,0 +1,10 @@
+{
+  "verdict": "approve",
+  "reason": "no P1 findings; confidence acceptable",
+  "blocking": [],
+  "counts": {
+    "P3": 1
+  },
+  "confidence": null,
+  "threshold": 0.5
+}

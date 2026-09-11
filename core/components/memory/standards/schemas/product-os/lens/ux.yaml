@@ -2,12 +2,32 @@
 #
 # Scope (#434): the ux lens drives INTENT, not a full spec. It anchors the experience
 # with just enough that the build can figure the rest on the fly:
-#   - screens (each with a low-fidelity layout) that make the shaped slices visible,
-#   - the states each screen can hold,
+#   - screens (each naming the one object the user works with there, with a low-fidelity
+#     layout) that make the shaped slices visible,
+#   - the flows — per persona and goal, the ordered path through those screens,
+#   - the states each screen can hold, each with the trigger that puts it there,
 #   - the product's visual core (color + typography).
-# Accessibility is NOT restated here — it lives in the product profile, and the build
-# connects it. Flows are NOT specified here — the build derives them from the screens +
-# the capability's journeys.
+# Accessibility is NOT restated here — it lives in the MARKETING lens (it moved there from
+# the product profile; see grounding/lens/marketing.md), and the build connects it. The flows
+# here are the paths INSIDE this lens's screens; the person's wider journey across the product
+# is not this lens's to write (that is /story's, #528). (#548)
+#
+# Schema evolution note (#548): `states` changed from a list of strings to a list of objects
+# (name + trigger + sees + next), `screens[].object` became required, and `flows` was added.
+# This is a BREAKING change to a permanent record type. Migration for any record written under
+# the prior shape: each bare state string becomes `{name: <the string>, trigger: "", sees: "",
+# next: ""}` and is then filled in; `screens[].object` is named per screen; `flows` is authored
+# fresh by /ux on the next run, which re-derives the whole lens anyway.
+#
+# Blast radius, stated accurately: /ux never writes a live `lens/ux.yaml` data file — only the
+# prose `ux.md` is written to a product (see plays/ux/scripts/persist_ux.py), unlike the run and
+# quality lenses which do write live yaml siblings. So this restructure breaks no live record
+# anywhere, and NO linter reads a live `lens/ux.yaml` — there is no automated net that would
+# catch an old-shape one. The only old-shape copy in this repo is the #434 design snapshot at
+# .garura/project/issues/434/specs/schemas-v1/lens/ux.yaml, which is a historical STM artifact
+# and is deliberately left untouched. Schema evolution remains parked for v1
+# (product-os/_index.md) — this note is the migration record that rule asks for, not a
+# substitute for the schema-evolution play.
 
 schema:
   name: lens
@@ -17,11 +37,29 @@ content:
   screens:              # the surfaces this capability needs, made visible to validate the shape
     - name: string
       purpose: string
+      object: string    # the ONE thing the user works with on this screen — this is where
+                        # the information architecture lives (no separate IA section)
       layout: string    # low-fidelity layout — the blocks/regions on the screen and what
                         # each holds (where the slice's functionality sits). NOT pixel design.
+  flows:                # per persona + goal: the ordered path through the screens above
+    - persona: string   # who is taking this path — traces to a persona/journey of the hub
+      goal: string      # what they are trying to get done
+      entry: string     # where the path starts
+      steps:            # ordered; each step names a screen from `screens` above
+        - screen: string
+          action: string
+      decisions:        # each fork point, and where EACH branch goes
+        - at: string    # the step the fork happens at
+          branches: [string]
+      failure: string   # what happens when a step fails
+      exit: string      # where the person ends up
   states:               # per screen
     - screen: string
-      states: [string]  # idle | submitting | error | locked | success | empty | loading
+      states:           # each state names what puts the screen in it
+        - name: string  # idle | submitting | error | locked | success | empty | loading
+          trigger: string
+          sees: string
+          next: string
   design_system:        # the product's visual core (set once, referenced by every capability)
     palette: string     # the core colors + mood (e.g. "ink #11181C on paper #FCFCFD, brand teal #0E7C86")
     typography: string  # the type character (e.g. "Inter for UI, Spectral for long-form")

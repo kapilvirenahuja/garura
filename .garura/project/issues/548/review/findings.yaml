@@ -1,0 +1,69 @@
+pr: 549
+issue: 548
+pass: 2 — re-review after fix commits eac57906 and e408b9ba
+categories_reviewed:
+- harness (design-grounded, clean)
+- code (linted + checks executed, clean)
+- memory (re-grounded)
+- stm_run_artifacts (no playbook on the shelf)
+counts:
+  P1: 0
+  P2: 0
+  P3: 1
+  P4: 0
+findings:
+- id: F6
+  verdict: NEW_FINDING
+  severity: P3
+  file: core/components/memory/standards/schemas/product-os/lens/ux.yaml
+  finding: 'The migration note the fix commit added (lines following "Schema evolution
+    note (#548)") makes two factual claims that do not hold up, checked against committed
+    sources: (a) "the structural linter fails the old shape until it does [rerun]"
+    -- there is no structural linter for a live `lens/ux.yaml` DATA record at all.
+    `lint_grounding.py` only checks the heading structure of the prose `ux.md`; `validate_ux.py
+    --lens` takes the `.md` file, not any yaml, for its C14/F15 flow cross-check;
+    and persist_ux.py''s own docstring confirms no `lens/ux.yaml` is ever written
+    to a live product ("it does NOT copy the lens"). So there is no enforcement mechanism
+    this claim can be pointing to -- it asserts a safety net that does not exist,
+    which could lead a future reader to believe an old-shape record would be caught
+    mechanically when nothing catches it. (b) "This repo holds no record under the
+    prior shape" -- literally false: a file at the exact path pattern `lens/ux.yaml`,
+    in the OLD shape (`states: [string]`, no `screens[].object`, `flows` keyed by
+    `name`/`persona_ref` rather than `persona`/`goal`), exists at `.garura/project/issues/434/specs/schemas-v1/lens/ux.yaml`
+    -- the original issue #434 design spec draft. It is a historical project-spec
+    artifact, not a live product/slice record, so the claim is defensible if read
+    charitably as "no LIVE product record" -- but as literally written it is inaccurate,
+    and the note does not scope the claim that way. Both are new inaccuracies introduced
+    by the fix commit itself (not present before eac57906), so they are chargeable
+    to this PR.
+
+    '
+  principle_violated: P-UX-LENS-IS-MD-ONLY-NO-LIVE-YAML-RECORD
+  committed_source: 'core/components/plays/ux/scripts/persist_ux.py (main); core/components/plays/ux/scripts/lint_grounding.py
+    (main); .garura/project/issues/434/specs/schemas-v1/lens/ux.yaml (main, pre-existing)
+
+    '
+  category: memory
+  basis: P-UX-LENS-IS-MD-ONLY-NO-LIVE-YAML-RECORD
+  remediation: 'fixed in e408b9ba — the note now states no live lens/ux.yaml is ever
+    written and no linter reads one, and names the #434 STM snapshot as the only old-shape
+    copy. AUTHOR-VERIFIED (persist_ux.py read; the snapshot located at .garura/project/issues/434/specs/schemas-v1/lens/ux.yaml).
+    NOT reviewer-verified.'
+resolved_from_pass_1:
+- id: F1
+  category: memory
+  note: 'Settling this plainly, per direct instruction not to hedge: RESOLVED, not
+    partial. P-SCHEMA-EVOLUTION-PARKED only names a future process owner; it does
+    not prohibit a direct schema edit in v1 (no comm'
+- id: F2
+  category: memory
+  note: 'Header now reads "Accessibility is NOT restated here -- it lives in the MARKETING
+    lens (it moved there from the product profile; see grounding/lens/marketing.md)".
+    Agrees with this PR''s own ux.md and '
+- id: F3
+  category: memory
+  note: 'The lenses table now names flows, the per-screen object, per-state trigger,
+    and the correct accessibility owner. Matches the current ux.yaml/ux.md shape.
+    No longer stale.
+
+    '
