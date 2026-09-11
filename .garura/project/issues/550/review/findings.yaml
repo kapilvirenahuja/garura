@@ -1,0 +1,50 @@
+pr: 551
+issue: 550
+categories_reviewed:
+- harness (design-grounded)
+- code (linted + checks executed)
+- memory (design-grounded)
+- stm_run_artifacts (no playbook)
+counts:
+  P1: 0
+  P2: 1
+  P3: 0
+  P4: 1
+findings:
+- id: H-1
+  severity: P2
+  file: core/components/plays/ux/SKILL.md, core/components/plays/shape/SKILL.md
+  finding: 'Both plays'' Compilation Metadata sections carry a "Direct-edit deviation
+    note — INTENT CHANGE, HAND-COMPILED, CONVERGENCE UNVERIFIED" that self-reports
+    this PR''s ICE changes were hand-compiled into SKILL.md rather than produced by
+    an actual /play-editor run, because play-editor "is interactive-only ... and cannot
+    run headless in this environment." CLAUDE.md''s Play Pipeline Rules state an intent
+    change MUST go through the ICE source and be recompiled with /play-editor, and
+    "Never hand-edit a compiled SKILL.md for an intent change" — with no stated exception
+    for an interactive-only compiler. This pattern is NOT new to this PR (an identical
+    note already exists on main''s ux/SKILL.md from #500/#548), but this PR extends
+    it: it stacks a further un-converged intent change (#550''s persona/journey widening)
+    on top of a body that was never verified to match what play-editor would actually
+    emit, and re-states the same "REQUIRED" convergence run that has now gone undischarged
+    across at least three PR cycles (#500, #548/#467, #550) without one ever having
+    been scheduled or run.
+
+    '
+  principle_violated: P-PIPELINE-INTENT
+  committed_source: CLAUDE.md 'Play Pipeline Rules' (base ref, unchanged)
+  category: harness
+  basis: P-PIPELINE-INTENT
+- id: H-2
+  severity: P4
+  file: core/components/skills/author-shape-bundle/SKILL.md
+  finding: 'version bumped 0.3.0 -> 0.4.0 for an additive, backward-compatible change
+    (new optional persona fields; validate_shape.py warns, never errors, on their
+    absence). No committed versioning standard was found to ground a stricter rule
+    against this, so this is recorded as an observation, not a violation — flagged
+    only so it is visible alongside H-1''s provenance concerns.
+
+    '
+  principle_violated: null
+  committed_source: null
+  category: harness
+  basis: none

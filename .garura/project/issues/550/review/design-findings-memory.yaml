@@ -1,0 +1,94 @@
+category: memory
+task_id: null
+grounded_principles:
+  - id: schema-evolution-parked
+    statement: >
+      Schema evolution is parked for v1: a dedicated schema-evolution play will own it
+      later, and it implies migrating existing records to the new shape.
+    source: "core/components/memory/standards/schemas/product-os/_index.md (main, committed)"
+  - id: persona-record-purpose
+    statement: >
+      product-os.yaml permanently keeps the Domain->Capability->Functionality tree,
+      personas, and journeys; personas/journeys are written by /shape (and /understand).
+    source: "core/components/memory/standards/schemas/product-os/_index.md (main, committed)"
+  - id: ice-persona-wiring
+    statement: >
+      ice.yaml context.persona is a list of refs to persona records in product-os,
+      documented only as "WHO this serves" -- no committed expectation that the
+      referenced persona's `description` field must carry more than a short
+      identification.
+    source: "core/components/memory/standards/schemas/product-os/ice.yaml (main, committed)"
+  - id: no-other-committed-file-defines-description-contract
+    statement: >
+      No other committed schema/grounding doc (lens/ux.yaml, lens/_index.md, epic.yaml,
+      spine.yaml, grounding/epic.md, grounding/lens/ux.md, screen-inventory.yaml)
+      specifies what persona.description must contain; they only reference personas by
+      id/role, never by description content.
+    source: "grep across core/components/memory/standards/schemas/** on main (committed)"
+  - id: pr-severity-taxonomy
+    statement: "P1 blocker (breaking contract/migration safety); P2 major; P3 minor; P4 nit."
+    source: "core/components/memory/standards/rules/pr.md (main, committed)"
+
+verdicts:
+  - point: "1. Migration note required by the parked schema-evolution rule"
+    verdict: >
+      PASS. The change is additive and optional (new fields, no removed/renamed/required
+      field), so the base-ref principle's migration clause is not triggered in the way it
+      was for PR #549's breaking change -- no existing record is invalidated, so no forced
+      migration is owed. The PR nonetheless carries an explicit migration note describing
+      how to voluntarily bring an old record up to shape (split content out of
+      `description` by hand or on next write by the authoring play), and it correctly
+      scopes itself: "it IS the migration record ... asks for" but "NOT a substitute for
+      the parked schema-evolution play." That is the right level of compliance for an
+      additive change -- a heavier, versioned migration mechanism would overshoot what the
+      committed principle asks for at this stage.
+  - point: "2. Accuracy of the migration-note and inline-comment validation claims"
+    verdict: >
+      PASS, and both are now mutually consistent. Verified against the live
+      `core/components/plays/shape/scripts/validate_shape.py`: the persona loop
+      (lines ~102-113) ERRORS only on missing `id`/`name`; nothing in the script reads or
+      checks `description` or `node_ref`; `goals`/`cares_about`/`failure_means` are checked
+      only inside the WARNING branch (PERSONA_GROUNDING_FIELDS), never appended to
+      `errors`. This matches the migration note's claim exactly. Commit dfd95fd1 fixed the
+      second location (the inline field comment, which previously said "No validator
+      checks them") to match the migration note's already-correct claim -- both places now
+      agree and both are accurate.
+  - point: "3. Does a pre-#550 record (only id/name/description/node_ref) stay valid"
+    verdict: >
+      PASS. Checked a real griffin persona
+      (team-token-reporting/token-accounting/personas/engineering-lead.yaml) carrying only
+      id, name, description, node_ref, metadata. Against validate_shape.py's error checks
+      (id, name only) it produces zero errors -- only a warning for the three new fields,
+      which per SE-4 in shape/SKILL.md is explicitly non-blocking for records this run did
+      not write. Additive/optional holds in practice, not just in the comment.
+  - point: "4. Coherence: description narrowed to one line vs. other committed expectations"
+    verdict: >
+      PASS. ice.yaml's context.persona comment only describes personas as refs to
+      product-os persona records ("WHO this serves") and does not characterize
+      description's content. No other committed schema or grounding doc places a content
+      expectation on persona.description that the one-line narrowing would violate.
+  - point: "5. Staleness in other committed files describing the persona record"
+    verdict: >
+      PASS. Grepped every committed file under core/components/memory/standards/schemas
+      that mentions "persona" (lens/ux.yaml, lens/_index.md, epic.yaml, spine.yaml,
+      grounding/epic.md, grounding/lens/ux.md, screen-inventory.yaml). None describe the
+      shape of the persona record itself (they reference personas by id/role only), so
+      none are made stale by this change -- unlike PR #549's lens/_index.md, which did
+      describe the changed field and went unupdated.
+
+findings: []
+
+finding_count:
+  P1: 0
+  P2: 0
+  P3: 0
+  P4: 0
+
+summary: >
+  The 'memory' category (core/components/memory/standards/schemas/product-os/product-os.yaml)
+  conforms to every committed principle checked. The change is additive/optional as claimed,
+  a pre-#550 real persona record stays valid, the two validation-truth claims in the file
+  (migration note and inline field comment) are accurate and now agree with each other
+  (dfd95fd1 fixed the second one), no coherence conflict exists with ice.yaml's persona
+  wiring, and no other committed file describing the persona record was left stale. No
+  findings raised.
