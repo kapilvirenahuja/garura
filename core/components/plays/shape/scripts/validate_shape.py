@@ -8,6 +8,13 @@ draft). /shape SELECTS and COMPOSES — it does not create functionalities (so t
 functionality nodes/ICE to validate). It enforces:
 
   - schema: personas, journeys, decisions, and slices carry their required fields.
+  - persona grounding (#550, WARNING only): a persona should also carry `goals`, `cares_about`
+    and `failure_means` — the structured content downstream plays read instead of re-deriving
+    the person's goals from `description` prose every run. These three are ADDITIVE and OPTIONAL
+    in the schema, so a record written before #550 must not start failing: an absent field is a
+    WARNING, never an error. A warning against a persona the current run wrote is a defect for
+    the authoring skill to fix (see /shape SE-4 / REC5); a warning on a legacy record is just
+    visibility.
   - references: every slice `functionality_ref` resolves to a real functionality in the
     LIVE spine (the functionalities /understand created) — slices reference by spine id,
     never copy.
@@ -25,7 +32,8 @@ Layer rule: reads files on disk only; no git/gh/network.
     python3 validate_shape.py --root <product_base>/product-os --manifest <shape-manifest.yaml> \
                               --spine <live _spine.yaml>
 
-Prints {ok, errors[], counts} JSON. Exit 0 clean, 1 on violation, 2 usage error.
+Prints {ok, errors[], warnings[], counts} JSON. Exit 0 clean, 1 on violation, 2 usage error.
+Warnings never affect `ok` or the exit code.
 """
 
 import argparse
@@ -43,6 +51,9 @@ except ImportError:
 PLAN_KEYS = ("order", "effort", "depends_on")
 DESIGN_KEYS = ("wireframe", "components", "layout", "visual", "mockup")
 VALID_STATUS_FLIP = {"active", "deprecated"}
+# Structured persona grounding (#550) — additive + optional in the schema, so absence is a
+# WARNING, never an error: a persona record written before #550 must keep validating.
+PERSONA_GROUNDING_FIELDS = ("goals", "cares_about", "failure_means")
 
 
 def load(path):
@@ -83,7 +94,7 @@ def main(argv=None):
     spine = load(args.spine)
     live_func_ids = {f.get("id") for f in (spine.get("functionalities") or []) if isinstance(f, dict)}
 
-    errors = []
+    errors, warnings = [], []
     counts = {"persona": 0, "journey": 0, "decision": 0, "slice": 0, "surface": 0}
 
     persona_ids = collect_persona_ids(live_records_root)
@@ -95,6 +106,12 @@ def main(argv=None):
         for f in ("id", "name"):
             if _empty(per.get(f)):
                 errors.append(f"{p}: persona missing '{f}'")
+        for f in PERSONA_GROUNDING_FIELDS:
+            if _empty(per.get(f)):
+                warnings.append(f"{p}: persona '{per.get('id')}' missing '{f}' — "
+                                f"structured grounding (#550) is "
+                                f"optional for records written before it, but a persona written "
+                                f"now must carry goals, cares_about and failure_means")
 
     # --- journeys ------------------------------------------------------------
     journey_surface_refs = set()
@@ -216,7 +233,7 @@ def main(argv=None):
     if prunes and not declared_decisions:
         errors.append(f"prunes {prunes} but no decisions declared in the manifest")
 
-    result = {"ok": not errors, "errors": errors, "counts": counts}
+    result = {"ok": not errors, "errors": errors, "warnings": warnings, "counts": counts}
     print(json.dumps(result, indent=2))
     return 0 if not errors else 1
 

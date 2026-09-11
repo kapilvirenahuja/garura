@@ -1,7 +1,7 @@
 ---
 name: author-shape-bundle
-description: Author /shape's selection-and-composition bundle for one domain — confirm or prune each capability against the firmed profile + KB, SELECT which of the functionalities /understand already created to build now, place every functionality into a slice or the _deferred bucket, create the persona and USER journey records, the decisions, AND compose the domain's vertical slices. Every slice is a user-facing vertical — it names at least one surface (a screen/view a named persona opens and checks) scaffolded incrementally, and journeys run on those surfaces; a backend-only slice is invalid. Surfaces are NAMED, not designed. Slices reference functionalities by spine id, carry no order/effort/dependencies (that is /roadmap). It does NOT create functionalities or author ICE — /understand did. Under direct-model-write (ADR 026) it writes the per-node RECORDS (each slice, persona, journey, decision, and the _deferred bucket) straight to the live model, with stable ids so re-runs don't duplicate, and emits the spine-delta (capability status flips, the slices index, the refs) as structured data in the manifest — it NEVER writes `_spine.yaml` or the profile. Generative artifact production for the /shape play.
-version: 0.3.0
+description: Author /shape's selection-and-composition bundle for one domain — confirm or prune each capability against the firmed profile + KB, SELECT which of the functionalities /understand already created to build now, place every functionality into a slice or the _deferred bucket, create the persona and USER journey records, the decisions, AND compose the domain's vertical slices. Every persona record carries structured grounding — goals (outcomes in the person's own words), cares_about (their trust criteria), failure_means (what a miss looks like for them) — read off the capability's ICE and the firmed profile, with description kept to the one-line who-they-are summary. Every slice is a user-facing vertical — it names at least one surface (a screen/view a named persona opens and checks) scaffolded incrementally, and journeys run on those surfaces; a backend-only slice is invalid. Surfaces are NAMED, not designed. Slices reference functionalities by spine id, carry no order/effort/dependencies (that is /roadmap). It does NOT create functionalities or author ICE — /understand did. Under direct-model-write (ADR 026) it writes the per-node RECORDS (each slice, persona, journey, decision, and the _deferred bucket) straight to the live model, with stable ids so re-runs don't duplicate, and emits the spine-delta (capability status flips, the slices index, the refs) as structured data in the manifest — it NEVER writes `_spine.yaml` or the profile. Generative artifact production for the /shape play.
+version: 0.4.0
 user-invocable: false
 model: opus
 allowed-tools: Read, Write, Bash, Glob
@@ -95,6 +95,41 @@ ids are non-negotiable.
    surface to reach an outcome, never a backend pipeline. Each journey lists its
    `surface_refs` (the slice surface ids it runs on) and its steps. Stable ids from name/slug.
 
+   **Every persona you write carries structured grounding. This is not optional for you.**
+   A persona is WHO the work is for; an intent says what should be true, the persona says for
+   whom. Downstream plays read these fields instead of re-deriving the person's goals from
+   prose differently every run. Read them OFF the capability's `ice.yaml` (its intent,
+   constraints, failure conditions) and the firmed product profile — never invent them. Write
+   four things, and keep them separate:
+
+   - `description` — **one line, who they are.** Their role and their relationship to this
+     capability. Nothing else. Do NOT cram their needs or their trust criteria in here: those
+     have their own fields now, and a description that carries everything is the exact drift
+     this replaces. Bad: *"A pilot-team engineer whose machine the collector runs on. They need
+     to inspect exactly what leaves that machine, confirm nightly reporting is working, and read
+     consistent read-only usage answers with matching CSV."* Good: *"A pilot-team engineer whose
+     machine the collector runs on."*
+   - `goals` — **3–5 outcomes in THEIR words.** What this person is trying to achieve, stated
+     as the end state they want, never as a feature, a screen, or a solution. Say "I know
+     exactly what left my machine", not "an egress inspection view". Each goal must trace to
+     something the capability's ICE says should be true; if you cannot point at it, it is not
+     a goal of this persona.
+   - `cares_about` — **the checks they would run before trusting the thing.** What they judge
+     it by: accuracy, freshness, reversibility, privacy, cost, speed to an answer, whether two
+     views agree. Pull these from the capability's constraints and the profile's non-functional
+     stance. These are criteria, not wishes — each should be something a person could actually
+     check.
+   - `failure_means` — **one sharp sentence: what a miss looks like for THEM.** This is the
+     sharpest field and the easiest to write limply. Name the concrete bad outcome they would
+     experience, not the absence of a feature. Bad: *"the feature does not work well."* Good:
+     *"They ship a report they cannot defend, because the CSV and the on-screen number
+     disagree and they had no way to tell which one left their machine."* Ground it in the
+     capability's failure conditions.
+
+   `validate_shape.py` warns — it does not error — on a persona missing these three fields,
+   because records written before #550 must keep validating. A warning against a persona YOU
+   wrote this run is a defect to fix, not noise to carry.
+
 5. **Record decisions (records, in place).** Write one decision (ADR) record per prune and per
    material selection choice, at the right level (capability or functionality), straight to
    the live model.
@@ -137,6 +172,31 @@ ids are non-negotiable.
 
 You do NOT write `{product_base}product-os/_spine.yaml` or the profile — the keyed persist
 writes the spine from the manifest's `spine_delta`.
+
+A persona record separates who-they-are from what they want and what they judge it by:
+
+```yaml
+persona:
+  id: persona-pilot-engineer
+  name: "Pilot-team engineer"
+  description: "A pilot-team engineer whose machine the collector runs on."   # ONE LINE — who, nothing else
+  node_ref: cap-local-usage-collection
+  goals:                                            # outcomes in THEIR words, never features
+    - "I know exactly what leaves my machine, before it leaves"
+    - "I can tell at a glance that last night's reporting actually ran"
+    - "I can answer a usage question for my team without waiting on anyone"
+  cares_about:                                      # their trust criteria — checkable, not wishes
+    - "the CSV and the on-screen number always agree"
+    - "nothing is collected that I have not seen the full list of"
+    - "reading an answer can never change anything"
+    - "a stale answer is visibly stale, not silently old"
+  failure_means: >                                  # ONE sharp sentence — what a miss looks like for THEM
+    They ship a usage number they cannot defend, because the CSV and the screen
+    disagree and there was no way to tell what actually left their machine.
+  metadata:
+    created_by: author-shape-bundle
+    version: 1
+```
 
 A slice record references functionalities by their spine id; the surface is named, not designed:
 
@@ -208,6 +268,11 @@ Return the enriched contract with the record paths on the live model and the
   surface a persona opens and checks; a backend-only or one-per-capability horizontal slice
   is invalid. NAME the surface, never DESIGN it; the surface is a thin scaffold, not the
   whole UI.
+- **Personas are grounding, not decoration.** Every persona record you write carries `goals`
+  (outcomes in their words), `cares_about` (their trust criteria) and `failure_means` (one
+  sharp sentence on what a miss looks like for them), each read off the capability's `ice.yaml`
+  and the firmed profile — never invented. `description` stays ONE LINE of who they are;
+  splitting those three out of it is the point.
 - **Journeys are user journeys.** Each journey traverses a named surface via `surface_refs`;
   every surface a slice names is reached by at least one journey.
 - **Slices reference by spine id.** A slice points at each functionality by its spine

@@ -1,0 +1,40 @@
+{
+  "pr_number": "551",
+  "base": "main",
+  "changed_paths": [
+    ".garura/project/issues/550/context/analysis.yaml",
+    ".garura/project/issues/550/context/branch.json",
+    ".garura/project/issues/550/context/commits.yaml",
+    ".garura/project/issues/550/context/issue.json",
+    ".garura/project/issues/550/context/porcelain.txt",
+    ".garura/project/issues/550/context/pr-body.md",
+    ".garura/project/issues/550/context/pr.json",
+    ".garura/project/issues/550/context/resolved-rules.json",
+    ".garura/project/issues/550/context/self-review.md",
+    ".garura/project/issues/550/context/work-description.txt",
+    "core/components/agents/product-os-keeper.md",
+    "core/components/memory/standards/schemas/product-os/product-os.yaml",
+    "core/components/plays/agentic/scripts/check_ready_slice.py",
+    "core/components/plays/arch/scripts/check_ready_slice.py",
+    "core/components/plays/grill/scripts/check_ready_slice.py",
+    "core/components/plays/marketing/scripts/check_ready_slice.py",
+    "core/components/plays/measure/scripts/check_ready_slice.py",
+    "core/components/plays/quality/scripts/check_ready_slice.py",
+    "core/components/plays/run/scripts/check_ready_slice.py",
+    "core/components/plays/shape/SKILL.md",
+    "core/components/plays/shape/reference/ice.md",
+    "core/components/plays/shape/scripts/validate_shape.py",
+    "core/components/plays/ux/SKILL.md",
+    "core/components/plays/ux/reference/ice.md",
+    "core/components/plays/ux/scripts/check_ready_slice.py",
+    "core/components/plays/ux/scripts/validate_ux.py",
+    "core/components/skills/author-shape-bundle/SKILL.md",
+    "core/components/skills/author-ux-lens/SKILL.md"
+  ],
+  "standards_order": [
+    "kb",
+    "ltm",
+    "stm"
+  ],
+  "review_shelf": "./.garura/core/memory/knowledge/review/"
+}

@@ -1,0 +1,91 @@
+# categories.yaml — Job 1 output (assessment only, no design-grounding)
+# PR #551, issue 550, base main
+
+shelf_path_note: >
+  context.yaml names review_shelf as "./.garura/core/memory/knowledge/review/", which does
+  not exist in this repo (confirmed missing). Used the committed source shelf at
+  "core/components/memory/knowledge/review/" instead (present: _index.md, adrs.md, code.md,
+  config-maps.md, docs.md, harness.md, memory.md, tests.md). The configured path in
+  context.yaml is a defect and should be fixed, not silently routed around.
+
+categories:
+  - name: Harness
+    design_bearing: true
+    playbook: review/harness
+    playbook_path: core/components/memory/knowledge/review/harness.md
+    evidence:
+      - core/components/agents/product-os-keeper.md
+      - core/components/plays/shape/SKILL.md
+      - core/components/plays/shape/reference/ice.md
+      - core/components/plays/ux/SKILL.md
+      - core/components/plays/ux/reference/ice.md
+      - core/components/skills/author-shape-bundle/SKILL.md
+      - core/components/skills/author-ux-lens/SKILL.md
+    note: >
+      Agent definition, two plays' SKILL.md + ICE source (shape, ux), and two skills'
+      SKILL.md. This is the harness signal set per harness.md conditions
+      (core/components/plays/**, core/components/skills/**, core/components/agents/**).
+
+  - name: Executable code
+    design_bearing: false
+    playbook: review/code
+    playbook_path: core/components/memory/knowledge/review/code.md
+    evidence:
+      - core/components/plays/agentic/scripts/check_ready_slice.py
+      - core/components/plays/arch/scripts/check_ready_slice.py
+      - core/components/plays/grill/scripts/check_ready_slice.py
+      - core/components/plays/marketing/scripts/check_ready_slice.py
+      - core/components/plays/measure/scripts/check_ready_slice.py
+      - core/components/plays/quality/scripts/check_ready_slice.py
+      - core/components/plays/run/scripts/check_ready_slice.py
+      - core/components/plays/ux/scripts/check_ready_slice.py
+      - core/components/plays/shape/scripts/validate_shape.py
+      - core/components/plays/ux/scripts/validate_ux.py
+    note: >
+      10 python scripts under plays/**/scripts/*.py. code.md explicitly names this exact
+      pattern (check_ready_slice.py-style scripts inside plays) as the in-repo instance of
+      this category, distinct from the harness category even though the files sit inside a
+      play directory. Layer 1 only (language linter + quality-check-scoped/pr.md), no
+      design-grounding — standard is industry best practice, not a garura-internal design.
+
+  - name: Memory
+    design_bearing: true
+    playbook: review/memory
+    playbook_path: core/components/memory/knowledge/review/memory.md
+    evidence:
+      - core/components/memory/standards/schemas/product-os/product-os.yaml
+    note: >
+      A schema under memory/standards/schemas/ — shapes what every downstream agent/play
+      believes about the product-os data model. Matches memory.md's signal
+      "memory/standards/**".
+
+  - name: STM run records (process/evidence artifacts)
+    design_bearing: false
+    playbook: null
+    playbook_note: "playbook missing — no seeded category on the review shelf covers this"
+    evidence:
+      - .garura/project/issues/550/context/analysis.yaml
+      - .garura/project/issues/550/context/branch.json
+      - .garura/project/issues/550/context/commits.yaml
+      - .garura/project/issues/550/context/issue.json
+      - .garura/project/issues/550/context/porcelain.txt
+      - .garura/project/issues/550/context/pr-body.md
+      - .garura/project/issues/550/context/pr.json
+      - .garura/project/issues/550/context/resolved-rules.json
+      - .garura/project/issues/550/context/self-review.md
+      - .garura/project/issues/550/context/work-description.txt
+    note: >
+      Machine-generated STM (short-term memory) records written by the issue-550 pipeline run
+      itself (branch/commit/PR metadata, analysis output, self-review, work description) —
+      not human-authored design, harness code, memory, or an ADR. None of the seeded
+      categories (decision records, docs, harness, memory, executable code, config maps,
+      tests) recognise this content by its conditions. A read of the content (not just the
+      path) confirms these are pipeline evidence, matching the recent repo pattern of
+      "chore(stm): record ..." commits. Flagging as a genuinely new category with no playbook
+      rather than force-fitting it under "Documentation" (docs.md explicitly excludes
+      framework "code"/knowledge files but says nothing about excluding auto-generated
+      process records either way — the shelf simply has no category for this).
+
+absent_categories_note: >
+  No decision records (ADRs), human-facing documentation prose, config maps, or automated
+  test files are present in this diff. These are simply absent, not a failure to find them.

@@ -43,14 +43,58 @@ structure:
   functionality: { parent: capability, child: none }
 
 # ---- Persona record (persistent, attached to a node) -----------------------
+# A persona is WHO the work is for. It is first-class grounding, not decoration: an
+# ICE record names its personas by reference (ice.yaml `context.persona: []`), so an
+# intent that says what should be true points HERE for whom it should be true. Both
+# /understand and /shape write persona records. Structured content (goals /
+# cares_about / failure_means) exists so downstream plays READ the person's goals
+# rather than re-derive them from prose differently every run.
 persona:
   id: string
   name: string            # e.g. "Guest shopper on mobile"
-  description: string     # who they are and what they need
+  description: string     # ONE-LINE prose: who they are. Nothing else — their goals,
+                          # trust criteria and failure bar live in the fields below,
+                          # so this field does not drift back into carrying everything.
   node_ref: string        # node (usually capability) this persona belongs to
+
+  # ---- Structured grounding ----
+  # ADDITIVE and OPTIONAL: a record written before issue #550 that carries only
+  # `description` stays valid, and nothing rewrites it. Every persona written from
+  # now on should carry all three — the writing play (/understand, /shape) fills
+  # them. Nothing ERRORS on them; /shape's validator WARNS when one is missing (see the
+  # migration note below for the full validation truth).
+  goals: [string]         # what this person is trying to achieve — outcomes in THEIR
+                          # words, never features or solutions
+  cares_about: [string]   # what they judge the thing by when deciding whether to
+                          # trust it
+  failure_means: string   # what makes the thing a failure for THEM specifically — the
+                          # bar a downstream play checks itself against to know it missed
+
   metadata:
     created_by: string
     version: integer
+
+# ---- Migration note: structured persona grounding (issue #550) --------------
+# Added: `goals`, `cares_about`, `failure_means` on the persona record; `id`, `name`,
+#   `description`, `node_ref` and `metadata` are unchanged.
+# Additive and optional: no existing persona record breaks — one carrying only
+#   `description` remains valid exactly as written.
+# Bringing an existing record up to shape: split the three fields OUT of the prose
+#   already sitting in `description` (it typically crams who-they-are, what-they-need
+#   and what-they-must-trust into one sentence), and leave `description` behind as the
+#   one-line who-they-are summary. Done by hand, or by the writing play the next time
+#   it touches that persona. No script performs this migration.
+# Validation truth — claim nothing more: `core/components/plays/shape/scripts/validate_shape.py`
+#   ERRORS on only `id` and `name`; `description` and `node_ref` are checked by nothing.
+#   The three new fields are WARNINGS there (#550): the script reads them and warns when a
+#   persona lacks one, so a newly written record is visibly incomplete, but the run still
+#   passes — which is what keeps pre-#550 records valid. /shape's own eval (SE-4) turns a
+#   warning into a gap ONLY for a persona that run actually wrote. Nothing errors on them,
+#   and no other validator or linter reads them at all.
+# Status of this note: it IS the migration record that `enhance_rules` /
+#   `schemas/product-os/_index.md` ask for when a permanent record type changes. It is
+#   NOT a substitute for the parked schema-evolution play, which still owns versioned
+#   migration when it exists.
 
 # ---- Journey record (persistent, attached to a node) -----------------------
 # A journey is a USER journey: the ordered steps a persona takes ON a surface to reach

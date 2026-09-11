@@ -1,0 +1,19 @@
+ M core/components/agents/product-os-keeper.md
+ M core/components/memory/standards/schemas/product-os/product-os.yaml
+ M core/components/plays/agentic/scripts/check_ready_slice.py
+ M core/components/plays/arch/scripts/check_ready_slice.py
+ M core/components/plays/grill/scripts/check_ready_slice.py
+ M core/components/plays/marketing/scripts/check_ready_slice.py
+ M core/components/plays/measure/scripts/check_ready_slice.py
+ M core/components/plays/quality/scripts/check_ready_slice.py
+ M core/components/plays/run/scripts/check_ready_slice.py
+ M core/components/plays/shape/SKILL.md
+ M core/components/plays/shape/reference/ice.md
+ M core/components/plays/shape/scripts/validate_shape.py
+ M core/components/plays/ux/SKILL.md
+ M core/components/plays/ux/reference/ice.md
+ M core/components/plays/ux/scripts/check_ready_slice.py
+ M core/components/plays/ux/scripts/validate_ux.py
+ M core/components/skills/author-shape-bundle/SKILL.md
+ M core/components/skills/author-ux-lens/SKILL.md
+?? .garura/project/issues/550/context/porcelain.txt

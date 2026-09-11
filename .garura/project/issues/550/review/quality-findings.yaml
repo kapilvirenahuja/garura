@@ -1,0 +1,136 @@
+meta:
+  generated_at: "2026-09-11T07:48:52Z"
+  category: code
+  playbook: review/code
+  playbook_path: core/components/memory/knowledge/review/code.md
+  diff_path: <scratchpad>/code.diff
+  taxonomy_path: core/components/memory/standards/rules/pr.md
+  changed_paths_count: 10
+  scan_coverage: 1.0
+  standards_relevant: 0
+  catchall:
+    CODE-20: 10
+  checks_run:
+    - name: quality-check-scoped taxonomy scan (scan_taxonomy.py)
+      command: >-
+        python3 core/components/skills/quality-check-scoped/scripts/scan_taxonomy.py
+        --taxonomy core/components/memory/standards/rules/pr.md
+        --diff <scratchpad>/code.diff --out <scratchpad>/code-scan-output.yaml
+      exit_code: 0
+      result: "P1=0 P2=0 P3=0 P4=0, CODE-20 catch-all=10, errors=0"
+      note: >-
+        Zero CODE-*/SEC-*/ARCH-* findings is expected, not a gap in coverage: all 10 paths
+        sit under core/components/**, which pr.md's own Artifact-Type Scoping table
+        classifies as artifact_type=garura-prose (first-match glob, ahead of any code-type
+        default). Per the #454 prose guard, a pure path: rule only fires on a prose artifact
+        type when the matched glob is itself docs-targeting (.md/.rst/.txt, docs/, or a named
+        doc file) — none of the CODE-03..19 path globs (**/*.{py,...}) qualify, so they never
+        fire on a play script anywhere in this repo, PR-551 included. Only CODE-20 (the
+        path:**/* catch-all, P4, suppressed by default) is exempt from that guard and fires
+        on every changed path. This is a pre-existing property of pr.md's classification
+        table, unrelated to this PR's diff — flagged here as context, not as a finding
+        against PR-551.
+    - name: py_compile (all 10 changed python files)
+      command: "python3 -m py_compile <file>"
+      files:
+        - core/components/plays/agentic/scripts/check_ready_slice.py
+        - core/components/plays/arch/scripts/check_ready_slice.py
+        - core/components/plays/grill/scripts/check_ready_slice.py
+        - core/components/plays/marketing/scripts/check_ready_slice.py
+        - core/components/plays/measure/scripts/check_ready_slice.py
+        - core/components/plays/quality/scripts/check_ready_slice.py
+        - core/components/plays/run/scripts/check_ready_slice.py
+        - core/components/plays/ux/scripts/check_ready_slice.py
+        - core/components/plays/shape/scripts/validate_shape.py
+        - core/components/plays/ux/scripts/validate_ux.py
+      exit_code: 0
+      result: "all 10 files compile cleanly, no syntax errors"
+    - name: ruff check (language linter, no repo-level pyproject/ruff config present — ruff defaults)
+      command: "ruff check <10 changed files>"
+      exit_code: 0
+      result: "All checks passed! — zero lint violations"
+    - name: 8-way identity check on check_ready_slice.py (is the shared-script change really identical everywhere?)
+      command: "md5 + pairwise diff across all 8 play copies"
+      result: >-
+        7 of 8 copies (agentic, arch, marketing, measure, quality, run, ux) are byte-identical
+        (md5 dd3dd773...). grill's copy differs, but ONLY in lines that predate this PR: grill
+        already carried an extra C1/F2 precondition (slice must be status=realized + all 7 lens
+        docs present) before this diff landed, confirmed by diffing each file's pre-PR
+        (git show main:...) baseline — the pre-PR baselines already differed in exactly those
+        lines. `git diff main` for grill's file (166 lines) is byte-identical to agentic's
+        166-line diff once diff headers are excluded. Conclusion: the diff this PR introduces
+        is identical across all 8 copies; no drift was introduced by this change.
+    - name: check_ready_slice.py — additive-claim + new loud-fail conditions, executed against a real model (read-only)
+      note: >-
+        Ran (never wrote) against Griffin's live worktree product-os at
+        /Users/kapilahuja/cto/builder/griffin/.claude/worktrees/ux-trusted-local-collection/.garura/product,
+        slice slice-trusted-local-collection. Negative fixtures built by copying that
+        product-os tree into the scratchpad and mutating copies there (scratchpad only,
+        nothing written to Griffin or to this repo).
+      runs:
+        - case: "positive — real model, all refs resolve"
+          command: "python3 core/components/plays/agentic/scripts/check_ready_slice.py --product-base <griffin> --slice slice-trusted-local-collection"
+          exit_code: 0
+          result: >-
+            ok:true, 0 errors; all pre-existing output keys present unchanged
+            (ok/errors/slice_id/domain/slice_file/lens_dir/functionality_groundings) plus the
+            new additive personas[]/journeys[] — confirms the additive claim on the happy path.
+        - case: "negative 1 — surface.persona_ref opens no persona record (deleted the persona file)"
+          exit_code: 1
+          result: "loud-fails as documented: \"surface 'surface-collector-cli' names persona 'engineer', which opens no persona record on disk\""
+        - case: "negative 2 — a slice surface reached by no journey (deleted the journey covering it)"
+          exit_code: 1
+          result: "loud-fails as documented: \"surface 'surface-collector-cli' is reached by no journey record\""
+        - case: "negative 3 — a resolved journey's own persona_ref opens no record (edited journey's persona_ref to a bogus id)"
+          exit_code: 1
+          result: "loud-fails as documented: \"journey '...' names persona 'nonexistent-persona', which opens no persona record on disk\""
+        - case: "pre-existing exit codes unchanged"
+          exit_code: "1 (not-found), 2 (usage error)"
+          result: "no-spine/slice-not-found still exit 1 with errors[]; missing --product-base/--slice still exits 2 with argparse usage error — confirms exit-behaviour is unchanged"
+      conclusion: >-
+        All three new C1/F1 loud-fail conditions fire exactly as documented; existing output
+        keys and exit codes are unchanged; the additive claim holds.
+    - name: validate_ux.py --readiness (new C14/F15 flow-resolution check, runnable logic actually executed)
+      note: >-
+        No live ux manifest/readiness pair exists in this self-hosting repo (validate_ux.py
+        runs against a target product's model). Built a synthetic manifest + used the real
+        check_ready_slice.py readiness JSON (captured from the Griffin read above) to
+        actually execute check_readiness() end to end.
+      runs:
+        - case: "positive — flow names a journey_ref/persona_ref that resolve, persona matches the journey's own persona_ref, the one resolved journey is expanded"
+          exit_code: 0
+          result: "ok:true, 0 errors, resolved_personas=2, resolved_journeys=1, flows_grounded=1"
+        - case: "negative — flow names a journey_ref that resolves to nothing in the readiness JSON"
+          exit_code: 1
+          result: "2 errors: unresolved journey_ref on the flow, AND the real journey left unexpanded by any flow"
+        - case: "negative — flow's persona_ref does not match the journey record's own persona_ref"
+          exit_code: 1
+          result: "1 error: \"names persona 'platform-operator', but journey '...' serves 'engineer'\""
+        - case: "negative — a resolved journey is expanded by no flow (flows list emptied)"
+          exit_code: 1
+          result: "1 error: \"journey '...' of the slice is expanded by no flow\""
+        - case: "--readiness omitted entirely (backward-compat check)"
+          exit_code: 0
+          result: "ok:true — degrades to a warning only (\"--readiness was not passed... skipped\"), never an error; confirms the flag is genuinely optional/additive"
+      conclusion: >-
+        All 4 documented behaviours of --readiness (name-resolves, persona-matches,
+        reverse-coverage, optional-degrades-to-warning) fire exactly as claimed.
+    - name: validate_shape.py — new persona-grounding check is WARN-only, never an error
+      note: >-
+        Built a minimal self-contained fixture (personas/journeys/slices/spine/manifest in
+        scratchpad) with one persona missing goals/cares_about/failure_means and one persona
+        carrying all three.
+      command: >-
+        python3 core/components/plays/shape/scripts/validate_shape.py --root <fixture>/root
+        --manifest <fixture>/manifest.yaml --spine <fixture>/spine.yaml
+      exit_code: 0
+      result: >-
+        ok:true, errors:[] — the incomplete persona produces exactly 3 warnings (one per
+        missing field: goals, cares_about, failure_means), the complete persona produces zero;
+        `ok` and the exit code are unaffected either way, confirming the warn-only claim.
+findings: []
+counts:
+  P1: 0
+  P2: 0
+  P3: 0
+  P4: 0

@@ -1,0 +1,102 @@
+category: harness
+grounded_principles:
+  - id: P-PIPELINE-INTENT
+    statement: >
+      An intent change (anything touching what a play decides or guarantees — intent
+      statement, constraints, failure conditions, scenarios, agent/skill flow, evals) MUST
+      go through the play's ICE source (reference/ice.md) and be recompiled with
+      /play-editor. Hand-editing a compiled SKILL.md for an intent change is forbidden
+      ("Never hand-edit a compiled SKILL.md for an intent change"). No carve-out is stated
+      for play-editor being interactive-only.
+    source: "CLAUDE.md (committed on main, unchanged by this PR) — 'Play Pipeline Rules'"
+  - id: P-AGENT-CONTEXT-SKILL-ARTIFACT
+    statement: >
+      Agents craft context (discover/resolve what's relevant, hand it to skills); skills
+      execute and produce artifacts. Skills do not discover context themselves — the agent
+      hands them the paths. This is the boundary between the two roles.
+    source: "docs/philosophy/architecture.md:165, :308 (base ref, unchanged by this PR)"
+  - id: P-DIRECT-MODEL-WRITE
+    statement: >
+      Every model-writing play (including /ux and /shape) writes the live product model
+      directly in place; the LLM skill writes only per-node docs/records, a keyed
+      deterministic script owns every shared-file mutation, and the checkpoint is
+      write-then-review with commit only after an approved gate.
+    source: "core/components/memory/standards/rules/direct-model-write.md (base ref); ADR 026 (docs/adr/026-direct-to-model-writes.md)"
+  - id: P-STRUCTURAL-CONFORMANCE
+    statement: >
+      A play's compiled SKILL.md must pass lint_play.py (section presence, failure/
+      constraint/scenario coverage, 1:1 recovery, no orphan refs, a real intent
+      fingerprint) as the mechanical Layer-1 gate underneath any design judgement.
+    source: "core/components/plays/play-editor/scripts/lint_play.py (base ref, unchanged logic)"
+verification:
+  fingerprints:
+    ux_reference_ice_md: "sha256:67b7f3456d55a8bde6113ead52a92603448b91b932d36412074fddd7bb6bb931 — MATCHES SKILL.md Compilation Metadata table"
+    shape_reference_ice_md: "sha256:aa78eaf241793abc9dcd126d1520ed7112c54826fbab0b75b539d4c10951818a — MATCHES SKILL.md Compilation Metadata table"
+  lint_play_py:
+    ux_SKILL_md: "PASS, 0 gaps"
+    shape_SKILL_md: "PASS, 0 gaps"
+  ice_element_counts:
+    ux:
+      base_main:    { C: 14, F: 15, S: 7, REC: 15 }
+      pr_head:      { C: 14, F: 15, S: 7, REC: 15 }
+      verdict: "UNCHANGED — matches PR claim (14/15/7/15). Diffed line-by-line: every touched clause (Intent hub prose, C1, C7, C14, F1, F15, S3, REC1, REC15) is an added clause inside an EXISTING numbered element, no new C/F/S/REC id introduced."
+    shape:
+      base_main:    { C: 15, F: 16, S: 8, REC: 16 }
+      pr_head:      { C: 15, F: 16, S: 8, REC: 16 }
+      verdict: "UNCHANGED — matches PR claim (15/16/8/16). Recompiled note states the persona-grounding guarantee grew inside the existing C5/F5/REC5/SE-4/S1/SCE-1 elements; counts confirmed identical to base."
+  hub_wiring_consistency:
+    result: >
+      Traced end-to-end on /ux: check_ready_slice.py resolves personas[]/journeys[] and
+      LOUD-FAILS on a dangling persona_ref or an unreached surface (C1/F1) -> Step 1's
+      contract hands readiness.personas[]/journeys[] to author-ux-lens -> author-ux-lens's
+      declared inputs table lists `personas` (required) and `journeys` (required) and its
+      body instructs expanding one flow per journey record, never inventing one -> the
+      manifest schema carries journey_ref/persona_ref for cross-check by validate_ux.py.
+      No dangling guarantee found (the defect this issue exists to fix — a widened hub with
+      no input wired to satisfy it — did not recur).
+  agent_skill_boundary:
+    result: >
+      product-os-keeper.md's diff is confined to two routing-table description edits
+      (author-ux-lens's row + the trigger-phrase table) describing what the skill now reads
+      and produces; the agent still does not perform the drafting itself ("Draft only" is
+      retained verbatim) and does not gain new logic. Conforms to P-AGENT-CONTEXT-SKILL-ARTIFACT.
+findings:
+  - id: H-1
+    severity: P2
+    file: "core/components/plays/ux/SKILL.md, core/components/plays/shape/SKILL.md"
+    finding: >
+      Both plays' Compilation Metadata sections carry a "Direct-edit deviation note —
+      INTENT CHANGE, HAND-COMPILED, CONVERGENCE UNVERIFIED" that self-reports this PR's
+      ICE changes were hand-compiled into SKILL.md rather than produced by an actual
+      /play-editor run, because play-editor "is interactive-only ... and cannot run
+      headless in this environment." CLAUDE.md's Play Pipeline Rules state an intent
+      change MUST go through the ICE source and be recompiled with /play-editor, and
+      "Never hand-edit a compiled SKILL.md for an intent change" — with no stated
+      exception for an interactive-only compiler. This pattern is NOT new to this PR (an
+      identical note already exists on main's ux/SKILL.md from #500/#548), but this PR
+      extends it: it stacks a further un-converged intent change (#550's persona/journey
+      widening) on top of a body that was never verified to match what play-editor would
+      actually emit, and re-states the same "REQUIRED" convergence run that has now gone
+      undischarged across at least three PR cycles (#500, #548/#467, #550) without one
+      ever having been scheduled or run.
+    principle_violated: P-PIPELINE-INTENT
+    committed_source: "CLAUDE.md 'Play Pipeline Rules' (base ref, unchanged)"
+  - id: H-2
+    severity: P4
+    file: "core/components/skills/author-shape-bundle/SKILL.md"
+    finding: >
+      version bumped 0.3.0 -> 0.4.0 for an additive, backward-compatible change (new
+      optional persona fields; validate_shape.py warns, never errors, on their absence).
+      No committed versioning standard was found to ground a stricter rule against this,
+      so this is recorded as an observation, not a violation — flagged only so it is
+      visible alongside H-1's provenance concerns.
+    principle_violated: null
+    committed_source: null
+status: completed
+notes: >
+  All findings are grounded from main (CLAUDE.md, docs/philosophy/architecture.md,
+  standards/rules/direct-model-write.md, ADR 026, lint_play.py) or from independent
+  mechanical verification (shasum, lint_play.py execution, manual ICE element counts and
+  line-by-line diff against main). No principle was reconstructed from this branch's own
+  added prose. The 'memory' category (schema/scripts changes to product-os.yaml,
+  check_ready_slice.py etc.) is out of scope for this dispatch and is grounded separately.

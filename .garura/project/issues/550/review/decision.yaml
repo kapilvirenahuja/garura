@@ -1,0 +1,14 @@
+decided_by: harness
+gate: "off per gates.plays.review-change"
+decision: approve
+reason: "no P1 findings; confidence acceptable"
+blocking: []
+open_non_blocking:
+  - { id: harness-P2, severity: P2, category: harness,
+      finding: "both plays carry a hand-compile deviation note; play-editor is interactive-only and cannot run headless, so convergence with a real compiler run is unverified",
+      basis: "CLAUDE.md play-pipeline rule (main)",
+      note: "PRE-EXISTING — the note is already on main from #500; this PR carries it forward, it does not introduce it" }
+  - { id: harness-P4, severity: P4, category: harness,
+      finding: "author-shape-bundle version bumped 0.3.0 -> 0.4.0 for an additive backward-compatible change",
+      basis: informational }
+counts: { P1: 0, P2: 1, P3: 0, P4: 1 }
