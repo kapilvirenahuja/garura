@@ -9,8 +9,10 @@ Given one shaped **slice** — a vertical product increment from /shape, the thi
 deliver — write its **UX lens** as a grounding doc (`ux.md`): just enough to anchor the
 intended experience and let the build figure the rest. The slice is the unit of realization; a
 slice has no ICE of its own — its **hub** is the union of its functionalities' grounding docs
-(`functionality.md`, which may span several capabilities) plus the product profile (read from
-the spine). The lens is four things and only four: the **screens** the slice needs, each naming the
+(`functionality.md`, which may span several capabilities), the product profile (read from the
+spine), and the slice's **persona and journey records** — the personas its surfaces name and
+every journey that runs on one of those surfaces. Those records already hold who the user is and
+the ordered steps they take; /ux reads them rather than inventing a path. The lens is four things and only four: the **screens** the slice needs, each naming the
 one object the user works with there plus a low-fidelity layout; the **flows** — for each persona
 and goal, the ordered path through those screens, its forks, its failure path, and its exit; the
 **states** each screen can hold, each with the trigger that puts the screen in it; and the
@@ -52,9 +54,12 @@ this run's delta and the next pipeline play (/agentic) enters clean.
 ### Constraints
 
 - C1 — One slice per run, and only a ready one: the slice exists (shaped by /shape), every
-  functionality it bundles resolves through the spine to a `functionality.md` grounding doc, and
-  the product profile is firmed (`set`). If not, halt — /ux realizes a shaped slice; it does not
-  shape one.
+  functionality it bundles resolves through the spine to a `functionality.md` grounding doc, the
+  product profile is firmed (`set`), and the slice's persona + journey records resolve — every
+  `surface[].persona_ref` opens a real persona record, and every slice surface is reached by at
+  least one journey record whose own `persona_ref` resolves. A reference that resolves to nothing
+  is a BROKEN hub, not an empty one — halt. /ux realizes a shaped slice; it does not shape one,
+  and it does not invent the person or the path.
 - C2 — Writes only this slice's `ux.md` (by the LLM skill) and its visual-core decision (by the
   keyed persist), in place on the live model in the slice's folder. Never the spine, the slice
   record, the profile, another lens, the node tree, personas, journeys, or other slices.
@@ -73,8 +78,9 @@ this run's delta and the next pipeline play (/agentic) enters clean.
 - C6 — Coverage: every functionality the slice bundles is visualized by at least one screen, so
   the human can validate the whole shaped increment. Nothing shaped is left unvisualized, and no
   screen is left unreachable — every screen appears as a step in at least one flow.
-- C7 — Reads the hub only: /ux derives from the slice's functionalities' grounding docs and the
-  profile — never from another realize lens (quality/agentic/architecture/run/measure/marketing).
+- C7 — Reads the hub only: /ux derives from the slice's functionalities' grounding docs, the
+  profile, and the slice's persona + journey records — never from another realize lens
+  (quality/agentic/architecture/run/measure/marketing).
 - C8 — The visual core is a material choice recorded as a slice-level decision the whole product
   references; it is not re-invented per slice.
 - C9 — Additive and non-destructive, enforced by the containment split and the post-write scoped
@@ -129,14 +135,19 @@ this run's delta and the next pipeline play (/agentic) enters clean.
   and parseable by an agent: every flow names its persona, its goal, its entry point, its ordered
   steps, its decision points, its failure path, and its exit; every step names a screen that
   exists in the Screens section; every decision point names where each branch goes; and every
-  screen is reached by at least one flow step. Every flow's persona traces to a persona or journey
-  of the slice's hub, never an invented one. The cross-check is mechanical (the bundled
+  screen is reached by at least one flow step. Each flow EXPANDS one of the slice's journey
+  records onto its screens — the journey supplies the persona and the ordered steps, /ux adds the
+  screen each step happens on, the forks, the failure path and the exit — so a flow is never
+  invented. Every flow names the journey id it expands and the persona id that journey serves,
+  and both ids RESOLVE to real records handed over by the readiness check; a name that resolves
+  to nothing is a failure, not a warning. The cross-check is mechanical (the bundled
   `validate_ux.py`), not a prose claim.
 
 ### Failure conditions
 
 - F1 — /ux ran on an unready slice — the slice is absent, a functionality does not resolve to a
-  grounding doc, or the profile is not firmed.
+  grounding doc, the profile is not firmed, a surface's `persona_ref` resolves to no persona
+  record, or a slice surface is reached by no journey record.
 - F2 — A write touched something other than this slice's `ux.md` or a decision (the spine, the
   slice record, the profile, another lens, structure, a persona, a journey, or another slice).
 - F3 — `ux.md` fails its template/shape (a missing or extra section, an empty or telegraphic
@@ -181,8 +192,10 @@ this run's delta and the next pipeline play (/agentic) enters clean.
   human sees every functionality of the slice rendered as a low-fidelity screen. Measure: every
   functionality the slice bundles maps to at least one screen in the manifest; none unvisualized.
 - S3 — (ux researcher, grounded) Given the lens is drafted, each screen traces to a functionality
-  or a persona/journey, and the visual core to a recorded decision. Measure: the manifest names a
-  real source for every screen; the visual core names a decision that resolves.
+  or a persona/journey, each flow to a journey record of the slice, and the visual core to a
+  recorded decision. Measure: the manifest names a real source for every screen; every flow's
+  journey id and persona id resolve to records the readiness check handed over; the visual core
+  names a decision that resolves.
 - S4 — (architect, hub-only) Given /ux runs, it read no other realize lens and wrote none.
   Measure: no other lens of the slice is touched; no screen grounds on a lens.
 - S5 — (product owner, re-run) Given /ux already ran, when it runs again, it re-derives `ux.md`
@@ -225,9 +238,11 @@ the always-written record, not a newly-added decision.
 
 ### Recovery (one per failure condition)
 
-- REC1 (F1) — trigger: the slice is absent, a functionality does not resolve, or the profile is
-  not firmed. direction: halt and route to /shape (shape the slice) or /understand (detail + firm)
-  before /ux runs. handoff: human.
+- REC1 (F1) — trigger: the slice is absent, a functionality does not resolve, the profile is not
+  firmed, a surface's persona does not resolve, or a surface is reached by no journey. direction:
+  halt and route to /shape (shape the slice; /shape owns the persona and journey records and
+  already guarantees a journey per surface) or /understand (detail + firm) before /ux runs; never
+  invent the missing persona or journey. handoff: human.
 - REC2 (F2) — trigger: a write touched something beyond this slice's `ux.md` or a decision.
   direction: revert the out-of-scope write; /ux writes only the slice's `ux.md` (and the
   visual-core decision). handoff: autonomous.
@@ -273,8 +288,8 @@ the always-written record, not a newly-added decision.
   revert the pending model edits — before /ux writes the lens. handoff: human.
 - REC15 (F15) — trigger: a flow names no persona/goal/entry/failure/exit, a step names a screen
   that is not in Screens, a decision point does not say where a branch goes, a screen is reached
-  by no flow, or a flow's persona traces to nothing in the hub. direction: re-emit the Flows
-  section to the fixed shape — add the missing field, rename the step to the real screen, name
+  by no flow, or a flow's journey or persona id resolves to no record the readiness check handed
+  over. direction: re-emit the Flows section to the fixed shape, one flow per journey record — add the missing field, rename the step to the real screen, name
   both branches of the fork, add the flow that reaches the orphan screen (or drop the screen if
   nothing reaches it), and re-tie the persona to a persona/journey of the hub — then re-run
   `validate_ux.py` until the flow cross-check reads ok. handoff: autonomous.

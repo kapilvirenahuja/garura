@@ -1,7 +1,7 @@
 ---
 name: ux
 position: start
-description: 'Write a SLICE''s UX lens as a grounding doc (ux.md) — the screens (each naming the object the user works with there, with a low-fidelity layout) that make the slice''s functionalities visible, the flows (per persona and goal: entry, ordered steps naming screens, forks, failure path, exit), the states each screen holds (each with its trigger), and the product''s visual core (color + typography) — directly in place on the live model. The START of the FUNCTIONAL realize pipe (ux → agentic → marketing), run on a shaped slice. Accessibility is not here (it lives in the marketing lens); the wider cross-product journey is not here either (that is /story''s). Reads the hub from the spine (functionality grounding + profile), never another lens. Writes only the slice''s ux lens and its visual-core decision.'
+description: 'Write a SLICE''s UX lens as a grounding doc (ux.md) — the screens (each naming the object the user works with there, with a low-fidelity layout) that make the slice''s functionalities visible, the flows (per persona and goal: entry, ordered steps naming screens, forks, failure path, exit), the states each screen holds (each with its trigger), and the product''s visual core (color + typography) — directly in place on the live model. The START of the FUNCTIONAL realize pipe (ux → agentic → marketing), run on a shaped slice. Accessibility is not here (it lives in the marketing lens); the wider cross-product journey is not here either (that is /story''s). Reads the hub from the spine (functionality grounding + profile + the slice''s persona and journey records — each flow EXPANDS a journey, never invents one), never another lens. Writes only the slice''s ux lens and its visual-core decision.'
 user-invocable: true
 ---
 
@@ -77,7 +77,7 @@ a domain agent. The content-quality judge always runs as an isolated, clean-cont
 |-------|-----------|-------------------|
 | Resolve config + `product_base` (`.garura/core/config.yaml`) | — | Hard halt |
 | Resolve `grounding-eval.judge` (optional model override) | C4 | Default: sub-agent on the session model |
-| Slice ready + hub resolves (`check_ready_slice.py`) | C1 | Hard halt (REC1) |
+| Slice ready + hub resolves — functionalities, profile, AND the slice's personas + journeys (`check_ready_slice.py`) | C1 | Hard halt (REC1) |
 | **Clean model tree** — after start-change (Step 0), `git status --porcelain -- <product_base>product-os` is empty | C13/F14 | Hard halt (REC14) |
 
 Resolve the pre-flight facts mechanically with the bundled resolver:
@@ -90,8 +90,17 @@ Then resolve the slice and its hub from the spine — the readiness gate that ev
 shares:
 
 ```
-python3 scripts/check_ready_slice.py --product-base <product_base> --slice <slice-id>
+python3 scripts/check_ready_slice.py --product-base <product_base> --slice <slice-id> \
+    > <working>/readiness.json
 ```
+
+Keep `readiness.json` on disk — the widened hub (#550) lives in it. Besides the functionality
+groundings it carries `personas[]` (`{id, path, name}` for every persona the slice's surfaces and
+journeys name) and `journeys[]` (`{id, path, persona_ref, surface_refs, step_count}` for every
+journey whose `surface_refs` touch a slice surface). Step 1 reads the records from those paths and
+Step 2 hands the file to `validate_ux.py --readiness` as the list the flow ids must resolve
+against. An unresolvable persona or a surface reached by no journey is a BROKEN hub — the script
+exits 1 and the run hard-halts (REC1); it is never treated as an empty hub.
 
 It asserts the profile is `set` (from the spine), resolves the slice record, and resolves every
 `functionality_ref` through the spine to its `functionality.md` grounding doc — the hub. If the
@@ -182,17 +191,21 @@ this run's delta.
 
 **Step 1 — Author the lens (ux.md to live)** · Owner: `product-os-keeper` · Depends on: Step 0
 The agent invokes `author-ux-lens` to write the slice's `ux.md` (screens + flows + states +
-visual core, per the UX lens template) from the hub (the functionality grounding docs + the profile) and KB
+visual core, per the UX lens template) from the hub (the functionality grounding docs, the profile,
+and the slice's persona + journey records — each flow EXPANDS one journey) and KB
 pattern grounding. Per ADR 026 the skill writes the per-node doc **straight to the live model** in
 place, and emits the visual-core decision (with the grounding map) as structured data in
 `ux-manifest.yaml` — it writes NO shared model file (`_spine.yaml`, the profile, or a
 `decisions/*.yaml`):
 
     {
-      "task":    "author the slice's UX lens (screens/flows/states/visual core) from its hub; write ux.md in place on the live model; ground screens to functionalities and flows to personas/journeys of the hub, and the visual core to the KB or a decision; every flow step names a real screen and every screen is reached by a flow; emit the visual-core decision delta into the manifest",
+      "task":    "author the slice's UX lens (screens/flows/states/visual core) from its hub; write ux.md in place on the live model; ground screens to functionalities and EXPAND each of the slice's journey records into one flow — the journey supplies the persona and the ordered steps, you add the screen each step happens on plus the forks, failure path and exit; never invent a flow; name each flow's journey_ref and persona_ref in the manifest so both resolve against readiness.json; ground the visual core to the KB or a decision; every flow step names a real screen and every screen is reached by a flow; emit the visual-core decision delta into the manifest",
       "inputs":  { "slice_ref": "<domain>/<slice>",
                    "slice_file": "<slice record>",
                    "functionality_groundings": "<from check_ready_slice>",
+                   "readiness": "<working>/readiness.json",
+                   "personas": "<readiness.personas[] — the slice's persona records>",
+                   "journeys": "<readiness.journeys[] — the slice's journey records>",
                    "profile": "<spine profile>", "product_base": "<product_base>",
                    "lens_rel": "product-os/<domain>/slices/<slice>/lens/ux.md",
                    "manifest_path": "<working>/ux-manifest.yaml" },
@@ -204,7 +217,8 @@ It writes `ux-manifest.yaml` under `<working>` (STM) with the grounding map and 
 `decision_delta` (omitted when it reuses an existing product decision). It writes NO shared model
 file. It returns the contract with the output paths on disk — never inline content.
 **SE-1 (F1/C1):** `check_ready_slice.py` passed at pre-flight — the slice is ready and its hub
-resolves; an unready slice halted (REC1).
+resolves, including every surface's persona record and at least one journey per surface; an
+unready slice, a dangling `persona_ref`, or a surface no journey reaches halted (REC1).
 
 **Step 2 — Validate the live doc** · Owner: play · Depends on: Step 1
 Run the guards over the LIVE `ux.md` this run wrote, before the checkpoint — shape first, then
@@ -213,7 +227,7 @@ visual-core decision has NOT yet been written for this run (the keyed persist ru
 
 ```
 python3 scripts/lint_grounding.py --doc <product_base>/product-os/<domain>/slices/<slice>/lens/ux.md
-python3 scripts/validate_ux.py --manifest <working>/ux-manifest.yaml --slice-file <product_base>/<slice_file> --product-base <product_base> --lens <product_base>/product-os/<domain>/slices/<slice>/lens/ux.md
+python3 scripts/validate_ux.py --manifest <working>/ux-manifest.yaml --slice-file <product_base>/<slice_file> --product-base <product_base> --lens <product_base>/product-os/<domain>/slices/<slice>/lens/ux.md --readiness <working>/readiness.json
 python3 scripts/check_kb_grounding.py --manifest <working>/ux-manifest.yaml --kb-root <kb_root> --proposals-dir <working>/proposals
 ```
 
@@ -240,11 +254,16 @@ unreachable screen).
 `decision_delta` or a reused product decision) that resolves; the keyed persist (Step 3) writes it.
 **SE-8 (F10/C10):** `check_kb_grounding.py` exits 0 — the visual core, navigation, and responsive
 choices trace to a KB learning or a recorded proposal.
-**SE-14 (F15/C14):** `validate_ux.py --lens` reports the flow cross-check ok — every flow names
-its persona, goal, entry, ordered steps, decision points, failure path and exit; every step names
-a screen that exists in Screens; every decision point names where each branch goes; every screen
-is named by at least one flow step; and every flow's persona traces to a persona/journey of the
-hub. A GAP is REC15: re-emit the Flows section to the fixed shape and re-run.
+**SE-14 (F15/C14):** `validate_ux.py --lens --readiness` reports BOTH flow cross-checks ok. Lens
+side: every flow names its persona, goal, entry, ordered steps, decision points, failure path and
+exit; every step names a screen that exists in Screens; every decision point names where each
+branch goes; every screen is named by at least one flow step. Manifest side (#550): every flow
+names the `journey_ref` it expands and the `persona_ref` that journey serves; both resolve in
+`readiness.json`'s `journeys[]`/`personas[]`; the persona is the one the journey record itself
+names; and every resolved journey of the slice is expanded by at least one flow — a journey the
+lens ignored is a GAP, because the slice's real paths must all be drawn. `--readiness` is passed on
+every run; without it the manifest check silently skips, which is why the play always hands the
+file over. A GAP is REC15: re-emit the Flows section from the journey records and re-run.
 On any GAP, apply the matching recovery (REC2–REC10, REC15) and re-run before the checkpoint — a
 content-eval fail (SE-3) is REC4: rewrite the failing section to the judge's cited fixes and
 re-judge until the gate passes.
@@ -401,8 +420,9 @@ land closes HALTED, never COMPLETED (REC12).
   byte-identical (the scoped-guard report reads `ok`); the stop-condition verdict reads held.
 - **SCE-2 (S2 — product owner):** every functionality the slice bundles maps to ≥1 screen, and
   every screen is reached by ≥1 flow step.
-- **SCE-3 (S3 — ux researcher):** every screen traces to a functionality or persona/journey; the
-  visual core to a decision that resolves.
+- **SCE-3 (S3 — ux researcher):** every screen traces to a functionality or persona/journey; every
+  flow's `journey_ref` and `persona_ref` resolve against `readiness.json`; the visual core to a
+  decision that resolves.
 - **SCE-4 (S4 — architect):** no other realize lens was read or written.
 - **SCE-5 (S5 — product owner, re-run):** a re-run re-derives only `ux.md`; everything else
   byte-identical; no accepted decision edited in place (the keyed persist skipped the existing
@@ -505,7 +525,7 @@ this slice), and a pointer to `$evidence_dest`. Always emitted.
 
 | For | Trigger | Direction | Handoff |
 |-----|---------|-----------|---------|
-| F1 | the slice is absent, a functionality does not resolve, or the profile is not firmed | halt and route to /shape or /understand before /ux runs | human |
+| F1 | the slice is absent, a functionality does not resolve, the profile is not firmed, a surface's persona does not resolve, or a surface is reached by no journey | halt and route to /shape (it owns the persona and journey records and already guarantees a journey per surface) or /understand before /ux runs; never invent the missing persona or journey | human |
 | F2 | a write touched something beyond this slice's ux.md or its visual-core decision | the guard's `--restore` already reverted the out-of-scope write; re-run writing only the slice's ux.md and its decision | autonomous |
 | F3 | ux.md fails the template/shape or carries out-of-scope content | re-emit to the UX lens template (Intent/Screens/Flows/States/Visual core only; accessibility belongs to marketing, the wider cross-product journey to /story) | autonomous |
 | F4 | ux.md fails the content-quality eval | rewrite the failing section to the judge's cited fixes and re-judge until the gate passes | autonomous |
@@ -519,7 +539,7 @@ this slice), and a pointer to `$evidence_dest`. Always emitted.
 | F12 | the run is about to close COMPLETED with the Done means unmet | close HALTED (`stop_condition_unmet`) with the unmet clauses named; fix the state — re-run the keyed persist, re-capture the scoped-write guard report, or make the model-delta commit — then re-evaluate; the close stays HALTED until the verdict reads held | autonomous |
 | F13 | a conditional-gate crossing left no live-eval ledger line, or an auto-pass fired for a shape the policy does not list as auto (or with a blocking finding) | re-append the missing ledger line via gate_eval.py; when the auto-pass was unearned, revert any premature persist and re-run the gate as a live wait | autonomous |
 | F14 | the product-os tree is dirty once start-change has cut the branch (uncommitted model edits present) | halt and ask for a clean model tree — commit or revert the pending model edits — before /ux writes the lens | human |
-| F15 | a flow names no persona/goal/entry/failure/exit, a step names a screen that is not in Screens, a decision point does not say where a branch goes, a screen is reached by no flow, or a flow's persona traces to nothing in the hub | re-emit the Flows section to the fixed shape — add the missing field, rename the step to the real screen, name both branches of the fork, add the flow that reaches the orphan screen (or drop the screen if nothing reaches it), re-tie the persona to a persona/journey of the hub — then re-run `validate_ux.py --lens` until the flow cross-check reads ok | autonomous |
+| F15 | a flow names no persona/goal/entry/failure/exit, a step names a screen that is not in Screens, a decision point does not say where a branch goes, a screen is reached by no flow, or a flow's journey/persona id resolves to no record readiness.json handed over | re-emit the Flows section to the fixed shape — add the missing field, rename the step to the real screen, name both branches of the fork, add the flow that reaches the orphan screen (or drop the screen if nothing reaches it), re-tie the persona to a persona/journey of the hub — then re-run `validate_ux.py --lens` until the flow cross-check reads ok | autonomous |
 
 ## Pause and Resume
 
@@ -533,8 +553,8 @@ start — a resume continues its own in-progress delta.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:bb3f495716006f133664a01fc4c4eb15ac95dc0535628d27ae47f4ec15673a9f (of `reference/ice.md`) |
-| compiled_by | play-editor (#548 flows + object-per-screen); prior: play-editor (#500 direct-model-write, ADR 026), play-editor (#467 Batch B, #466 Batch C) |
+| fingerprint | sha256:67b7f3456d55a8bde6113ead52a92603448b91b932d36412074fddd7bb6bb931 (of `reference/ice.md`) |
+| compiled_by | play-editor (#550 persona + journey grounding); prior: play-editor (#548 flows + object-per-screen), play-editor (#500 direct-model-write, ADR 026), play-editor (#467 Batch B, #466 Batch C) |
 | pipeline_position | start (functional pipe head; the functional pipe closes at /marketing) |
 | workflow_structure | A (single checkpoint — class: standard, conditional learned gate per gate-config.md #467; direct-model-write WRITE-THEN-REVIEW per ADR 026 — persist + guard + classify before the gate, commit after; stop-condition gated close) |
 | stop_condition | stop-condition.yaml (D1–D3), gate live at Step C0 |
@@ -605,3 +625,29 @@ the new `lens-ux` heading list; the UX lens template/contract and the `author-ux
 re-emitted to the five-section shape. Constraints 13 → 14, failures 14 → 15, scenarios 6 → 7,
 step evals 13 → 14, scenario evals 6 → 7, recovery 14 → 15. Fingerprint recomputed over the edited
 ICE.
+
+
+## Recompile note (#550, persona + journey grounding)
+
+Intent change via `reference/ice.md` → recompile. #548 gave the lens a Flows section and then could
+not ground it: the hub was functionality docs + the profile only, the author contract passed no
+persona path, the shared readiness gate resolved neither personas nor journeys, and the flow check
+accepted a persona name without opening the record. So /ux invented flows that already existed in
+the model.
+
+The fix reads what /shape already wrote. A journey record is `persona_ref + surface_refs + steps` —
+a persona, the surface it runs on, and the ordered steps in the user's own words. That IS a flow.
+The hub now includes the slice's persona and journey records; `check_ready_slice.py` resolves them
+and LOUD-FAILS on a dangling `persona_ref` or a surface no journey reaches (C1/F1); each flow
+EXPANDS one journey — the journey gives the persona and the steps, /ux adds the screen per step plus
+the forks, failure path and exit; and `validate_ux.py --readiness` resolves every flow's
+`journey_ref` and `persona_ref` against the handed-over lists, erroring on an id that resolves to
+nothing and on a journey the lens left undrawn.
+
+Changed: the intent's hub definition, C1, C7, C14, F1, F15, S3, REC1, REC15, SE-1, SE-14, SCE-3, and
+the Step 1 contract. Added: nothing — every existing element gained a clause, so constraints stay
+14, failures 15, scenarios 7, recovery 15, step evals 14, scenario evals 7. `readiness.json` is now
+kept on disk at pre-flight and handed to the validate step. The UX lens template, the structural
+linter and the Flows field set are UNTOUCHED: the journey id lives in the manifest, not the doc.
+Companion change on /shape (#550 scope B) enriches the persona record itself. Fingerprint
+recomputed over the edited ICE.
