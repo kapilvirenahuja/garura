@@ -61,7 +61,8 @@ persona:
   # ADDITIVE and OPTIONAL: a record written before issue #550 that carries only
   # `description` stays valid, and nothing rewrites it. Every persona written from
   # now on should carry all three — the writing play (/understand, /shape) fills
-  # them. No validator checks them (see the migration note below).
+  # them. Nothing ERRORS on them; /shape's validator WARNS when one is missing (see the
+  # migration note below for the full validation truth).
   goals: [string]         # what this person is trying to achieve — outcomes in THEIR
                           # words, never features or solutions
   cares_about: [string]   # what they judge the thing by when deciding whether to
