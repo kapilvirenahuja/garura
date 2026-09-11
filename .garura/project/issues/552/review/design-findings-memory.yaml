@@ -1,0 +1,124 @@
+# design-findings-memory.yaml — Layer 2 design-grounding for the 'memory' category, PR #564
+# Scope: core/components/memory/standards/schemas/product-os/grounding/lens/ux.md only.
+# Grounded from committed sources on `main` (base ref) — never from this branch's own new text.
+
+category: memory
+file: core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+
+principles_grounded:
+  - id: P-HEADING-CONTRACT
+    statement: >
+      lint_grounding.py enforces an exact '##' heading list per lens (duplicated across
+      ten plays); a heading change without syncing all ten copies is P1.
+    committed_source: "task brief; verified directly against the file's own '## Heading
+      contract' block, unchanged on both main and HEAD"
+
+  - id: P-VISUAL-CORE-GROUNDING-GATE
+    statement: >
+      The manifest field the Visual core section feeds (`design_system`) must carry a
+      `source_type` of 'kb' or 'decision'; any other value is a hard validation error.
+      TESTED (not just read): source_type 'decision' with a decision_delta that resolves
+      passes cleanly regardless of what the decision's own content says — the gate checks
+      only source_type + resolvability, not the decision body.
+    committed_source: "core/components/plays/ux/scripts/validate_ux.py, lines 183-186,
+      unchanged on main and by this PR"
+
+findings:
+  - id: F1
+    status: WITHDRAWN
+    original_severity: P2
+    what_it_claimed: >
+      That the gold example's "Design system: none exists yet" would fail validate_ux.py
+      because the validator only accepts source_type kb/decision.
+    why_withdrawn: >
+      Tested directly rather than reasoned about. Built a minimal manifest with
+      design_system: {source_type: decision, decision: dec-visual-core-test} and a
+      matching decision_delta, ran validate_ux.py against it: exit 0, ok: true, zero
+      errors. The gate checks the manifest's source_type field and that the named
+      decision resolves — it does not read the decision record's CONTENT. "None exists
+      yet" is content INSIDE the accepted decision (author-ux-lens/SKILL.md:205-206
+      shows design_system.source_type staying 'decision' regardless of what the decision
+      says), not a different source_type. The claim that the template teaches content
+      the validator rejects does not hold.
+    reproduction_command: >
+      python3 core/components/plays/ux/scripts/validate_ux.py --manifest manifest.yaml
+      --slice-file slice.yaml   (manifest.yaml: ux.design_system = {source_type: decision,
+      decision: dec-visual-core-test}; ux.decision_delta = [{id: dec-visual-core-test,
+      kind: visual-core, record: {id: dec-visual-core-test, kind: visual-core, level:
+      slice, status: accepted}}]; slice.yaml: slice.functionalities = [])
+    actual_output: '{"ok": true, "errors": [], "warnings": [four --lens/--readiness/
+      --screens skip warnings, unrelated], "counts": {...}}, exit 0'
+
+  - id: F1-REPLACEMENT
+    severity: P4
+    file: core/components/plays/ux/scripts/validate_ux.py
+    section: "lines 185-186, error message text"
+    what_is_wrong: >
+      The error message "visual core must ground on a KB technology learning or a
+      decision" is stale relative to the branch's new C10/F10 intent (in the companion
+      harness-category ice.md change): under the new design, the KB half no longer
+      applies to what the visual core itself grounds on in the same way it once did,
+      since "no design system yet" is now a legitimate decision CONTENT, not a
+      source_type choice. The message still reads as if kb/decision are two equally live
+      grounding paths for the same thing. Misleading wording for whoever hits the error,
+      not a functional break.
+    principle_violated: "error messages should describe current behaviour, not stale intent"
+    committed_source: "core/components/plays/ux/scripts/validate_ux.py:185-186, unchanged
+      text, read against the branch's own new intent in reference/ice.md (harness
+      category — cited only to show the message is now describing an outdated split, not
+      as memory-category grounding)"
+    note: >
+      This is a code-category (validate_ux.py) observation, not a memory-category finding
+      about ux.md itself. Recorded here for traceability since it replaces the withdrawn
+      F1, but the change-reviewer should route it to the code/harness findings file if
+      the play separates them; it does not belong to the memory category's own verdict.
+
+  - id: F2
+    severity: P3
+    file: core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+    section: "## Per-section guidance > Visual core, item 1 vs. the gold example"
+    what_is_wrong: >
+      The guidance requires each state word to carry one of four named tones (ok, warn,
+      bad, neutral) and to "list every word and what it means." The gold example lists
+      colour-to-word pairs (green/resolved, amber/partial+not-ready, grey/unavailable,
+      red/privacy-blocked) but never states which of the four canonical tone names each
+      word maps to. A model following only the example would not learn to emit the tone
+      taxonomy the guidance itself requires.
+    principle_violated: "guidance and gold example must agree — internal to the section
+      being rewritten"
+    committed_source: "the rewritten section's own guidance text, item 1, compared
+      against its own gold example in the same file/diff"
+
+  - id: F3
+    severity: P3
+    file: core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+    section: "## Visual core (gold example) vs. '## States' (gold example)"
+    what_is_wrong: >
+      The Visual core example's vocabulary includes "not-ready" as a state word, but no
+      state named "not-ready" is defined under the gold example's '## States' section
+      (the defined states are Loading/Empty/Populated/Populated with gaps for that
+      screen). "not-ready" only appears informally in the Flows narrative. Per the
+      document's own cross-reference convention, a state word used elsewhere should
+      resolve to an entry actually defined in States.
+    principle_violated: "entities named in one section must resolve to something defined
+      in that entity's owning section (Flows > Steps convention, unchanged)"
+    committed_source: "core/components/memory/standards/schemas/product-os/grounding/
+      lens/ux.md, '## Per-section guidance' > Flows > Steps (unchanged), applied by
+      analogy to the Visual core > States relationship"
+
+heading_contract_check:
+  result: PASS
+  detail: >
+    Diffed core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+    against main: no '##' heading line was added, removed, or renamed. Only prose inside
+    the existing 'Visual core' guidance bullet and the existing '## Visual core' gold
+    example section body changed. No sync to lint_grounding.py's ten duplicated copies is
+    required.
+
+conformance_verdict: >
+  The memory-category rewrite (ux.md) itself conforms: Visual core now correctly fixes
+  meaning and names a source rather than a look, the heading contract is untouched, and
+  the "none yet" allowance is validly grounded as decision content, not a validator gap
+  — tested directly, not just reasoned about. No P1/P2 stands against ux.md. Two P3
+  self-consistency nits remain in the gold example. One P4 was found in a neighboring
+  file's stale error message, noted for traceability but out of this category's scope.

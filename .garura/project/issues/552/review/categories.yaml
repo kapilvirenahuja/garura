@@ -1,0 +1,93 @@
+# categories.yaml — work-category assessment for PR #564 (base: main)
+# Job 1 output of change-reviewer. Derived from actual diff content, not a presumed list.
+
+categories:
+
+  - name: harness
+    description: >
+      The play and skill that ARE the ux lens work — SKILL.md + its ICE source and
+      stop-condition for the ux play, and the author-ux-lens skill's SKILL.md. These
+      define the agentic system's own behaviour (play->agent->skill wiring, intent).
+    evidence:
+      - core/components/plays/ux/SKILL.md
+      - core/components/plays/ux/reference/ice.md
+      - core/components/plays/ux/stop-condition.yaml
+      - core/components/skills/author-ux-lens/SKILL.md
+    playbook: review/harness
+    playbook_path: core/components/memory/knowledge/review/harness.md
+    design_bearing: true
+    design_bearing_reason: >
+      Conformance (does an intent change trace to its ICE source, is play/skill/script
+      wiring intact, does it hold standards like user-facing-voice / play-close) can only
+      be judged against principles reconstructed from committed philosophy/ADR/standards
+      sources — a linter cannot settle it.
+    runnable_checks:
+      - command: "python3 core/components/plays/play-editor/scripts/lint_play.py core/components/plays/ux"
+        note: "structural conformance for the play (constraint/failure/scenario coverage, one recovery per failure, intent fingerprint)"
+      - command: "<lint-components skill> --target core/components/skills/author-ux-lens"
+        note: "skill shape check; lint-components is a skill (core/components/skills/lint-components), invoke via its own contract rather than a bare CLI"
+
+  - name: memory
+    description: >
+      The ux lens grounding schema under standards/schemas — knowledge that shapes what
+      downstream agents believe a ux lens document must contain.
+    evidence:
+      - core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+    playbook: review/memory
+    playbook_path: core/components/memory/knowledge/review/memory.md
+    design_bearing: true
+    design_bearing_reason: >
+      Whether the schema still fits the knowledge base's own shape rules (template,
+      cross-references, non-duplication) is a design question, grounded from
+      knowledge/_DESIGN.md, _TEMPLATE.md and standards — not from the branch's own new
+      schema text.
+    runnable_checks:
+      - command: "<lint-components skill> --target core/components/memory/standards/schemas/product-os/grounding/lens/ux.md"
+        note: "partial shape/template coverage only; a dedicated cross-reference-resolution linter for memory is a known gap per memory.md"
+
+  - name: executable_code
+    description: >
+      The two Python scripts inside the ux play that the runtime actually executes —
+      wireframe rendering and ux validation logic.
+    evidence:
+      - core/components/plays/ux/scripts/render_wireframes.py
+      - core/components/plays/ux/scripts/validate_ux.py
+    playbook: review/code
+    playbook_path: core/components/memory/knowledge/review/code.md
+    design_bearing: false
+    design_bearing_reason: >
+      Standard is industry best practice (error handling, no stray debug output, safe
+      file/data handling), not a garura-internal design decided before the branch —
+      code.md explicitly says no design-grounding for this category.
+    runnable_checks:
+      - command: "ruff check core/components/plays/ux/scripts/render_wireframes.py core/components/plays/ux/scripts/validate_ux.py"
+        note: "language linter (ruff present on this machine at /Users/kapilahuja/.local/bin/ruff)"
+      - command: "<quality-check-scoped play> against pr.diff"
+        note: "best-practice + severity taxonomy (CODE-*, ARCH-*, DATA-*) per pr.md, run by the play/quality-auditor, not this agent"
+
+run_evidence_not_categorized:
+  paths:
+    - .garura/project/issues/552/context/analysis.yaml
+    - .garura/project/issues/552/context/branch.json
+    - .garura/project/issues/552/context/commits.yaml
+    - .garura/project/issues/552/context/issue.json
+    - .garura/project/issues/552/context/pr-body.md
+    - .garura/project/issues/552/context/pr.json
+    - .garura/project/issues/552/context/resolved-rules.json
+    - .garura/project/issues/552/context/self-review.md
+    - .garura/project/issues/552/context/work-description.txt
+  call: >
+    Not a reviewable work category. These are short-term-memory run records written by the
+    pipeline plays themselves (propose-change / review-change / merge-change) as they ran
+    against issue #552 — captured facts about the branch, commits, PR metadata, and a
+    self-review, not authored design or behaviour. They carry no principles to check
+    conformance against; they are the record OF the review, not an artifact under review.
+    Content confirmed by reading branch.json/commits.yaml/pr.json/self-review.md directly
+    (Rule 5 — content over path/status), not inferred from the STM path alone.
+  playbook: null
+  playbook_note: "not applicable — not a design-bearing or lintable category, evidence only"
+
+notes:
+  - "No new category outside the shelf's seeded catalog was found; all four categories present map to existing playbooks."
+  - "config-maps and tests categories are absent from this diff (no CLAUDE.md/config.yaml path-wiring changes, no test files) — correctly omitted, not forced."
+  - "adrs and docs categories are absent — no docs/adr/** or human-facing prose files changed."

@@ -1,0 +1,2531 @@
+diff --git a/.garura/project/issues/552/context/analysis.yaml b/.garura/project/issues/552/context/analysis.yaml
+new file mode 100644
+index 00000000..87b8ee22
+--- /dev/null
++++ b/.garura/project/issues/552/context/analysis.yaml
+@@ -0,0 +1,39 @@
++needs_judgment: false
++branch: feature/552-ux-design-po-can-see
++issue: 552
++
++change_groups:
++  - id: feat-ux-design-po-can-see
++    issue: 552
++    commit_type: feat
++    scope: ux
++    subject: "draw the slice and make the product owner look at it before approving"
++    confidence: high
++    files:
++      - core/components/plays/ux/reference/ice.md
++      - core/components/plays/ux/SKILL.md
++      - core/components/plays/ux/stop-condition.yaml
++      - core/components/plays/ux/scripts/render_wireframes.py
++      - core/components/plays/ux/scripts/validate_ux.py
++      - core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
++      - core/components/skills/author-ux-lens/SKILL.md
++    risks:
++      sensitive_files: []
++      breaking_changes: []
++    notes: >
++      Single-branch, single-issue change (#552) covering five child issues (#554-#558) plus
++      one incidental fix (#563) that all recompile the same play. Kept as one group per the
++      repo's own commit rule (never split a single issue across components) and because the
++      files are load-bearing on each other: ice.md (intent source) and SKILL.md (compiled
++      output) must land together or the play's fingerprint check fails on any intermediate
++      commit; stop-condition.yaml is baked from that same source. render_wireframes.py and
++      the validate_ux.py grounding checks are new capabilities the recompiled play now calls;
++      the ux.md lens template and author-ux-lens SKILL.md are the downstream template/skill
++      that the recompiled play's Step 1b drives — none of these five pieces is independently
++      meaningful without the others. No sensitive files, no secrets, no breaking API/schema
++      changes detected in the diff.
++
++exclusions: []
++
++risks:
++  sensitive_files: []
+diff --git a/.garura/project/issues/552/context/branch.json b/.garura/project/issues/552/context/branch.json
+new file mode 100644
+index 00000000..831a74ef
+--- /dev/null
++++ b/.garura/project/issues/552/context/branch.json
+@@ -0,0 +1,6 @@
++{
++  "branch_name": "feature/552-ux-design-po-can-see",
++  "base_sha": "2c932b1a1bee8ea0d760805a855966d3484dc9e8",
++  "on_default_branch": false,
++  "worktree_path": null
++}
+\ No newline at end of file
+diff --git a/.garura/project/issues/552/context/commits.yaml b/.garura/project/issues/552/context/commits.yaml
+new file mode 100644
+index 00000000..faf1d837
+--- /dev/null
++++ b/.garura/project/issues/552/context/commits.yaml
+@@ -0,0 +1,18 @@
++commits:
++  - sha: 35affea6
++    message: "feat(ux): draw the slice and make the product owner look at it before approving (#552)"
++    files:
++      - core/components/plays/ux/reference/ice.md
++      - core/components/plays/ux/SKILL.md
++      - core/components/plays/ux/stop-condition.yaml
++      - core/components/plays/ux/scripts/render_wireframes.py
++      - core/components/plays/ux/scripts/validate_ux.py
++      - core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
++      - core/components/skills/author-ux-lens/SKILL.md
++    branch: feature/552-ux-design-po-can-see
++excluded_files:
++  []
++leftover_count: 0
++tree_clean: true
++pushed: false
++run_state_committed: true
+diff --git a/.garura/project/issues/552/context/issue.json b/.garura/project/issues/552/context/issue.json
+new file mode 100644
+index 00000000..3a504249
+--- /dev/null
++++ b/.garura/project/issues/552/context/issue.json
+@@ -0,0 +1,6 @@
++{
++  "resolved": true,
++  "issue_number": 552,
++  "title": "/ux produces a design a product owner can look at",
++  "created": false
++}
+diff --git a/.garura/project/issues/552/context/pr-body.md b/.garura/project/issues/552/context/pr-body.md
+new file mode 100644
+index 00000000..105c73a2
+--- /dev/null
++++ b/.garura/project/issues/552/context/pr-body.md
+@@ -0,0 +1,134 @@
++Closes #552.
++Closes #554.
++Closes #555.
++Closes #556.
++Closes #557.
++Closes #558.
++Closes #563.
++
++## Why
++
++The /ux play produced one commit on the griffin run for `slice-trusted-local-collection`. The product owner then made nine commits correcting it — while the play's own content-quality check had passed that first draft on every criterion, and the gate log recorded the approval as clean.
++
++Five things were wrong, and they share a root: the play described screens in prose, chose the look itself, and asked for a yes before the human could see anything.
++
++## What changes
++
++**The slice gets drawn.** /ux now authors a wireframe record (`lens/screens.yaml`) and a bundled script renders `lens/wireframes.html` from it — frames in journey order, real labels, real content. The page is generated, never hand-written, and the play proves that by re-rendering and diffing. A frame ties to a journey step through `journeys[].steps[].covered_by`, never a field on the screen, so ordering follows the journey and adding a moment renumbers nothing. A step no moment covers carries a named gap — recorded, never a halt, because the artifact the product owner accepted kept one. (#554)
++
++**The checkpoint hands over the artifact.** It prints the lens and wireframe paths and says which to open before it takes an answer. An approval given without the artifact on offer is not recorded as one. On the auto-pass path both paths go into the recorded diff summary. (#558)
++
++**The visual core fixes meaning, not the look.** It carries the semantic state vocabulary, its tone map, the rule that a state word always prints alongside its colour, and the design-system reference — or an explicit "none yet". /ux no longer picks a palette or a type scale, and the look is never a KB gap: no shelf can tell a project what its brand is. This follows the end state the product owner settled on, which superseded the play's own visual-core decision. (#556)
++
++**Decisions widen to design directives.** Designing a slice settles non-visual things the technical design must inherit — how a person's permission to act is modelled, what a value the screens depend on needs a schema for. Each becomes its own slice-level decision naming what it binds downstream, instead of being retold by hand into /arch. (#555)
++
++**The content eval checks truth, not only form.** `validate_ux.py` gained `--screens` and two mechanical cross-checks: every role the doc names resolves to a persona record, and every screen it declares is named by a journey step. The griffin draft's "a general viewer" — a role that exists nowhere in the model — was flagged by the old judge as a wording caveat. It is now a hard fail. (#557)
++
++**Plus one defect fixed in passing.** An unmatched code fence in `author-ux-lens/SKILL.md`, present on main, inside a file this change was already rewriting. (#563)
++
++## Deliberately out of scope
++
++A product-wide surface map spans slices; /ux writes one slice. Tracing a slice's stated outcome to its journeys is #561, on the /shape side.
++
++## How this was verified
++
++- `lint_play.py` on /ux — PASS, 0 gaps, all 13 checks
++- `lint-components` across the repo — 0 errors, 0 warnings
++- SKILL.md fingerprint verified by hand against `shasum -a 256` of the ICE source
++- `render_wireframes.py` exercised on a fixture: renders, repeats byte-identical, catches a one-byte hand-edit, escapes unsafe characters, no external fonts or scripts
++- the two new cross-checks exercised on the real griffin wording: "a general viewer" and "the actor" both caught; "an admin panel" correctly not caught — that false positive was found during review and fixed before commit
++- `persist_ux.py` exercised with both a visual-core and a design-directive decision: both written, `kind` and `binds` carried into the model
++- confirmed an empty `choices:` block fails the play's own KB check, and added the rule preventing it
++
++## For the reviewer
++
++One non-blocking finding stands, raised by the self-review and left in deliberately: the new role-detection regex recognises about 30 verbs as a signal that a role word is a sentence subject. Common ones like "approves" or "submits" are absent, so `the reviewer approves` could pass uncaught. It under-flags rather than over-flags, which is the safe direction, and stricter structured checks cover the same ground. Worth widening if it misses a real case.
++
++Note also that the /ux installed in griffin dates from 25 August and predates this and #550. Griffin needs a reinstall after this merges.
++
++---
++
++## Self-review
++
++# Self-Review — Issue #552 (`feature/552-ux-design-po-can-see`)
++
++Rules source: `core/components/memory/standards/rules/self-review.md` (base, not overridden —
++see `resolved-rules.json`).
++
++Diff reviewed: `git diff main...HEAD`, 12 files changed (7 source files for the feature + 5 STM
++context files from `start-change`/`commit-change`). Three commits, all reference `#552`,
++conventional format (`feat(ux)`, `chore(stm)` x2).
++
++## Scope checks
++
++- **Matches the issue.** PASS. All seven source files map directly to the five children
++  (#554–#558) plus the #563 fence fix, applied as one change set through a single ICE
++  recompile of the `/ux` play. No file touches the deliberately-out-of-scope items (a
++  product-wide surface map, or tracing a slice's outcome to its journeys — #561).
++- **No scope creep.** PASS. Every changed file is one of: the ICE source, its compiled
++  `SKILL.md`, the stop-condition it declares, the two scripts it runs, the `ux` grounding
++  schema, and the `author-ux-lens` skill it calls. Nothing unrelated riding along.
++- **Reasonable size.** PASS with justification already present. ~1,580 insertions is large for
++  one sitting, but it is five features plus a fix compiled through one recompile of a single
++  play — that's the natural unit here, and the commit history and `SKILL.md`'s own changelog
++  section explain the shape.
++- **No stray artifacts.** PASS. No commented-out code, no debug prints, no scratch files.
++
++## Quality checks
++
++- **Tests present.** PASS by this repo's own pattern. `/ux` doesn't carry pytest-style unit
++  tests for its scripts; correctness is proved by the play's step/scenario evals (SE-15 checks
++  `render_wireframes.py` exits 0 on both the render and `--check` passes; SE-14 checks
++  `validate_ux.py`'s new cross-checks) and by `lint_play.py`, which is the standard verification
++  surface for a garura play. Consistent with how other plays in this repo are proven.
++- **Commits are clean.** PASS. Conventional format, each commit coherent, `#552` referenced in
++  all three.
++- **No secrets.** PASS. Diff scanned for key/token/password/PEM patterns — no hits.
++- **Docs in step.** PASS. The interface change (visual-core meaning) is itself the doc —
++  `core/components/memory/standards/schemas/product-os/grounding/lens/ux.md` — and it's part of
++  this diff.
++- **Nothing obviously broken.** PASS, verified mechanically, not asserted:
++  - `python3 core/components/plays/play-editor/scripts/lint_play.py core/components/plays/ux/SKILL.md`
++    → **VERDICT: PASS (0 gaps)** — all 13 checks pass, including failure coverage, scenario
++    coverage, constraint coverage, recovery 1:1, no orphans, and fingerprint present.
++  - ICE/SKILL fingerprint: `shasum -a 256 core/components/plays/ux/reference/ice.md` →
++    `dbb1f8b843e0073517523349f95b137aa777005e89514311c05ea2818daa8474`, matches the value recorded
++    in `SKILL.md`'s Compilation Metadata exactly. Source and compiled output agree.
++  - Scoped-write guard containment: the allowlist at Step 4 (`--allow lens/ux.md`, `--allow
++    lens/screens.yaml`, `--allow lens/wireframes.html`, `--add-only decisions/*`) covers every
++    path the play writes to the product model, including the new `wireframes.html`. The
++    script's `--report` output for `render_wireframes.py` goes to the STM working directory, not
++    the model tree, so it's correctly outside the guard's scope rather than an omission.
++  - #563 fence fix confirmed: `author-ux-lens/SKILL.md` had 5 code-fence markers on `main`
++    (odd — unmatched) and has 4 on this branch (even — matched).
++
++## Code-level findings
++
++**F1 — non-blocking.** `core/components/plays/ux/scripts/validate_ux.py`, `ROLE_HEAD_VERBS`
++(~line 537–541). The invented-role heuristic only flags a generic role word as a role when the
++token right after it is punctuation, end-of-line, or one of a ~30-word curated verb list. Common
++action verbs a persona would plausibly take — "clicks", "submits", "selects", "confirms",
++"approves", "requests", "reviews", "creates" — aren't in that list, so `"the reviewer approves"`
++or `"an admin submits"` silently pass the prose scan uncaught. This is a false-negative gap, not
++a false-positive one: the heuristic under-detects rather than over-flagging real content, which
++is the safer failure direction for a hard-fail check layered on top of the authoritative
++structured checks (`opened by`, flow `Persona` field) that this prose scan only supplements. Not
++blocking, but worth widening the verb list or switching to a closed-class POS heuristic (function
++word set) if false negatives show up in practice.
++
++**F2 — non-blocking.** Same file, `render_markup`/escaping in `render_wireframes.py` was
++reviewed for injection risk: `esc()` (HTML-escape) runs before the `[[tone:text]]` markup regex
++is applied, so a literal `<`/`&` in authored frame content can't produce HTML, and the markup
++delimiters themselves aren't literal text a screen author could smuggle in after escaping. No
++finding — noting the order was checked deliberately since this is the one place user-authored
++text reaches an HTML page.
++
++No blocking findings.
++
++## Summary
++
++- Blocking findings: 0
++- Non-blocking findings: 1 (heuristic verb-list gap in `validate_ux.py`'s role-prose check)
++- Lint (`lint_play.py`): PASS, 0 gaps
++- Fingerprint check: matches
++- Verdict: clean — ready to raise
+diff --git a/.garura/project/issues/552/context/pr.json b/.garura/project/issues/552/context/pr.json
+new file mode 100644
+index 00000000..b081cf8a
+--- /dev/null
++++ b/.garura/project/issues/552/context/pr.json
+@@ -0,0 +1,6 @@
++{
++  "number": 564,
++  "url": "https://github.com/kapilvirenahuja/garura/pull/564",
++  "state": "OPEN",
++  "base": "main"
++}
+\ No newline at end of file
+diff --git a/.garura/project/issues/552/context/resolved-rules.json b/.garura/project/issues/552/context/resolved-rules.json
+new file mode 100644
+index 00000000..52d10be3
+--- /dev/null
++++ b/.garura/project/issues/552/context/resolved-rules.json
+@@ -0,0 +1,6 @@
++{
++  "resolved": true,
++  "path": "core/components/memory/standards/rules/self-review.md",
++  "source": "core/components/memory/standards/rules",
++  "is_override": false
++}
+diff --git a/.garura/project/issues/552/context/self-review.md b/.garura/project/issues/552/context/self-review.md
+new file mode 100644
+index 00000000..a2e62841
+--- /dev/null
++++ b/.garura/project/issues/552/context/self-review.md
+@@ -0,0 +1,82 @@
++# Self-Review — Issue #552 (`feature/552-ux-design-po-can-see`)
++
++Rules source: `core/components/memory/standards/rules/self-review.md` (base, not overridden —
++see `resolved-rules.json`).
++
++Diff reviewed: `git diff main...HEAD`, 12 files changed (7 source files for the feature + 5 STM
++context files from `start-change`/`commit-change`). Three commits, all reference `#552`,
++conventional format (`feat(ux)`, `chore(stm)` x2).
++
++## Scope checks
++
++- **Matches the issue.** PASS. All seven source files map directly to the five children
++  (#554–#558) plus the #563 fence fix, applied as one change set through a single ICE
++  recompile of the `/ux` play. No file touches the deliberately-out-of-scope items (a
++  product-wide surface map, or tracing a slice's outcome to its journeys — #561).
++- **No scope creep.** PASS. Every changed file is one of: the ICE source, its compiled
++  `SKILL.md`, the stop-condition it declares, the two scripts it runs, the `ux` grounding
++  schema, and the `author-ux-lens` skill it calls. Nothing unrelated riding along.
++- **Reasonable size.** PASS with justification already present. ~1,580 insertions is large for
++  one sitting, but it is five features plus a fix compiled through one recompile of a single
++  play — that's the natural unit here, and the commit history and `SKILL.md`'s own changelog
++  section explain the shape.
++- **No stray artifacts.** PASS. No commented-out code, no debug prints, no scratch files.
++
++## Quality checks
++
++- **Tests present.** PASS by this repo's own pattern. `/ux` doesn't carry pytest-style unit
++  tests for its scripts; correctness is proved by the play's step/scenario evals (SE-15 checks
++  `render_wireframes.py` exits 0 on both the render and `--check` passes; SE-14 checks
++  `validate_ux.py`'s new cross-checks) and by `lint_play.py`, which is the standard verification
++  surface for a garura play. Consistent with how other plays in this repo are proven.
++- **Commits are clean.** PASS. Conventional format, each commit coherent, `#552` referenced in
++  all three.
++- **No secrets.** PASS. Diff scanned for key/token/password/PEM patterns — no hits.
++- **Docs in step.** PASS. The interface change (visual-core meaning) is itself the doc —
++  `core/components/memory/standards/schemas/product-os/grounding/lens/ux.md` — and it's part of
++  this diff.
++- **Nothing obviously broken.** PASS, verified mechanically, not asserted:
++  - `python3 core/components/plays/play-editor/scripts/lint_play.py core/components/plays/ux/SKILL.md`
++    → **VERDICT: PASS (0 gaps)** — all 13 checks pass, including failure coverage, scenario
++    coverage, constraint coverage, recovery 1:1, no orphans, and fingerprint present.
++  - ICE/SKILL fingerprint: `shasum -a 256 core/components/plays/ux/reference/ice.md` →
++    `dbb1f8b843e0073517523349f95b137aa777005e89514311c05ea2818daa8474`, matches the value recorded
++    in `SKILL.md`'s Compilation Metadata exactly. Source and compiled output agree.
++  - Scoped-write guard containment: the allowlist at Step 4 (`--allow lens/ux.md`, `--allow
++    lens/screens.yaml`, `--allow lens/wireframes.html`, `--add-only decisions/*`) covers every
++    path the play writes to the product model, including the new `wireframes.html`. The
++    script's `--report` output for `render_wireframes.py` goes to the STM working directory, not
++    the model tree, so it's correctly outside the guard's scope rather than an omission.
++  - #563 fence fix confirmed: `author-ux-lens/SKILL.md` had 5 code-fence markers on `main`
++    (odd — unmatched) and has 4 on this branch (even — matched).
++
++## Code-level findings
++
++**F1 — non-blocking.** `core/components/plays/ux/scripts/validate_ux.py`, `ROLE_HEAD_VERBS`
++(~line 537–541). The invented-role heuristic only flags a generic role word as a role when the
++token right after it is punctuation, end-of-line, or one of a ~30-word curated verb list. Common
++action verbs a persona would plausibly take — "clicks", "submits", "selects", "confirms",
++"approves", "requests", "reviews", "creates" — aren't in that list, so `"the reviewer approves"`
++or `"an admin submits"` silently pass the prose scan uncaught. This is a false-negative gap, not
++a false-positive one: the heuristic under-detects rather than over-flagging real content, which
++is the safer failure direction for a hard-fail check layered on top of the authoritative
++structured checks (`opened by`, flow `Persona` field) that this prose scan only supplements. Not
++blocking, but worth widening the verb list or switching to a closed-class POS heuristic (function
++word set) if false negatives show up in practice.
++
++**F2 — non-blocking.** Same file, `render_markup`/escaping in `render_wireframes.py` was
++reviewed for injection risk: `esc()` (HTML-escape) runs before the `[[tone:text]]` markup regex
++is applied, so a literal `<`/`&` in authored frame content can't produce HTML, and the markup
++delimiters themselves aren't literal text a screen author could smuggle in after escaping. No
++finding — noting the order was checked deliberately since this is the one place user-authored
++text reaches an HTML page.
++
++No blocking findings.
++
++## Summary
++
++- Blocking findings: 0
++- Non-blocking findings: 1 (heuristic verb-list gap in `validate_ux.py`'s role-prose check)
++- Lint (`lint_play.py`): PASS, 0 gaps
++- Fingerprint check: matches
++- Verdict: clean — ready to raise
+diff --git a/.garura/project/issues/552/context/work-description.txt b/.garura/project/issues/552/context/work-description.txt
+new file mode 100644
+index 00000000..3fbde8dd
+--- /dev/null
++++ b/.garura/project/issues/552/context/work-description.txt
+@@ -0,0 +1,17 @@
++Fix the /ux play so it produces a design a product owner can look at.
++
++Feature #552 with five children, all intent changes to the /ux play, applied as one
++change set and one recompile because they all edit the same ICE source:
++
++- #554 /ux draws low-fidelity wireframes per journey, not prose
++- #555 /ux records design directives that /arch and /implement inherit
++- #556 /ux fixes visual meaning and points at the design system, instead of inventing a look
++- #557 /ux content-quality check passes a draft that is untrue about the model
++- #558 /ux checkpoint accepts approval before the human has seen the artifact
++
++Grounded in the griffin run for slice-trusted-local-collection (griffin issue #20), where
++/ux produced one commit and the product owner made nine correction commits after it, while
++the play's own content-quality check passed the first draft on every criterion.
++
++Route: play-editor — edit core/components/plays/ux/reference/ice.md and recompile.
++Not a direct edit to the compiled SKILL.md.
+diff --git a/core/components/memory/standards/schemas/product-os/grounding/lens/ux.md b/core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+index 3d919ae0..08d3a72e 100644
+--- a/core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
++++ b/core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+@@ -77,8 +77,20 @@
+   Cover the honest states, not just the happy one: loading, empty, partial, error, and blocked
+   belong here whenever they can happen.
+ 
+-- **Visual core** — the color direction and typography direction in words (not a full design
+-  system), enough to keep the build coherent.
++- **Visual core** — fixes meaning, never a look. This section names three things, and picks no
++  palette, no type scale, no spacing, and no component library — those come from the design
++  system it names, applied later:
++  1. **The semantic state vocabulary** — the closed set of words the slice's screens may use for
++     state, each carrying one of four tones: *ok*, *warn*, *bad*, or *neutral*. List every word
++     and what it means. A screen may not use a state word outside this list, and may not invent
++     a fifth tone.
++  2. **The word-alongside-colour rule** — every state word prints next to its colour and is never
++     replaced by it, so the meaning survives a screenshot, a pipe into a file, a printed page, or
++     a reader who cannot tell the hues apart.
++  3. **The design-system reference** — the name of the design system the real look comes from and
++     where it lives (a Figma file, a component library, a style guide), or plainly that none
++     exists yet and why. That reference — not this section — is where palette, type scale, and
++     components get decided, as a later step.
+ 
+ ## Gold example
+ 
+@@ -162,7 +174,15 @@ analysis.
+   reason, with the list still on screen. Next: pick a different set.
+ 
+ ## Visual core
+-Calm and data-first: a neutral background with one accent reserved for trust-state badges (green
+-resolved, amber partial, grey unavailable, red privacy-blocked). Typography: a single legible sans
+-for the data, with slightly heavier weight on the state badges so the honest signal reads first.
++This section is direction, not visual design. Palette, type scale, and components are not decided
++here — they come from the product's design system, applied as a later step once this lens is
++settled. What follows fixes only the meaning the visuals must carry.
++
++Vocabulary: green for **resolved**, amber for **partial** and **not-ready**, grey/neutral for
++**unavailable**, red for **privacy-blocked**. On the coverage table and the legend panel, the
++state word always prints alongside its colour and is never replaced by it, so the meaning survives
++a screenshot, a printed report, or a reader who cannot tell the hues apart.
++
++Design system: none exists yet for this product. Palette and type scale are not invented here to
++fill the gap; they wait for a design system to be named.
+ ```
+diff --git a/core/components/plays/ux/SKILL.md b/core/components/plays/ux/SKILL.md
+index acd208d0..2e4b0c04 100644
+--- a/core/components/plays/ux/SKILL.md
++++ b/core/components/plays/ux/SKILL.md
+@@ -1,7 +1,7 @@
+ ---
+ name: ux
+ position: start
+-description: 'Write a SLICE''s UX lens as a grounding doc (ux.md) — the screens (each naming the object the user works with there, with a low-fidelity layout) that make the slice''s functionalities visible, the flows (per persona and goal: entry, ordered steps naming screens, forks, failure path, exit), the states each screen holds (each with its trigger), and the product''s visual core (color + typography) — directly in place on the live model. The START of the FUNCTIONAL realize pipe (ux → agentic → marketing), run on a shaped slice. Accessibility is not here (it lives in the marketing lens); the wider cross-product journey is not here either (that is /story''s). Reads the hub from the spine (functionality grounding + profile + the slice''s persona and journey records — each flow EXPANDS a journey, never invents one), never another lens. Writes only the slice''s ux lens and its visual-core decision.'
++description: 'Write a SLICE''s UX lens as a grounding doc (ux.md) — the screens (each naming the object the user works with there, with a low-fidelity layout) that make the slice''s functionalities visible, the flows (per persona and goal: entry, ordered steps naming screens, forks, failure path, exit), the states each screen holds (each with its trigger), and the product''s visual core (the semantic state vocabulary, its tone map, and the design-system reference the look comes from — never a palette or type scale this play picks) — directly in place on the live model. It also DRAWS the slice: a machine-readable wireframe record (lens/screens.yaml) the play authors and a wireframes.html a bundled script renders from it, ordered by journey step, so a product owner can look at the design rather than read a description of it. The START of the FUNCTIONAL realize pipe (ux → agentic → marketing), run on a shaped slice. Accessibility is not here (it lives in the marketing lens); the wider cross-product journey is not here either (that is /story''s). Reads the hub from the spine (functionality grounding + profile + the slice''s persona and journey records — each flow EXPANDS a journey, never invents one), never another lens. Writes only the slice''s ux lens, its wireframe artifacts, and its decisions — the visual core plus any design directive the design settled for /arch and /implement to inherit.'
+ user-invocable: true
+ ---
+ 
+@@ -9,7 +9,10 @@ user-invocable: true
+ 
+ Write a shaped slice's **UX lens** as the grounding doc `ux.md`: the screens that make every
+ functionality visible (each naming the one object the user works with there), the flows a person
+-takes through those screens, the states each screen holds, and the product's visual core. Just enough to
++takes through those screens, the states each screen holds, and the product's visual core. It also DRAWS
++the slice as wireframes — a record the play authors and a page a script renders from it, ordered by
++journey step — because a prose layout is not something a product owner can look at and approve, and
++that approval is the whole point of the checkpoint. Just enough to
+ anchor the intended experience and let the build figure the rest. /ux reads the slice's **hub**
+ — its functionalities' grounding docs plus the profile (both from the spine) — and never another
+ realize lens.
+@@ -19,12 +22,14 @@ the D2 rule prepends `start-change` — resolve or create the slice-realize issu
+ off fresh main, optional worktree, init STM — so /agentic and /marketing run on this
+ already-started branch. No pipeline close sequence (no end PR) is injected here; the functional
+ pipe closes at /marketing. It writes the persistent product model **directly, in place** (the
+-slice's ux lens and the visual-core decision) on the started branch — there is no draft copy and
++slice's ux lens, its wireframe artifacts, and its decisions) on the started branch — there is no draft copy and
+ no apply/promote step; review is the branch git diff and the pipeline's end PR. (#437, #500, ADR 026)
+ 
+ **Write discipline (ADR 026, `standards/rules/direct-model-write.md`).** The LLM authoring skill
+-writes ONLY the per-node grounding doc `ux.md` straight to the live model; the one shared-file
+-mutation — the visual-core `decisions/*.yaml` (slice-level, skip-if-exists) — is done by the
++writes ONLY the per-node files — the grounding doc `ux.md` and the wireframe record
++`lens/screens.yaml` — straight to the live model, and the bundled render script writes only
++`lens/wireframes.html` from that record; the one shared-file
++mutation — the `decisions/*.yaml` for the visual core and any design directive (slice-level, skip-if-exists) — is done by the
+ deterministic keyed persist script, in place, keyed to the target slice so it cannot touch another
+ slice's decisions and never edits an accepted decision in place. The model tree is asserted clean
+ once start-change has cut the branch (F14) and the play commits its own model delta after approval
+@@ -36,8 +41,11 @@ scoped guard (`scoped_write_guard.py`), not a draft.
+ This play was compiled from the ux ICE (`reference/ice.md`) by play-editor (#466 Batch C; #467
+ Batch B — the checkpoint upgraded to a conditional learned gate, see
+ `standards/rules/gate-config.md`; #500 — migrated to direct-model-write per ADR 026 and
+-`standards/rules/direct-model-write.md`). Intent defines constraints (C1–C14) and failure
+-conditions (F1–F15); the expectation defines success scenarios (S1–S7), a Done means (D1–D3, baked
++`standards/rules/direct-model-write.md`; #552 — wireframes drawn, visual core narrowed to meaning
++plus a design-system reference, decisions widened to design directives, the checkpoint made to hand
++over the artifact, and the content eval made to check truth as well as form). Intent defines
++constraints (C1–C15) and failure
++conditions (F1–F16); the expectation defines success scenarios (S1–S8), a Done means (D1–D4, baked
+ to `stop-condition.yaml`), and one recovery entry per failure condition. To modify this play,
+ update `reference/ice.md` and recompile with play-editor. Do NOT edit this file manually — it is a
+ compiled artifact.
+@@ -53,10 +61,15 @@ yourself, and you never persist the shared decision or commit the model delta be
+ checkpoint (C11) resolves — a typed approval, a recorded config skip, or a recorded policy
+ auto-pass.
+ 
+-**Forbidden:** hand-writing the lens or a decision; writing anything other than this slice's
+-`ux.md` (by the skill) and its visual-core decision (by the keyed persist) (C2); reading or
+-grounding on another realize lens (C7); writing the visual-core decision by any route other than
+-`scripts/persist_ux.py`; committing the model delta before the Step 5 gate resolves; editing an
++**Forbidden:** hand-writing the lens, a decision, or the wireframe page; writing anything other than this slice's
++`ux.md` and `lens/screens.yaml` (by the skill), `lens/wireframes.html` (by the render script), and its
++decisions (by the keyed persist) (C2); writing a product-wide surface map, which spans slices (C2);
++reading or
++grounding on another realize lens (C7); writing a decision by any route other than
++`scripts/persist_ux.py`; writing or hand-editing `wireframes.html` by any route other than
++`scripts/render_wireframes.py` (F16); choosing a palette or a type scale instead of naming the
++design-system reference (C10/F10); taking a checkpoint answer without first handing over the
++artifact paths (C11/F11); committing the model delta before the Step 5 gate resolves; editing an
+ accepted decision in place (additive-only — F9); running the lens writes against a dirty
+ product-os tree (C13/F14); closing COMPLETED without the stop-condition verdict held (C12/F12).
+ 
+@@ -64,7 +77,7 @@ product-os tree (C13/F14); closing COMPLETED without the stop-condition verdict
+ 
+ | Agent | Domain | Skill it invokes | Phases |
+ |-------|--------|------------------|--------|
+-| `product-os-keeper` | Author the slice's UX lens (screens + flows + states + visual core) from the hub + KB pattern grounding — the `ux.md` written in place on the live model, and the visual-core decision emitted into the manifest | `kb-search`, `author-ux-lens` | Author |
++| `product-os-keeper` | Author the slice's UX lens (screens + flows + states + visual core) AND its wireframe record from the hub + KB pattern grounding — the `ux.md` and `lens/screens.yaml` written in place on the live model, and the visual-core + design-directive decisions emitted into the manifest | `kb-search`, `author-ux-lens` | Author |
+ 
+ `product-os-keeper` is the single **domain agent** this play uses (1 of the ≤5 budget). The
+ utility work — cutting the branch and resolving the issue — is `start-change` (injected head), not
+@@ -142,15 +155,17 @@ completed steps, reset any in-progress step to pending, continue.
+ Create ALL tasks immediately after resolving config — before any domain work.
+ The play owns this DAG; the agent must not edit its top-level tasks.
+ 
+-Write-then-review (ADR 026): the FULL model delta — the LLM's `ux.md` AND the keyed persist's
+-visual-core decision — is written to the live model BEFORE the checkpoint, so the guard, the
++Write-then-review (ADR 026): the FULL model delta — the LLM's `ux.md` and `lens/screens.yaml`, the
++render script's `lens/wireframes.html`, AND the keyed persist's decisions — is written to the live
++model BEFORE the checkpoint, so the guard, the
+ change-shape, and the human all see the real delta. Nothing is COMMITTED before the gate resolves;
+ cancel reverts the uncommitted writes.
+ 
+ ```
+ [T0] start-change (injected — start, head)          blockedBy: []
+-[T1] Author the lens (ux.md to live)                blockedBy: [T0]
+-[T2] Validate the live doc                          blockedBy: [T1]
++[T1] Author the lens + wireframe record (to live)   blockedBy: [T0]
++[T1b] Draw the slice (render the wireframes)        blockedBy: [T1]
++[T2] Validate the live doc                          blockedBy: [T1b]
+ [T3] Persist (keyed, in place — decision)           blockedBy: [T2]
+ [T4] Guard the full delta + classify the shape      blockedBy: [T3]
+ [T5] Checkpoint (approval over the full git diff)   blockedBy: [T4]
+@@ -199,7 +214,7 @@ place, and emits the visual-core decision (with the grounding map) as structured
+ `decisions/*.yaml`):
+ 
+     {
+-      "task":    "author the slice's UX lens (screens/flows/states/visual core) from its hub; write ux.md in place on the live model; ground screens to functionalities and EXPAND each of the slice's journey records into one flow — the journey supplies the persona and the ordered steps, you add the screen each step happens on plus the forks, failure path and exit; never invent a flow; name each flow's journey_ref and persona_ref in the manifest so both resolve against readiness.json; ground the visual core to the KB or a decision; every flow step names a real screen and every screen is reached by a flow; emit the visual-core decision delta into the manifest",
++      "task":    "author the slice's UX lens (screens/flows/states/visual core) AND its wireframe record from its hub; write ux.md and lens/screens.yaml in place on the live model — never wireframes.html, which a script renders from your record; ground screens to functionalities and EXPAND each of the slice's journey records into one flow — the journey supplies the persona and the ordered steps, you add the screen each step happens on plus the forks, failure path and exit; never invent a flow; name each flow's journey_ref and persona_ref in the manifest so both resolve against readiness.json; in screens.yaml tie every frame to its journey step through journeys[].steps[].covered_by (never a field on the screen), give every moment a literal frame body, and give any journey step no moment covers a named gap rather than dropping it; fix the visual core as MEANING — the semantic vocabulary, its tone map, the word-alongside-colour rule, and the design-system reference (or an explicit none-yet) — never a palette or a type scale; every flow step names a real screen and every screen is reached by a flow; emit the visual-core decision delta AND a design-directive decision for each non-visual thing the design settled that /arch or /implement must inherit, into the manifest",
+       "inputs":  { "slice_ref": "<domain>/<slice>",
+                    "slice_file": "<slice record>",
+                    "functionality_groundings": "<from check_ready_slice>",
+@@ -208,26 +223,62 @@ place, and emits the visual-core decision (with the grounding map) as structured
+                    "journeys": "<readiness.journeys[] — the slice's journey records>",
+                    "profile": "<spine profile>", "product_base": "<product_base>",
+                    "lens_rel": "product-os/<domain>/slices/<slice>/lens/ux.md",
++                   "screens_rel": "product-os/<domain>/slices/<slice>/lens/screens.yaml",
+                    "manifest_path": "<working>/ux-manifest.yaml" },
+       "outputs": { "manifest": "<working>/ux-manifest.yaml" }
+     }
+ 
+-The skill reads the hub read-only and writes the `ux.md` IN PLACE under `<product_base>product-os/`.
+-It writes `ux-manifest.yaml` under `<working>` (STM) with the grounding map and the visual-core
+-`decision_delta` (omitted when it reuses an existing product decision). It writes NO shared model
++The skill reads the hub read-only and writes the `ux.md` and `lens/screens.yaml` IN PLACE under
++`<product_base>product-os/`. It never writes `lens/wireframes.html` — that page is rendered from
++`screens.yaml` by the bundled script at Step 1b, and a hand-written page is F16.
++It writes `ux-manifest.yaml` under `<working>` (STM) with the grounding map and the
++`decision_delta` — the visual core (omitted when it reuses an existing product decision) and one
++entry per design directive the design settled, each carrying `kind` and the `binds` naming what
++downstream reads it. It writes NO shared model
+ file. It returns the contract with the output paths on disk — never inline content.
+ **SE-1 (F1/C1):** `check_ready_slice.py` passed at pre-flight — the slice is ready and its hub
+ resolves, including every surface's persona record and at least one journey per surface; an
+ unready slice, a dangling `persona_ref`, or a surface no journey reaches halted (REC1).
+ 
+-**Step 2 — Validate the live doc** · Owner: play · Depends on: Step 1
++**Step 1b — Draw the slice (render the wireframes)** · Owner: play (script) · Depends on: Step 1
++The record is judgment and the page is not, so the page is generated and never hand-written (C15).
++Run the bundled render script over the `screens.yaml` the skill just authored. It validates the
++record against C15's shape, writes `lens/wireframes.html` beside the lens, and captures a report
++whose `ok` field is D4's input:
++
++```
++python3 scripts/render_wireframes.py \
++        --screens <product_base>/product-os/<domain>/slices/<slice>/lens/screens.yaml \
++        --out <product_base>/product-os/<domain>/slices/<slice>/lens/wireframes.html \
++        --report <working>/wireframe-report.json
++```
++
++Then prove the page on disk IS the rendered page — the check that catches a hand-edit, now or on a
++later run — by re-rendering in memory and diffing, writing nothing:
++
++```
++python3 scripts/render_wireframes.py \
++        --screens <product_base>/product-os/<domain>/slices/<slice>/lens/screens.yaml \
++        --out <product_base>/product-os/<domain>/slices/<slice>/lens/wireframes.html \
++        --report <working>/wireframe-report.json --check
++```
++
++**SE-15 (F16/C15):** `render_wireframes.py` exits 0 on both passes — `lens/screens.yaml` and
++`lens/wireframes.html` both exist; every screen is named by a journey step's `covered_by`; every
++journey step either resolves to the moments covering it or carries a named gap (a gap is recorded,
++never a halt); every moment holds a frame body; every state's tone is in the visual core's map;
++`spec.design_system` names a reference or records `none_yet`; no frame carries an invented palette,
++type scale, or component library; and `--check` reports no byte difference, so the page was
++rendered and not hand-edited. A finding is REC16: fix the record, never the page, and re-render.
++
++**Step 2 — Validate the live doc** · Owner: play · Depends on: Step 1b
+ Run the guards over the LIVE `ux.md` this run wrote, before the checkpoint — shape first, then
+ content, then grounding. Under direct-model-write the doc is already written in place, and the
+ visual-core decision has NOT yet been written for this run (the keyed persist runs after Step 2):
+ 
+ ```
+ python3 scripts/lint_grounding.py --doc <product_base>/product-os/<domain>/slices/<slice>/lens/ux.md
+-python3 scripts/validate_ux.py --manifest <working>/ux-manifest.yaml --slice-file <product_base>/<slice_file> --product-base <product_base> --lens <product_base>/product-os/<domain>/slices/<slice>/lens/ux.md --readiness <working>/readiness.json
++python3 scripts/validate_ux.py --manifest <working>/ux-manifest.yaml --slice-file <product_base>/<slice_file> --product-base <product_base> --lens <product_base>/product-os/<domain>/slices/<slice>/lens/ux.md --readiness <working>/readiness.json --screens <product_base>/product-os/<domain>/slices/<slice>/lens/screens.yaml
+ python3 scripts/check_kb_grounding.py --manifest <working>/ux-manifest.yaml --kb-root <kb_root> --proposals-dir <working>/proposals
+ ```
+ 
+@@ -243,7 +294,12 @@ python3 scripts/grounding_gate.py --verdict <verdict.json>
+ **SE-2 (F3/C3):** `lint_grounding.py` exits 0 — `ux.md` conforms to the UX lens template
+ (Intent/Screens/Flows/States/Visual core), no missing/extra/empty section.
+ **SE-3 (F4/C4):** the content-quality eval gate (`grounding_gate.py`) passes — `ux.md` is
+-self-explaining and clears the stranger test.
++self-explaining and clears the stranger test — AND `validate_ux.py`'s grounding cross-checks pass,
++so the doc is TRUE about the hub and not merely well-formed: every role it names resolves to a
++persona record the readiness check handed over (an invented role such as "a general viewer" or
++"the actor" is a hard fail, not a wording caveat), and every screen it declares is named by at
++least one journey step in `screens.yaml`, with the lens and the record describing the same slice.
++A well-formed doc describing people or screens the model does not have FAILS this eval. REC4.
+ **SE-4 (F5/C5):** `validate_ux.py` — every screen in the manifest grounds to a functionality or a
+ persona/journey; the visual core grounds to the KB or a decision.
+ **SE-5 (F6/C6):** `validate_ux.py` — every functionality the slice bundles is visualized by at
+@@ -251,9 +307,13 @@ least one screen (coverage), and every screen is reached by at least one flow st
+ unreachable screen).
+ **SE-6 (F7/C7):** `validate_ux.py` — no screen grounds on another realize lens.
+ **SE-7 (F8/C8):** `validate_ux.py` — the visual core names a decision (the manifest's
+-`decision_delta` or a reused product decision) that resolves; the keyed persist (Step 3) writes it.
+-**SE-8 (F10/C10):** `check_kb_grounding.py` exits 0 — the visual core, navigation, and responsive
+-choices trace to a KB learning or a recorded proposal.
++`decision_delta` or a reused product decision) that resolves; every design directive the design
++settled is in the delta as its own decision naming what it `binds` downstream, rather than left in
++the prose; the keyed persist (Step 3) writes them.
++**SE-8 (F10/C10):** `check_kb_grounding.py` exits 0 — the navigation and responsive
++choices trace to a KB learning or a recorded proposal; and the visual core names the project's
++design-system reference or records that none exists yet, with no palette or type scale chosen by
++this play (the look is never a KB gap — no shelf can tell a project what its brand is).
+ **SE-14 (F15/C14):** `validate_ux.py --lens --readiness` reports BOTH flow cross-checks ok. Lens
+ side: every flow names its persona, goal, entry, ordered steps, decision points, failure path and
+ exit; every step names a screen that exists in Screens; every decision point names where each
+@@ -300,8 +360,10 @@ write scope by construction — the lens re-derive (overwrite) and decisions ski
+ direct-model-write that same scope is the `scoped_write_guard.py` policy. Resolve `<slice-dir>` as
+ `<domain>/slices/<slice>`:
+ 
+-    --allow    'product-os/<slice-dir>/lens/ux.md'      # the ux lens (re-derive; overwrite allowed)
+-    --add-only 'product-os/<slice-dir>/decisions/*'     # the visual-core decision (added, never modified)
++    --allow    'product-os/<slice-dir>/lens/ux.md'            # the ux lens (re-derive; overwrite allowed)
++    --allow    'product-os/<slice-dir>/lens/screens.yaml'     # the wireframe record (re-derive)
++    --allow    'product-os/<slice-dir>/lens/wireframes.html'  # the rendered page (regenerated)
++    --add-only 'product-os/<slice-dir>/decisions/*'           # the visual-core + design-directive decisions (added, never modified)
+ 
+ **Guard ONCE over the full delta (C9).** After ALL writes (the LLM's `ux.md` from Step 1 and the
+ keyed persist's decision from Step 3), run the scoped guard a single time over the whole delta.
+@@ -311,6 +373,8 @@ before/after verify):
+ ```
+ python3 scripts/scoped_write_guard.py --product-base <product_base> --base-ref HEAD \
+         --allow 'product-os/<slice-dir>/lens/ux.md' \
++        --allow 'product-os/<slice-dir>/lens/screens.yaml' \
++        --allow 'product-os/<slice-dir>/lens/wireframes.html' \
+         --add-only 'product-os/<slice-dir>/decisions/*' \
+         --out <working>/guard-report.json
+ ```
+@@ -358,9 +422,25 @@ python3 scripts/gate_eval.py append --ledger <gates.conditional.ledger> --play u
+ Anything else resolves the gate on (an explicit `gates.plays.ux: off` instead records `gate
+ skipped by config (<resolution path>)` as a Checkpoint Decisions row and proceeds). When on,
+ present the proposed screens (with layouts and the object each is about), flows, states, and
+-visual core, plus the decision, **inline
+-over the real model git diff** — render the approval prompt
+-(`standards/templates/approval-prompt.md`) and wait for the typed response. Approve → continue to
++visual core, plus the decisions, **inline
++over the real model git diff** — and **hand over the artifacts before asking for an answer (C11)**.
++Print both on-disk paths and say plainly which one to open:
++
++```
++The design is written. Open the wireframes before you answer — that is the design:
++  wireframes   <product_base>/product-os/<domain>/slices/<slice>/lens/wireframes.html
++  the lens     <product_base>/product-os/<domain>/slices/<slice>/lens/ux.md
++```
++
++A summary of the work is not the work. An approval given by someone who was never offered the
++artifact is the play reviewing itself, and it does not count — re-present with the paths and take
++the answer again (REC11). On the auto-pass path nobody is waiting, so write both paths into the
++recorded diff summary instead, so whoever reads the record later lands on the artifact rather than
++on a description of it.
++
++Then render the approval prompt
++(`standards/templates/approval-prompt.md`) and wait for the typed response — typed, never a picker
++or a menu. Approve → continue to
+ Step 6 (commit). **Cancel → revert the working tree (ADR 026 step 6):** the full delta is already
+ on disk, so run the guard with `--restore` and an EMPTY allow set to `git restore` the modified
+ model paths and `git clean`/remove the new ones (byte-clean back to HEAD), then halt — nothing was
+@@ -385,10 +465,13 @@ python3 scripts/gate_eval.py append --ledger <gates.conditional.ledger> --play u
+ `.garura/core/gate-evals.jsonl` / `.garura/core/gate-policy.yaml`); `<policy version>` is the
+ policy file's `version:` field. `<run ts>` is the run's own UTC timestamp, derived the same way the
+ close derives `ts` (`date -u`), passed by the orchestrator.
+-**SE-10 (F11/C11):** the model delta was written to the live model by Steps 1 + 3 but is COMMITTED
++**SE-10 (F11/C11):** the model delta was written to the live model by Steps 1 + 1b + 3 but is COMMITTED
+ (made durable) only at Step 6 on approval — so no product-model change is COMMITTED before the gate
+ resolves (a typed approval, a recorded config skip, or a recorded policy auto-pass); on cancel the
+-whole working-tree delta is reverted before any commit, so nothing is left on the tree.
++whole working-tree delta is reverted before any commit, so nothing is left on the tree; and the
++answer that resolved the gate was taken only AFTER the lens and wireframe paths were printed (on
++the auto-pass path, both paths appear in the recorded diff summary) — an approval taken without the
++artifact on offer is not recorded as one (REC11).
+ **SE-11 (F13):** every crossing of this gate appended exactly one live-eval ledger line (shape,
+ predicted `gate|auto`, the human's real action or `auto_pass`), and an auto-pass fired only for a
+ shape the policy lists in `auto:` (and not in `never_auto:`) with no blocking finding standing.
+@@ -421,15 +504,19 @@ land closes HALTED, never COMPLETED (REC12).
+ - **SCE-2 (S2 — product owner):** every functionality the slice bundles maps to ≥1 screen, and
+   every screen is reached by ≥1 flow step.
+ - **SCE-3 (S3 — ux researcher):** every screen traces to a functionality or persona/journey; every
+-  flow's `journey_ref` and `persona_ref` resolve against `readiness.json`; the visual core to a
+-  decision that resolves.
++  flow's `journey_ref` and `persona_ref` resolve against `readiness.json`; every role the doc names
++  resolves to a persona record and every screen it declares is named by a journey step; the visual
++  core to a decision that resolves, and it names a design-system reference or records that none
++  exists yet.
+ - **SCE-4 (S4 — architect):** no other realize lens was read or written.
+ - **SCE-5 (S5 — product owner, re-run):** a re-run re-derives only `ux.md`; everything else
+   byte-identical; no accepted decision edited in place (the keyed persist skipped the existing
+   decision).
+ - **SCE-6 (S6 — reviewer):** the checkpoint showed the screens, flows, states, and visual core
+   inline
+-  over the real model git diff, and no product-model change was COMMITTED before approval — on
++  over the real model git diff AND printed the on-disk paths of the lens and the rendered
++  wireframe page before taking an answer, so the human approved the artifact rather than a
++  description of it; and no product-model change was COMMITTED before approval — on
+   cancel the working tree returns byte-clean to HEAD — or, on the auto-pass path, the change shape
+   is policy-listed and a recorded auto-pass + live-eval ledger line + diff summary exist, with no
+   wait.
+@@ -437,6 +524,12 @@ land closes HALTED, never COMPLETED (REC12).
+   about; every flow names persona, goal, entry, ordered steps, decision points, failure path
+   and exit; every step resolves to a screen in Screens; every screen appears in at least one
+   flow; `validate_ux.py --lens` reports the flow cross-check ok.
++- **SCE-8 (S8 — product owner, looks at the product):** `lens/screens.yaml` and
++  `lens/wireframes.html` both exist on the live model; `render_wireframes.py --check` reports no
++  byte difference, so the page came from the record and was never hand-written; every journey step
++  resolves to the moments covering it or carries a named gap, and the gaps are listed in the
++  wireframe report; every moment holds a frame body; no frame carries a palette, type scale, or
++  component library.
+ 
+ ### Phase: Evidence & Close
+ 
+@@ -490,7 +583,7 @@ and record `evidence skipped (record=false)`. Otherwise fill the `evidence-file.
+ `ux`, run_id `ux-${ts}`, slice slug, started/completed, status per C0, exit_reason; artifacts: the
+ slice's `ux.md`, the manifest, the visual-core decision, the persist manifest
+ (`persist-manifest.json`), the captured `guard-report.json`, the model-delta commit sha, the
+-stop-condition verdict; the content-eval verdict; step + scenario evals SE-1…SE-14 / SCE-1…SCE-7;
++stop-condition verdict; the content-eval verdict; the wireframe report; step + scenario evals SE-1…SE-15 / SCE-1…SCE-8;
+ checkpoint decision from Step 5 (incl. any `gate skipped by config` or `gate auto-passed by learned
+ policy` row) plus the gate ledger line(s) appended this run; the session identity stamp fields from
+ $session_stamp (#463): session_id, ledger_file, ledger_start_offset, ledger_end_offset (null when
+@@ -520,6 +613,7 @@ this slice), and a pointer to `$evidence_dest`. Always emitted.
+ | S5 — re-run | product owner | SCE-5 |
+ | S6 — the checkpoint | reviewer | SCE-6 |
+ | S7 — reads the flows | ux researcher | SCE-7 |
++| S8 — looks at the product | product owner | SCE-8 |
+ 
+ ## Recovery
+ 
+@@ -528,18 +622,19 @@ this slice), and a pointer to `$evidence_dest`. Always emitted.
+ | F1 | the slice is absent, a functionality does not resolve, the profile is not firmed, a surface's persona does not resolve, or a surface is reached by no journey | halt and route to /shape (it owns the persona and journey records and already guarantees a journey per surface) or /understand before /ux runs; never invent the missing persona or journey | human |
+ | F2 | a write touched something beyond this slice's ux.md or its visual-core decision | the guard's `--restore` already reverted the out-of-scope write; re-run writing only the slice's ux.md and its decision | autonomous |
+ | F3 | ux.md fails the template/shape or carries out-of-scope content | re-emit to the UX lens template (Intent/Screens/Flows/States/Visual core only; accessibility belongs to marketing, the wider cross-product journey to /story) | autonomous |
+-| F4 | ux.md fails the content-quality eval | rewrite the failing section to the judge's cited fixes and re-judge until the gate passes | autonomous |
++| F4 | ux.md fails the content-quality eval — not self-explaining, or naming a role that resolves to no persona record, or declaring a screen no journey step names | rewrite the failing section to the judge's cited fixes; replace an unresolvable role with the persona record it stood in for (never add the persona — /shape owns those); tie an uncovered screen to the step it serves or drop it; re-judge and re-run the grounding cross-check until both pass | autonomous |
+ | F5 | an invented/ungrounded element | drop it, or re-tie the screen to a functionality or persona/journey, and the visual core to a decision | autonomous |
+ | F6 | a functionality is covered by no screen | add the screen(s) that visualize the missing functionality | autonomous |
+ | F7 | /ux read or depended on another lens | remove the dependency; /ux derives only from the slice's hub | autonomous |
+-| F8 | the visual core was set with no decision | record the slice-level visual-core decision in the manifest (reuse the product one if it exists) before the keyed persist | autonomous |
++| F8 | the visual core was set with no decision, or a thing the design settled for the technical build sits in prose with no decision | record the slice-level visual-core decision in the manifest (reuse the product one if it exists), and lift each settled thing out of the prose into its own design-directive decision naming what it binds downstream — recording only what the design actually settled — before the keyed persist | autonomous |
+ | F9 | the scoped-write guard report is not ok — a non-lens/non-decision path changed, or an accepted decision was edited in place | the guard's `--restore` already reverted the offending paths; re-run writing only the slice's ux.md and its visual-core decision, after a human confirms the restore | human |
+-| F10 | a UX pattern choice with no KB learning and no recorded proposal | search the KB via kb-search and ground the choice, or raise a KB-learning-gap proposal | autonomous |
+-| F11 | the model delta was committed before the checkpoint resolved, or a cancelled checkpoint left writes on the working tree | revert the premature commit and the working-tree writes (guard `--restore`, empty allow set) and re-present the checkpoint; commit only after the gate resolves | human |
++| F10 | the navigation pattern or responsive strategy has no KB learning and no recorded proposal, or /ux chose a palette or type scale | for navigation and responsive strategy, search the KB via kb-search and ground the choice, or raise a KB-learning-gap proposal; for the look, strip the chosen palette and type scale and name the project's design-system reference instead, or record plainly that none exists yet — never a KB gap, since no shelf can tell a project what its brand is | autonomous |
++| F11 | the model delta was committed before the checkpoint resolved, a cancelled checkpoint left writes on the working tree, or the checkpoint took an answer without handing over the artifact paths | for the un-offered artifact, re-present the checkpoint with both paths printed and take the answer again — an approval given without the artifact on offer does not count and is not recorded as one; otherwise revert the premature commit and the working-tree writes (guard `--restore`, empty allow set) and re-present; commit only after the gate resolves | human |
+ | F12 | the run is about to close COMPLETED with the Done means unmet | close HALTED (`stop_condition_unmet`) with the unmet clauses named; fix the state — re-run the keyed persist, re-capture the scoped-write guard report, or make the model-delta commit — then re-evaluate; the close stays HALTED until the verdict reads held | autonomous |
+ | F13 | a conditional-gate crossing left no live-eval ledger line, or an auto-pass fired for a shape the policy does not list as auto (or with a blocking finding) | re-append the missing ledger line via gate_eval.py; when the auto-pass was unearned, revert any premature persist and re-run the gate as a live wait | autonomous |
+ | F14 | the product-os tree is dirty once start-change has cut the branch (uncommitted model edits present) | halt and ask for a clean model tree — commit or revert the pending model edits — before /ux writes the lens | human |
+ | F15 | a flow names no persona/goal/entry/failure/exit, a step names a screen that is not in Screens, a decision point does not say where a branch goes, a screen is reached by no flow, or a flow's journey/persona id resolves to no record readiness.json handed over | re-emit the Flows section to the fixed shape — add the missing field, rename the step to the real screen, name both branches of the fork, add the flow that reaches the orphan screen (or drop the screen if nothing reaches it), re-tie the persona to a persona/journey of the hub — then re-run `validate_ux.py --lens` until the flow cross-check reads ok | autonomous |
++| F16 | a wireframe artifact is missing, the page disagrees with its record, a screen is covered by no journey step and carries no gap, a moment has no frame body, a state uses a tone outside the visual core's map, or a frame carries invented styling | author the missing part of the record — the frame body, the `covered_by` list, or the named gap where the step genuinely has no screen yet — correct any tone to one in the map, strip invented styling back to labels and content, then re-run `render_wireframes.py` so the page comes from the record; never hand-edit the page to agree with the record, re-render it; repeat until the wireframe report reads ok | autonomous |
+ 
+ ## Pause and Resume
+ 
+@@ -553,18 +648,53 @@ start — a resume continues its own in-progress delta.
+ 
+ | Field | Value |
+ |-------|-------|
+-| fingerprint | sha256:67b7f3456d55a8bde6113ead52a92603448b91b932d36412074fddd7bb6bb931 (of `reference/ice.md`) |
+-| compiled_by | play-editor (#550 persona + journey grounding); prior: play-editor (#548 flows + object-per-screen), play-editor (#500 direct-model-write, ADR 026), play-editor (#467 Batch B, #466 Batch C) |
++| fingerprint | sha256:dbb1f8b843e0073517523349f95b137aa777005e89514311c05ea2818daa8474 (of `reference/ice.md`) |
++| compiled_by | play-editor (#552 wireframes drawn, visual core narrowed, design directives, artifact-handover checkpoint, truth-checking content eval); prior: play-editor (#550 persona + journey grounding), play-editor (#548 flows + object-per-screen), play-editor (#500 direct-model-write, ADR 026), play-editor (#467 Batch B, #466 Batch C) |
+ | pipeline_position | start (functional pipe head; the functional pipe closes at /marketing) |
+ | workflow_structure | A (single checkpoint — class: standard, conditional learned gate per gate-config.md #467; direct-model-write WRITE-THEN-REVIEW per ADR 026 — persist + guard + classify before the gate, commit after; stop-condition gated close) |
+-| stop_condition | stop-condition.yaml (D1–D3), gate live at Step C0 |
++| stop_condition | stop-condition.yaml (D1–D4), gate live at Step C0 |
+ | domain_agents | 1 (product-os-keeper) |
+ | utility_agents | 0 |
+ | skills_used | kb-search, author-ux-lens |
+-| scripts | 12 (preflight, check_ready_slice, lint_grounding, grounding_gate, validate_ux, check_kb_grounding, persist_ux — keyed in-place persist, scoped_write_guard — post-write containment, check_stop_condition — Done-means gate, session_stamp — #463 identity stamp, classify_change + gate_eval + distill_gate_policy — #467 conditional gate) |
+-| step_evals | 14 (SE-1…SE-14) |
+-| scenario_evals | 7 (SCE-1…SCE-7) |
+-| recovery_entries | 15 (one per failure condition; 12 autonomous / 3 human) |
++| scripts | 13 (preflight, check_ready_slice, lint_grounding, grounding_gate, validate_ux, check_kb_grounding, persist_ux — keyed in-place persist, render_wireframes — draws screens.yaml into wireframes.html and proves the page was generated (#552), scoped_write_guard — post-write containment, check_stop_condition — Done-means gate, session_stamp — #463 identity stamp, classify_change + gate_eval + distill_gate_policy — #467 conditional gate) |
++| step_evals | 15 (SE-1…SE-15) |
++| scenario_evals | 8 (SCE-1…SCE-8) |
++| recovery_entries | 16 (one per failure condition; 13 autonomous / 3 human) |
++
++**Recompiled note (#552, the slice gets drawn):** five intent changes applied as one change set,
++from the griffin run for `slice-trusted-local-collection`, where /ux produced one commit and the
++product owner made nine correction commits after it while the play's own content check passed the
++first draft on every criterion.
++
++- **The slice is drawn, not only described** (C15, F16, REC16, S8, SE-15, SCE-8, D4). New Step 1b
++  and the bundled `render_wireframes.py`. The authoring skill writes the wireframe record
++  `lens/screens.yaml`; the script renders `lens/wireframes.html` from it and re-renders with
++  `--check` to prove the page was generated. A frame ties to a journey step through
++  `journeys[].steps[].covered_by`, never a field on the screen, so ordering follows the journey and
++  a new moment renumbers nothing. A step no moment covers carries a named gap — recorded, never a
++  halt, because the griffin artifact the product owner accepted kept one. A product-wide surface
++  map spans slices and stays out of scope (C2).
++- **The visual core fixes meaning, not the look** (C3, C5, C10, F10, REC10). It carries the
++  semantic vocabulary, its tone map, the word-alongside-colour rule, and the design-system
++  reference — or an explicit "none yet". /ux no longer picks a palette or a type scale, and the
++  look is never a KB gap: no shelf can tell a project what its brand is.
++- **Decisions widen to design directives** (C8, F8, REC8). Designing a slice settles non-visual
++  things the technical design must inherit; each becomes its own slice-level decision naming what
++  it binds downstream, rather than being retold by hand into /arch.
++- **The checkpoint hands over the artifact** (C11, F11, REC11, SE-10, SCE-6). It prints the lens
++  and wireframe paths and says which to open before it takes an answer; on the auto-pass path both
++  paths go into the recorded diff summary. An approval given without the artifact on offer is not
++  recorded as one.
++- **The content eval checks truth, not only form** (C4, F4, REC4, SE-3, SCE-3). `validate_ux.py`
++  gained `--screens` and two mechanical cross-checks: every role the doc names resolves to a
++  persona record, and every screen it declares is named by a journey step. The griffin draft's "a
++  general viewer" — a role that exists nowhere in the model — was flagged by the old judge as a
++  wording caveat; it is now a hard fail.
++
++Outside the play: `author-ux-lens` authors `screens.yaml` and the widened decision set, and the UX
++lens template's Visual core guidance and gold example were rewritten to match. The lens heading
++list is unchanged, so the ten duplicated `lint_grounding.py` copies need no sync. The slice-outcome
++trace belongs to /shape (#561) and is deliberately not built here.
+ 
+ **Recompiled note (#500, direct-model-write / ADR 026):** migrated from draft-then-apply to
+ direct-model-write. The old draft model tree and the `apply_ux.py`/`check_ux.py` promotion+verify
+diff --git a/core/components/plays/ux/reference/ice.md b/core/components/plays/ux/reference/ice.md
+index 7b54c002..8f888d47 100644
+--- a/core/components/plays/ux/reference/ice.md
++++ b/core/components/plays/ux/reference/ice.md
+@@ -16,16 +16,23 @@ the ordered steps they take; /ux reads them rather than inventing a path. The le
+ one object the user works with there plus a low-fidelity layout; the **flows** — for each persona
+ and goal, the ordered path through those screens, its forks, its failure path, and its exit; the
+ **states** each screen can hold, each with the trigger that puts the screen in it; and the
+-product's **visual core** — color and typography. Together the screens and the flows answer the
++product's **visual core** — the semantic meaning the visuals must carry, plus the design-system
++reference the look itself comes from. /ux does not choose palette or typography. Alongside the
++lens the run draws the slice as **wireframes** — a machine-readable `screens.yaml` the play
++authors and a `wireframes.html` a script renders from it, ordered by journey step — because a
++prose layout is not something a product owner can look at and approve, and the approval is the
++whole point of the checkpoint. Together the screens and the flows answer the
+ two questions a UX researcher opens this doc to answer — what the user is dealing with, and how a
+-person actually moves through it — and they make every functionality of the slice visible, so a
+-human can confirm the shape and the intent under it. Accessibility is NOT in this lens — it lives
++person actually moves through it; the wireframes answer the product owner's one question, which
++is what it will look like to the person using it — and they make every functionality of the slice
++visible, so a human can confirm the shape and the intent under it. Accessibility is NOT in this lens — it lives
+ in the marketing lens now. The flows here are the paths **inside this slice's screens**; the
+ person's wider journey across the product is not this lens's to write (that is /story's, #528).
+-Every screen is grounded in one of the slice's functionalities or a persona/journey; the visual core is a deliberate choice
+-recorded as a decision; the cross-cutting pattern choices (visual core, navigation, responsive
+-strategy) are grounded in the KB or recorded as a KB-learning-gap proposal. It writes only this
+-slice's `ux.md` (and the visual-core decision) — never the spine, the slice record, the profile,
++Every screen is grounded in one of the slice's functionalities or a persona/journey; the visual core and any
++design directive the design settles are deliberate choices recorded as decisions; the cross-cutting pattern
++choices (navigation, responsive strategy) are grounded in the KB or recorded as a KB-learning-gap
++proposal. It writes only this slice's `ux.md`, its wireframe artifacts, and its decisions — never
++the spine, the slice record, the profile,
+ another lens, or another slice. One slice per run; one human checkpoint before anything persists.
+ The lens is gated by the structural linter (shape) and the content-quality eval (a judge).
+ 
+@@ -34,18 +41,21 @@ marketing): the D2 rule prepends `start-change` — resolve or create the slice-
+ the branch off fresh main, optional worktree, init STM — so /agentic and /marketing run on this
+ already-started branch. No pipeline close sequence (no end PR) is injected here; the functional
+ pipe closes at /marketing. It writes the persistent product model **directly, in place** (the
+-slice's ux lens and the visual-core decision) on the started branch — there is no draft copy and
++slice's ux lens, its wireframe artifacts, and its decisions) on the started branch — there is no draft copy and
+ no apply/promote step; review is the branch git diff and the pipeline's end PR. It reads the hub
+ only (the slice's functionalities' grounding + the profile); never another lens. (#437,
+ decision 24; 3-pipe realize 2026-06-25; #500, ADR 026)
+ 
+ Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM authoring skill
+-writes ONLY the per-node grounding doc (`ux.md`) straight to the live model; the one shared-file
+-mutation — the visual-core `decisions/*.yaml` (slice-level, `skip-if-exists`) — is done by the
++writes ONLY the per-node files — the grounding doc (`ux.md`) and the wireframe record
++(`lens/screens.yaml`) — straight to the live model, and the bundled render script writes only
++`lens/wireframes.html` from that record; the one shared-file
++mutation — the `decisions/*.yaml` for the visual core and any design directive (slice-level,
++`skip-if-exists`) — is done by the
+ deterministic keyed persist script, in place, keyed to the target slice so it cannot touch
+ another slice's decisions and never edits an accepted decision in place; it reads the skill's
+ manifest (an STM, non-model artifact) for the decision delta. Because the LLM only ever writes
+-the one doc file, containment is a post-write scoped guard over the full delta
++per-node files in the slice's own folder, containment is a post-write scoped guard over the full delta
+ (`scoped_write_guard.py`), not a draft. Clean tree in, committed delta out: the product-os tree
+ is asserted clean once start-change has cut the fresh branch, and after the approved checkpoint
+ the play commits its own model delta on the branch, so the working-tree diff vs HEAD is exactly
+@@ -60,21 +70,33 @@ this run's delta and the next pipeline play (/agentic) enters clean.
+   least one journey record whose own `persona_ref` resolves. A reference that resolves to nothing
+   is a BROKEN hub, not an empty one — halt. /ux realizes a shaped slice; it does not shape one,
+   and it does not invent the person or the path.
+-- C2 — Writes only this slice's `ux.md` (by the LLM skill) and its visual-core decision (by the
+-  keyed persist), in place on the live model in the slice's folder. Never the spine, the slice
+-  record, the profile, another lens, the node tree, personas, journeys, or other slices.
++- C2 — Writes only this slice's `ux.md` and `lens/screens.yaml` (by the LLM skill),
++  `lens/wireframes.html` (by the bundled render script), and its decisions — the visual core and
++  any design directive the design settles (by the keyed persist) — in place on the live model in
++  the slice's folder. Never the spine, the slice
++  record, the profile, another lens, the node tree, personas, journeys, or other slices. A
++  product-wide surface map spans slices and is therefore never /ux's to write.
+ - C3 — Shape: `ux.md` conforms to the UX lens template — the sections Intent, Screens (name +
+   who opens it + the one object the user works with there + low-fidelity layout), Flows (per
+   persona and goal: entry point, ordered steps each naming a screen and the action, decision
+   points naming where each branch goes, the failure path, and the exit), States (per screen, each
+   state naming its trigger, what the user sees, and what they can do next), and Visual core
+-  (palette + typography) — and the structural linter passes. No accessibility block, no
++  (the semantic state vocabulary and its tone map, the rule that a state word always prints
++  alongside its colour, and the design-system reference the look comes from — or an explicit
++  "none yet"; never a chosen palette or type scale) — and the structural linter passes. The
++  section headings are unchanged. No accessibility block, no
+   gates/components/environments, no journey that leaves this slice's screens.
+ - C4 — Content quality: `ux.md` clears the content-quality eval, not just the linter — each
+-  section is self-explaining and the doc passes the stranger test.
++  section is self-explaining and the doc passes the stranger test — AND it is TRUE about the hub
++  it describes, which is mechanical, not a judge's opinion: every role named anywhere in the doc
++  resolves to a persona record the readiness check handed over (a role the model invented, like
++  "a general viewer" or "the actor", is a failure), and every screen is named by at least one
++  journey step's `covered_by`. A well-formed doc that describes people and screens the model does
++  not have is a fail, not a pass with a caveat.
+ - C5 — Grounded, not invented: every screen traces to one of the slice's functionalities or to a
+-  persona/journey; the visual core (color + typography) is a deliberate choice recorded as a
+-  decision. (Tracked in the grounding manifest.)
++  persona/journey; every frame in the wireframe record traces to a journey step or carries a named
++  gap; the visual core — the semantic vocabulary and the design-system reference — is a deliberate
++  choice recorded as a decision. (Tracked in the grounding manifest.)
+ - C6 — Coverage: every functionality the slice bundles is visualized by at least one screen, so
+   the human can validate the whole shaped increment. Nothing shaped is left unvisualized, and no
+   screen is left unreachable — every screen appears as a step in at least one flow.
+@@ -82,23 +104,43 @@ this run's delta and the next pipeline play (/agentic) enters clean.
+   profile, and the slice's persona + journey records — never from another realize lens
+   (quality/agentic/architecture/run/measure/marketing).
+ - C8 — The visual core is a material choice recorded as a slice-level decision the whole product
+-  references; it is not re-invented per slice.
++  references; it is not re-invented per slice. Designing a slice also settles things that are not
++  visual and that the technical design must inherit rather than rediscover — how a person's
++  permission to act is modelled, what a value the screens depend on must have a schema for, what
++  is deliberately left out. Each such settled thing is recorded as its own slice-level **design
++  directive** decision naming what it binds downstream, so /arch and /implement read it instead of
++  the design being retold by hand. A run may record none, one, or several; a directive is recorded
++  only where the design actually settled something, never manufactured to fill the slot.
+ - C9 — Additive and non-destructive, enforced by the containment split and the post-write scoped
+-  guard: the LLM authoring skill writes only the per-node `ux.md` (re-derive overwrites the prior
+-  lens on a re-run), and never a shared file; the keyed persist script writes the visual-core
+-  decision `skip-if-exists`, keyed to the slice, and refuses to touch another slice's decisions
++  guard: the LLM authoring skill writes only the per-node `ux.md` and `lens/screens.yaml`
++  (re-derive overwrites the prior lens and screen record on a re-run), the bundled render script
++  writes only `lens/wireframes.html` from that `screens.yaml`, and neither ever writes a shared
++  file; the keyed persist script writes the visual-core and design-directive
++  decisions `skip-if-exists`, keyed to the slice, and refuses to touch another slice's decisions
+   or edit an accepted decision in place — the node-level containment the file-level guard cannot
+   provide. After ALL writes and before the checkpoint, the bundled `scoped_write_guard.py` diffs
+   the model tree against HEAD and FAILS the run (reverting the offending paths) if any model path
+-  changed outside the run's write scope — `ux.md` is `--allow` (the re-derive may overwrite it)
++  changed outside the run's write scope — `ux.md`, `lens/screens.yaml` and `lens/wireframes.html`
++  are `--allow` (the re-derive may overwrite them)
+   and the slice's `decisions/*` are `--add-only` (a new decision may be added, an accepted one
+   never modified). The spine, the slice record, the profile, the other lenses, and the other
+   slices are byte-unchanged.
+-- C10 — UX pattern choices are KB-grounded: the visual core, the navigation pattern, and the
++- C10 — UX pattern choices are grounded, never the model's taste. The navigation pattern and the
+   responsive strategy trace to a best-fit learning on the KB's technology/architecture shelf
+-  (matched via kb-search) or to a recorded KB-learning-gap proposal — never the model's taste.
++  (matched via kb-search) or to a recorded KB-learning-gap proposal. The **look** is not one of
++  these: palette and typography are not chosen by /ux at all, so they are grounded by naming the
++  project's design-system reference in the lens — or by stating plainly that none exists yet. A
++  missing design system is a recorded fact, never a licence to invent one, and never a KB gap to
++  fill: no KB shelf can tell a project what its brand is.
+ - C11 — Exactly one human checkpoint, presenting the proposed screens (with layouts and the object
+-  each is about), flows, states, and visual core, plus the decision. The checkpoint is a **conditional
++  each is about), flows, states, and visual core, plus the decisions — and **handing over the
++  artifacts themselves before it will take an answer**: the checkpoint prints the exact on-disk
++  path of the lens and of the rendered `wireframes.html`, and states plainly that the wireframe
++  page is the thing to open. A summary of the work is not the work; an approval given by someone
++  who has not been offered the artifact is the play reviewing itself. The response is typed —
++  never a picker, never a menu. On the auto-pass path nobody is waiting, so the same paths are
++  written into the recorded diff summary instead, so the human who reads it later lands on the
++  artifact rather than on a description of it. The checkpoint is a **conditional
+   gate** (#467; `gate-config.md` three kinds — /ux is one of the eleven conditional document
+   plays). Resolution order: pinned (n/a here) → `gates.plays` override → the learned policy
+   (classify the working-tree change shape — the model tree's diff vs HEAD — with the bundled
+@@ -143,6 +185,37 @@ this run's delta and the next pipeline play (/agentic) enters clean.
+   to nothing is a failure, not a warning. The cross-check is mechanical (the bundled
+   `validate_ux.py`), not a prose claim.
+ 
++- C15 — The slice is DRAWN, not only described. Every run produces two wireframe artifacts beside
++  the lens, and a run that produces neither has not finished: `lens/screens.yaml`, the machine-
++  readable record of the slice's frames, and `lens/wireframes.html`, the page a product owner
++  opens. A prose layout inside `ux.md` is the information architecture; it is not a wireframe, and
++  the two are not substitutes.
++
++  **What the record holds.** `screens.yaml` carries the slice's personas, its surfaces (each with
++  the medium it runs on), its journeys, and its screens. Each screen names its surface, its one
++  persona, when it is opened, and the functionalities or journey it is grounded in; holds an
++  ordered list of **moments** — the screen walked through in sequence, each moment stating what
++  the person sees, what they do, why each visible detail is there, and the literal frame body as
++  it would read to that person; a **regions** list; a **states** closed set, each state carrying
++  one of the tones in the visual core's map; and the invariants the screen must hold. Frames are
++  tied to the journey **through the journey, not through the screen**: each journey step names the
++  moments that cover it (`covered_by: [S1.m1, S1.m2]`), so ordering follows the journey and adding
++  a moment renumbers nothing else. A journey step that no moment covers is recorded as a named gap
++  on that step, not silently dropped and not a halt — an honest gap is a finding the human needs.
++
++  **Who does which half.** Everything with words in it is judgment and belongs to the authoring
++  skill: the record itself, what each frame shows, the literal frame body, the sample values, and
++  the note explaining why each detail is there. Everything with no judgment in it is mechanical
++  and belongs to the bundled render script: the page skeleton, one section per journey, one rail
++  entry per journey step, the terminal or browser chrome chosen from the surface's medium, the
++  numbered callouts, the state chip row from the tone map, the gap callouts, and the fixed
++  per-frame line naming the artifact as structural and saying where the real look comes from. The
++  page is never hand-written; a hand-written page and its record drift apart on the next re-run.
++
++  **Structural, not styled.** A frame carries real labels and real content and no invented palette,
++  type scale, or component library — the same rule C10 puts on the lens. Whatever legibility
++  styling the page itself uses is the document's, never a claim about the product's look.
++
+ ### Failure conditions
+ 
+ - F1 — /ux ran on an unready slice — the slice is absent, a functionality does not resolve to a
+@@ -152,19 +225,27 @@ this run's delta and the next pipeline play (/agentic) enters clean.
+   slice record, the profile, another lens, structure, a persona, a journey, or another slice).
+ - F3 — `ux.md` fails its template/shape (a missing or extra section, an empty or telegraphic
+   section), or carries content outside screens/flows/states/visual core.
+-- F4 — `ux.md` fails the content-quality eval.
++- F4 — `ux.md` fails the content-quality eval — it is not self-explaining, or it is not true about
++  the hub: a role it names resolves to no persona record, or a screen it declares is named by no
++  journey step.
+ - F5 — An element is invented — a screen with no functionality and no persona/journey behind it,
+   or a visual core with no recorded decision.
+ - F6 — A functionality of the slice is left unvisualized — covered by no screen.
+ - F7 — /ux read or depended on another lens.
+-- F8 — The visual core was set with no decision recorded.
++- F8 — The visual core was set with no decision recorded, or the design settled something the
++  technical design must inherit and it was left in the prose instead of recorded as a design
++  directive decision.
+ - F9 — Allowlist breach: a product-model path other than this slice's `ux.md` or its
+   visual-core decision changed, or an accepted decision was edited in place rather than added —
+   the scoped-write guard's report is not ok.
+-- F10 — A UX pattern choice rests on neither a matched KB learning nor a recorded proposal.
++- F10 — The navigation pattern or the responsive strategy rests on neither a matched KB learning
++  nor a recorded proposal; or /ux chose a palette or a type scale instead of naming the project's
++  design-system reference (or recording that none exists yet).
+ - F11 — The model delta was COMMITTED before the checkpoint gate resolved (no typed approval, no
+   recorded config skip, and no recorded policy auto-pass), or a cancelled checkpoint left model
+-  writes on the working tree instead of reverting them.
++  writes on the working tree instead of reverting them, or the checkpoint took an approval without
++  first handing over the lens and wireframe paths (on the auto-pass path, without writing them
++  into the recorded diff summary).
+ - F12 — The run closed COMPLETED without the Done means held — no persist record, the persist not
+   stamped applied, the scoped-write guard report not captured or not ok, or the model delta not
+   committed.
+@@ -178,6 +259,12 @@ this run's delta and the next pipeline play (/agentic) enters clean.
+   a screen that does not exist in Screens; a decision point does not say where a branch goes; a
+   screen is reached by no flow; or a flow's persona traces to nothing in the hub.
+ 
++- F16 — The slice was described but not drawn: `lens/screens.yaml` or `lens/wireframes.html` is
++  missing; the page was hand-written rather than rendered from the record, so the two disagree; a
++  screen in the record is named by no journey step's `covered_by` and carries no recorded gap; a
++  moment holds no frame body, so there is nothing to draw; a state names a tone outside the visual
++  core's map; or a frame carries an invented palette, type scale, or component library.
++
+ ## Expectation
+ 
+ ### Success scenarios
+@@ -194,8 +281,10 @@ this run's delta and the next pipeline play (/agentic) enters clean.
+ - S3 — (ux researcher, grounded) Given the lens is drafted, each screen traces to a functionality
+   or a persona/journey, each flow to a journey record of the slice, and the visual core to a
+   recorded decision. Measure: the manifest names a real source for every screen; every flow's
+-  journey id and persona id resolve to records the readiness check handed over; the visual core
+-  names a decision that resolves.
++  journey id and persona id resolve to records the readiness check handed over; every role the doc
++  names resolves to a persona record and every screen it declares is named by a journey step; the
++  visual core names a decision that resolves, and names a design-system reference or records that
++  none exists.
+ - S4 — (architect, hub-only) Given /ux runs, it read no other realize lens and wrote none.
+   Measure: no other lens of the slice is touched; no screen grounds on a lens.
+ - S5 — (product owner, re-run) Given /ux already ran, when it runs again, it re-derives `ux.md`
+@@ -203,8 +292,11 @@ this run's delta and the next pipeline play (/agentic) enters clean.
+   Measure: only the slice's `ux.md` (and possibly a new decision) differ; the spine, slice record,
+   other lenses, and profile are byte-identical; no accepted decision edited in place.
+ - S6 — (reviewer, the checkpoint) Given the full delta is written in place, the checkpoint presents
+-  the screens (with layouts), flows, states, and visual core, plus the decision, inline over the
+-  real model git diff. Measure: the checkpoint shows the lens inline; no product-model change is
++  the screens (with layouts), flows, states, and visual core, plus the decisions, inline over the
++  real model git diff, AND hands over the on-disk path of the lens and of the rendered wireframe
++  page before it takes an answer, so the human approves the artifact rather than a description of
++  it. Measure: the checkpoint shows the lens inline and prints both artifact paths (auto-pass path:
++  both paths appear in the recorded diff summary); no product-model change is
+   COMMITTED before approval, and on cancel the working tree returns byte-clean to HEAD (`git
+   restore` + `git clean`) — or, on the auto-pass path, the change shape is policy-listed and a
+   recorded auto-pass + live-eval ledger line + diff summary exist, with no wait.
+@@ -216,10 +308,21 @@ this run's delta and the next pipeline play (/agentic) enters clean.
+   flow names persona, goal, entry, ordered steps, decision points, failure path, and exit; every
+   step resolves to a screen in Screens; every screen appears in at least one flow;
+   `validate_ux.py` reports the flow cross-check ok.
++- S8 — (product owner, looks at the product) Given the run has drawn the slice, the human opens one
++  page and walks each journey as a person would live it — the frames in journey order, each showing
++  real labels and real content, with the gaps the drawing exposed named on the step that has them.
++  Measure: `lens/screens.yaml` and `lens/wireframes.html` both exist; the page regenerates from the
++  record byte-for-byte (it was rendered, never hand-written); every journey step resolves to the
++  moments that cover it or carries a named gap; every moment holds a frame body; no frame carries a
++  palette, type scale, or component library.
+ 
+ ### Done means
+ 
+ Paths are relative to the run's working root (`{stm_base}_realize/ux/<slice>/`).
++`wireframe-report.json` is the captured output of the bundled render script — it names both
++artifacts, re-renders the page from the record to prove the page was generated and not
++hand-written, and reports the journey-step coverage and any recorded gaps; its `ok` field is the
++mechanical proof that the slice was drawn (C15, F16).
+ `persist-manifest.json` is the record the keyed persist script writes after the approved
+ checkpoint — the visual-core decision written in place on the live model and the live `ux.md`
+ confirmed on the model tree (`applied: true` is its stamp); `guard-report.json` is the captured
+@@ -235,6 +338,9 @@ the always-written record, not a newly-added decision.
+   check: { type: field_equals, file: "persist-manifest.json", field: "applied", equals: true }
+ - D3 — says: "the scoped-write guard held — no model path changed outside the slice's write scope"
+   check: { type: field_equals, file: "guard-report.json", field: "ok", equals: true }
++- D4 — says: "the slice was drawn — the wireframe record and the rendered page both exist, and the
++  page was rendered from the record"
++  check: { type: field_equals, file: "wireframe-report.json", field: "ok", equals: true }
+ 
+ ### Recovery (one per failure condition)
+ 
+@@ -250,26 +356,40 @@ the always-written record, not a newly-added decision.
+   direction: re-emit the doc to the UX lens template — Intent/Screens/Flows/States/Visual core
+   only (accessibility belongs to marketing; the wider cross-product journey belongs to /story).
+   handoff: autonomous.
+-- REC4 (F4) — trigger: `ux.md` fails the content-quality eval. direction: rewrite the failing
+-  section to the judge's cited fixes and re-judge until the gate passes. handoff: autonomous.
++- REC4 (F4) — trigger: `ux.md` fails the content-quality eval — not self-explaining, or naming a
++  role that resolves to no persona record, or declaring a screen no journey step names. direction:
++  rewrite the failing section to the judge's cited fixes; for a role that resolves to nothing,
++  replace it with the persona record it was standing in for (never add the persona — /shape owns
++  those); for a screen no journey step names, tie it to the step it serves or drop it. Re-judge
++  and re-run the grounding cross-check until both pass. handoff: autonomous.
+ - REC5 (F5) — trigger: an invented/ungrounded element. direction: drop it, or re-tie the screen to
+   a functionality or persona/journey, and tie the visual core to a decision. handoff: autonomous.
+ - REC6 (F6) — trigger: a functionality is covered by no screen. direction: add the screen(s) that
+   visualize the missing functionality. handoff: autonomous.
+ - REC7 (F7) — trigger: /ux read or depended on another lens. direction: remove the dependency;
+   /ux derives only from the slice's hub. handoff: autonomous.
+-- REC8 (F8) — trigger: the visual core was set with no decision. direction: record the slice-level
+-  visual-core decision before persisting; reuse the product decision if one exists. handoff:
+-  autonomous.
++- REC8 (F8) — trigger: the visual core was set with no decision, or a thing the design settled for
++  the technical build sits in prose with no decision. direction: record the slice-level
++  visual-core decision before persisting, reusing the product decision if one exists; and lift each
++  settled thing out of the prose into its own design-directive decision naming what it binds
++  downstream. Record only what the design actually settled — never manufacture a directive.
++  handoff: autonomous.
+ - REC9 (F9) — trigger: the scoped-write guard report is not ok — a non-lens/non-decision path
+   changed, or an accepted decision was edited in place. direction: the guard's `--restore` already
+   reverted the offending paths; re-run writing only the slice's `ux.md` and its visual-core
+   decision, after a human confirms the restore. handoff: human.
+-- REC10 (F10) — trigger: a UX pattern choice with no KB learning and no recorded proposal.
+-  direction: search the KB via kb-search for the best-fit learning and ground the choice, or raise
+-  a KB-learning-gap proposal; never keep a taste-only choice. handoff: autonomous.
+-- REC11 (F11) — trigger: the model delta was committed before the checkpoint resolved, or a
+-  cancelled checkpoint left writes on the working tree. direction: revert the premature commit and
++- REC10 (F10) — trigger: the navigation pattern or responsive strategy has no KB learning and no
++  recorded proposal; or /ux chose a palette or type scale. direction: for navigation and responsive
++  strategy, search the KB via kb-search for the best-fit learning and ground the choice, or raise
++  a KB-learning-gap proposal; never keep a taste-only choice. For the look, strip the chosen palette
++  and type scale and name the project's design-system reference instead — or record plainly that
++  none exists yet. Do not raise a KB gap for the look; no shelf can tell a project what its brand
++  is. handoff: autonomous.
++- REC11 (F11) — trigger: the model delta was committed before the checkpoint resolved, a
++  cancelled checkpoint left writes on the working tree, or the checkpoint took an answer without
++  handing over the artifact paths. direction: for the un-offered artifact, re-present the
++  checkpoint with both paths printed and take the answer again — an approval given without the
++  artifact on offer does not count and is not recorded as one. Otherwise revert the premature commit and
+   the working-tree writes (guard `--restore`, empty allow set) and re-present the checkpoint;
+   commit only after the gate resolves (approval, a recorded config skip, or a recorded policy
+   auto-pass). handoff: human.
+@@ -293,3 +413,11 @@ the always-written record, not a newly-added decision.
+   both branches of the fork, add the flow that reaches the orphan screen (or drop the screen if
+   nothing reaches it), and re-tie the persona to a persona/journey of the hub — then re-run
+   `validate_ux.py` until the flow cross-check reads ok. handoff: autonomous.
++- REC16 (F16) — trigger: a wireframe artifact is missing, the page disagrees with its record, a
++  screen is covered by no journey step and carries no gap, a moment has no frame body, a state uses
++  a tone outside the visual core's map, or a frame carries invented styling. direction: author the
++  missing part of the record — the frame body, the `covered_by` list, or the named gap where the
++  step genuinely has no screen yet — correct any tone to one in the map, strip invented styling back
++  to labels and content, then re-run the render script so the page comes from the record. Never
++  hand-edit the page to agree with the record; re-render it. Re-run until the wireframe report
++  reads ok. handoff: autonomous.
+diff --git a/core/components/plays/ux/scripts/render_wireframes.py b/core/components/plays/ux/scripts/render_wireframes.py
+new file mode 100644
+index 00000000..286c2900
+--- /dev/null
++++ b/core/components/plays/ux/scripts/render_wireframes.py
+@@ -0,0 +1,747 @@
++#!/usr/bin/env python3
++"""
++render_wireframes.py — the mechanical half of C15/F16: draw the slice, don't just describe it.
++
++/ux writes two wireframe artifacts beside the lens: `lens/screens.yaml`, the machine-readable
++record an LLM authoring skill writes (judgment — the literal frame content, the sample values,
++the notes explaining why a detail is there), and `lens/wireframes.html`, the page a product
++owner opens (mechanical — the page skeleton, the chrome, the state chips, the gap callouts, all
++derivable from the record with no judgment at all). This script is that second half. It never
++invents content: every word on the page traces to a field in `screens.yaml`. A hand-edited page
++is a defect (F16) — the record and the page must never be free to disagree, so this script is
++the only thing allowed to produce `wireframes.html`, and `--check` proves that on demand by
++re-rendering and diffing against what is already on disk instead of writing.
++
++Determinism: the same `screens.yaml` renders the same bytes every time. No timestamps are
++generated here (the page uses `spec.date` verbatim); no dict-iteration order is relied on —
++every loop walks an explicit list already in the record's own authored order.
++
++    python3 render_wireframes.py --screens <path/to/lens/screens.yaml> \\
++            --out <path/to/lens/wireframes.html> \\
++            --report <path/to/wireframe-report.json> [--check]
++
++--check re-renders the page in memory and compares it byte-for-byte against the file already at
++--out, WITHOUT writing anything — this is how the play proves the page was generated and not
++hand-edited (C15/F16), and it is what `wireframe-report.json`'s `ok` field certifies (Done means
++D4). Findings are also raised for anything screens.yaml itself fails to satisfy (F16): a screen
++named by no journey step and carrying no gap, a moment with no frame body, a state whose tone is
++outside the visual core's map, a malformed `covered_by` reference, or a missing/malformed
++`spec.design_system`.
++
++Layer rule: reads/writes files on disk only; no git/gh/network.
++
++Exit: 0 = ok (no findings); 1 = findings recorded (render/check still completed); 2 = usage/parse
++error (couldn't run at all).
++"""
++
++import argparse
++import html
++import json
++import os
++import re
++import sys
++
++try:
++    import yaml
++except ImportError:
++    sys.stderr.write("render_wireframes.py: PyYAML is required (pip install pyyaml).\n")
++    sys.exit(2)
++
++TONES = ("ok", "warn", "bad", "neutral")
++MARKUP_RE = re.compile(r"\[\[(ok|warn|bad|dim|sel|pin):((?:(?!\]\]).)*)\]\]", re.DOTALL)
++MOMENT_ID_RE = re.compile(r"^([A-Za-z0-9_-]+)\.m(\d+)$")
++
++
++# --------------------------------------------------------------------------------------
++# small helpers
++# --------------------------------------------------------------------------------------
++
++def load_yaml(path):
++    with open(path, encoding="utf-8") as fh:
++        return yaml.safe_load(fh) or {}
++
++
++def esc(text):
++    return html.escape("" if text is None else str(text), quote=True)
++
++
++def render_markup(text):
++    """Escape user content, then apply the [[tone:text]] inline markup as spans.
++
++    Escaping runs BEFORE markup substitution so a literal '<' or '&' inside a frame line can
++    never break the page, and the markup delimiters themselves ('[[', ']]', ':') are plain
++    text that a screen author cannot use to inject HTML.
++    """
++    safe = esc(text)
++
++    def sub(m):
++        tone, inner = m.group(1), m.group(2)
++        if tone == "pin":
++            n = esc(inner.strip())
++            return f'<span class="pin">{n}</span>'
++        return f'<span class="{tone}">{inner}</span>'
++
++    return MARKUP_RE.sub(sub, safe)
++
++
++def tone_class(tone):
++    return tone if tone in TONES else "neutral"
++
++
++# --------------------------------------------------------------------------------------
++# validation (F16 + the schema checks the brief lists)
++# --------------------------------------------------------------------------------------
++
++def validate(record, findings):
++    spec = record.get("spec") or {}
++    for key in ("slice_ref", "issue", "authored_by", "date"):
++        if not spec.get(key):
++            findings.append({"code": "spec-missing-field", "where": "spec",
++                              "says": f"spec.{key} is missing or empty"})
++
++    ds = spec.get("design_system")
++    if not isinstance(ds, dict) or not ds:
++        findings.append({"code": "design-system-missing", "where": "spec.design_system",
++                          "says": "spec.design_system must be {name, reference} or "
++                                  "{none_yet: true, why}"})
++    else:
++        has_named = bool(ds.get("name")) and bool(ds.get("reference"))
++        has_none = ds.get("none_yet") is True and bool(ds.get("why"))
++        if not (has_named or has_none):
++            findings.append({"code": "design-system-malformed", "where": "spec.design_system",
++                              "says": "spec.design_system must be {name, reference} or "
++                                      "{none_yet: true, why}"})
++
++    personas = {p.get("id"): p for p in (record.get("personas") or []) if isinstance(p, dict)}
++    surfaces = {s.get("id"): s for s in (record.get("surfaces") or []) if isinstance(s, dict)}
++    screens = {s.get("id"): s for s in (record.get("screens") or []) if isinstance(s, dict)}
++
++    color_rule = record.get("color_rule") or {}
++    roles = color_rule.get("roles") or {}
++    valid_tones = {t for t in TONES if t in roles}
++
++    for sid, screen in screens.items():
++        where = f"screens.{sid or '<?>'}"
++        sref = screen.get("surface_ref")
++        if sref not in surfaces:
++            findings.append({"code": "bad-surface-ref", "where": where,
++                              "says": f"surface_ref '{sref}' does not resolve to a surface"})
++        pref = screen.get("persona_ref")
++        if pref not in personas:
++            findings.append({"code": "bad-persona-ref", "where": where,
++                              "says": f"persona_ref '{pref}' does not resolve to a persona"})
++
++        moments = screen.get("moments") or []
++        for mo in moments:
++            n = mo.get("n") if isinstance(mo, dict) else None
++            mwhere = f"{where}.m{n if n is not None else '?'}"
++            frame = (mo or {}).get("frame") or {}
++            lines = frame.get("lines") or []
++            blocks = frame.get("blocks") or []
++            if not lines and not blocks:
++                findings.append({"code": "empty-frame", "where": mwhere,
++                                  "says": "moment has no non-empty frame (no lines/blocks)"})
++
++        for st in (screen.get("states") or []):
++            tone = (st or {}).get("tone")
++            swhere = f"{where}.states.{(st or {}).get('id', '<?>')}"
++            if tone not in TONES:
++                findings.append({"code": "bad-state-tone", "where": swhere,
++                                  "says": f"tone '{tone}' is not one of ok/warn/bad/neutral"})
++            elif tone not in valid_tones:
++                findings.append({"code": "state-tone-not-in-color-rule", "where": swhere,
++                                  "says": f"tone '{tone}' does not appear in color_rule.roles"})
++
++    # journeys / steps / covered_by
++    named_screens = set()
++    steps_covered = 0
++    steps_with_gap = 0
++    gaps = []
++    for j in (record.get("journeys") or []):
++        jid = (j or {}).get("id", "<?>")
++        for step in ((j or {}).get("steps") or []):
++            n = (step or {}).get("n", "?")
++            swhere = f"journeys.{jid}.step{n}"
++            covered_by = (step or {}).get("covered_by") or []
++            gap = (step or {}).get("gap")
++            if not covered_by:
++                if not (isinstance(gap, str) and gap.strip()):
++                    findings.append({"code": "step-uncovered-no-gap", "where": swhere,
++                                      "says": "step has no covered_by and no gap — an "
++                                              "uncovered step must carry a non-empty gap"})
++                else:
++                    steps_with_gap += 1
++                    gaps.append({"journey": jid, "step": n, "gap": gap})
++                continue
++            step_ok = True
++            for ref in covered_by:
++                m = MOMENT_ID_RE.match(str(ref)) if ref else None
++                if not m:
++                    findings.append({"code": "bad-covered-by", "where": swhere,
++                                      "says": f"covered_by entry '{ref}' does not parse as "
++                                              "<screenId>.m<n>"})
++                    step_ok = False
++                    continue
++                sid, mn = m.group(1), int(m.group(2))
++                screen = screens.get(sid)
++                if screen is None:
++                    findings.append({"code": "bad-covered-by", "where": swhere,
++                                      "says": f"covered_by entry '{ref}' names no screen "
++                                              f"'{sid}'"})
++                    step_ok = False
++                    continue
++                mids = {(mo or {}).get("n") for mo in (screen.get("moments") or [])}
++                if mn not in mids:
++                    findings.append({"code": "bad-covered-by", "where": swhere,
++                                      "says": f"covered_by entry '{ref}' names no moment "
++                                              f"{mn} on screen '{sid}'"})
++                    step_ok = False
++                    continue
++                named_screens.add(sid)
++            if step_ok:
++                steps_covered += 1
++
++    for sid in screens:
++        if sid not in named_screens:
++            findings.append({"code": "screen-not-covered", "where": f"screens.{sid}",
++                              "says": "screen is named by no journey step's covered_by"})
++
++    return {
++        "steps_covered": steps_covered,
++        "steps_with_gap": steps_with_gap,
++        "gaps": gaps,
++    }
++
++
++# --------------------------------------------------------------------------------------
++# frame renderers
++# --------------------------------------------------------------------------------------
++
++def render_terminal_frame(command, frame):
++    lines = frame.get("lines") or []
++    body = "\n".join(render_markup(ln) for ln in lines)
++    title = esc(command or "")
++    return (
++        '<div class="term">'
++        '<div class="term-bar"><span class="dot"></span><span class="dot"></span>'
++        f'<span class="dot"></span><span class="term-title">{title}</span></div>'
++        f'<pre>{body}</pre>'
++        '</div>'
++    )
++
++
++def render_web_block(block):
++    if not isinstance(block, dict) or not block:
++        return ""
++    if "row" in block:
++        row = block["row"] or {}
++        cells = row.get("cells") or []
++        cell_html = "".join(f'<span class="wb-sub">{render_markup(c)}</span>' for c in cells)
++        note = row.get("note")
++        note_html = f'<div class="wb-note">{render_markup(note)}</div>' if note else ""
++        return f'<div class="wb-row">{cell_html}{note_html}</div>'
++    if "panel" in block:
++        panel = block["panel"] or {}
++        title = panel.get("title")
++        title_html = f'<span class="wb-lbl">{render_markup(title)}</span>' if title else ""
++        body_html = "".join(f'<p class="wb-say">{render_markup(ln)}</p>'
++                             for ln in (panel.get("body") or []))
++        return f'<div class="wb-panel">{title_html}{body_html}</div>'
++    if "field" in block:
++        field = block["field"] or {}
++        label = render_markup(field.get("label"))
++        value = render_markup(field.get("value"))
++        hint = field.get("hint")
++        hint_html = (f' <span style="color:var(--ink-4)">{render_markup(hint)}</span>'
++                     if hint else "")
++        return (f'<div class="wb-field"><span class="k">{label}</span>'
++                f'<span class="v">{value}{hint_html}</span></div>')
++    if "button" in block:
++        btn = block["button"] or {}
++        cls = "btn primary" if btn.get("primary") else "btn"
++        label = render_markup(btn.get("label"))
++        focus_html = ('<span class="wb-default">focused</span>' if btn.get("focused") else "")
++        return f'<div class="wb-btns"><span class="{cls}">{label}</span>{focus_html}</div>'
++    if "pill" in block:
++        pill = block["pill"] or {}
++        cls = f'wb-pill {tone_class(pill.get("tone"))}' if pill.get("tone") else "wb-pill"
++        return f'<span class="{cls}">{render_markup(pill.get("label"))}</span>'
++    if "text" in block:
++        return f'<p class="wb-say">{render_markup(block["text"])}</p>'
++    return ""
++
++
++def render_web_frame(url, blocks):
++    body_html = "".join(render_web_block(b) for b in (blocks or []))
++    return (
++        '<div class="web">'
++        f'<div class="web-chrome"><span class="url">{esc(url or "")}</span></div>'
++        f'<div class="web-body">{body_html}</div>'
++        '</div>'
++    )
++
++
++def render_frame(surface_kind, screen, moment):
++    frame = moment.get("frame") or {}
++    if surface_kind == "web":
++        return render_web_frame(frame.get("url"), frame.get("blocks") or [])
++    return render_terminal_frame(screen.get("command"), frame)
++
++
++def caption_line(spec):
++    ds = spec.get("design_system") or {}
++    if ds.get("name"):
++        source = ds["name"]
++    else:
++        source = 'a design system not chosen yet'
++    return f'structure only · palette and type come later from {esc(source)}'
++
++
++# --------------------------------------------------------------------------------------
++# page assembly
++# --------------------------------------------------------------------------------------
++
++def render_states_chips(states):
++    if not states:
++        return ""
++    chips = "".join(
++        f'<span class="chip {tone_class((s or {}).get("tone"))}">{esc((s or {}).get("id", ""))}</span>'
++        for s in states
++    )
++    return f'<div class="states"><span class="states-lbl">States</span>{chips}</div>'
++
++
++def render_moment(surface_kind, screen, moment, is_last_moment, persona_label):
++    n = moment.get("n")
++    title = moment.get("title") or f"Moment {n}"
++    frame_html = render_frame(surface_kind, screen, moment)
++    decisions = moment.get("decisions") or []
++    notes_html = ""
++    if decisions:
++        items = "".join(
++            f'<div class="note"><span class="pin">{i}</span><span>{render_markup(d)}</span></div>'
++            for i, d in enumerate(decisions, 1)
++        )
++        notes_html = f'<div class="notes">{items}</div>'
++    does = moment.get("does")
++    does_html = (f'<p class="does"><b>{esc(persona_label)} does:</b> '
++                 f'{render_markup(does)}</p>' if does else "")
++    lofi_html = f'<p class="lofi">{caption_line({"design_system": screen.get("_design_system", {})})}</p>'
++    out = [
++        '<div class="moment">',
++        f'<div class="moment-lbl">{esc(title)}</div>',
++        '<div class="moment-body">',
++        frame_html,
++        notes_html,
++        '</div>',
++        does_html,
++        lofi_html,
++        '</div>',
++    ]
++    return "".join(out)
++
++
++def render_gap(gap_text):
++    return f'<div class="gap"><b>Gap.</b> {render_markup(gap_text)}</div>'
++
++
++def moment_lookup(screens):
++    """(screen_id, moment_n) -> (screen dict, moment dict)."""
++    out = {}
++    for sid, screen in screens.items():
++        for mo in (screen.get("moments") or []):
++            out[(sid, mo.get("n"))] = (screen, mo)
++    return out
++
++
++def render_step(record, journey, step, lookup, design_system):
++    n = step.get("n")
++    step_text = step.get("step", "")
++    covered_by = step.get("covered_by") or []
++    gap = step.get("gap")
++
++    moments_html = []
++    last_screen = None
++    for ref in covered_by:
++        m = MOMENT_ID_RE.match(str(ref))
++        if not m:
++            continue
++        sid, mn = m.group(1), int(m.group(2))
++        pair = lookup.get((sid, mn))
++        if pair is None:
++            continue
++        screen, moment = pair
++        screen = dict(screen)
++        screen["_design_system"] = design_system
++        surface = record["_surfaces_by_id"].get(screen.get("surface_ref"), {})
++        kind = surface.get("kind", "terminal")
++        pref = screen.get("persona_ref")
++        persona = record["_personas_by_id"].get(pref) or {}
++        persona_label = persona.get("label") or pref or ""
++        moments_html.append(render_moment(kind, screen, moment, False, persona_label))
++        last_screen = screen
++
++    gap_html = render_gap(gap) if (gap and isinstance(gap, str) and gap.strip()) else ""
++    states_html = render_states_chips(last_screen.get("states")) if last_screen else ""
++
++    return (
++        '<div class="step">'
++        '<div class="rail"><span class="num">' + esc(n) + '</span><span class="line"></span></div>'
++        '<div class="step-body">'
++        f'<p class="step-say">{render_markup(step_text)}</p>'
++        f'<p class="step-src">{esc(journey.get("id", ""))} · step {esc(n)}</p>'
++        + "".join(moments_html)
++        + gap_html
++        + states_html
++        + '</div></div>'
++    )
++
++
++def render_journey_section(record, journey, idx, lookup, design_system):
++    surfaces_by_id = record["_surfaces_by_id"]
++    personas_by_id = record["_personas_by_id"]
++    surface = surfaces_by_id.get(journey.get("surface_ref"), {})
++    persona = personas_by_id.get(journey.get("persona_ref"), {})
++    kind = surface.get("kind", "terminal")
++    why = surface.get("why_this_medium", "")
++
++    steps_html = "".join(
++        render_step(record, journey, step, lookup, design_system)
++        for step in (journey.get("steps") or [])
++    )
++
++    meta_bits = [f"surface: {surface.get('label', journey.get('surface_ref', ''))}"]
++    if kind:
++        meta_bits.append(kind)
++    if why:
++        meta_bits.append(why)
++    meta = " · ".join(esc(b) for b in meta_bits)
++
++    return (
++        '<section class="jrn">'
++        '<div class="jrn-head">'
++        '<div class="jrn-top">'
++        f'<span class="jrn-id">{esc(journey.get("id", ""))}</span>'
++        f'<span class="jrn-name">{esc(journey.get("name", ""))}</span>'
++        f'<span class="jrn-who">{esc(persona.get("label", journey.get("persona_ref", "")))}</span>'
++        '</div>'
++        f'<div class="jrn-meta">{meta}</div>'
++        '</div>'
++        f'<div class="steps">{steps_html}</div>'
++        '</section>'
++    )
++
++
++def render_vocabulary(vocabulary):
++    if not vocabulary:
++        return ""
++    rows = "".join(
++        '<div class="find">'
++        f'<span class="fn">{tone_class((v or {}).get("tone"))}</span>'
++        f'<span><b>{esc((v or {}).get("word", ""))}</b> — {render_markup((v or {}).get("means", ""))}</span>'
++        '</div>'
++        for v in vocabulary
++    )
++    return (
++        '<section><div class="sec-head"><h2>Vocabulary</h2></div>'
++        f'<div class="finds">{rows}</div></section>'
++    )
++
++
++def render_color_rule(color_rule):
++    if not color_rule:
++        return ""
++    rule = color_rule.get("rule", "")
++    roles = color_rule.get("roles") or {}
++    rows = "".join(
++        f'<div class="find"><span class="fn">{esc(tone)}</span>'
++        f'<span>{esc(", ".join(str(v) for v in (roles.get(tone) or [])))}</span></div>'
++        for tone in TONES if tone in roles
++    )
++    return (
++        '<section><div class="sec-head"><h2>Colour rule</h2>'
++        f'<p class="sec-note">{render_markup(rule)}</p></div>'
++        f'<div class="finds">{rows}</div></section>'
++    )
++
++
++def render_open_questions(open_questions):
++    if not open_questions:
++        return ""
++    rows = "".join(
++        '<div class="find">'
++        f'<span class="fn">{esc((q or {}).get("id", ""))}</span>'
++        f'<span>{render_markup((q or {}).get("question", ""))} — '
++        f'{render_markup((q or {}).get("status", ""))}</span>'
++        '</div>'
++        for q in open_questions
++    )
++    return (
++        '<section><div class="sec-head"><h2>Open questions</h2></div>'
++        f'<div class="finds">{rows}</div></section>'
++    )
++
++
++def render_coverage(record):
++    rows = []
++    for j in (record.get("journeys") or []):
++        for step in (j.get("steps") or []):
++            covered_by = step.get("covered_by") or []
++            gap = step.get("gap")
++            if covered_by:
++                what = ", ".join(str(c) for c in covered_by)
++                flag = ""
++            else:
++                what = "gap"
++                flag = " warn" if gap else ""
++            rows.append(
++                f'<div class="find{flag}">'
++                f'<span class="fn">{esc(j.get("id", ""))} · {esc(step.get("n", ""))}</span>'
++                f'<span>{esc(what)}</span></div>'
++            )
++    return (
++        '<section><div class="sec-head"><h2>Coverage</h2></div>'
++        f'<div class="finds">{"".join(rows)}</div></section>'
++    )
++
++
++PAGE_CSS = """
++:root {
++  --ground:#F6F8F6; --surface:#FFFFFF; --surface-2:#EDF1EE; --term-bg:#FBFCFB;
++  --ink:#14181A; --ink-2:#4A5552; --ink-3:#6E7A76; --ink-4:#96A19D;
++  --rule:#D5DCD7; --rule-strong:#B3BEB8;
++  --accent:#1F6F5C; --accent-soft:#E2EFE9;
++  --flag:#A8801F; --flag-bg:#F6EDD8;
++  --s-ok:#3D8A5E; --s-warn:#A8801F; --s-bad:#B3523C; --s-none:#8B9793;
++  --s-ok-bg:#E4F1E8; --s-warn-bg:#F6EDD8; --s-bad-bg:#F7E4E0; --s-none-bg:#E9EDEB;
++  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
++  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
++  --measure:66ch;
++}
++@media (prefers-color-scheme: dark) {
++  :root:not([data-theme="light"]) {
++    --ground:#0F1413; --surface:#161C1A; --surface-2:#1D2523; --term-bg:#101615;
++    --ink:#E7ECE9; --ink-2:#AFBCB7; --ink-3:#8B9793; --ink-4:#6B7773;
++    --rule:#2A3331; --rule-strong:#414C49;
++    --accent:#59B79C; --accent-soft:#172C26;
++    --flag:#D6A54A; --flag-bg:#2C2415;
++    --s-ok:#63C289; --s-warn:#D6A54A; --s-bad:#E28671; --s-none:#8B9793;
++    --s-ok-bg:#162A1F; --s-warn-bg:#2C2415; --s-bad-bg:#2E1D19; --s-none-bg:#212927;
++  }
++}
++:root[data-theme="dark"] {
++  --ground:#0F1413; --surface:#161C1A; --surface-2:#1D2523; --term-bg:#101615;
++  --ink:#E7ECE9; --ink-2:#AFBCB7; --ink-3:#8B9793; --ink-4:#6B7773;
++  --rule:#2A3331; --rule-strong:#414C49;
++  --accent:#59B79C; --accent-soft:#172C26;
++  --flag:#D6A54A; --flag-bg:#2C2415;
++  --s-ok:#63C289; --s-warn:#D6A54A; --s-bad:#E28671; --s-none:#8B9793;
++  --s-ok-bg:#162A1F; --s-warn-bg:#2C2415; --s-bad-bg:#2E1D19; --s-none-bg:#212927;
++}
++* { box-sizing:border-box; }
++body { background:var(--ground); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.55; }
++.page { max-width:1020px; margin:0 auto; padding:44px 24px 90px; display:flex; flex-direction:column; gap:40px; }
++.masthead { display:flex; flex-direction:column; gap:10px; border-bottom:1px solid var(--rule); padding-bottom:18px; }
++.eyebrow { font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); }
++h1 { font-size:clamp(24px,3.6vw,32px); line-height:1.15; font-weight:600; margin:0; }
++.masthead-warn { font-family:var(--mono); font-size:12px; color:var(--flag); background:var(--flag-bg);
++  border:1px dashed var(--flag); border-radius:3px; padding:8px 12px; max-width:var(--measure); }
++section { display:flex; flex-direction:column; gap:16px; }
++.sec-head { display:flex; flex-direction:column; gap:5px; }
++h2 { font-size:19px; font-weight:600; margin:0; }
++.sec-note { margin:0; max-width:var(--measure); color:var(--ink-2); font-size:13.5px; }
++.jrn { display:flex; flex-direction:column; gap:0; }
++.jrn-head { border:1px solid var(--rule-strong); border-radius:3px 3px 0 0; background:var(--surface-2); padding:12px 16px; display:flex; flex-direction:column; gap:4px; }
++.jrn-top { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 10px; }
++.jrn-id { font-family:var(--mono); font-size:11px; font-weight:600; color:var(--accent); }
++.jrn-name { font-size:16px; font-weight:600; }
++.jrn-who { font-size:12px; color:var(--ink-3); margin-left:auto; }
++.jrn-meta { font-family:var(--mono); font-size:11px; color:var(--ink-3); }
++.steps { border:1px solid var(--rule-strong); border-top:none; border-radius:0 0 3px 3px; background:var(--surface); padding:4px 0; }
++.step { display:grid; grid-template-columns:48px 1fr; }
++.rail { display:flex; flex-direction:column; align-items:center; padding-top:16px; }
++.rail .num { width:24px; height:24px; border-radius:50%; flex:none; background:var(--accent); color:#fff;
++  font-family:var(--mono); font-size:11px; font-weight:600; display:flex; align-items:center; justify-content:center; }
++.rail .line { width:2px; flex:1; background:var(--rule); margin-top:6px; min-height:16px; }
++.step:last-child .rail .line { background:transparent; }
++.step-body { padding:14px 16px 20px 4px; display:flex; flex-direction:column; gap:12px; min-width:0; }
++.step-say { font-size:14px; font-weight:600; margin:0; max-width:var(--measure); }
++.step-src { font-family:var(--mono); font-size:10px; color:var(--ink-4); margin:0; }
++.moment { display:flex; flex-direction:column; gap:8px; }
++.moment-lbl { font-family:var(--mono); font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-4); }
++.moment-body { display:grid; grid-template-columns:minmax(0,1fr) 230px; gap:14px; align-items:start; }
++.term { background:var(--term-bg); border:1px solid var(--rule-strong); border-radius:5px; overflow:hidden; min-width:0; }
++.term-bar { display:flex; align-items:center; gap:6px; padding:6px 10px; background:var(--surface-2); border-bottom:1px solid var(--rule); }
++.dot { width:7px; height:7px; border-radius:50%; background:var(--rule-strong); flex:none; }
++.term-title { font-family:var(--mono); font-size:10px; color:var(--ink-3); margin-left:6px; }
++.term pre { margin:0; padding:12px 14px; font-family:var(--mono); font-size:12px; line-height:1.65; white-space:pre; overflow-x:auto; color:var(--ink); }
++.term .dim{color:var(--ink-4)} .term .ok{color:var(--s-ok);font-weight:500}
++.term .warn{color:var(--s-warn);font-weight:500} .term .bad{color:var(--s-bad);font-weight:500}
++.term .sel{background:var(--accent-soft);color:var(--accent);font-weight:500}
++.pin { display:inline-block; min-width:15px; height:15px; line-height:15px; border-radius:50%; background:var(--accent); color:#fff;
++  font-family:var(--sans); font-size:10px; font-weight:600; text-align:center; padding:0 3px; }
++.web { border:1px solid var(--rule-strong); border-radius:5px; overflow:hidden; background:var(--surface); min-width:0; }
++.web-chrome { display:flex; align-items:center; gap:8px; padding:7px 11px; background:var(--surface-2); border-bottom:1px solid var(--rule); font-family:var(--mono); font-size:10px; color:var(--ink-3); }
++.web-chrome .url { background:var(--ground); border:1px solid var(--rule); border-radius:100px; padding:2px 9px; flex:1; }
++.web-body { padding:13px; display:flex; flex-direction:column; gap:10px; }
++.wb-lbl { font-family:var(--mono); font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-4); }
++.wb-row { border:1px solid var(--rule); border-radius:3px; padding:8px 10px; display:flex; flex-direction:column; gap:3px; background:var(--ground); }
++.wb-sub { font-size:11px; color:var(--ink-3); font-family:var(--mono); }
++.wb-panel { border:1px solid var(--accent); border-radius:3px; padding:11px; display:flex; flex-direction:column; gap:8px; background:var(--surface); }
++.wb-say { font-size:12px; color:var(--ink-2); margin:0; }
++.wb-say b { color:var(--ink); font-weight:600; }
++.wb-field { display:flex; flex-direction:column; gap:3px; }
++.wb-field .k { font-family:var(--mono); font-size:10px; color:var(--ink-4); }
++.wb-field .v { border:1px solid var(--rule); border-radius:3px; padding:5px 8px; font-size:12px; font-family:var(--mono); background:var(--ground); color:var(--ink-2); }
++.wb-btns { display:flex; gap:8px; align-items:center; }
++.btn { border:1px solid var(--rule-strong); border-radius:3px; padding:5px 12px; font-size:12px; color:var(--ink-2); background:var(--ground); }
++.btn.primary { border-color:var(--accent); color:var(--accent); font-weight:600; }
++.wb-default { font-size:11px; color:var(--ink-4); font-family:var(--mono); }
++.wb-pill { font-family:var(--mono); font-size:10px; font-weight:500; padding:2px 8px; border-radius:100px; color:var(--s-none); background:var(--s-none-bg); }
++.wb-pill.ok{color:var(--s-ok);background:var(--s-ok-bg)} .wb-pill.warn{color:var(--s-warn);background:var(--s-warn-bg)} .wb-pill.bad{color:var(--s-bad);background:var(--s-bad-bg)}
++.wb-note { font-size:11px; color:var(--ink-3); border-left:2px solid var(--rule); padding-left:9px; }
++.lofi { font-family:var(--mono); font-size:10px; color:var(--ink-4); text-align:right; padding:2px 2px 0; }
++.notes { display:flex; flex-direction:column; gap:8px; padding-top:2px; }
++.note { display:grid; grid-template-columns:19px 1fr; gap:8px; font-size:12px; color:var(--ink-2); }
++.note b { color:var(--ink); font-weight:600; }
++.does { font-family:var(--mono); font-size:11px; color:var(--ink-2); background:var(--surface-2); border-left:2px solid var(--accent); padding:6px 10px; }
++.does b { color:var(--accent); font-weight:600; }
++.gap { border:1px dashed var(--flag); background:var(--flag-bg); border-radius:3px; padding:10px 13px; font-size:12.5px; color:var(--ink-2); }
++.gap b { color:var(--flag); font-weight:600; }
++.states { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
++.states-lbl { font-family:var(--mono); font-size:10px; text-transform:uppercase; color:var(--ink-4); margin-right:2px; }
++.chip { font-family:var(--mono); font-size:10px; font-weight:500; padding:2px 8px; border-radius:100px; color:var(--s-none); background:var(--s-none-bg); }
++.chip.ok{color:var(--s-ok);background:var(--s-ok-bg)} .chip.warn{color:var(--s-warn);background:var(--s-warn-bg)} .chip.bad{color:var(--s-bad);background:var(--s-bad-bg)}
++.finds { display:flex; flex-direction:column; gap:10px; }
++.find { display:grid; grid-template-columns:110px 1fr; gap:11px; max-width:var(--measure); font-size:13px; color:var(--ink-2); }
++.find .fn { font-family:var(--mono); font-size:11px; font-weight:600; color:var(--accent); }
++.find.warn .fn { color:var(--flag); }
++footer { border-top:1px solid var(--rule); padding-top:14px; font-family:var(--mono); font-size:11px; color:var(--ink-3); display:flex; flex-direction:column; gap:4px; }
++@media (max-width:780px){ .moment-body{grid-template-columns:1fr} .step{grid-template-columns:38px 1fr} .jrn-who{margin-left:0;width:100%} }
++""".strip()
++
++
++def render_page(record):
++    spec = record.get("spec") or {}
++    personas_by_id = {p.get("id"): p for p in (record.get("personas") or []) if isinstance(p, dict)}
++    surfaces_by_id = {s.get("id"): s for s in (record.get("surfaces") or []) if isinstance(s, dict)}
++    screens_by_id = {s.get("id"): s for s in (record.get("screens") or []) if isinstance(s, dict)}
++    record["_personas_by_id"] = personas_by_id
++    record["_surfaces_by_id"] = surfaces_by_id
++    record["_screens_by_id"] = screens_by_id
++    lookup = moment_lookup(screens_by_id)
++    design_system = spec.get("design_system") or {}
++
++    journeys_html = "".join(
++        render_journey_section(record, j, idx, lookup, design_system)
++        for idx, j in enumerate(record.get("journeys") or [], 1)
++    )
++
++    n_screens = len(screens_by_id)
++    n_moments = sum(len(s.get("moments") or []) for s in screens_by_id.values())
++    n_journeys = len(record.get("journeys") or [])
++
++    title = f"{esc(spec.get('slice_ref', 'Wireframes'))}"
++    parts = [
++        f"<title>{title}</title>",
++        f"<style>{PAGE_CSS}</style>",
++        '<div class="page">',
++        '<header class="masthead">',
++        f'<div class="eyebrow">{esc(spec.get("slice_ref", ""))} · issue #{esc(spec.get("issue", ""))} · '
++        f'{esc(spec.get("date", ""))}</div>',
++        f'<h1>Wireframes</h1>',
++        '<div class="masthead-warn">Generated from screens.yaml. Do not hand-edit this page — '
++        'edit the record and re-render.</div>',
++        '</header>',
++        journeys_html,
++        render_vocabulary(record.get("vocabulary") or []),
++        render_color_rule(record.get("color_rule") or {}),
++        render_open_questions(record.get("open_questions") or []),
++        render_coverage(record),
++        '<footer>',
++        f'<span>{esc(spec.get("slice_ref", ""))} · issue #{esc(spec.get("issue", ""))} · '
++        f'{n_screens} screens · {n_journeys} journeys · {n_moments} moments</span>',
++        '<span>Rendered from screens.yaml — do not hand-edit</span>',
++        '</footer>',
++        '</div>',
++    ]
++    return "\n".join(parts) + "\n"
++
++
++# --------------------------------------------------------------------------------------
++# CLI
++# --------------------------------------------------------------------------------------
++
++def main(argv=None):
++    ap = argparse.ArgumentParser(
++        description="Render lens/wireframes.html from lens/screens.yaml (C15/F16).")
++    ap.add_argument("--screens", required=True, help="path to lens/screens.yaml")
++    ap.add_argument("--out", required=True, help="path to write lens/wireframes.html")
++    ap.add_argument("--report", required=True, help="path to write wireframe-report.json")
++    ap.add_argument("--check", action="store_true",
++                     help="re-render and diff against --out without writing")
++    args = ap.parse_args(argv)
++
++    if not os.path.isfile(args.screens):
++        sys.stderr.write(f"render_wireframes.py: not found: {args.screens}\n")
++        return 2
++
++    try:
++        record = load_yaml(args.screens)
++    except yaml.YAMLError as exc:
++        sys.stderr.write(f"render_wireframes.py: cannot parse {args.screens}: {exc}\n")
++        return 2
++
++    required_top = ("spec", "personas", "surfaces", "journeys", "screens", "vocabulary",
++                     "color_rule", "open_questions")
++    findings = []
++    for key in required_top:
++        if key not in record:
++            findings.append({"code": "missing-top-level-key", "where": "<root>",
++                              "says": f"required top-level key '{key}' is missing"})
++
++    coverage = validate(record, findings)
++
++    rendered = render_page(record)
++
++    mode = "check" if args.check else "render"
++    if args.check:
++        if not os.path.isfile(args.out):
++            findings.append({"code": "check-missing-output", "where": args.out,
++                              "says": "--check requested but the rendered file does not exist"})
++        else:
++            with open(args.out, encoding="utf-8") as fh:
++                on_disk = fh.read()
++            if on_disk != rendered:
++                findings.append({"code": "hand-edited", "where": args.out,
++                                  "says": "page was hand-edited; re-render from the record"})
++    else:
++        os.makedirs(os.path.dirname(os.path.abspath(args.out)) or ".", exist_ok=True)
++        with open(args.out, "w", encoding="utf-8") as fh:
++            fh.write(rendered)
++
++    report = {
++        "ok": not findings,
++        "screens": len(record.get("screens") or []),
++        "moments": sum(len((s or {}).get("moments") or []) for s in (record.get("screens") or [])),
++        "journeys": len(record.get("journeys") or []),
++        "steps_covered": coverage["steps_covered"],
++        "steps_with_gap": coverage["steps_with_gap"],
++        "gaps": coverage["gaps"],
++        "findings": findings,
++        "rendered": args.out,
++        "record": args.screens,
++        "mode": mode,
++    }
++
++    os.makedirs(os.path.dirname(os.path.abspath(args.report)) or ".", exist_ok=True)
++    with open(args.report, "w", encoding="utf-8") as fh:
++        json.dump(report, fh, indent=2)
++        fh.write("\n")
++    print(json.dumps(report, indent=2))
++
++    return 0 if not findings else 1
++
++
++if __name__ == "__main__":
++    sys.exit(main(sys.argv[1:]))
+diff --git a/core/components/plays/ux/scripts/validate_ux.py b/core/components/plays/ux/scripts/validate_ux.py
+index 76da8315..9d93c95c 100644
+--- a/core/components/plays/ux/scripts/validate_ux.py
++++ b/core/components/plays/ux/scripts/validate_ux.py
+@@ -32,6 +32,17 @@
+              journey record itself serves. The reverse also holds: every resolved journey of
+              the slice must be expanded by at least one flow, so none of the slice's real paths
+              is left undrawn. Skipped with a warning when `--readiness` is not passed.
++  - C4/F4    role resolution: every role the written lens names must resolve to a persona
++             record the readiness check handed over — a screen's "opened by" clause, a flow's
++             Persona field, and (as prose) the specific shape of an invented role ("the actor",
++             "a general viewer") in the Intent/Screens text. A role that resolves to nothing is
++             an error, never a wording caveat. Needs both `--lens` and `--readiness`; skipped
++             with a warning when either is not passed.
++  - C4/F4    wireframe-record grounding (`--screens`, `lens/screens.yaml`): every screen the
++             record carries is named by at least one journey step's `covered_by`, and the lens's
++             `## Screens` section and the record's `screens[]` describe the same set of screens
++             (matched by name) — a screen on one side missing from the other is an error.
++             Skipped with a warning when `--screens` is not passed.
+ 
+ There is NO draft tree: the visual-core decision is carried in the manifest as `decision_delta`
+ until the keyed persist (`persist_ux.py`) writes it in place. Reused decisions are resolved
+@@ -41,7 +52,8 @@
+ 
+     python3 validate_ux.py --manifest <ux-manifest.yaml> \
+             --slice-file <live slice record .yaml> [--product-base <product_base>] \
+-            [--lens <live lens/ux.md>] [--readiness <check_ready_slice.py output .json>]
++            [--lens <live lens/ux.md>] [--readiness <check_ready_slice.py output .json>] \
++            [--screens <live lens/screens.yaml>]
+ 
+ Prints {ok, errors[], warnings[], counts} JSON. Exit 0 clean, 1 on violation, 2 usage.
+ """
+@@ -509,6 +521,188 @@ def check_flows(lens_path, errors, warnings):
+     return counts
+ 
+ 
++# --------------------------------------------------------------------------------------
++# C4/F4 — the lens must be TRUE about the hub, not merely well-formed: every role it names
++# resolves to a persona record, and every screen it declares is named by a journey step.
++# --------------------------------------------------------------------------------------
++
++GENERIC_ROLE_WORDS = ("actor", "viewer", "user", "operator", "admin", "owner", "member",
++                      "visitor", "guest", "reader", "editor", "reviewer", "customer", "client")
++ROLE_PROSE_RE = re.compile(
++    r"\b(?:a|an|the)\b(?:\s+[A-Za-z]+)?\s+(?:" + "|".join(GENERIC_ROLE_WORDS) + r")s?\b",
++    re.IGNORECASE,
++)
++OPENED_BY_RE = re.compile(r"opened by\s+(?P<who>[^.;,—–\n]+)", re.IGNORECASE)
++ARTICLE_RE = re.compile(r"^(?:a|an|the)\s+", re.IGNORECASE)
++
++# A generic role word is only an invented ROLE when it is the head of its phrase — i.e. the
++# person doing something, not a noun modifying what follows ("an admin panel"). The token
++# right after the match tells them apart: a verb/modal means the role word is the subject; a
++# following lowercase word means the role word is itself a modifier.
++ROLE_HEAD_VERBS = {
++    "can", "could", "would", "should", "will", "may", "might", "is", "are", "was", "were",
++    "has", "have", "had", "opens", "open", "sees", "see", "decides", "decide", "holds", "hold",
++    "reads", "read", "uses", "use", "needs", "need", "arrives", "arrive", "logs", "signs",
++}
++NEXT_TOKEN_RE = re.compile(r"\s*([A-Za-z']+|[,.;:)—])?")
++
++
++def _role_is_head(line, end):
++    """True when the text right after a ROLE_PROSE_RE match shows the role word acting as the
++    subject (a verb/modal, or end-of-clause punctuation, or end of line) rather than as a
++    modifier in front of another noun.
++    """
++    m = NEXT_TOKEN_RE.match(line, end)
++    tok = m.group(1) if m else None
++    if tok is None:
++        return True  # nothing follows on the line — end of clause
++    if tok in ",.;:)—":
++        return True
++    return tok.lower() in ROLE_HEAD_VERBS
++
++
++def check_roles(lens_path, readiness, errors):
++    """C4/F4 — every role the written lens names resolves to a persona record of the hub.
++
++    Structured mentions are authoritative: a screen's 'opened by' clause (`## Screens`) and a
++    flow's Persona field (`## Flows`) — both already pulled apart by `parse_screens`/
++    `parse_flows`'s helpers. On top of those, the Intent and Screens prose is scanned for the
++    specific shape of an invented role: a generic person-word behind a definite article — "the
++    actor", "a general viewer" — the wording the content-quality judge let through as a caveat.
++    Here it is a hard fail, not a wording note.
++    """
++    counts = {"role_mentions_checked": 0, "role_mentions_unresolved": 0}
++    try:
++        with open(lens_path, encoding="utf-8") as fh:
++            lines = fh.read().splitlines()
++    except OSError as exc:
++        errors.append(f"lens unreadable at {lens_path}: {exc} (C4/F4)")
++        return counts
++
++    secs = _sections(lines)
++    resolvable = set()
++    for p in (readiness.get("personas") or []):
++        if not isinstance(p, dict):
++            continue
++        if p.get("name"):
++            resolvable.add(_norm(p["name"]))
++        if p.get("id"):
++            resolvable.add(_norm(str(p["id"])))
++
++    def resolves(text):
++        t = _norm(text)
++        return t in resolvable or ARTICLE_RE.sub("", t) in resolvable
++
++    seen = set()
++
++    def report(kind, phrase, msg):
++        key = (kind, _norm(phrase))
++        if key in seen:
++            return
++        seen.add(key)
++        counts["role_mentions_checked"] += 1
++        if not resolves(phrase):
++            counts["role_mentions_unresolved"] += 1
++            errors.append(msg)
++
++    for entry in _entries(secs.get("screens") or []):
++        m = OPENED_BY_RE.search(entry)
++        if m:
++            who = m.group("who").strip()
++            if who:
++                report("opened-by", who,
++                       f"screen names opener '{who}', which resolves to no persona record — "
++                       f"every role a screen names must be a persona of the hub (C4/F4)")
++
++    for flow in parse_flows(secs.get("flows") or []):
++        fld = flow["fields"].get("persona")
++        who = fld["value"].strip() if fld else ""
++        if who:
++            report("flow-persona", who,
++                   f"flow '{flow['name']}' names persona '{who}', which resolves to no persona "
++                   f"record — every role a flow names must be a persona of the hub (C4/F4)")
++
++    for sec_name in ("intent", "screens"):
++        for line in secs.get(sec_name) or []:
++            scan_line = OPENED_BY_RE.sub(" ", line) if sec_name == "screens" else line
++            for m in ROLE_PROSE_RE.finditer(scan_line):
++                if not _role_is_head(scan_line, m.end()):
++                    continue  # role word modifies the next noun ("an admin panel") — not a role
++                phrase = m.group(0).strip()
++                report(f"prose-{sec_name}", phrase,
++                       f"'{sec_name}' section names role '{phrase}', which resolves to no "
++                       f"persona record — a role must be a persona of the hub, not an invented "
++                       f"stand-in (C4/F4)")
++
++    return counts
++
++
++def check_screens_record(screens_path, lens_path, errors, warnings):
++    """C4/F4 — the wireframe record (`lens/screens.yaml`) is grounded in the hub, and it and
++    the lens describe the same set of screens.
++
++    A screen the record carries but no journey step's `covered_by` reaches is not grounded (the
++    manifest half of this same rule lives in `render_wireframes.py`'s own validation, over the
++    same field; this is the cross-artifact half — the lens and the record must not drift apart).
++    """
++    counts = {"record_screens": 0, "record_screens_uncovered": 0}
++    try:
++        record = load(screens_path)
++    except (OSError, yaml.YAMLError) as exc:
++        errors.append(f"wireframe record unreadable at {screens_path}: {exc} (C4/F4)")
++        return counts
++
++    rec_screens = [s for s in (record.get("screens") or []) if isinstance(s, dict)]
++    counts["record_screens"] = len(rec_screens)
++
++    covered = set()
++    for j in (record.get("journeys") or []):
++        if not isinstance(j, dict):
++            continue
++        for step in (j.get("steps") or []):
++            for ref in ((step or {}).get("covered_by") or []):
++                if isinstance(ref, str) and "." in ref:
++                    covered.add(ref.split(".", 1)[0])
++
++    for s in rec_screens:
++        sid = s.get("id")
++        if sid and sid not in covered:
++            counts["record_screens_uncovered"] += 1
++            errors.append(f"wireframe record screen '{sid}' is named by no journey step's "
++                          f"covered_by — a screen the record carries must be reached by a real "
++                          f"path through the slice (C4/F4)")
++
++    if not lens_path:
++        warnings.append("--screens was passed without --lens: the lens/record screen-name "
++                        "cross-check (C4/F4) was skipped (pass --lens to run it)")
++        return counts
++
++    try:
++        with open(lens_path, encoding="utf-8") as fh:
++            lines = fh.read().splitlines()
++    except OSError as exc:
++        errors.append(f"lens unreadable at {lens_path}: {exc} (C4/F4)")
++        return counts
++
++    secs = _sections(lines)
++    lens_names = parse_screens(secs.get("screens") or [])
++    lens_by_norm = {_norm(n): n for n in lens_names}
++    rec_by_norm = {_norm(s.get("name")): s.get("name") for s in rec_screens if s.get("name")}
++
++    for norm, orig in lens_by_norm.items():
++        if norm not in rec_by_norm:
++            errors.append(f"lens screen '{orig}' has no matching entry in the wireframe "
++                          f"record's screens[] — the lens and the record must describe the "
++                          f"same slice (C4/F4)")
++    for norm, orig in rec_by_norm.items():
++        if norm not in lens_by_norm:
++            errors.append(f"wireframe record screen '{orig}' is not named in the lens's "
++                          f"'## Screens' section — the lens and the record must describe the "
++                          f"same slice (C4/F4)")
++
++    return counts
++
++
+ def main(argv=None):
+     ap = argparse.ArgumentParser(description="Validate /ux's lens grounding + coverage.")
+     ap.add_argument("--manifest", required=True)
+@@ -519,6 +713,10 @@ def main(argv=None):
+     ap.add_argument("--readiness", help="the JSON check_ready_slice.py emitted for this slice — "
+                                        "enables the C14/F15 flow RESOLUTION check (skipped with "
+                                        "a warning when omitted)")
++    ap.add_argument("--screens", help="the written lens/screens.yaml wireframe record — enables "
++                                     "the C4/F4 wireframe-record grounding + lens/record "
++                                     "screen-name cross-check (skipped with a warning when "
++                                     "omitted)")
+     args = ap.parse_args(argv)
+ 
+     errors, warnings = [], []
+@@ -543,6 +741,7 @@ def main(argv=None):
+         warnings.append("--lens was not passed: the C14/F15 flow cross-check was skipped "
+                         "(pass --lens <slice>/lens/ux.md to run it)")
+ 
++    readiness = None
+     if args.readiness:
+         try:
+             with open(args.readiness, encoding="utf-8") as fh:
+@@ -557,11 +756,30 @@ def main(argv=None):
+         warnings.append("--readiness was not passed: the C14/F15 flow resolution check was "
+                         "skipped (pass --readiness <check_ready_slice.py output .json> to run it)")
+ 
++    if args.lens and args.readiness and readiness is not None:
++        role_counts = check_roles(args.lens, readiness, errors)
++    else:
++        role_counts = {"role_mentions_checked": 0, "role_mentions_unresolved": 0}
++        if not (args.lens and args.readiness):
++            warnings.append("--lens and --readiness were not both passed: the C4/F4 role-"
++                            "resolution check was skipped (pass both to run it)")
++        # else: --readiness was passed but unreadable — already recorded as an error above.
++
++    if args.screens:
++        screens_counts = check_screens_record(args.screens, args.lens, errors, warnings)
++    else:
++        screens_counts = {"record_screens": 0, "record_screens_uncovered": 0}
++        warnings.append("--screens was not passed: the C4/F4 wireframe-record grounding + "
++                        "lens/record screen-name cross-check were skipped (pass --screens "
++                        "<slice>/lens/screens.yaml to run them)")
++
+     counts = {"manifest_screens": len(man.get("screens") or []),
+               "manifest_flows": len(man.get("flows") or []), "decisions": len(decision_ids),
+               "to_cover": len(to_cover), "grounded_funcs": len(grounded_funcs)}
+     counts.update(flow_counts)
+     counts.update(ready_counts)
++    counts.update(role_counts)
++    counts.update(screens_counts)
+     result = {"ok": not errors, "errors": errors, "warnings": warnings, "counts": counts}
+     print(json.dumps(result, indent=2))
+     return 0 if not errors else 1
+diff --git a/core/components/plays/ux/stop-condition.yaml b/core/components/plays/ux/stop-condition.yaml
+index 198dd0b0..4bc8fb9d 100644
+--- a/core/components/plays/ux/stop-condition.yaml
++++ b/core/components/plays/ux/stop-condition.yaml
+@@ -1,11 +1,11 @@
+-# ux stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C; #500 direct-model-write, ADR 026).
++# ux stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C; #500 direct-model-write, ADR 026; #552 wireframes + design directives).
+ # Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
+ # Paths are relative to the run's working root ({stm_base}_realize/ux/<slice>/).
+ schema: { name: stop-condition }
+ content:
+   done:
+     - id: D1
+-      says: "the persist record exists — the visual-core decision was written in place and the live UX lens was confirmed on the model tree"
++      says: "the persist record exists — the slice's decisions were written in place and the live UX lens was confirmed on the model tree"
+       check: { type: artifact_exists, path: "persist-manifest.json" }
+     - id: D2
+       says: "the write was persisted — the persist record stamps it applied"
+@@ -13,3 +13,6 @@ content:
+     - id: D3
+       says: "the scoped-write guard held — no model path changed outside the slice's write scope"
+       check: { type: field_equals, file: "guard-report.json", field: "ok", equals: true }
++    - id: D4
++      says: "the slice was drawn — the wireframe record and the rendered page both exist, and the page was rendered from the record"
++      check: { type: field_equals, file: "wireframe-report.json", field: "ok", equals: true }
+diff --git a/core/components/skills/author-ux-lens/SKILL.md b/core/components/skills/author-ux-lens/SKILL.md
+index e797cd3b..d5b7a9f1 100644
+--- a/core/components/skills/author-ux-lens/SKILL.md
++++ b/core/components/skills/author-ux-lens/SKILL.md
+@@ -1,6 +1,6 @@
+ ---
+ name: author-ux-lens
+-description: Author a shaped slice's UX lens as an MD grounding doc — the screens (with low-fidelity layouts), the flows that EXPAND the slice's journey records onto those screens (one flow per journey, never an invented one), the states each holds, and the product's visual core (color + typography) — from the slice's hub (its functionalities' grounding docs + the spine profile + the slice's persona and journey records) and KB pattern grounding. Writes the per-node grounding doc ux.md STRAIGHT TO THE LIVE MODEL (conforming to the UX lens template) and emits the visual-core decision plus the grounding map as structured data in a manifest; it NEVER writes a shared model file (the spine _spine.yaml, the profile, or a decisions/*.yaml). Reads the functionality.md docs for the hub, never another lens. Generative artifact production for the /ux play under direct-model-write (ADR 026).
++description: Author a shaped slice's UX lens as an MD grounding doc — the screens (with low-fidelity layouts), the flows that EXPAND the slice's journey records onto those screens (one flow per journey, never an invented one), the states each holds, and the product's visual core (the semantic state vocabulary, its tone map, and the design-system reference the look comes from — never a chosen palette or typography) — from the slice's hub (its functionalities' grounding docs + the spine profile + the slice's persona and journey records) and KB pattern grounding. Also draws the slice as a wireframe record, `lens/screens.yaml` (personas, surfaces, journeys, screens with moments/regions/states/invariants, vocabulary, color rule, open questions), written straight to the live model beside ux.md; a bundled script renders `lens/wireframes.html` from it afterwards — this skill never writes the HTML. Writes both per-node artifacts STRAIGHT TO THE LIVE MODEL and emits the visual-core decision, any design-directive decisions, plus the grounding map as structured data in a manifest; it NEVER writes a shared model file (the spine _spine.yaml, the profile, or a decisions/*.yaml). Reads the functionality.md docs for the hub, never another lens. Generative artifact production for the /ux play under direct-model-write (ADR 026).
+ version: 0.5.0
+ user-invocable: false
+ model: opus
+@@ -13,14 +13,19 @@ Turns a shaped slice's **hub** — the grounding docs of the functionalities it
+ product profile, plus the slice's **persona and journey records** — into the slice's **UX lens**,
+ written as the grounding doc `ux.md`: the screens that make every functionality visible, the
+ flows that expand the slice's journey records onto those screens, the states each screen holds,
+-and the product's visual core. It anchors the intended experience; it is not a full spec. It reads
+-the hub only (never another realize lens).
++and the product's visual core — the semantic state vocabulary, its tone map, and the
++design-system reference the real look comes from (or an explicit "none yet"). It also draws the
++slice as the wireframe record `lens/screens.yaml`, the machine-readable half of the wireframes a
++bundled script renders into `lens/wireframes.html` afterwards. It anchors the intended experience;
++it is not a full spec. It reads the hub only (never another realize lens).
+ 
+ **Write discipline (ADR 026, `standards/rules/direct-model-write.md`).** This skill writes
+-ONLY the per-node doc `ux.md`, **straight to the live model** in place. It does NOT write any
+-shared model file — not the spine `_spine.yaml`, not the profile, and not a `decisions/*.yaml`.
+-The visual-core decision is emitted as **structured data in the manifest** (`decision_delta`);
+-the play's deterministic keyed persist script (`persist_ux.py`) writes that decision in place,
++ONLY the per-node artifacts `ux.md` and `lens/screens.yaml`, **straight to the live model** in
++place. It does NOT write any shared model file — not the spine `_spine.yaml`, not the profile,
++and not a `decisions/*.yaml`. It also never writes `lens/wireframes.html` — that is the bundled
++render script's job, run after this skill. The visual-core decision, and any design-directive
++decisions, are emitted as **structured data in the manifest** (`decision_delta` entries); the
++play's deterministic keyed persist script (`persist_ux.py`) writes those decisions in place,
+ keyed to the slice and `skip-if-exists`. There is no draft tree.
+ 
+ ## What it produces (against the locked template)
+@@ -28,12 +33,21 @@ keyed to the slice and `skip-if-exists`. There is no draft tree.
+ `ux.md` conforms to `standards/schemas/product-os/grounding/lens/ux.md` — H1 `# UX Lens`,
+ sections **Intent**, **Screens** (each: name + who opens it + the one object the user works
+ with there + low-fidelity layout in prose), **Flows** (one block per journey record of the slice — its persona + goal), **States**
+-(per screen, each state named with its trigger), **Visual core** (color + typography direction),
+-in that order. It must clear the linter (shape) and the content-quality eval (the play runs
+-both). Alongside the doc it writes a
+-structured `ux-manifest.yaml` (an STM, non-model artifact) carrying the machine-checkable
+-grounding the prose can't — which screen grounds to which functionality, the visual-core
+-grounding, and the visual-core **decision delta** for the keyed persist to write.
++(per screen, each state named with its trigger), **Visual core** (the semantic state vocabulary
++and its tone map, the rule that a state word always prints alongside its colour, and the
++design-system reference the look comes from — or an explicit "none yet"; never a chosen palette
++or type scale), in that order. It must clear the linter (shape) and the content-quality eval (the
++play runs both).
++
++Alongside the doc it writes `lens/screens.yaml` — the wireframe record: the slice's personas,
++surfaces, journeys, and screens (each with its moments, regions, states, and invariants), the
++shared vocabulary and colour-role map, and any open questions. A bundled render script (not this
++skill) turns that record into `lens/wireframes.html` afterwards.
++
++It also writes a structured `ux-manifest.yaml` (an STM, non-model artifact) carrying the
++machine-checkable grounding the prose can't — which screen grounds to which functionality, the
++visual-core grounding, any design-directive grounding, and the decision deltas (visual core plus
++any design directives) for the keyed persist to write.
+ 
+ ## Input
+ 
+@@ -50,7 +64,8 @@ grounding, and the visual-core **decision delta** for the keyed persist to write
+ | `kb_root` | yes | Path to `knowledge/`, to resolve learning ids. |
+ | `product_base` | yes | Product model root — the LIVE write target (and to reuse an existing visual-core decision). |
+ | `lens_rel` | yes | Relative path of the live lens: `product-os/{domain}/slices/{slice}/lens/ux.md`. Write `ux.md` here, in place. |
+-| `manifest_path` | yes | Output path under STM for `ux-manifest.yaml` (grounding map + decision delta + proposals). |
++| `screens_rel` | yes | Relative path of the live wireframe record: `product-os/{domain}/slices/{slice}/lens/screens.yaml`. Write it here, in place, beside `ux.md`. This skill writes only the record — the bundled render script writes `lens/wireframes.html` from it afterwards. |
++| `manifest_path` | yes | Output path under STM for `ux-manifest.yaml` (grounding map + decision deltas + proposals). |
+ | `stm_base` | yes | From config. |
+ 
+ ## Process
+@@ -91,7 +106,7 @@ yours. Template conformance, grounding, and coverage are non-negotiable.
+ 
+    Keep the field order FIXED so a UX researcher can read it and an agent can parse it:
+    **Persona**, **Goal**, **Entry**, **Steps**, **Decisions**, **Failure**, **Exit**. Do NOT add
+-   a `Journey:` field to `ux.md` — the journey id travels in the manifest (see step 6).
++   a `Journey:` field to `ux.md` — the journey id travels in the manifest (see step 8).
+ 
+    Cover only the path INSIDE this slice's screens — the wider cross-product journey is not this
+    lens's job. Then check: every step names a screen that exists in Screens, and every screen is
+@@ -100,33 +115,74 @@ yours. Template conformance, grounding, and coverage are non-negotiable.
+ 4. **Enumerate the states.** For each screen, the states it can hold (loading, empty, error,
+    partial, populated). Name each state with its TRIGGER (what puts the screen in it), what the
+    user sees in it, and what they can do next. Not a flat list of labels.
+-5. **Choose the visual core.** The color and typography direction — grounded in a KB
+-   technology/architecture learning (matched to the product's conditions + surfaces via
+-   `kb_search`), or a recorded KB-learning-gap proposal. If the product already carries a
+-   visual-core decision (check under `product_base`), REUSE it — name it in the manifest and
+-   emit NO new `decision_delta`. Otherwise emit the decision as manifest data for the keyed
+-   persist to write (do NOT write the decision file yourself).
+-6. **Write the lens in place + the manifest.** Write `ux.md` to the LIVE lens path
+-   (`product_base` + `lens_rel`), per the template. Write `ux-manifest.yaml` to `manifest_path`
+-   (STM) carrying: every screen's `grounds` → a functionality_ref / persona / journey; every
+-   flow's `journey_ref` (the journey it expands) and `persona_ref` (the persona id that journey
+-   serves), its `grounds` → the persona/journey of the hub it traces to, plus its ordered `steps`; the
+-   visual core's grounding → kb or the reused decision; and, when a new decision is needed, the
+-   `decision_delta` (id, the slice-scoped `rel`, and the full `record` body). Write any KB
+-   proposals under an STM proposals folder. Write NO shared model file — never `_spine.yaml`,
+-   never the profile, never a `decisions/*.yaml`.
++5. **Fix the visual core — meaning, not a look.** You never pick a palette or a type scale. You
++   fix three things instead:
++   - The **semantic state vocabulary** — the closed set of state words the slice's screens use,
++     each carrying one of four tones (ok / warn / bad / neutral) and a plain statement of what it
++     means. Ground it the same way as any UX pattern choice — a KB technology/architecture
++     learning matched via `kb_search`, or a recorded KB-learning-gap proposal.
++   - The **word-alongside-colour rule** — restate it: a state word always prints next to its
++     colour, never replaced by it.
++   - The **design-system reference** — the name of the design system the real look comes from and
++     where it lives, read from the product profile or an existing product decision. If none
++     exists yet, say so plainly and say why — never invent one to fill the gap.
++
++   If the product already carries a visual-core decision (check under `product_base`), REUSE it —
++   name it in the manifest and emit NO new `decision_delta` for it. Otherwise emit the decision as
++   manifest data (`kind: visual-core`) for the keyed persist to write (do NOT write the decision
++   file yourself).
++6. **Record any design directives.** Designing this slice may also have settled things that are
++   not visual but that the technical design must inherit rather than rediscover — how a person's
++   permission to act is modelled, what a value the screens depend on needs a schema for, what is
++   deliberately out of scope. Each one you actually settled becomes its own slice-level decision
++   (`kind: design-directive`) naming the play(s) downstream that read it (`binds`, e.g. `arch`,
++   `implement`). Record only what the design genuinely settled — a run may settle none, one, or
++   several; never manufacture one to fill a slot, and never leave a settled thing sitting only in
++   `ux.md` prose.
++7. **Draw the wireframe record.** Author `lens/screens.yaml` — the judgment half of the
++   wireframes. It carries: `spec` (slice_ref, issue, authored_by, date, and the design-system
++   reference or "none yet" from step 5); `personas` and `surfaces` (medium each surface runs on,
++   and why); `journeys`, each with its ordered `steps`, and each step's `covered_by` list naming
++   the exact `<screen>.m<moment>` ids that satisfy it — **the binding to a journey lives here,
++   through the journey, never as a field on the screen**. A step no moment covers still gets a
++   non-empty `gap` string — write the honest gap, never drop the step and never leave it silent.
++   For every screen already drawn in step 2, add its `moments` (a sequential, numbered walkthrough
++   — what the person sees, does, and why each visible detail is there, plus the literal frame
++   body: a terminal screen's printed lines, or a web screen's blocks of labelled content), its
++   `regions`, its `states` (each state's tone drawn from the visual core's map — never a tone
++   outside it), and its `invariants`. Close with the shared `vocabulary` (word/tone/means),
++   `color_rule` (the tone-to-role map from step 5), and any `open_questions`. Frames carry real
++   labels and real sample content — never an invented palette, type scale, or component library;
++   the render script (not this skill) turns this record into `lens/wireframes.html` afterwards.
++   Moments are numbered per screen so adding one renumbers nothing else.
++8. **Write the lens, the wireframe record, and the manifest.** Write `ux.md` to the LIVE lens path
++   (`product_base` + `lens_rel`), per the template. Write `lens/screens.yaml` to the LIVE path
++   (`product_base` + `screens_rel`), per step 7's schema. Write `ux-manifest.yaml` to
++   `manifest_path` (STM) carrying: every screen's `grounds` → a functionality_ref / persona /
++   journey; every flow's `journey_ref` (the journey it expands) and `persona_ref` (the persona id
++   that journey serves), its `grounds` → the persona/journey of the hub it traces to, plus its
++   ordered `steps`; the visual core's grounding → kb or the reused decision; every design directive
++   recorded in step 6, with its `binds`; and, for each new decision needed (visual core and/or
++   design directives), a `decision_delta` entry (id, `kind`, `binds` where applicable, the
++   slice-scoped `rel`, and the full `record` body). Write any KB proposals under an STM proposals
++   folder. Write NO shared model file — never `_spine.yaml`, never the profile, never a
++   `decisions/*.yaml`, and never `lens/wireframes.html`.
+ 
+ ## Output
+ 
+ ```
+ LIVE (in place, under product_base):
+-  product-os/{domain}/slices/{slice}/lens/ux.md            # the UX lens grounding doc (the only live write)
++  product-os/{domain}/slices/{slice}/lens/ux.md            # the UX lens grounding doc
++  product-os/{domain}/slices/{slice}/lens/screens.yaml      # the wireframe record (this skill's other live write)
+ 
+ STM (non-model):
+-  {manifest_path}                                           # ux-manifest.yaml — grounding map + decision delta
++  {manifest_path}                                           # ux-manifest.yaml — grounding map + decision deltas
+   {stm}/proposals/<gap>.yaml                                # KB-learning-gap proposals (only if gaps)
+ ```
+ 
++`lens/wireframes.html` is written later by the bundled render script from `screens.yaml` — this
++skill never produces it.
++
+ `ux-manifest.yaml`:
+ 
+ ```yaml
+@@ -146,22 +202,45 @@ ux:
+         - { source_type: journey, source: "journey-analyst-confirm-coverage", journey_ref: journey-analyst-confirm-coverage }
+         - { source_type: persona, source: "persona-analyst", persona_ref: persona-analyst }
+       steps: ["Source coverage view", "Source detail"]   # ordered; exact screens[].name values
+-  design_system:                                  # the visual core grounding
++  design_system:                                  # the visual core grounding — vocabulary + tone map + reference
+     source_type: decision                         # kb | decision
+     decision: dec-visual-core-token-dash
+-  decision_delta:                                 # OMIT when reusing an existing product decision
+-    id: dec-visual-core-token-dash
+-    rel: product-os/token-dash/slices/slice-trusted-coverage/decisions/dec-visual-core-token-dash.yaml
+-    record:                                       # the full decision YAML body the keyed persist writes
+-      id: dec-visual-core-token-dash
+-      level: slice
+-      status: accepted
+-      # … dimension, choice, grounding …
+-  choices: []                                     # KB-grounded pattern choices (visual core / nav / responsive)
++  design_directives:                              # settled non-visual things the technical design must inherit
++    - id: dec-permission-model-token-dash
++      binds: [arch, implement]                    # downstream play(s) that read this directive
++      summary: "Access is modelled per-source, not per-dashboard"
++  decision_delta:                                 # one entry per NEW decision; OMIT entirely when none is new
++    - id: dec-visual-core-token-dash
++      kind: visual-core                           # visual-core | design-directive
++      rel: product-os/token-dash/slices/slice-trusted-coverage/decisions/dec-visual-core-token-dash.yaml
++      record:                                     # the full decision YAML body the keyed persist writes
++        id: dec-visual-core-token-dash
++        kind: visual-core
++        level: slice
++        status: accepted
++        # … vocabulary, tone map, design-system reference, grounding …
++    - id: dec-permission-model-token-dash
++      kind: design-directive
++      binds: [arch, implement]
++      rel: product-os/token-dash/slices/slice-trusted-coverage/decisions/dec-permission-model-token-dash.yaml
++      record:
++        id: dec-permission-model-token-dash
++        kind: design-directive
++        binds: [arch, implement]
++        level: slice
++        status: accepted
++        # … the settled thing, and why …
++  choices:                                        # KB-grounded pattern choices — NEVER EMPTY
++    - id: navigation
++      grounds:
++        - { source_type: kb, source: technology/single-column-task-surface }
++    - id: responsive
++      grounds:
++        - { source_type: proposal, source: <working>/proposals/responsive-terminal-gap.md }
+ ```
+ 
+-Return the enriched contract with the live `lens_rel` written and the `ux-manifest.yaml` path
+-— paths, never inline content.
++Return the enriched contract with the live `lens_rel`, the live `screens_rel`, and the
++`ux-manifest.yaml` path — paths, never inline content.
+ 
+ ## Rules
+ 
+@@ -175,19 +254,42 @@ Return the enriched contract with the live `lens_rel` written and the `ux-manife
+ - **Every flow expands a journey.** A flow with no journey record behind it is INVALID, and
+   every journey of the slice must be expanded by a flow — a journey the lens left undrawn fails
+   `validate_ux.py`. One flow per journey, persona taken from the journey's `persona_ref`.
+-- **Four things only.** Screens, flows, states, visual core. No accessibility (that is the
+-  marketing lens now), no gates/components/environments, no journey that leaves this slice's
++- **Four things only, in `ux.md`.** Screens, flows, states, visual core. No accessibility (that is
++  the marketing lens now), no gates/components/environments, no journey that leaves this slice's
+   screens.
+ - **Flows resolve both ways.** No flow step may name a screen that is not in Screens, and no
+   screen may be unreachable — every screen is named by at least one flow step. Fix the flow or
+   drop the screen; never ship a dangling name either way.
+ - **Cover every functionality.** Every functionality the slice bundles is visualized by ≥1
+   screen, recorded in the manifest.
++- **`choices:` is never empty, and never carries the visual core.** The manifest's `choices:`
++  block is the KB-grounded pattern choices — the navigation pattern and the responsive strategy.
++  Each one grounds on a matched KB learning or a recorded gap proposal; an empty block fails
++  `check_kb_grounding.py` and halts the run. The visual core is NOT a choice in this block: this
++  skill no longer picks a look, so there is nothing here to ground. It names the project's
++  design-system reference in the lens instead, or records that none exists yet — and that is never
++  a KB gap, because no shelf can tell a project what its brand is.
+ - **Grounded, not invented.** Every screen grounds to a functionality or a persona/journey;
+   every flow names the `journey_ref` it expands and the `persona_ref` that journey serves, both
+-  resolving to records the readiness check handed over, never an invented one; the
+-  visual core grounds to a KB learning or a proposal and is recorded as a decision.
+-- **One live doc; no shared file.** Write ONLY `ux.md` to the live model. The visual-core
+-  decision goes into the manifest as `decision_delta` — the play's keyed persist writes it. Never
+-  write `_spine.yaml`, the profile, or a `decisions/*.yaml`; never write to another slice.
+-```
++  resolving to records the readiness check handed over, never an invented one; the visual core's
++  vocabulary grounds to a KB learning or a proposal, and both it and any design directive are
++  recorded as decisions.
++- **Visual core is meaning, never a look.** It never picks a palette, a type scale, spacing, or a
++  component library. It fixes the semantic state vocabulary and tone map, restates the
++  word-alongside-colour rule, and names the design-system reference the real look comes from — or
++  says plainly that none exists yet.
++- **Design directives are recorded, not left in prose.** Anything the design settled that the
++  technical build must inherit — permission modelling, a value needing a schema, a deliberate
++  out-of-scope — becomes its own `kind: design-directive` decision naming what it `binds`. Record
++  only what was actually settled; never manufacture one, and never leave it sitting only in
++  `ux.md` prose.
++- **The wireframe record binds through the journey.** In `screens.yaml`, a frame is never tied to
++  a journey step by a field on the screen — only `journeys[].steps[].covered_by` does that. A step
++  no moment covers carries a non-empty `gap` string; it is never silently dropped. Frames carry
++  real labels and real content — no invented palette, type scale, or component library, same as
++  the lens.
++- **Two live artifacts; no shared file; no HTML.** Write `ux.md` and `lens/screens.yaml` to the
++  live model, and nothing else on the model tree. The visual-core and design-directive decisions
++  go into the manifest as `decision_delta` entries — the play's keyed persist writes them. Never
++  write `_spine.yaml`, the profile, a `decisions/*.yaml`, `lens/wireframes.html` (the bundled
++  render script's job), or anything in another slice.
