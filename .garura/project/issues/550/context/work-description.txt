@@ -1,0 +1,86 @@
+[ENH] Persona grounding must be first-class in the product model, not a surface-level id
+
+## The problem in plain words
+
+Personas are created — `/shape` writes them as real records under
+`product-os/<domain>/*/personas/*` in the same run that cuts the slices. But nothing
+downstream is actually handed them.
+
+`/ux` is the case that exposed it. After #548 the UX lens must ground every flow in "a
+persona or journey of the hub". That requirement cannot be met:
+
+- `/ux` defines its **hub** as the slice's functionality grounding docs plus the product
+  profile. Personas and journeys are not in that definition.
+- The contract that hands work to the `author-ux-lens` skill passes slice ref, slice
+  record, functionality groundings, profile and product base. There is **no persona or
+  journey path**.
+- `check_ready_slice.py` does not resolve personas or journeys at all.
+- The one thread that does exist is thin: the slice record carries
+  `surface[].persona_ref` — the persona who opens each surface. That gives the model a
+  persona **id** and nothing else. Not who they are, not what they want, not what they
+  are trying to achieve.
+- The flow cross-check added in #548 only asserts that a flow names something of type
+  persona or journey. It never opens the record to confirm the id resolves, so an
+  invented persona passes.
+
+So a requirement was shipped with no input able to satisfy it.
+
+## The wider point — this is the real ask
+
+Persona grounding is not a UX detail. It is how the model knows **who** a thing is for,
+and that matters most when the work is driven by a **business intent** rather than a
+screen. A business intent is a statement about what someone is trying to achieve; without
+a persona behind it, the model is reasoning about an outcome with no one attached to it.
+
+So the fix is not "pass personas into `/ux`". The fix is that personas and journeys become
+a first-class grounding source in the product model — resolvable, readable, and carried
+wherever intent is reasoned about, the same way functionality grounding docs are today.
+`/ux` is the first consumer to need it, not the only one.
+
+## Why this matters
+
+Three things break without it:
+
+1. A flow, an intent, or a decision can name a persona that does not exist, and nothing
+   catches it. Grounding that cannot be resolved is not grounding.
+2. A persona today is a name. The model cannot read what the person wants, so every
+   downstream play re-invents that from context, differently each time.
+3. Work driven by business intent has no anchor. The intent says what should be true; the
+   persona says for whom. Only one of those is in the model.
+
+## What good looks like
+
+- Personas and journeys are resolvable from the model by id, from anywhere that needs
+  them, not just inferable from a slice's surface list.
+- A persona record carries enough content to ground a decision: who they are, what they
+  are trying to achieve, what they care about, what would make the thing a failure for
+  them.
+- `/ux` receives the slice's personas and journeys as part of its hub, and its checker
+  resolves each persona id against the live model instead of accepting a bare name.
+- Whatever reasons about a business intent can name the persona it serves and have that
+  reference verified.
+
+## Scope note
+
+Where persona records are authored is a live question. `/shape` creates them today, as a
+by-product of cutting slices. Issue #528 proposes a `/story` play that would create
+personas and storyboards **before** `/shape`, so the story drives the cut instead of
+following it. That decision is not made here — this change is about personas being
+first-class **in the model** and resolvable by consumers. Whoever picks it up should read
+#528 and draw the boundary explicitly rather than letting the two overlap.
+
+## Evidence
+
+- `/shape` writes persona records: `core/components/plays/shape/SKILL.md` (write scope,
+  `product-os/<domain>/*/personas/*`)
+- slice record carries only a persona id:
+  `core/components/memory/standards/schemas/product-os/slice.yaml` (`surface[].persona_ref`)
+- `/ux` hub excludes personas: `core/components/plays/ux/reference/ice.md` (C7, and the
+  intent's definition of hub)
+- `/ux` author contract has no persona input: `core/components/plays/ux/SKILL.md` (Step 1)
+- the readiness check ignores personas:
+  `core/components/plays/ux/scripts/check_ready_slice.py`
+- the flow check does not resolve the id:
+  `core/components/plays/ux/scripts/validate_ux.py` (the manifest flow grounding walk)
+- related, not the same work: issue #528 (`/story` play)
+- the defect that surfaced this: issue #548, merged as PR #549
