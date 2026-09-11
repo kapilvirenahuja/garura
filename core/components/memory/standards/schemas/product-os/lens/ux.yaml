@@ -7,9 +7,22 @@
 #   - the flows — per persona and goal, the ordered path through those screens,
 #   - the states each screen can hold, each with the trigger that puts it there,
 #   - the product's visual core (color + typography).
-# Accessibility is NOT restated here — it lives in the product profile, and the build
-# connects it. The flows here are the paths INSIDE this lens's screens; the person's wider
-# journey across the product is not this lens's to write (that is /story's, #528). (#548)
+# Accessibility is NOT restated here — it lives in the MARKETING lens (it moved there from
+# the product profile; see grounding/lens/marketing.md), and the build connects it. The flows
+# here are the paths INSIDE this lens's screens; the person's wider journey across the product
+# is not this lens's to write (that is /story's, #528). (#548)
+#
+# Schema evolution note (#548): `states` changed from a list of strings to a list of objects
+# (name + trigger + sees + next), `screens[].object` became required, and `flows` was added.
+# This is a BREAKING change to a permanent record type. Migration for any record written under
+# the prior shape: each bare state string becomes `{name: <the string>, trigger: "", sees: "",
+# next: ""}` and is then filled in; `screens[].object` is named per screen; `flows` is authored
+# fresh by /ux on the next run, which re-derives the whole lens anyway. This repo holds no
+# record under the prior shape; an installed target may, and its next /ux run re-derives the
+# lens in the new shape (the structural linter fails the old shape until it does). Schema
+# evolution remains
+# parked for v1 (product-os/_index.md) — this note is the migration record that rule asks for,
+# not a substitute for the schema-evolution play.
 
 schema:
   name: lens

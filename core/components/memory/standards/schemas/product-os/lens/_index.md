@@ -49,7 +49,7 @@ lens:
 
 | File | Holds |
 |------|-------|
-| `ux.yaml` | screens (with low-fidelity layout), states, visual core (color + typography). a11y lives in the profile; flows are derived by the build |
+| `ux.yaml` | screens (each naming the one object the user works with there, with a low-fidelity layout), flows (per persona + goal: entry, ordered steps naming screens, forks, failure path, exit), states (each with its trigger), visual core (color + typography). a11y lives in the MARKETING lens; the wider cross-product journey is /story's, not this lens's (#548) |
 | `architecture.yaml` | components, contracts, stack (versions), vertical-build |
 | `run.yaml` | environments, rollout, migrations, config/secrets, CI/CD |
 | `quality.yaml` | the gates the ICE must pass |
