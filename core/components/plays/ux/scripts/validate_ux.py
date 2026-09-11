@@ -32,6 +32,17 @@ enforce, plus the one cross-check the doc's own text carries:
              journey record itself serves. The reverse also holds: every resolved journey of
              the slice must be expanded by at least one flow, so none of the slice's real paths
              is left undrawn. Skipped with a warning when `--readiness` is not passed.
+  - C4/F4    role resolution: every role the written lens names must resolve to a persona
+             record the readiness check handed over — a screen's "opened by" clause, a flow's
+             Persona field, and (as prose) the specific shape of an invented role ("the actor",
+             "a general viewer") in the Intent/Screens text. A role that resolves to nothing is
+             an error, never a wording caveat. Needs both `--lens` and `--readiness`; skipped
+             with a warning when either is not passed.
+  - C4/F4    wireframe-record grounding (`--screens`, `lens/screens.yaml`): every screen the
+             record carries is named by at least one journey step's `covered_by`, and the lens's
+             `## Screens` section and the record's `screens[]` describe the same set of screens
+             (matched by name) — a screen on one side missing from the other is an error.
+             Skipped with a warning when `--screens` is not passed.
 
 There is NO draft tree: the visual-core decision is carried in the manifest as `decision_delta`
 until the keyed persist (`persist_ux.py`) writes it in place. Reused decisions are resolved
@@ -41,7 +52,8 @@ Layer rule: reads files on disk only; no git/gh/network.
 
     python3 validate_ux.py --manifest <ux-manifest.yaml> \
             --slice-file <live slice record .yaml> [--product-base <product_base>] \
-            [--lens <live lens/ux.md>] [--readiness <check_ready_slice.py output .json>]
+            [--lens <live lens/ux.md>] [--readiness <check_ready_slice.py output .json>] \
+            [--screens <live lens/screens.yaml>]
 
 Prints {ok, errors[], warnings[], counts} JSON. Exit 0 clean, 1 on violation, 2 usage.
 """
@@ -509,6 +521,188 @@ def check_flows(lens_path, errors, warnings):
     return counts
 
 
+# --------------------------------------------------------------------------------------
+# C4/F4 — the lens must be TRUE about the hub, not merely well-formed: every role it names
+# resolves to a persona record, and every screen it declares is named by a journey step.
+# --------------------------------------------------------------------------------------
+
+GENERIC_ROLE_WORDS = ("actor", "viewer", "user", "operator", "admin", "owner", "member",
+                      "visitor", "guest", "reader", "editor", "reviewer", "customer", "client")
+ROLE_PROSE_RE = re.compile(
+    r"\b(?:a|an|the)\b(?:\s+[A-Za-z]+)?\s+(?:" + "|".join(GENERIC_ROLE_WORDS) + r")s?\b",
+    re.IGNORECASE,
+)
+OPENED_BY_RE = re.compile(r"opened by\s+(?P<who>[^.;,—–\n]+)", re.IGNORECASE)
+ARTICLE_RE = re.compile(r"^(?:a|an|the)\s+", re.IGNORECASE)
+
+# A generic role word is only an invented ROLE when it is the head of its phrase — i.e. the
+# person doing something, not a noun modifying what follows ("an admin panel"). The token
+# right after the match tells them apart: a verb/modal means the role word is the subject; a
+# following lowercase word means the role word is itself a modifier.
+ROLE_HEAD_VERBS = {
+    "can", "could", "would", "should", "will", "may", "might", "is", "are", "was", "were",
+    "has", "have", "had", "opens", "open", "sees", "see", "decides", "decide", "holds", "hold",
+    "reads", "read", "uses", "use", "needs", "need", "arrives", "arrive", "logs", "signs",
+}
+NEXT_TOKEN_RE = re.compile(r"\s*([A-Za-z']+|[,.;:)—])?")
+
+
+def _role_is_head(line, end):
+    """True when the text right after a ROLE_PROSE_RE match shows the role word acting as the
+    subject (a verb/modal, or end-of-clause punctuation, or end of line) rather than as a
+    modifier in front of another noun.
+    """
+    m = NEXT_TOKEN_RE.match(line, end)
+    tok = m.group(1) if m else None
+    if tok is None:
+        return True  # nothing follows on the line — end of clause
+    if tok in ",.;:)—":
+        return True
+    return tok.lower() in ROLE_HEAD_VERBS
+
+
+def check_roles(lens_path, readiness, errors):
+    """C4/F4 — every role the written lens names resolves to a persona record of the hub.
+
+    Structured mentions are authoritative: a screen's 'opened by' clause (`## Screens`) and a
+    flow's Persona field (`## Flows`) — both already pulled apart by `parse_screens`/
+    `parse_flows`'s helpers. On top of those, the Intent and Screens prose is scanned for the
+    specific shape of an invented role: a generic person-word behind a definite article — "the
+    actor", "a general viewer" — the wording the content-quality judge let through as a caveat.
+    Here it is a hard fail, not a wording note.
+    """
+    counts = {"role_mentions_checked": 0, "role_mentions_unresolved": 0}
+    try:
+        with open(lens_path, encoding="utf-8") as fh:
+            lines = fh.read().splitlines()
+    except OSError as exc:
+        errors.append(f"lens unreadable at {lens_path}: {exc} (C4/F4)")
+        return counts
+
+    secs = _sections(lines)
+    resolvable = set()
+    for p in (readiness.get("personas") or []):
+        if not isinstance(p, dict):
+            continue
+        if p.get("name"):
+            resolvable.add(_norm(p["name"]))
+        if p.get("id"):
+            resolvable.add(_norm(str(p["id"])))
+
+    def resolves(text):
+        t = _norm(text)
+        return t in resolvable or ARTICLE_RE.sub("", t) in resolvable
+
+    seen = set()
+
+    def report(kind, phrase, msg):
+        key = (kind, _norm(phrase))
+        if key in seen:
+            return
+        seen.add(key)
+        counts["role_mentions_checked"] += 1
+        if not resolves(phrase):
+            counts["role_mentions_unresolved"] += 1
+            errors.append(msg)
+
+    for entry in _entries(secs.get("screens") or []):
+        m = OPENED_BY_RE.search(entry)
+        if m:
+            who = m.group("who").strip()
+            if who:
+                report("opened-by", who,
+                       f"screen names opener '{who}', which resolves to no persona record — "
+                       f"every role a screen names must be a persona of the hub (C4/F4)")
+
+    for flow in parse_flows(secs.get("flows") or []):
+        fld = flow["fields"].get("persona")
+        who = fld["value"].strip() if fld else ""
+        if who:
+            report("flow-persona", who,
+                   f"flow '{flow['name']}' names persona '{who}', which resolves to no persona "
+                   f"record — every role a flow names must be a persona of the hub (C4/F4)")
+
+    for sec_name in ("intent", "screens"):
+        for line in secs.get(sec_name) or []:
+            scan_line = OPENED_BY_RE.sub(" ", line) if sec_name == "screens" else line
+            for m in ROLE_PROSE_RE.finditer(scan_line):
+                if not _role_is_head(scan_line, m.end()):
+                    continue  # role word modifies the next noun ("an admin panel") — not a role
+                phrase = m.group(0).strip()
+                report(f"prose-{sec_name}", phrase,
+                       f"'{sec_name}' section names role '{phrase}', which resolves to no "
+                       f"persona record — a role must be a persona of the hub, not an invented "
+                       f"stand-in (C4/F4)")
+
+    return counts
+
+
+def check_screens_record(screens_path, lens_path, errors, warnings):
+    """C4/F4 — the wireframe record (`lens/screens.yaml`) is grounded in the hub, and it and
+    the lens describe the same set of screens.
+
+    A screen the record carries but no journey step's `covered_by` reaches is not grounded (the
+    manifest half of this same rule lives in `render_wireframes.py`'s own validation, over the
+    same field; this is the cross-artifact half — the lens and the record must not drift apart).
+    """
+    counts = {"record_screens": 0, "record_screens_uncovered": 0}
+    try:
+        record = load(screens_path)
+    except (OSError, yaml.YAMLError) as exc:
+        errors.append(f"wireframe record unreadable at {screens_path}: {exc} (C4/F4)")
+        return counts
+
+    rec_screens = [s for s in (record.get("screens") or []) if isinstance(s, dict)]
+    counts["record_screens"] = len(rec_screens)
+
+    covered = set()
+    for j in (record.get("journeys") or []):
+        if not isinstance(j, dict):
+            continue
+        for step in (j.get("steps") or []):
+            for ref in ((step or {}).get("covered_by") or []):
+                if isinstance(ref, str) and "." in ref:
+                    covered.add(ref.split(".", 1)[0])
+
+    for s in rec_screens:
+        sid = s.get("id")
+        if sid and sid not in covered:
+            counts["record_screens_uncovered"] += 1
+            errors.append(f"wireframe record screen '{sid}' is named by no journey step's "
+                          f"covered_by — a screen the record carries must be reached by a real "
+                          f"path through the slice (C4/F4)")
+
+    if not lens_path:
+        warnings.append("--screens was passed without --lens: the lens/record screen-name "
+                        "cross-check (C4/F4) was skipped (pass --lens to run it)")
+        return counts
+
+    try:
+        with open(lens_path, encoding="utf-8") as fh:
+            lines = fh.read().splitlines()
+    except OSError as exc:
+        errors.append(f"lens unreadable at {lens_path}: {exc} (C4/F4)")
+        return counts
+
+    secs = _sections(lines)
+    lens_names = parse_screens(secs.get("screens") or [])
+    lens_by_norm = {_norm(n): n for n in lens_names}
+    rec_by_norm = {_norm(s.get("name")): s.get("name") for s in rec_screens if s.get("name")}
+
+    for norm, orig in lens_by_norm.items():
+        if norm not in rec_by_norm:
+            errors.append(f"lens screen '{orig}' has no matching entry in the wireframe "
+                          f"record's screens[] — the lens and the record must describe the "
+                          f"same slice (C4/F4)")
+    for norm, orig in rec_by_norm.items():
+        if norm not in lens_by_norm:
+            errors.append(f"wireframe record screen '{orig}' is not named in the lens's "
+                          f"'## Screens' section — the lens and the record must describe the "
+                          f"same slice (C4/F4)")
+
+    return counts
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Validate /ux's lens grounding + coverage.")
     ap.add_argument("--manifest", required=True)
@@ -519,6 +713,10 @@ def main(argv=None):
     ap.add_argument("--readiness", help="the JSON check_ready_slice.py emitted for this slice — "
                                        "enables the C14/F15 flow RESOLUTION check (skipped with "
                                        "a warning when omitted)")
+    ap.add_argument("--screens", help="the written lens/screens.yaml wireframe record — enables "
+                                     "the C4/F4 wireframe-record grounding + lens/record "
+                                     "screen-name cross-check (skipped with a warning when "
+                                     "omitted)")
     args = ap.parse_args(argv)
 
     errors, warnings = [], []
@@ -543,6 +741,7 @@ def main(argv=None):
         warnings.append("--lens was not passed: the C14/F15 flow cross-check was skipped "
                         "(pass --lens <slice>/lens/ux.md to run it)")
 
+    readiness = None
     if args.readiness:
         try:
             with open(args.readiness, encoding="utf-8") as fh:
@@ -557,11 +756,30 @@ def main(argv=None):
         warnings.append("--readiness was not passed: the C14/F15 flow resolution check was "
                         "skipped (pass --readiness <check_ready_slice.py output .json> to run it)")
 
+    if args.lens and args.readiness and readiness is not None:
+        role_counts = check_roles(args.lens, readiness, errors)
+    else:
+        role_counts = {"role_mentions_checked": 0, "role_mentions_unresolved": 0}
+        if not (args.lens and args.readiness):
+            warnings.append("--lens and --readiness were not both passed: the C4/F4 role-"
+                            "resolution check was skipped (pass both to run it)")
+        # else: --readiness was passed but unreadable — already recorded as an error above.
+
+    if args.screens:
+        screens_counts = check_screens_record(args.screens, args.lens, errors, warnings)
+    else:
+        screens_counts = {"record_screens": 0, "record_screens_uncovered": 0}
+        warnings.append("--screens was not passed: the C4/F4 wireframe-record grounding + "
+                        "lens/record screen-name cross-check were skipped (pass --screens "
+                        "<slice>/lens/screens.yaml to run them)")
+
     counts = {"manifest_screens": len(man.get("screens") or []),
               "manifest_flows": len(man.get("flows") or []), "decisions": len(decision_ids),
               "to_cover": len(to_cover), "grounded_funcs": len(grounded_funcs)}
     counts.update(flow_counts)
     counts.update(ready_counts)
+    counts.update(role_counts)
+    counts.update(screens_counts)
     result = {"ok": not errors, "errors": errors, "warnings": warnings, "counts": counts}
     print(json.dumps(result, indent=2))
     return 0 if not errors else 1
