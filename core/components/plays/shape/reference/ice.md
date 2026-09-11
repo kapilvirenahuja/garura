@@ -29,6 +29,15 @@ accretes slice by slice; a backend-only slice, a one-per-capability horizontal l
 persona who opens it, what they do on it); it never **designs** it — wireframes, components,
 and layout are /realize's UX lens.
 
+**Personas are first-class grounding, not decoration.** An intent says what should be true;
+the persona says **for whom** it should be true — and the ICE record points here
+(`ice.yaml` `context.persona: []`). So every persona /shape writes carries structured
+content, not one prose sentence: `goals` (the outcomes that person wants, in THEIR words),
+`cares_about` (what they judge the thing by when deciding whether to trust it), and
+`failure_means` (what makes the thing a failure for THEM specifically), with `description`
+left as the one-line who-they-are summary. Downstream plays then READ the person's goals
+instead of re-deriving them from prose differently every run. (#550)
+
 One domain per run; one human checkpoint approves the whole selection bundle before
 the model delta is committed.
 
@@ -53,9 +62,19 @@ Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM aut
   (`→ deprecated`) by a `status` flip ONLY. It never reparents or renames a node, never
   creates or deletes a capability or domain, and never edits a capability beyond its
   `status`. A prune marks the capability `deprecated` (soft), never a hard delete.
-- C5 — Schema + integrity: the persona, journey, decision, and slice records conform to
-  their schemas; every slice `functionality_ref` resolves to a real functionality in the
-  spine; every journey's persona and surface references resolve.
+- C5 — Schema + integrity, including first-class persona grounding: the persona, journey,
+  decision, and slice records conform to their schemas; every slice `functionality_ref`
+  resolves to a real functionality in the spine; every journey's persona and surface
+  references resolve. And a persona /shape writes carries its **structured grounding** —
+  `goals` (what that person is trying to achieve, outcomes in THEIR words, never features or
+  solutions), `cares_about` (what they judge the thing by when deciding whether to trust it),
+  and `failure_means` (what makes the thing a failure for THEM specifically) — each grounded
+  in the capability's ICE (`{capability}/ice.yaml`) and the firmed product profile, never
+  invented; while `description` stays the ONE-LINE who-they-are summary only, never a prose
+  bundle of who they are plus what they need plus what they must trust. The three fields are
+  additive and optional in the schema, so a persona written before #550 stays valid and is
+  never a run failure — the guarantee binds what /shape writes, and the validator reports a
+  missing field as a warning, not an error.
 - C6 — Placement: every selected functionality lands in at least one slice OR in the
   explicit `_deferred` bucket — nothing selected is left unplaced. A functionality MAY
   appear in more than one slice.
@@ -133,7 +152,10 @@ Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM aut
   or a capability or domain was created or deleted; or a prune hard-deleted instead of
   marking `deprecated`.
 - F5 — A persona, journey, decision, or slice violates its schema; or a slice
-  `functionality_ref` or a journey reference does not resolve.
+  `functionality_ref` or a journey reference does not resolve; or a persona /shape wrote this
+  run is missing `goals`, `cares_about`, or `failure_means`, or crams that content back into
+  `description` instead of the structured fields, or invents it rather than grounding it in
+  the capability's ICE and the firmed profile.
 - F6 — A selected functionality is in neither a slice nor the `_deferred` bucket — it fell
   through unplaced.
 - F7 — A slice exposes no user-testable surface (a backend-only or horizontal-layer slice),
@@ -170,8 +192,9 @@ Write discipline (ADR 026, `standards/rules/direct-model-write.md`): the LLM aut
   the personas and journeys are created — all schema-valid, and no functionality is created
   or changed. Measure: each kept capability is `status: active`; each selected functionality
   already existed in the spine and is referenced by a slice; persona and journey records
-  exist and validate; no functionality entry or doc changed; the stop-condition verdict
-  reads held.
+  exist and validate, and each persona this run wrote carries its structured grounding
+  (`goals`, `cares_about`, `failure_means`) beside a one-line `description`; no functionality
+  entry or doc changed; the stop-condition verdict reads held.
 - S2 — (architect, grounding) Given the selection is drafted, when it is inspected, then each
   kept capability and selected functionality traces to a KB shelf or a recorded proposal.
   Measure: the shape manifest names, for every kept capability and selected functionality, a
@@ -244,8 +267,15 @@ domain moved.
   create/delete, or a hard-deleted prune. direction: revert the out-of-scope mutation;
   /shape flips capability status only and prunes soft (`deprecated`). handoff: autonomous.
 - REC5 (F5) — trigger: a persona/journey/decision/slice fails its schema, or a slice/journey
-  reference does not resolve. direction: re-emit the failing record to conform, and fix the
-  reference to point at a real spine functionality/persona/surface. handoff: autonomous.
+  reference does not resolve, or a persona written this run lacks its structured grounding
+  (`goals`, `cares_about`, `failure_means`) or carries it inside `description`. direction:
+  re-emit the failing record to conform, and fix the reference to point at a real spine
+  functionality/persona/surface; for the persona case, split the content OUT of `description`
+  into the three fields — goals as outcomes in the person's words, `cares_about` as their trust
+  criteria, `failure_means` as what a miss looks like for them — each read off the capability's
+  ICE and the firmed profile, leaving `description` as the one-line who-they-are summary. A
+  warning on a persona an earlier run wrote is left alone; only records this run wrote are
+  re-emitted. handoff: autonomous.
 - REC6 (F6) — trigger: a selected functionality is in neither a slice nor `_deferred`.
   direction: place it — add it to an appropriate slice or record it in `_deferred` with a
   reason — before persisting. handoff: autonomous.

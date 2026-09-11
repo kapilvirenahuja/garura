@@ -21,6 +21,14 @@ domain per run.
 checks, and that surface is a thin scaffold — this slice's piece of screen, not the whole
 UI. The product surface accretes slice by slice.
 
+**Personas are first-class grounding (#550).** An intent says what should be true; the
+persona says **for whom**. So every persona /shape writes carries structured content —
+`goals` (the outcomes that person wants, in THEIR words), `cares_about` (what they judge the
+thing by when deciding whether to trust it), and `failure_means` (what makes the thing a
+failure for THEM specifically) — each read off the capability's ICE and the firmed profile,
+never invented, with `description` left as the one-line who-they-are summary. Downstream
+plays then READ the person's goals instead of re-deriving them from prose every run (C5/F5).
+
 **Pipeline position: none.** /shape is a MIDDLE play of the strategy pipeline (vision → understand → shape → roadmap): it expects to run on the branch /vision already started, injects no `start-change` head and no close sequence, stops when its work is done, and leaves the branch as-is for the next play to pick up. The close belongs to /roadmap. It writes the persistent product model **directly, in place** on the already-started branch — there is no draft copy and no apply/promote step; review is the branch git diff and the pipeline's end PR. (#437, #500, ADR 026)
 
 **Write discipline (ADR 026, `standards/rules/direct-model-write.md`).** The LLM authoring
@@ -38,7 +46,9 @@ is a post-write scoped guard (`scoped_write_guard.py`), not a draft.
 This play was compiled from the shape ICE (`reference/ice.md`) by play-editor
 (#466 Batch C, Level 3 rollout per ADR 025; #467 Batch B — the checkpoint upgraded to a
 conditional learned gate, see `standards/rules/gate-config.md`; #500 — migrated to
-direct-model-write per ADR 026 and `standards/rules/direct-model-write.md`). Intent defines
+direct-model-write per ADR 026 and `standards/rules/direct-model-write.md`; #550 — C5/F5
+extended so the personas /shape writes carry structured grounding, `goals`/`cares_about`/
+`failure_means`, per the persona record in `schemas/product-os/product-os.yaml`). Intent defines
 constraints (C1–C15) and failure conditions (F1–F16); the expectation defines success
 scenarios (S1–S8), a Done means (D1–D3, baked to `stop-condition.yaml`), and one
 recovery entry per failure condition. To modify this play, update `reference/ice.md`
@@ -68,7 +78,7 @@ reading held (C14/F14).
 
 | Agent | Domain | Skill it invokes | Phases |
 |-------|--------|------------------|--------|
-| `product-os-keeper` | Confirm/prune capabilities and select existing functionalities against the firmed profile + KB; create personas, user journeys, decisions; compose the domain's vertical slices behind scaffolded surfaces — writing each RECORD straight to the live model and emitting the spine-delta into the manifest (never the spine, never the profile) | `search-kb`, `author-shape-bundle` | Author |
+| `product-os-keeper` | Confirm/prune capabilities and select existing functionalities against the firmed profile + KB; create personas (each with its structured grounding — `goals`, `cares_about`, `failure_means` — read off the capability's ICE and the profile, `description` one line only), user journeys, decisions; compose the domain's vertical slices behind scaffolded surfaces — writing each RECORD straight to the live model and emitting the spine-delta into the manifest (never the spine, never the profile) | `search-kb`, `author-shape-bundle` | Author |
 
 `product-os-keeper` is the single **domain agent** this play uses (1 of the ≤5
 budget). No utility agents are needed — git/issue machinery is absent (position none).
@@ -161,14 +171,17 @@ The persisted model does not record which KB shelf a domain came from, and the p
 domain slug is not the KB shelf name. So the agent first **recovers the shelf** with
 `search-kb`, then invokes `author-shape-bundle` to author the domain's selection-and-
 composition bundle — confirm/prune per capability, select which existing functionalities to
-build, the personas, the **user journeys through surfaces**, the decisions, AND the domain's
+build, the personas (each carrying its **structured grounding**: `goals`, `cares_about`, and
+`failure_means`, grounded in the capability's ICE and the firmed profile, with `description`
+kept to the one-line who-they-are summary — C5/F5, #550), the **user journeys through
+surfaces**, the decisions, AND the domain's
 **vertical slices** (each naming at least one user-facing surface a named persona opens and
 checks, bundling functionalities by spine id, plus the `_deferred` bucket), with stable ids.
 Per ADR 026 the skill writes each RECORD **straight to the live model** in place and emits the
 spine-delta as structured data in the manifest (it never writes `_spine.yaml` or the profile):
 
     {
-      "task":    "recover this domain's KB shelf via search-kb, then SELECT among the functionalities /understand already created against the firmed profile + that shelf, and COMPOSE the domain's vertical slices. Write each slice/persona/journey/decision RECORD straight to the live model in place; emit the spine-delta (capability status flips, the slices index, the refs) as structured data in the manifest — never write _spine.yaml or the profile. Never create a functionality or author ICE. Every slice MUST name >=1 user-facing surface (a thin UI scaffold a named persona opens and checks) — a backend-only/horizontal/whole-UI slice is invalid. Journeys are user journeys ON named surfaces. Name surfaces; never design them. Every selected functionality in a slice or _deferred; slices reference functionalities by spine id; no order/effort/depends_on",
+      "task":    "recover this domain's KB shelf via search-kb, then SELECT among the functionalities /understand already created against the firmed profile + that shelf, and COMPOSE the domain's vertical slices. Write each slice/persona/journey/decision RECORD straight to the live model in place; emit the spine-delta (capability status flips, the slices index, the refs) as structured data in the manifest — never write _spine.yaml or the profile. Never create a functionality or author ICE. Every slice MUST name >=1 user-facing surface (a thin UI scaffold a named persona opens and checks) — a backend-only/horizontal/whole-UI slice is invalid. Journeys are user journeys ON named surfaces. Name surfaces; never design them. Every persona record MUST carry its structured grounding — goals (outcomes in THEIR words, never features), cares_about (their trust criteria), failure_means (what a miss looks like for THEM) — each read off the capability's ice.yaml and the firmed profile, never invented, with description kept to the ONE-LINE who-they-are summary. Every selected functionality in a slice or _deferred; slices reference functionalities by spine id; no order/effort/depends_on",
       "inputs":  { "domain":        "<id + slug + path under product-os>",
                    "product_base":  "<product_base>",
                    "manifest_path": "<working>/shape-manifest.yaml" },
@@ -207,9 +220,15 @@ authored no ICE, and wrote no profile (the records hold only slices, personas, j
 decisions; the spine-delta in the manifest is status flips + slice index + refs).
 **SE-3 (F3/C3):** grounding holds — every kept capability and selected functionality in the
 manifest carries a KB shelf or a recorded proposal; none is invented.
-**SE-4 (F5/C5):** schema + integrity — personas, journeys, decisions, and slices carry
-their required fields; every slice `functionality_ref` resolves to a real functionality in the
-live spine; every journey persona and surface reference resolves.
+**SE-4 (F5/C5):** schema + integrity, including first-class persona grounding — personas,
+journeys, decisions, and slices carry their required fields; every slice `functionality_ref`
+resolves to a real functionality in the live spine; every journey persona and surface reference
+resolves; and `validate_shape.py` raises NO persona-grounding warning (a missing `goals`,
+`cares_about`, or `failure_means`) against a persona **this run wrote** — the persona ids the
+manifest's `spine_delta` names. A warning on a persona an earlier run or /understand wrote is
+pre-#550 legacy: it is reported, never a gap (the three fields are additive and optional, so the
+validator warns and never errors). On a warning against a persona this run wrote, apply REC5 —
+split the content out of `description` into the three fields and re-emit that record.
 **SE-5 (F6/C6):** placement holds — every selected functionality appears in a slice or the
 `_deferred` bucket; `validate_shape.py` reports no unplaced functionality.
 **SE-6 (F7/C7):** every slice is a user-facing scaffold — it names at least one surface
@@ -388,8 +407,9 @@ persist or guard did not land closes HALTED, never COMPLETED (REC14).
 **Step 7 — Scenario evals** · Owner: play · Depends on: Step 6
 - **SCE-1 (S1 — product owner, select + compose):** kept capabilities are `active`, the
   selected (already-existing) functionalities are placed into slices, personas and journeys
-  are created and schema-valid, no functionality was created or changed, and the
-  stop-condition verdict reads held.
+  are created and schema-valid — each persona this run wrote carrying its structured grounding
+  (`goals`, `cares_about`, `failure_means`) beside a one-line `description` — no functionality
+  was created or changed, and the stop-condition verdict reads held.
 - **SCE-2 (S2 — architect, grounding):** every kept capability and selected functionality
   traces to a KB shelf or a recorded proposal in the manifest.
 - **SCE-3 (S3 — product owner, prune is soft):** a pruned capability is `deprecated` with a
@@ -505,7 +525,7 @@ Always emitted; never gated.
 | F2 | /shape created a functionality, authored ICE, or wrote the profile | strip the over-reach — remove the created functionality/ICE, revert the profile write; detailing and the box are /understand's | autonomous |
 | F3 | a selected functionality or kept capability has no KB shelf match and no proposal | ground it against the KB, or record a propose-kb-node proposal; never keep an invented selection | autonomous |
 | F4 | a capability edited beyond status, a reparent/rename, a create/delete, or a hard-deleted prune | revert the out-of-scope mutation; /shape flips capability status only and prunes soft (`deprecated`) | autonomous |
-| F5 | a persona/journey/decision/slice fails its schema, or a slice/journey reference does not resolve | re-emit the failing record to conform, and fix the reference to a real spine functionality/persona/surface | autonomous |
+| F5 | a persona/journey/decision/slice fails its schema, or a slice/journey reference does not resolve, or a persona written THIS run lacks `goals`/`cares_about`/`failure_means` or crams them into `description` | re-emit the failing record to conform, and fix the reference to a real spine functionality/persona/surface; for the persona, split the content out of `description` into the three fields — goals as outcomes in the person's words, `cares_about` as their trust criteria, `failure_means` as what a miss looks like for them — each read off the capability's `ice.yaml` and the firmed profile, leaving `description` as the one-line who-they-are summary; a warning on a persona an earlier run wrote is left alone | autonomous |
 | F6 | a selected functionality is in neither a slice nor the `_deferred` bucket | place it — add it to a slice, or record it in `_deferred` with a reason — before persisting | autonomous |
 | F7 | a surface-less/horizontal slice, or a "whole UI at once" slice | re-cut the slice vertically toward one surface a persona opens and checks, as a thin scaffold; fold or defer functionalities that serve no surface | autonomous |
 | F8 | /shape designed a surface (wireframe/component/layout/visual) instead of naming it | strip the design to the surface's name, persona, and user action; design is /realize's UX lens | autonomous |
@@ -531,8 +551,8 @@ start — a resume continues its own in-progress delta.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:fc97705caf7b0b6d0895dc8f6e87c492fcb365a2e1d711f252734d37f4da0920 (of `reference/ice.md`) |
-| compiled_by | play-editor (#500 direct-model-write, ADR 026); prior: play-editor (#467 Batch B, #466 Batch C) |
+| fingerprint | sha256:aa78eaf241793abc9dcd126d1520ed7112c54826fbab0b75b539d4c10951818a (of `reference/ice.md`) |
+| compiled_by | play-editor (#550 first-class persona grounding); prior: play-editor (#500 direct-model-write, ADR 026), play-editor (#467 Batch B, #466 Batch C) |
 | pipeline_position | none |
 | position_exception | middle of the strategy pipeline — runs on the branch /vision started; the close belongs to /roadmap (#437) |
 | workflow_structure | A (single checkpoint — class: standard, conditional gate per gate-config.md #467; direct-model-write WRITE-THEN-REVIEW per ADR 026 — persist + guard + classify before the gate, commit after; stop-condition gated close) |
@@ -544,6 +564,25 @@ start — a resume continues its own in-progress delta.
 | step_evals | 16 (SE-1…SE-16) |
 | scenario_evals | 8 (SCE-1…SCE-8) |
 | recovery_entries | 16 (one per failure condition; 12 autonomous / 4 human) |
+
+**Recompiled note (#550, first-class persona grounding):** the persona-authoring guarantee
+grew inside the EXISTING schema-integrity element — no new constraint, failure condition,
+scenario, eval, or recovery entry was added, so the counts below are unchanged (C1–C15,
+F1–F16, S1–S8, SE-1…SE-16, SCE-1…SCE-8, 16 recovery entries). **C5** now also requires that a
+persona /shape writes carries `goals` (outcomes in the person's own words, never features),
+`cares_about` (their trust criteria) and `failure_means` (what a miss looks like for them),
+each grounded in the capability's `ice.yaml` and the firmed profile and never invented, with
+`description` held to the one-line who-they-are summary; **F5** fails on a persona written
+this run that is missing those fields or crams them back into `description`; **REC5** directs
+the split-out-of-`description` fix; **SE-4** reads the new `validate_shape.py` warnings channel
+and gaps only on a persona THIS run wrote (the ids in the manifest's `spine_delta`), so
+pre-#550 records stay visible without failing; **S1/SCE-1** measure the grounding on the
+personas the run authored. The three fields are additive and optional in
+`schemas/product-os/product-os.yaml`, so `validate_shape.py` warns and never errors on them.
+This recompile is a **hand-compile from `reference/ice.md`** for the same reason the #500 note
+records — play-editor is interactive-only and cannot run headless here — so convergence with an
+emitted SKILL is likewise unverified and is covered by the #500 convergence run still required
+below.
 
 **Recompiled note (#500, direct-model-write / ADR 026):** migrated from draft-then-apply to
 direct-model-write. The old draft model tree and the apply/check promotion scripts
