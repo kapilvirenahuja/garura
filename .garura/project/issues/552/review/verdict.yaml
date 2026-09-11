@@ -1,0 +1,13 @@
+pr: 564
+issue: 552
+decision: approve
+decided_by: harness
+gate: "off by config (gates.plays.review-change)"
+equals_recommendation: true
+reason: "no P1 findings; the computed recommendation stands verbatim as the decision"
+citing_findings: []
+counts: { P1: 0, P2: 2, P3: 3, P4: 5 }
+note: >
+  Approve is the rule, not an endorsement of every finding being fine. Two P2s sit in new code
+  and the reviewing harness recommends fixing them before merge; they do not block because only
+  a P1 blocks.

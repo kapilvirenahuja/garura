@@ -1,0 +1,88 @@
+# design-findings-harness.yaml — Layer 2 design-grounded findings for the "harness" category
+# PR #564 (base: main). change-reviewer Job 2.
+category: harness
+
+principles_grounded:
+  - id: P-pipeline-path
+    statement: >
+      An intent change (touching what the play decides/guarantees: intent, C-, F-, S-, the
+      agent/skill flow, or evals) must go through the play's ICE source and be recompiled;
+      a non-intent change is a direct edit with a deviation-note footer.
+    committed_source: "CLAUDE.md (repo root) — 'Play Pipeline Rules' section"
+
+  - id: P-write-containment
+    statement: >
+      A model-writing play's LLM skill writes ONLY per-node doc files; every shared-file
+      mutation (spine, decisions/) is done by a deterministic keyed script; containment of
+      the full write is enforced by a single post-write scoped guard run once, not a draft tree.
+    committed_source: "core/components/memory/standards/rules/direct-model-write.md, points 1-4 (ADR 026)"
+
+  - id: P-agent-skill-boundary
+    statement: >
+      Judgment belongs to the authoring skill; anything with no judgment in it is mechanical
+      and belongs to a script. A generated artifact is never hand-written; hand-writing it
+      drifts from its source of truth on the next run.
+    committed_source: "git show main:core/components/plays/ux/reference/ice.md (pre-#552 C2/C10 wording establishing the skill/script split, carried forward from ADR 026 #500)"
+
+  - id: P-intent-consistency
+    statement: >
+      Intent quality requires success/failure to be self-evident from the statement; the
+      goal must be interpretable without reference to failure conditions, and constraints /
+      failure conditions are meant to travel together so the eval author can compile evals
+      that catch every failure a constraint implies.
+    committed_source: "docs/philosophy/intent-driven-development.md, lines 179, 211, 216"
+
+conformance_findings: []
+
+notes: >
+  The four in-scope files were checked against the principles above using ONLY main-ref
+  sources (direct-model-write.md, CLAUDE.md, intent-driven-development.md, and the pre-#552
+  ice.md read via `git show main:core/components/plays/ux/reference/ice.md`). One issue was
+  found and is recorded below at P3 — it is a real but non-blocking prose-drift gap, not a
+  mechanical failure: the enforcement path (scoped_write_guard.py --allow/--add-only flags in
+  both ice.md and SKILL.md) was updated correctly to include the two new per-node artifacts
+  (lens/screens.yaml, lens/wireframes.html) — verified identical in both files, so ICE and its
+  compiled SKILL.md remain consistent with each other, satisfying P-pipeline-path. The gap is
+  narrower: three failure-condition/constraint PROSE passages that describe the play's write
+  scope in words — F2, F9, and C12 of reference/ice.md (verified via `git show
+  main:core/components/plays/ux/reference/ice.md`, unchanged by this diff) — still say "this
+  slice's ux.md or a/its decision," omitting the two new per-node artifacts and the new plural
+  "design-directive decisions" the C2/C15 change just introduced. Because the actual gate
+  (scoped_write_guard.py's --allow list) is driven by the flags, not by this prose, the defect
+  is textual/documentation fidelity, not a functional hole — hence P3, not P2.
+
+findings:
+  - id: F-harness-1
+    file: core/components/plays/ux/reference/ice.md
+    location: "F2, F9, and C12 (context lines, unchanged by this diff — verified via git show main:core/components/plays/ux/reference/ice.md, same wording pre-#552)"
+    what_is_wrong: >
+      C2 was widened this change to add two new live write targets (lens/screens.yaml,
+      lens/wireframes.html) and to pluralize the decisions written (visual-core AND
+      design-directive). F2 ("a write touched something other than this slice's ux.md or a
+      decision"), F9 ("a product-model path other than this slice's ux.md or its decision"),
+      and C12's Done-means description ("the visual-core decision written in place and the
+      live ux.md confirmed") were not updated alongside C2/C15 and still describe the pre-#552
+      scope. core/components/skills/author-ux-lens/SKILL.md and
+      core/components/plays/ux/SKILL.md faithfully compiled/mirror this same stale wording, so
+      compiled output is consistent with its ICE source — the drift is inside the source itself.
+    principle_violated: P-intent-consistency (constraints and their matching failure
+      conditions are meant to travel together so a reader — human or eval author — can tell
+      what the constraint actually covers without cross-referencing a different clause)
+    committed_source: "docs/philosophy/intent-driven-development.md, lines 179, 211, 216"
+    severity: P3
+    note: >
+      Not P1/P2 because the mechanical gate is unaffected: scoped_write_guard.py's --allow/
+      --add-only flags (both in ice.md's Step 4 script invocation and in SKILL.md) already
+      list all current write targets correctly, so no out-of-scope write can slip through.
+      This is a prose-accuracy gap in the intent text, not a functional containment gap.
+
+conformance_verdict: >
+  The harness category conforms to garura's design principles on every load-bearing axis
+  checked: the change correctly went through the ICE source and a single play-editor
+  recompile (fingerprint verified matching in self-review.md), ice.md and SKILL.md stay
+  consistent with each other, the ADR 026 write-then-review / skill-writes-per-node /
+  script-owns-shared-file split holds for the two new artifacts, D4 in stop-condition.yaml
+  matches D4 in ice.md exactly, and the agent/skill/script judgment boundary (record = judgment
+  in the skill, page = mechanical in the script) is respected. One non-blocking P3 finding
+  (F-harness-1) flags stale failure-condition prose in ice.md that the widened C2/C15 scope
+  did not update — worth a follow-up direct-edit-or-recompile, not a merge blocker.

@@ -1,11 +1,11 @@
-# ux stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C; #500 direct-model-write, ADR 026).
+# ux stop condition — baked from reference/ice.md "### Done means" (#464, #466 Batch C; #500 direct-model-write, ADR 026; #552 wireframes + design directives).
 # Evaluated by scripts/check_stop_condition.py at Step C0 of the Standard Play Close.
 # Paths are relative to the run's working root ({stm_base}_realize/ux/<slice>/).
 schema: { name: stop-condition }
 content:
   done:
     - id: D1
-      says: "the persist record exists — the visual-core decision was written in place and the live UX lens was confirmed on the model tree"
+      says: "the persist record exists — the slice's decisions were written in place and the live UX lens was confirmed on the model tree"
       check: { type: artifact_exists, path: "persist-manifest.json" }
     - id: D2
       says: "the write was persisted — the persist record stamps it applied"
@@ -13,3 +13,6 @@ content:
     - id: D3
       says: "the scoped-write guard held — no model path changed outside the slice's write scope"
       check: { type: field_equals, file: "guard-report.json", field: "ok", equals: true }
+    - id: D4
+      says: "the slice was drawn — the wireframe record and the rendered page both exist, and the page was rendered from the record"
+      check: { type: field_equals, file: "wireframe-report.json", field: "ok", equals: true }

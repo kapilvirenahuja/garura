@@ -1,0 +1,17 @@
+Fix the /ux play so it produces a design a product owner can look at.
+
+Feature #552 with five children, all intent changes to the /ux play, applied as one
+change set and one recompile because they all edit the same ICE source:
+
+- #554 /ux draws low-fidelity wireframes per journey, not prose
+- #555 /ux records design directives that /arch and /implement inherit
+- #556 /ux fixes visual meaning and points at the design system, instead of inventing a look
+- #557 /ux content-quality check passes a draft that is untrue about the model
+- #558 /ux checkpoint accepts approval before the human has seen the artifact
+
+Grounded in the griffin run for slice-trusted-local-collection (griffin issue #20), where
+/ux produced one commit and the product owner made nine correction commits after it, while
+the play's own content-quality check passed the first draft on every criterion.
+
+Route: play-editor — edit core/components/plays/ux/reference/ice.md and recompile.
+Not a direct edit to the compiled SKILL.md.

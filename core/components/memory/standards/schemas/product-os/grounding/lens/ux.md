@@ -77,8 +77,20 @@
   Cover the honest states, not just the happy one: loading, empty, partial, error, and blocked
   belong here whenever they can happen.
 
-- **Visual core** — the color direction and typography direction in words (not a full design
-  system), enough to keep the build coherent.
+- **Visual core** — fixes meaning, never a look. This section names three things, and picks no
+  palette, no type scale, no spacing, and no component library — those come from the design
+  system it names, applied later:
+  1. **The semantic state vocabulary** — the closed set of words the slice's screens may use for
+     state, each carrying one of four tones: *ok*, *warn*, *bad*, or *neutral*. List every word
+     and what it means. A screen may not use a state word outside this list, and may not invent
+     a fifth tone.
+  2. **The word-alongside-colour rule** — every state word prints next to its colour and is never
+     replaced by it, so the meaning survives a screenshot, a pipe into a file, a printed page, or
+     a reader who cannot tell the hues apart.
+  3. **The design-system reference** — the name of the design system the real look comes from and
+     where it lives (a Figma file, a component library, a style guide), or plainly that none
+     exists yet and why. That reference — not this section — is where palette, type scale, and
+     components get decided, as a later step.
 
 ## Gold example
 
@@ -162,7 +174,15 @@ analysis.
   reason, with the list still on screen. Next: pick a different set.
 
 ## Visual core
-Calm and data-first: a neutral background with one accent reserved for trust-state badges (green
-resolved, amber partial, grey unavailable, red privacy-blocked). Typography: a single legible sans
-for the data, with slightly heavier weight on the state badges so the honest signal reads first.
+This section is direction, not visual design. Palette, type scale, and components are not decided
+here — they come from the product's design system, applied as a later step once this lens is
+settled. What follows fixes only the meaning the visuals must carry.
+
+Vocabulary: green for **resolved**, amber for **partial** and **not-ready**, grey/neutral for
+**unavailable**, red for **privacy-blocked**. On the coverage table and the legend panel, the
+state word always prints alongside its colour and is never replaced by it, so the meaning survives
+a screenshot, a printed report, or a reader who cannot tell the hues apart.
+
+Design system: none exists yet for this product. Palette and type scale are not invented here to
+fill the gap; they wait for a design system to be named.
 ```

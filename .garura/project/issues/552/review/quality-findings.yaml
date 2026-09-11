@@ -1,0 +1,116 @@
+meta:
+  generated_at: "2026-09-11T10:18:10Z"
+  pr: 564
+  base: main
+  branch: feature/552-ux-design-po-can-see
+  diff_path: ".garura/project/issues/552/review/pr.diff"
+  taxonomy_path: "core/components/memory/standards/rules/pr.md"
+  changed_paths_count: 16
+  scan_coverage: 1.0000
+  standards_relevant: 0
+  catchall:
+    CODE-20: 16
+  mechanical_scan:
+    tool: "quality-check-scoped/scripts/scan_taxonomy.py"
+    result: "0 findings across all severities (P1-P4); all 16 changed paths classified"
+    note: >
+      All 16 changed paths, including the two Python scripts, fall under the
+      Artifact-Type Scoping table's `garura-prose` glob (`core/components/**`), which
+      is matched before `runtime-code` (first-match-wins). This makes every grep: rule
+      ineligible and every non-docs-targeting path: rule ineligible on these files, so
+      the mechanical scanner correctly emits zero taxonomy findings by its own rules.
+      This is a scope limitation of the taxonomy for a repo whose product IS its own
+      prose/scripts, not a defect in the code. Per the task's explicit instruction, the
+      two scripts were additionally evaluated manually as real runtime code (review/code.md's
+      rubric: error handling, function size, no stray debug output, determinism where
+      claimed) since the mechanical scanner structurally cannot reach them.
+  ruff:
+    command: "ruff check core/components/plays/ux/scripts/render_wireframes.py core/components/plays/ux/scripts/validate_ux.py"
+    result: "1 finding: F541 at render_wireframes.py:652 (already recorded, not re-reported as new)"
+    severity_judgment: "P4 confirmed correct — a redundant f-string prefix on a literal with no placeholders, cosmetic only, no behavioral effect."
+
+findings:
+  - id: MANUAL-01
+    standard_basis: "pr.md P2 bucket definition (\"error-handling violations\"); review/code.md rubric (\"error handling\")"
+    severity: P2
+    file: core/components/plays/ux/scripts/render_wireframes.py
+    line: 96
+    artifact_type: runtime-code (manual classification; mechanical scan classifies garura-prose)
+    evidence: >
+      `spec = record.get("spec") or {}` and the many following `.get()` calls in
+      `validate()`/`render_page()` assume `record` (and its nested values) are always
+      dicts/lists of the expected shape. Reproduced: running
+      `render_wireframes.py --screens <yaml with a top-level list>` raises an unhandled
+      `AttributeError: 'list' object has no attribute 'get'` at line 96 and exits 1 with
+      a raw Python traceback, not the documented "0=ok / 1=findings recorded / 2=usage-
+      parse-error" contract (docstring lines 33-34). A structurally malformed but
+      syntactically valid screens.yaml (e.g. `spec:` is a string, or `screens:` holds
+      non-dict entries) crashes rather than being reported through the `findings[]`
+      mechanism the script itself already has for exactly this purpose.
+    note: "Confirmed by direct reproduction, not inferred."
+
+  - id: MANUAL-02
+    standard_basis: "pr.md P2 bucket definition (\"error-handling violations\"); review/code.md rubric (\"error handling\")"
+    severity: P2
+    file: core/components/plays/ux/scripts/validate_ux.py
+    line: 724
+    artifact_type: runtime-code (manual classification; mechanical scan classifies garura-prose)
+    evidence: >
+      `man = (load(args.manifest).get("ux") or {})` is guarded against `OSError`/
+      `yaml.YAMLError` only (lines 723-727). Reproduced: a manifest whose YAML parses to
+      a list (not a mapping) raises an unhandled `AttributeError` at line 724 and exits 1
+      with a raw traceback. The same pattern recurs at line 165 (`walk(...,
+      s.get("grounds"))` inside `check_grounding`): a `grounds:` field that is a string
+      rather than a list of dicts raises `AttributeError: 'str' object has no attribute
+      'get'` inside `walk()` (line 144), reproduced directly. The docstring promises
+      "Exit 0 clean, 1 on violation, 2 usage" (line 58); an uncaught crash on malformed-
+      but-parseable input isn't a clean "1 on violation" — it's indistinguishable from a
+      real bug in the caller reading the output.
+    note: "Confirmed by direct reproduction, not inferred."
+
+  - id: MANUAL-03
+    standard_basis: "pr.md P3 bucket definition (\"Minor. Highlights without blocking\"); review/code.md rubric (\"deterministic where it claims to be\" / correctness)"
+    severity: P3
+    file: core/components/plays/ux/scripts/render_wireframes.py
+    line: 79
+    artifact_type: runtime-code (manual classification; mechanical scan classifies garura-prose)
+    evidence: >
+      In `render_markup()`, `safe = esc(text)` HTML-escapes the whole string first (by
+      design — the docstring at lines 69-73 correctly states escaping must run before
+      markup substitution, and for the `ok/warn/bad/dim/sel` tones this is implemented
+      correctly). But the `pin` branch of `sub()` (line 80) calls `esc(inner.strip())`
+      again on `inner`, which is already-escaped text pulled out of `safe` — a double
+      HTML-escape. Reproduced: `render_markup('[[pin:A & B]]')` outputs
+      `<span class="pin">A &amp;amp; B</span>` (double-escaped) versus
+      `render_markup('[[ok:A & B]]')` which correctly outputs `A &amp; B` (single-escaped).
+      Any author-written `[[pin:...]]` inline markup containing `&`, `<`, `>`, or a quote
+      renders garbled text (`&amp;amp;` etc.) on the wireframe page a product owner reads
+      — not a security issue (still safe, no injection), but a real display-correctness
+      defect.
+    note: "Confirmed by direct reproduction, not inferred."
+
+  - id: MANUAL-04
+    standard_basis: "pr.md P4 bucket definition (\"Style-only\"); ruff-equivalent unused-parameter class of finding (CODE-19 intent)"
+    severity: P4
+    file: core/components/plays/ux/scripts/render_wireframes.py
+    line: 314
+    artifact_type: runtime-code (manual classification; mechanical scan classifies garura-prose)
+    evidence: >
+      `render_moment(surface_kind, screen, moment, is_last_moment, persona_label)` never
+      references `is_last_moment` in its body; the only caller (`render_step`, line 381)
+      always passes the literal `False`. Dead parameter, no functional effect.
+
+  - id: F541-KNOWN
+    standard_basis: "ruff F541"
+    severity: P4
+    file: core/components/plays/ux/scripts/render_wireframes.py
+    line: 652
+    artifact_type: runtime-code
+    evidence: 'f''<h1>Wireframes</h1>'' — extraneous f-prefix, no placeholders'
+    note: "Already known/recorded per task brief. Reviewed and confirmed P4 is the correct severity — cosmetic only, not escalated."
+
+counts:
+  P1: 0
+  P2: 2
+  P3: 1
+  P4: 3

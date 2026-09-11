@@ -1,0 +1,39 @@
+needs_judgment: false
+branch: feature/552-ux-design-po-can-see
+issue: 552
+
+change_groups:
+  - id: feat-ux-design-po-can-see
+    issue: 552
+    commit_type: feat
+    scope: ux
+    subject: "draw the slice and make the product owner look at it before approving"
+    confidence: high
+    files:
+      - core/components/plays/ux/reference/ice.md
+      - core/components/plays/ux/SKILL.md
+      - core/components/plays/ux/stop-condition.yaml
+      - core/components/plays/ux/scripts/render_wireframes.py
+      - core/components/plays/ux/scripts/validate_ux.py
+      - core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+      - core/components/skills/author-ux-lens/SKILL.md
+    risks:
+      sensitive_files: []
+      breaking_changes: []
+    notes: >
+      Single-branch, single-issue change (#552) covering five child issues (#554-#558) plus
+      one incidental fix (#563) that all recompile the same play. Kept as one group per the
+      repo's own commit rule (never split a single issue across components) and because the
+      files are load-bearing on each other: ice.md (intent source) and SKILL.md (compiled
+      output) must land together or the play's fingerprint check fails on any intermediate
+      commit; stop-condition.yaml is baked from that same source. render_wireframes.py and
+      the validate_ux.py grounding checks are new capabilities the recompiled play now calls;
+      the ux.md lens template and author-ux-lens SKILL.md are the downstream template/skill
+      that the recompiled play's Step 1b drives — none of these five pieces is independently
+      meaningful without the others. No sensitive files, no secrets, no breaking API/schema
+      changes detected in the diff.
+
+exclusions: []
+
+risks:
+  sensitive_files: []

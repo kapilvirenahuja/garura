@@ -1,7 +1,7 @@
 ---
 name: ux
 position: start
-description: 'Write a SLICE''s UX lens as a grounding doc (ux.md) — the screens (each naming the object the user works with there, with a low-fidelity layout) that make the slice''s functionalities visible, the flows (per persona and goal: entry, ordered steps naming screens, forks, failure path, exit), the states each screen holds (each with its trigger), and the product''s visual core (color + typography) — directly in place on the live model. The START of the FUNCTIONAL realize pipe (ux → agentic → marketing), run on a shaped slice. Accessibility is not here (it lives in the marketing lens); the wider cross-product journey is not here either (that is /story''s). Reads the hub from the spine (functionality grounding + profile + the slice''s persona and journey records — each flow EXPANDS a journey, never invents one), never another lens. Writes only the slice''s ux lens and its visual-core decision.'
+description: 'Write a SLICE''s UX lens as a grounding doc (ux.md) — the screens (each naming the object the user works with there, with a low-fidelity layout) that make the slice''s functionalities visible, the flows (per persona and goal: entry, ordered steps naming screens, forks, failure path, exit), the states each screen holds (each with its trigger), and the product''s visual core (the semantic state vocabulary, its tone map, and the design-system reference the look comes from — never a palette or type scale this play picks) — directly in place on the live model. It also DRAWS the slice: a machine-readable wireframe record (lens/screens.yaml) the play authors and a wireframes.html a bundled script renders from it, ordered by journey step, so a product owner can look at the design rather than read a description of it. The START of the FUNCTIONAL realize pipe (ux → agentic → marketing), run on a shaped slice. Accessibility is not here (it lives in the marketing lens); the wider cross-product journey is not here either (that is /story''s). Reads the hub from the spine (functionality grounding + profile + the slice''s persona and journey records — each flow EXPANDS a journey, never invents one), never another lens. Writes only the slice''s ux lens, its wireframe artifacts, and its decisions — the visual core plus any design directive the design settled for /arch and /implement to inherit.'
 user-invocable: true
 ---
 
@@ -9,7 +9,10 @@ user-invocable: true
 
 Write a shaped slice's **UX lens** as the grounding doc `ux.md`: the screens that make every
 functionality visible (each naming the one object the user works with there), the flows a person
-takes through those screens, the states each screen holds, and the product's visual core. Just enough to
+takes through those screens, the states each screen holds, and the product's visual core. It also DRAWS
+the slice as wireframes — a record the play authors and a page a script renders from it, ordered by
+journey step — because a prose layout is not something a product owner can look at and approve, and
+that approval is the whole point of the checkpoint. Just enough to
 anchor the intended experience and let the build figure the rest. /ux reads the slice's **hub**
 — its functionalities' grounding docs plus the profile (both from the spine) — and never another
 realize lens.
@@ -19,12 +22,14 @@ the D2 rule prepends `start-change` — resolve or create the slice-realize issu
 off fresh main, optional worktree, init STM — so /agentic and /marketing run on this
 already-started branch. No pipeline close sequence (no end PR) is injected here; the functional
 pipe closes at /marketing. It writes the persistent product model **directly, in place** (the
-slice's ux lens and the visual-core decision) on the started branch — there is no draft copy and
+slice's ux lens, its wireframe artifacts, and its decisions) on the started branch — there is no draft copy and
 no apply/promote step; review is the branch git diff and the pipeline's end PR. (#437, #500, ADR 026)
 
 **Write discipline (ADR 026, `standards/rules/direct-model-write.md`).** The LLM authoring skill
-writes ONLY the per-node grounding doc `ux.md` straight to the live model; the one shared-file
-mutation — the visual-core `decisions/*.yaml` (slice-level, skip-if-exists) — is done by the
+writes ONLY the per-node files — the grounding doc `ux.md` and the wireframe record
+`lens/screens.yaml` — straight to the live model, and the bundled render script writes only
+`lens/wireframes.html` from that record; the one shared-file
+mutation — the `decisions/*.yaml` for the visual core and any design directive (slice-level, skip-if-exists) — is done by the
 deterministic keyed persist script, in place, keyed to the target slice so it cannot touch another
 slice's decisions and never edits an accepted decision in place. The model tree is asserted clean
 once start-change has cut the branch (F14) and the play commits its own model delta after approval
@@ -36,8 +41,11 @@ scoped guard (`scoped_write_guard.py`), not a draft.
 This play was compiled from the ux ICE (`reference/ice.md`) by play-editor (#466 Batch C; #467
 Batch B — the checkpoint upgraded to a conditional learned gate, see
 `standards/rules/gate-config.md`; #500 — migrated to direct-model-write per ADR 026 and
-`standards/rules/direct-model-write.md`). Intent defines constraints (C1–C14) and failure
-conditions (F1–F15); the expectation defines success scenarios (S1–S7), a Done means (D1–D3, baked
+`standards/rules/direct-model-write.md`; #552 — wireframes drawn, visual core narrowed to meaning
+plus a design-system reference, decisions widened to design directives, the checkpoint made to hand
+over the artifact, and the content eval made to check truth as well as form). Intent defines
+constraints (C1–C15) and failure
+conditions (F1–F16); the expectation defines success scenarios (S1–S8), a Done means (D1–D4, baked
 to `stop-condition.yaml`), and one recovery entry per failure condition. To modify this play,
 update `reference/ice.md` and recompile with play-editor. Do NOT edit this file manually — it is a
 compiled artifact.
@@ -53,10 +61,15 @@ yourself, and you never persist the shared decision or commit the model delta be
 checkpoint (C11) resolves — a typed approval, a recorded config skip, or a recorded policy
 auto-pass.
 
-**Forbidden:** hand-writing the lens or a decision; writing anything other than this slice's
-`ux.md` (by the skill) and its visual-core decision (by the keyed persist) (C2); reading or
-grounding on another realize lens (C7); writing the visual-core decision by any route other than
-`scripts/persist_ux.py`; committing the model delta before the Step 5 gate resolves; editing an
+**Forbidden:** hand-writing the lens, a decision, or the wireframe page; writing anything other than this slice's
+`ux.md` and `lens/screens.yaml` (by the skill), `lens/wireframes.html` (by the render script), and its
+decisions (by the keyed persist) (C2); writing a product-wide surface map, which spans slices (C2);
+reading or
+grounding on another realize lens (C7); writing a decision by any route other than
+`scripts/persist_ux.py`; writing or hand-editing `wireframes.html` by any route other than
+`scripts/render_wireframes.py` (F16); choosing a palette or a type scale instead of naming the
+design-system reference (C10/F10); taking a checkpoint answer without first handing over the
+artifact paths (C11/F11); committing the model delta before the Step 5 gate resolves; editing an
 accepted decision in place (additive-only — F9); running the lens writes against a dirty
 product-os tree (C13/F14); closing COMPLETED without the stop-condition verdict held (C12/F12).
 
@@ -64,7 +77,7 @@ product-os tree (C13/F14); closing COMPLETED without the stop-condition verdict 
 
 | Agent | Domain | Skill it invokes | Phases |
 |-------|--------|------------------|--------|
-| `product-os-keeper` | Author the slice's UX lens (screens + flows + states + visual core) from the hub + KB pattern grounding — the `ux.md` written in place on the live model, and the visual-core decision emitted into the manifest | `kb-search`, `author-ux-lens` | Author |
+| `product-os-keeper` | Author the slice's UX lens (screens + flows + states + visual core) AND its wireframe record from the hub + KB pattern grounding — the `ux.md` and `lens/screens.yaml` written in place on the live model, and the visual-core + design-directive decisions emitted into the manifest | `kb-search`, `author-ux-lens` | Author |
 
 `product-os-keeper` is the single **domain agent** this play uses (1 of the ≤5 budget). The
 utility work — cutting the branch and resolving the issue — is `start-change` (injected head), not
@@ -142,15 +155,17 @@ completed steps, reset any in-progress step to pending, continue.
 Create ALL tasks immediately after resolving config — before any domain work.
 The play owns this DAG; the agent must not edit its top-level tasks.
 
-Write-then-review (ADR 026): the FULL model delta — the LLM's `ux.md` AND the keyed persist's
-visual-core decision — is written to the live model BEFORE the checkpoint, so the guard, the
+Write-then-review (ADR 026): the FULL model delta — the LLM's `ux.md` and `lens/screens.yaml`, the
+render script's `lens/wireframes.html`, AND the keyed persist's decisions — is written to the live
+model BEFORE the checkpoint, so the guard, the
 change-shape, and the human all see the real delta. Nothing is COMMITTED before the gate resolves;
 cancel reverts the uncommitted writes.
 
 ```
 [T0] start-change (injected — start, head)          blockedBy: []
-[T1] Author the lens (ux.md to live)                blockedBy: [T0]
-[T2] Validate the live doc                          blockedBy: [T1]
+[T1] Author the lens + wireframe record (to live)   blockedBy: [T0]
+[T1b] Draw the slice (render the wireframes)        blockedBy: [T1]
+[T2] Validate the live doc                          blockedBy: [T1b]
 [T3] Persist (keyed, in place — decision)           blockedBy: [T2]
 [T4] Guard the full delta + classify the shape      blockedBy: [T3]
 [T5] Checkpoint (approval over the full git diff)   blockedBy: [T4]
@@ -199,7 +214,7 @@ place, and emits the visual-core decision (with the grounding map) as structured
 `decisions/*.yaml`):
 
     {
-      "task":    "author the slice's UX lens (screens/flows/states/visual core) from its hub; write ux.md in place on the live model; ground screens to functionalities and EXPAND each of the slice's journey records into one flow — the journey supplies the persona and the ordered steps, you add the screen each step happens on plus the forks, failure path and exit; never invent a flow; name each flow's journey_ref and persona_ref in the manifest so both resolve against readiness.json; ground the visual core to the KB or a decision; every flow step names a real screen and every screen is reached by a flow; emit the visual-core decision delta into the manifest",
+      "task":    "author the slice's UX lens (screens/flows/states/visual core) AND its wireframe record from its hub; write ux.md and lens/screens.yaml in place on the live model — never wireframes.html, which a script renders from your record; ground screens to functionalities and EXPAND each of the slice's journey records into one flow — the journey supplies the persona and the ordered steps, you add the screen each step happens on plus the forks, failure path and exit; never invent a flow; name each flow's journey_ref and persona_ref in the manifest so both resolve against readiness.json; in screens.yaml tie every frame to its journey step through journeys[].steps[].covered_by (never a field on the screen), give every moment a literal frame body, and give any journey step no moment covers a named gap rather than dropping it; fix the visual core as MEANING — the semantic vocabulary, its tone map, the word-alongside-colour rule, and the design-system reference (or an explicit none-yet) — never a palette or a type scale; every flow step names a real screen and every screen is reached by a flow; emit the visual-core decision delta AND a design-directive decision for each non-visual thing the design settled that /arch or /implement must inherit, into the manifest",
       "inputs":  { "slice_ref": "<domain>/<slice>",
                    "slice_file": "<slice record>",
                    "functionality_groundings": "<from check_ready_slice>",
@@ -208,26 +223,62 @@ place, and emits the visual-core decision (with the grounding map) as structured
                    "journeys": "<readiness.journeys[] — the slice's journey records>",
                    "profile": "<spine profile>", "product_base": "<product_base>",
                    "lens_rel": "product-os/<domain>/slices/<slice>/lens/ux.md",
+                   "screens_rel": "product-os/<domain>/slices/<slice>/lens/screens.yaml",
                    "manifest_path": "<working>/ux-manifest.yaml" },
       "outputs": { "manifest": "<working>/ux-manifest.yaml" }
     }
 
-The skill reads the hub read-only and writes the `ux.md` IN PLACE under `<product_base>product-os/`.
-It writes `ux-manifest.yaml` under `<working>` (STM) with the grounding map and the visual-core
-`decision_delta` (omitted when it reuses an existing product decision). It writes NO shared model
+The skill reads the hub read-only and writes the `ux.md` and `lens/screens.yaml` IN PLACE under
+`<product_base>product-os/`. It never writes `lens/wireframes.html` — that page is rendered from
+`screens.yaml` by the bundled script at Step 1b, and a hand-written page is F16.
+It writes `ux-manifest.yaml` under `<working>` (STM) with the grounding map and the
+`decision_delta` — the visual core (omitted when it reuses an existing product decision) and one
+entry per design directive the design settled, each carrying `kind` and the `binds` naming what
+downstream reads it. It writes NO shared model
 file. It returns the contract with the output paths on disk — never inline content.
 **SE-1 (F1/C1):** `check_ready_slice.py` passed at pre-flight — the slice is ready and its hub
 resolves, including every surface's persona record and at least one journey per surface; an
 unready slice, a dangling `persona_ref`, or a surface no journey reaches halted (REC1).
 
-**Step 2 — Validate the live doc** · Owner: play · Depends on: Step 1
+**Step 1b — Draw the slice (render the wireframes)** · Owner: play (script) · Depends on: Step 1
+The record is judgment and the page is not, so the page is generated and never hand-written (C15).
+Run the bundled render script over the `screens.yaml` the skill just authored. It validates the
+record against C15's shape, writes `lens/wireframes.html` beside the lens, and captures a report
+whose `ok` field is D4's input:
+
+```
+python3 scripts/render_wireframes.py \
+        --screens <product_base>/product-os/<domain>/slices/<slice>/lens/screens.yaml \
+        --out <product_base>/product-os/<domain>/slices/<slice>/lens/wireframes.html \
+        --report <working>/wireframe-report.json
+```
+
+Then prove the page on disk IS the rendered page — the check that catches a hand-edit, now or on a
+later run — by re-rendering in memory and diffing, writing nothing:
+
+```
+python3 scripts/render_wireframes.py \
+        --screens <product_base>/product-os/<domain>/slices/<slice>/lens/screens.yaml \
+        --out <product_base>/product-os/<domain>/slices/<slice>/lens/wireframes.html \
+        --report <working>/wireframe-report.json --check
+```
+
+**SE-15 (F16/C15):** `render_wireframes.py` exits 0 on both passes — `lens/screens.yaml` and
+`lens/wireframes.html` both exist; every screen is named by a journey step's `covered_by`; every
+journey step either resolves to the moments covering it or carries a named gap (a gap is recorded,
+never a halt); every moment holds a frame body; every state's tone is in the visual core's map;
+`spec.design_system` names a reference or records `none_yet`; no frame carries an invented palette,
+type scale, or component library; and `--check` reports no byte difference, so the page was
+rendered and not hand-edited. A finding is REC16: fix the record, never the page, and re-render.
+
+**Step 2 — Validate the live doc** · Owner: play · Depends on: Step 1b
 Run the guards over the LIVE `ux.md` this run wrote, before the checkpoint — shape first, then
 content, then grounding. Under direct-model-write the doc is already written in place, and the
 visual-core decision has NOT yet been written for this run (the keyed persist runs after Step 2):
 
 ```
 python3 scripts/lint_grounding.py --doc <product_base>/product-os/<domain>/slices/<slice>/lens/ux.md
-python3 scripts/validate_ux.py --manifest <working>/ux-manifest.yaml --slice-file <product_base>/<slice_file> --product-base <product_base> --lens <product_base>/product-os/<domain>/slices/<slice>/lens/ux.md --readiness <working>/readiness.json
+python3 scripts/validate_ux.py --manifest <working>/ux-manifest.yaml --slice-file <product_base>/<slice_file> --product-base <product_base> --lens <product_base>/product-os/<domain>/slices/<slice>/lens/ux.md --readiness <working>/readiness.json --screens <product_base>/product-os/<domain>/slices/<slice>/lens/screens.yaml
 python3 scripts/check_kb_grounding.py --manifest <working>/ux-manifest.yaml --kb-root <kb_root> --proposals-dir <working>/proposals
 ```
 
@@ -243,7 +294,12 @@ python3 scripts/grounding_gate.py --verdict <verdict.json>
 **SE-2 (F3/C3):** `lint_grounding.py` exits 0 — `ux.md` conforms to the UX lens template
 (Intent/Screens/Flows/States/Visual core), no missing/extra/empty section.
 **SE-3 (F4/C4):** the content-quality eval gate (`grounding_gate.py`) passes — `ux.md` is
-self-explaining and clears the stranger test.
+self-explaining and clears the stranger test — AND `validate_ux.py`'s grounding cross-checks pass,
+so the doc is TRUE about the hub and not merely well-formed: every role it names resolves to a
+persona record the readiness check handed over (an invented role such as "a general viewer" or
+"the actor" is a hard fail, not a wording caveat), and every screen it declares is named by at
+least one journey step in `screens.yaml`, with the lens and the record describing the same slice.
+A well-formed doc describing people or screens the model does not have FAILS this eval. REC4.
 **SE-4 (F5/C5):** `validate_ux.py` — every screen in the manifest grounds to a functionality or a
 persona/journey; the visual core grounds to the KB or a decision.
 **SE-5 (F6/C6):** `validate_ux.py` — every functionality the slice bundles is visualized by at
@@ -251,9 +307,13 @@ least one screen (coverage), and every screen is reached by at least one flow st
 unreachable screen).
 **SE-6 (F7/C7):** `validate_ux.py` — no screen grounds on another realize lens.
 **SE-7 (F8/C8):** `validate_ux.py` — the visual core names a decision (the manifest's
-`decision_delta` or a reused product decision) that resolves; the keyed persist (Step 3) writes it.
-**SE-8 (F10/C10):** `check_kb_grounding.py` exits 0 — the visual core, navigation, and responsive
-choices trace to a KB learning or a recorded proposal.
+`decision_delta` or a reused product decision) that resolves; every design directive the design
+settled is in the delta as its own decision naming what it `binds` downstream, rather than left in
+the prose; the keyed persist (Step 3) writes them.
+**SE-8 (F10/C10):** `check_kb_grounding.py` exits 0 — the navigation and responsive
+choices trace to a KB learning or a recorded proposal; and the visual core names the project's
+design-system reference or records that none exists yet, with no palette or type scale chosen by
+this play (the look is never a KB gap — no shelf can tell a project what its brand is).
 **SE-14 (F15/C14):** `validate_ux.py --lens --readiness` reports BOTH flow cross-checks ok. Lens
 side: every flow names its persona, goal, entry, ordered steps, decision points, failure path and
 exit; every step names a screen that exists in Screens; every decision point names where each
@@ -300,8 +360,10 @@ write scope by construction — the lens re-derive (overwrite) and decisions ski
 direct-model-write that same scope is the `scoped_write_guard.py` policy. Resolve `<slice-dir>` as
 `<domain>/slices/<slice>`:
 
-    --allow    'product-os/<slice-dir>/lens/ux.md'      # the ux lens (re-derive; overwrite allowed)
-    --add-only 'product-os/<slice-dir>/decisions/*'     # the visual-core decision (added, never modified)
+    --allow    'product-os/<slice-dir>/lens/ux.md'            # the ux lens (re-derive; overwrite allowed)
+    --allow    'product-os/<slice-dir>/lens/screens.yaml'     # the wireframe record (re-derive)
+    --allow    'product-os/<slice-dir>/lens/wireframes.html'  # the rendered page (regenerated)
+    --add-only 'product-os/<slice-dir>/decisions/*'           # the visual-core + design-directive decisions (added, never modified)
 
 **Guard ONCE over the full delta (C9).** After ALL writes (the LLM's `ux.md` from Step 1 and the
 keyed persist's decision from Step 3), run the scoped guard a single time over the whole delta.
@@ -311,6 +373,8 @@ before/after verify):
 ```
 python3 scripts/scoped_write_guard.py --product-base <product_base> --base-ref HEAD \
         --allow 'product-os/<slice-dir>/lens/ux.md' \
+        --allow 'product-os/<slice-dir>/lens/screens.yaml' \
+        --allow 'product-os/<slice-dir>/lens/wireframes.html' \
         --add-only 'product-os/<slice-dir>/decisions/*' \
         --out <working>/guard-report.json
 ```
@@ -358,9 +422,25 @@ python3 scripts/gate_eval.py append --ledger <gates.conditional.ledger> --play u
 Anything else resolves the gate on (an explicit `gates.plays.ux: off` instead records `gate
 skipped by config (<resolution path>)` as a Checkpoint Decisions row and proceeds). When on,
 present the proposed screens (with layouts and the object each is about), flows, states, and
-visual core, plus the decision, **inline
-over the real model git diff** — render the approval prompt
-(`standards/templates/approval-prompt.md`) and wait for the typed response. Approve → continue to
+visual core, plus the decisions, **inline
+over the real model git diff** — and **hand over the artifacts before asking for an answer (C11)**.
+Print both on-disk paths and say plainly which one to open:
+
+```
+The design is written. Open the wireframes before you answer — that is the design:
+  wireframes   <product_base>/product-os/<domain>/slices/<slice>/lens/wireframes.html
+  the lens     <product_base>/product-os/<domain>/slices/<slice>/lens/ux.md
+```
+
+A summary of the work is not the work. An approval given by someone who was never offered the
+artifact is the play reviewing itself, and it does not count — re-present with the paths and take
+the answer again (REC11). On the auto-pass path nobody is waiting, so write both paths into the
+recorded diff summary instead, so whoever reads the record later lands on the artifact rather than
+on a description of it.
+
+Then render the approval prompt
+(`standards/templates/approval-prompt.md`) and wait for the typed response — typed, never a picker
+or a menu. Approve → continue to
 Step 6 (commit). **Cancel → revert the working tree (ADR 026 step 6):** the full delta is already
 on disk, so run the guard with `--restore` and an EMPTY allow set to `git restore` the modified
 model paths and `git clean`/remove the new ones (byte-clean back to HEAD), then halt — nothing was
@@ -385,10 +465,13 @@ python3 scripts/gate_eval.py append --ledger <gates.conditional.ledger> --play u
 `.garura/core/gate-evals.jsonl` / `.garura/core/gate-policy.yaml`); `<policy version>` is the
 policy file's `version:` field. `<run ts>` is the run's own UTC timestamp, derived the same way the
 close derives `ts` (`date -u`), passed by the orchestrator.
-**SE-10 (F11/C11):** the model delta was written to the live model by Steps 1 + 3 but is COMMITTED
+**SE-10 (F11/C11):** the model delta was written to the live model by Steps 1 + 1b + 3 but is COMMITTED
 (made durable) only at Step 6 on approval — so no product-model change is COMMITTED before the gate
 resolves (a typed approval, a recorded config skip, or a recorded policy auto-pass); on cancel the
-whole working-tree delta is reverted before any commit, so nothing is left on the tree.
+whole working-tree delta is reverted before any commit, so nothing is left on the tree; and the
+answer that resolved the gate was taken only AFTER the lens and wireframe paths were printed (on
+the auto-pass path, both paths appear in the recorded diff summary) — an approval taken without the
+artifact on offer is not recorded as one (REC11).
 **SE-11 (F13):** every crossing of this gate appended exactly one live-eval ledger line (shape,
 predicted `gate|auto`, the human's real action or `auto_pass`), and an auto-pass fired only for a
 shape the policy lists in `auto:` (and not in `never_auto:`) with no blocking finding standing.
@@ -421,15 +504,19 @@ land closes HALTED, never COMPLETED (REC12).
 - **SCE-2 (S2 — product owner):** every functionality the slice bundles maps to ≥1 screen, and
   every screen is reached by ≥1 flow step.
 - **SCE-3 (S3 — ux researcher):** every screen traces to a functionality or persona/journey; every
-  flow's `journey_ref` and `persona_ref` resolve against `readiness.json`; the visual core to a
-  decision that resolves.
+  flow's `journey_ref` and `persona_ref` resolve against `readiness.json`; every role the doc names
+  resolves to a persona record and every screen it declares is named by a journey step; the visual
+  core to a decision that resolves, and it names a design-system reference or records that none
+  exists yet.
 - **SCE-4 (S4 — architect):** no other realize lens was read or written.
 - **SCE-5 (S5 — product owner, re-run):** a re-run re-derives only `ux.md`; everything else
   byte-identical; no accepted decision edited in place (the keyed persist skipped the existing
   decision).
 - **SCE-6 (S6 — reviewer):** the checkpoint showed the screens, flows, states, and visual core
   inline
-  over the real model git diff, and no product-model change was COMMITTED before approval — on
+  over the real model git diff AND printed the on-disk paths of the lens and the rendered
+  wireframe page before taking an answer, so the human approved the artifact rather than a
+  description of it; and no product-model change was COMMITTED before approval — on
   cancel the working tree returns byte-clean to HEAD — or, on the auto-pass path, the change shape
   is policy-listed and a recorded auto-pass + live-eval ledger line + diff summary exist, with no
   wait.
@@ -437,6 +524,12 @@ land closes HALTED, never COMPLETED (REC12).
   about; every flow names persona, goal, entry, ordered steps, decision points, failure path
   and exit; every step resolves to a screen in Screens; every screen appears in at least one
   flow; `validate_ux.py --lens` reports the flow cross-check ok.
+- **SCE-8 (S8 — product owner, looks at the product):** `lens/screens.yaml` and
+  `lens/wireframes.html` both exist on the live model; `render_wireframes.py --check` reports no
+  byte difference, so the page came from the record and was never hand-written; every journey step
+  resolves to the moments covering it or carries a named gap, and the gaps are listed in the
+  wireframe report; every moment holds a frame body; no frame carries a palette, type scale, or
+  component library.
 
 ### Phase: Evidence & Close
 
@@ -490,7 +583,7 @@ and record `evidence skipped (record=false)`. Otherwise fill the `evidence-file.
 `ux`, run_id `ux-${ts}`, slice slug, started/completed, status per C0, exit_reason; artifacts: the
 slice's `ux.md`, the manifest, the visual-core decision, the persist manifest
 (`persist-manifest.json`), the captured `guard-report.json`, the model-delta commit sha, the
-stop-condition verdict; the content-eval verdict; step + scenario evals SE-1…SE-14 / SCE-1…SCE-7;
+stop-condition verdict; the content-eval verdict; the wireframe report; step + scenario evals SE-1…SE-15 / SCE-1…SCE-8;
 checkpoint decision from Step 5 (incl. any `gate skipped by config` or `gate auto-passed by learned
 policy` row) plus the gate ledger line(s) appended this run; the session identity stamp fields from
 $session_stamp (#463): session_id, ledger_file, ledger_start_offset, ledger_end_offset (null when
@@ -520,6 +613,7 @@ this slice), and a pointer to `$evidence_dest`. Always emitted.
 | S5 — re-run | product owner | SCE-5 |
 | S6 — the checkpoint | reviewer | SCE-6 |
 | S7 — reads the flows | ux researcher | SCE-7 |
+| S8 — looks at the product | product owner | SCE-8 |
 
 ## Recovery
 
@@ -528,18 +622,19 @@ this slice), and a pointer to `$evidence_dest`. Always emitted.
 | F1 | the slice is absent, a functionality does not resolve, the profile is not firmed, a surface's persona does not resolve, or a surface is reached by no journey | halt and route to /shape (it owns the persona and journey records and already guarantees a journey per surface) or /understand before /ux runs; never invent the missing persona or journey | human |
 | F2 | a write touched something beyond this slice's ux.md or its visual-core decision | the guard's `--restore` already reverted the out-of-scope write; re-run writing only the slice's ux.md and its decision | autonomous |
 | F3 | ux.md fails the template/shape or carries out-of-scope content | re-emit to the UX lens template (Intent/Screens/Flows/States/Visual core only; accessibility belongs to marketing, the wider cross-product journey to /story) | autonomous |
-| F4 | ux.md fails the content-quality eval | rewrite the failing section to the judge's cited fixes and re-judge until the gate passes | autonomous |
+| F4 | ux.md fails the content-quality eval — not self-explaining, or naming a role that resolves to no persona record, or declaring a screen no journey step names | rewrite the failing section to the judge's cited fixes; replace an unresolvable role with the persona record it stood in for (never add the persona — /shape owns those); tie an uncovered screen to the step it serves or drop it; re-judge and re-run the grounding cross-check until both pass | autonomous |
 | F5 | an invented/ungrounded element | drop it, or re-tie the screen to a functionality or persona/journey, and the visual core to a decision | autonomous |
 | F6 | a functionality is covered by no screen | add the screen(s) that visualize the missing functionality | autonomous |
 | F7 | /ux read or depended on another lens | remove the dependency; /ux derives only from the slice's hub | autonomous |
-| F8 | the visual core was set with no decision | record the slice-level visual-core decision in the manifest (reuse the product one if it exists) before the keyed persist | autonomous |
+| F8 | the visual core was set with no decision, or a thing the design settled for the technical build sits in prose with no decision | record the slice-level visual-core decision in the manifest (reuse the product one if it exists), and lift each settled thing out of the prose into its own design-directive decision naming what it binds downstream — recording only what the design actually settled — before the keyed persist | autonomous |
 | F9 | the scoped-write guard report is not ok — a non-lens/non-decision path changed, or an accepted decision was edited in place | the guard's `--restore` already reverted the offending paths; re-run writing only the slice's ux.md and its visual-core decision, after a human confirms the restore | human |
-| F10 | a UX pattern choice with no KB learning and no recorded proposal | search the KB via kb-search and ground the choice, or raise a KB-learning-gap proposal | autonomous |
-| F11 | the model delta was committed before the checkpoint resolved, or a cancelled checkpoint left writes on the working tree | revert the premature commit and the working-tree writes (guard `--restore`, empty allow set) and re-present the checkpoint; commit only after the gate resolves | human |
+| F10 | the navigation pattern or responsive strategy has no KB learning and no recorded proposal, or /ux chose a palette or type scale | for navigation and responsive strategy, search the KB via kb-search and ground the choice, or raise a KB-learning-gap proposal; for the look, strip the chosen palette and type scale and name the project's design-system reference instead, or record plainly that none exists yet — never a KB gap, since no shelf can tell a project what its brand is | autonomous |
+| F11 | the model delta was committed before the checkpoint resolved, a cancelled checkpoint left writes on the working tree, or the checkpoint took an answer without handing over the artifact paths | for the un-offered artifact, re-present the checkpoint with both paths printed and take the answer again — an approval given without the artifact on offer does not count and is not recorded as one; otherwise revert the premature commit and the working-tree writes (guard `--restore`, empty allow set) and re-present; commit only after the gate resolves | human |
 | F12 | the run is about to close COMPLETED with the Done means unmet | close HALTED (`stop_condition_unmet`) with the unmet clauses named; fix the state — re-run the keyed persist, re-capture the scoped-write guard report, or make the model-delta commit — then re-evaluate; the close stays HALTED until the verdict reads held | autonomous |
 | F13 | a conditional-gate crossing left no live-eval ledger line, or an auto-pass fired for a shape the policy does not list as auto (or with a blocking finding) | re-append the missing ledger line via gate_eval.py; when the auto-pass was unearned, revert any premature persist and re-run the gate as a live wait | autonomous |
 | F14 | the product-os tree is dirty once start-change has cut the branch (uncommitted model edits present) | halt and ask for a clean model tree — commit or revert the pending model edits — before /ux writes the lens | human |
 | F15 | a flow names no persona/goal/entry/failure/exit, a step names a screen that is not in Screens, a decision point does not say where a branch goes, a screen is reached by no flow, or a flow's journey/persona id resolves to no record readiness.json handed over | re-emit the Flows section to the fixed shape — add the missing field, rename the step to the real screen, name both branches of the fork, add the flow that reaches the orphan screen (or drop the screen if nothing reaches it), re-tie the persona to a persona/journey of the hub — then re-run `validate_ux.py --lens` until the flow cross-check reads ok | autonomous |
+| F16 | a wireframe artifact is missing, the page disagrees with its record, a screen is covered by no journey step and carries no gap, a moment has no frame body, a state uses a tone outside the visual core's map, or a frame carries invented styling | author the missing part of the record — the frame body, the `covered_by` list, or the named gap where the step genuinely has no screen yet — correct any tone to one in the map, strip invented styling back to labels and content, then re-run `render_wireframes.py` so the page comes from the record; never hand-edit the page to agree with the record, re-render it; repeat until the wireframe report reads ok | autonomous |
 
 ## Pause and Resume
 
@@ -553,18 +648,53 @@ start — a resume continues its own in-progress delta.
 
 | Field | Value |
 |-------|-------|
-| fingerprint | sha256:67b7f3456d55a8bde6113ead52a92603448b91b932d36412074fddd7bb6bb931 (of `reference/ice.md`) |
-| compiled_by | play-editor (#550 persona + journey grounding); prior: play-editor (#548 flows + object-per-screen), play-editor (#500 direct-model-write, ADR 026), play-editor (#467 Batch B, #466 Batch C) |
+| fingerprint | sha256:dbb1f8b843e0073517523349f95b137aa777005e89514311c05ea2818daa8474 (of `reference/ice.md`) |
+| compiled_by | play-editor (#552 wireframes drawn, visual core narrowed, design directives, artifact-handover checkpoint, truth-checking content eval); prior: play-editor (#550 persona + journey grounding), play-editor (#548 flows + object-per-screen), play-editor (#500 direct-model-write, ADR 026), play-editor (#467 Batch B, #466 Batch C) |
 | pipeline_position | start (functional pipe head; the functional pipe closes at /marketing) |
 | workflow_structure | A (single checkpoint — class: standard, conditional learned gate per gate-config.md #467; direct-model-write WRITE-THEN-REVIEW per ADR 026 — persist + guard + classify before the gate, commit after; stop-condition gated close) |
-| stop_condition | stop-condition.yaml (D1–D3), gate live at Step C0 |
+| stop_condition | stop-condition.yaml (D1–D4), gate live at Step C0 |
 | domain_agents | 1 (product-os-keeper) |
 | utility_agents | 0 |
 | skills_used | kb-search, author-ux-lens |
-| scripts | 12 (preflight, check_ready_slice, lint_grounding, grounding_gate, validate_ux, check_kb_grounding, persist_ux — keyed in-place persist, scoped_write_guard — post-write containment, check_stop_condition — Done-means gate, session_stamp — #463 identity stamp, classify_change + gate_eval + distill_gate_policy — #467 conditional gate) |
-| step_evals | 14 (SE-1…SE-14) |
-| scenario_evals | 7 (SCE-1…SCE-7) |
-| recovery_entries | 15 (one per failure condition; 12 autonomous / 3 human) |
+| scripts | 13 (preflight, check_ready_slice, lint_grounding, grounding_gate, validate_ux, check_kb_grounding, persist_ux — keyed in-place persist, render_wireframes — draws screens.yaml into wireframes.html and proves the page was generated (#552), scoped_write_guard — post-write containment, check_stop_condition — Done-means gate, session_stamp — #463 identity stamp, classify_change + gate_eval + distill_gate_policy — #467 conditional gate) |
+| step_evals | 15 (SE-1…SE-15) |
+| scenario_evals | 8 (SCE-1…SCE-8) |
+| recovery_entries | 16 (one per failure condition; 13 autonomous / 3 human) |
+
+**Recompiled note (#552, the slice gets drawn):** five intent changes applied as one change set,
+from the griffin run for `slice-trusted-local-collection`, where /ux produced one commit and the
+product owner made nine correction commits after it while the play's own content check passed the
+first draft on every criterion.
+
+- **The slice is drawn, not only described** (C15, F16, REC16, S8, SE-15, SCE-8, D4). New Step 1b
+  and the bundled `render_wireframes.py`. The authoring skill writes the wireframe record
+  `lens/screens.yaml`; the script renders `lens/wireframes.html` from it and re-renders with
+  `--check` to prove the page was generated. A frame ties to a journey step through
+  `journeys[].steps[].covered_by`, never a field on the screen, so ordering follows the journey and
+  a new moment renumbers nothing. A step no moment covers carries a named gap — recorded, never a
+  halt, because the griffin artifact the product owner accepted kept one. A product-wide surface
+  map spans slices and stays out of scope (C2).
+- **The visual core fixes meaning, not the look** (C3, C5, C10, F10, REC10). It carries the
+  semantic vocabulary, its tone map, the word-alongside-colour rule, and the design-system
+  reference — or an explicit "none yet". /ux no longer picks a palette or a type scale, and the
+  look is never a KB gap: no shelf can tell a project what its brand is.
+- **Decisions widen to design directives** (C8, F8, REC8). Designing a slice settles non-visual
+  things the technical design must inherit; each becomes its own slice-level decision naming what
+  it binds downstream, rather than being retold by hand into /arch.
+- **The checkpoint hands over the artifact** (C11, F11, REC11, SE-10, SCE-6). It prints the lens
+  and wireframe paths and says which to open before it takes an answer; on the auto-pass path both
+  paths go into the recorded diff summary. An approval given without the artifact on offer is not
+  recorded as one.
+- **The content eval checks truth, not only form** (C4, F4, REC4, SE-3, SCE-3). `validate_ux.py`
+  gained `--screens` and two mechanical cross-checks: every role the doc names resolves to a
+  persona record, and every screen it declares is named by a journey step. The griffin draft's "a
+  general viewer" — a role that exists nowhere in the model — was flagged by the old judge as a
+  wording caveat; it is now a hard fail.
+
+Outside the play: `author-ux-lens` authors `screens.yaml` and the widened decision set, and the UX
+lens template's Visual core guidance and gold example were rewritten to match. The lens heading
+list is unchanged, so the ten duplicated `lint_grounding.py` copies need no sync. The slice-outcome
+trace belongs to /shape (#561) and is deliberately not built here.
 
 **Recompiled note (#500, direct-model-write / ADR 026):** migrated from draft-then-apply to
 direct-model-write. The old draft model tree and the `apply_ux.py`/`check_ux.py` promotion+verify

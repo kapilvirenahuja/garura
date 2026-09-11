@@ -1,0 +1,144 @@
+pr: 564
+issue: 552
+base: main
+categories_assessed: [harness, memory, code]
+run_evidence_not_reviewed: 9   # .garura/project/issues/552/context/** — the record of the run, not work under review
+
+findings:
+
+  # ---- code (standards-driven; not design-bearing) ----
+  - id: C-1
+    category: code
+    severity: P2
+    file: core/components/plays/ux/scripts/render_wireframes.py
+    where: "validate(), line 96"
+    says: >
+      A structurally malformed but parseable record (a top-level YAML list instead of a mapping)
+      raises an unhandled AttributeError traceback instead of the documented clean exit 2.
+    basis: "review/code.md rubric — a script must fail on its own terms; pr.md P2 (wrong behaviour on bad input, no data loss)"
+    verified_by: "orchestrator reproduced: printf '- a\\n- b\\n' > bad.yaml then ran the script — AttributeError: 'list' object has no attribute 'get'"
+
+  - id: C-2
+    category: code
+    severity: P2
+    file: core/components/plays/ux/scripts/validate_ux.py
+    where: "manifest/readiness load paths"
+    says: >
+      Same shape — a structurally malformed but parseable manifest or readiness file raises an
+      unhandled traceback rather than the documented exit 2.
+    basis: "review/code.md rubric; pr.md P2"
+    verified_by: "quality-auditor reproduced all three crash paths directly"
+
+  - id: C-3
+    category: code
+    severity: P4
+    file: core/components/plays/ux/scripts/render_wireframes.py
+    where: "render_markup(), pin branch, line 81"
+    says: >
+      The pin branch re-escapes already-escaped content, so a pin carrying text renders
+      double-escaped ('Tom & Jerry' -> 'Tom &amp;amp; Jerry'). Cosmetic, never under-escaped,
+      so not a security issue. Downgraded from the reviewer's P3: a pin is specified to hold a
+      NUMBER, so this fires only on misuse.
+    basis: "pr.md P4 (cosmetic, non-blocking)"
+    verified_by: "orchestrator ran render_markup directly on five inputs; only the text-pin case misbehaves"
+
+  - id: C-4
+    category: code
+    severity: P4
+    file: core/components/plays/ux/scripts/render_wireframes.py
+    where: "render_markup(), nested markup"
+    says: >
+      Nested markup is silently mangled rather than rejected: '[[ok:a & b [[pin:2]] c]]'
+      renders as '<span class="ok">a &amp; b [[pin:2</span> c]]'. Either support nesting or
+      reject it with a finding; malformed output is the wrong third option.
+    basis: "review/code.md rubric — malformed output must not pass silently; pr.md P4"
+    verified_by: "orchestrator reproduced directly"
+    note: "found by the orchestrator during verification; not reported by any reviewing agent"
+
+  - id: C-5
+    category: code
+    severity: P4
+    file: core/components/plays/ux/scripts/render_wireframes.py
+    where: "line 652"
+    says: "Extraneous f-string prefix on a literal with no placeholders."
+    basis: "ruff F541"
+    verified_by: "orchestrator ran ruff check on both scripts — exactly one finding"
+
+  - id: C-6
+    category: code
+    severity: P4
+    file: core/components/plays/ux/scripts/render_wireframes.py
+    says: "Unused function parameter (is_last_moment)."
+    basis: "review/code.md rubric — dead parameter; pr.md P4"
+
+  - id: C-7
+    category: code
+    severity: P4
+    file: core/components/plays/ux/scripts/validate_ux.py
+    where: "line 186"
+    says: >
+      Stale error message: 'visual core must ground on a KB technology learning or a decision'.
+      Under the branch's new C10/F10 the KB half no longer applies to the visual core.
+      Misleading text only — the check itself is correct and still passes.
+    basis: "pr.md P4"
+    verified_by: "memory reviewer ran the validator on a minimal decision-grounded manifest — exit 0, no errors"
+
+  # ---- harness (design-bearing; grounded from committed sources) ----
+  - id: H-1
+    category: harness
+    severity: P3
+    file: core/components/plays/ux/reference/ice.md
+    where: "F2, F9, and C12's Done-means prose"
+    says: >
+      Three passages still describe the OLD write scope ('this slice's ux.md or a decision')
+      after C2 and C15 widened it to screens.yaml and wireframes.html and pluralised the
+      decisions. The enforcement — the scoped guard's allowlist — is correct and unaffected,
+      so this is the intent text disagreeing with itself, not a functional hole.
+    basis: >
+      Grounded in docs/philosophy/intent-driven-development.md (constraints and failure
+      conditions travel together so a reader can tell what a constraint covers) — committed,
+      not from this branch.
+    grounded_in_committed_source: true
+
+  # ---- memory (design-bearing; grounded from committed sources) ----
+  - id: M-1
+    category: memory
+    severity: P3
+    file: core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+    where: "gold example, Visual core block"
+    says: >
+      The example never states the four tone names (ok/warn/bad/neutral) the guidance requires
+      every state word to carry — it shows colours only.
+    basis: "the file's own committed convention that an example must demonstrate what its guidance requires"
+    grounded_in_committed_source: true
+
+  - id: M-2
+    category: memory
+    severity: P3
+    file: core/components/memory/standards/schemas/product-os/grounding/lens/ux.md
+    where: "gold example, Visual core vocabulary"
+    says: >
+      The example's vocabulary uses a state word ('not-ready') that its own States section never
+      defines — a dangling term in the very document that teaches the rule against them.
+    basis: "the file's own committed Flows guidance — a word used in one section must resolve in its owning section"
+    grounded_in_committed_source: true
+
+withdrawn:
+  - id: M-0
+    was: P2
+    says: >
+      Claimed the template teaches a 'none yet' design-system outcome that validate_ux.py rejects.
+      Withdrawn under test: the validator checks source_type (stays 'decision') and never reads the
+      decision's content, so a 'none yet' lens passes. Repro run, exit 0, no errors. Replaced by C-7.
+
+counts: { P1: 0, P2: 2, P3: 3, P4: 5 }
+
+heading_contract_check: "PASS — no ## heading changed in the lens schema; the ten duplicated lint_grounding.py copies need no sync (verified against main)"
+
+structural_gap_for_follow_up:
+  says: >
+    quality-check-scoped's artifact-type table classifies everything under core/components/**
+    as garura-prose before it can reach runtime-code, so the mechanical scanner structurally
+    cannot see runtime-code defects in this repo's own scripts. It returned zero findings for
+    both Python files; every code finding above came from manual evaluation instead.
+  recommendation: "file as its own issue — it is a gap in garura's review taxonomy, outside this PR's scope"
