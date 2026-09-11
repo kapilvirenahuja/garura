@@ -74,9 +74,112 @@ except ImportError:
 OTHER_LENSES = ("quality", "agentic", "architecture", "run", "measure", "marketing", "lens")
 
 
+class ShapeError(Exception):
+    """A loaded file parsed fine but doesn't have the shape this script depends on (exit 2)."""
+
+
 def load(path):
     with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}
+
+
+def _typename(value):
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "a boolean"
+    if isinstance(value, list):
+        return "a list"
+    if isinstance(value, dict):
+        return "a mapping"
+    if isinstance(value, str):
+        return "a string"
+    if isinstance(value, (int, float)):
+        return "a number"
+    return type(value).__name__
+
+
+def _require_mapping(value, what, source):
+    if not isinstance(value, dict):
+        raise ShapeError(f"{what} must be a mapping, got {_typename(value)} ({source})")
+    return value
+
+
+def _require_list(value, what, source):
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise ShapeError(f"{what} must be a list, got {_typename(value)} ({source})")
+    return value
+
+
+def _require_list_of_mappings(value, what, source):
+    items = _require_list(value, what, source)
+    for i, item in enumerate(items):
+        if not isinstance(item, dict):
+            raise ShapeError(f"{what}[{i}] must be a mapping, got {_typename(item)} ({source})")
+    return items
+
+
+def check_manifest_shape(raw, source):
+    """Validate the manifest's shape before any 'ux' field is read. Returns the 'ux' section
+    (a mapping, possibly empty) — the same value main() would otherwise compute inline.
+    """
+    _require_mapping(raw, "manifest", source)
+    man = raw.get("ux")
+    if man is None:
+        return {}
+    _require_mapping(man, "manifest's ux", source)
+
+    screens = _require_list_of_mappings(man.get("screens"), "manifest's ux.screens", source)
+    for s in screens:
+        grounds = s.get("grounds")
+        if grounds is not None:
+            _require_list_of_mappings(grounds, f"screen '{s.get('name', '<?>')}' grounds",
+                                       source)
+
+    flows = _require_list_of_mappings(man.get("flows"), "manifest's ux.flows", source)
+    for f in flows:
+        grounds = f.get("grounds")
+        if grounds is not None:
+            _require_list_of_mappings(
+                grounds, f"flow '{f.get('id') or f.get('persona') or '<?>'}' grounds", source)
+
+    for key in ("design_system", "visual_core"):
+        val = man.get(key)
+        if val is not None:
+            _require_mapping(val, f"manifest's ux.{key}", source)
+
+    deltas = man.get("decision_delta") or man.get("decision")
+    if deltas is not None:
+        items = [deltas] if isinstance(deltas, dict) else _require_list(
+            deltas, "manifest's ux.decision_delta", source)
+        for d in items:
+            if not isinstance(d, dict):
+                continue
+            rec = d.get("record")
+            if rec is not None and not isinstance(rec, dict):
+                did = d.get("id", "<?>")
+                raise ShapeError(f"manifest's ux.decision_delta {did!r} record must be a "
+                                  f"mapping, got {_typename(rec)} ({source})")
+
+    return man
+
+
+def check_screens_record_shape(record, source):
+    """Validate lens/screens.yaml's shape before check_screens_record() walks it."""
+    _require_mapping(record, "wireframe record", source)
+    _require_list_of_mappings(record.get("screens"), "wireframe record's screens", source)
+    journeys = _require_list_of_mappings(record.get("journeys"), "wireframe record's journeys",
+                                          source)
+    for j in journeys:
+        jid = j.get("id", "<?>")
+        steps = _require_list_of_mappings(j.get("steps"), f"journey '{jid}' steps", source)
+        for step in steps:
+            covered_by = step.get("covered_by")
+            if covered_by is not None and not isinstance(covered_by, list):
+                raise ShapeError(f"journey '{jid}' step {step.get('n', '<?>')} covered_by must "
+                                  f"be a list, got {_typename(covered_by)} ({source})")
 
 
 def _blank(v):
@@ -125,6 +228,8 @@ def live_decisions(product_base):
         try:
             body = load(d)
         except (OSError, yaml.YAMLError):
+            continue
+        if not isinstance(body, dict):
             continue
         dec = body.get("decision") if isinstance(body.get("decision"), dict) else body
         if isinstance(dec, dict) and dec.get("id"):
@@ -277,9 +382,14 @@ def slice_functionalities(slice_file, errors):
     if not slice_file or not os.path.isfile(slice_file):
         errors.append(f"slice record not found at {slice_file} — cannot verify coverage (C6/F6)")
         return set()
-    sl = (load(slice_file).get("slice") or {})
-    return {(f or {}).get("functionality_ref") for f in (sl.get("functionalities") or [])
-            if (f or {}).get("functionality_ref")}
+    raw = load(slice_file)
+    _require_mapping(raw, "slice record", slice_file)
+    sl = raw.get("slice") or {}
+    if sl:
+        _require_mapping(sl, "slice record's slice", slice_file)
+    funcs = _require_list_of_mappings(sl.get("functionalities"),
+                                       "slice record's slice.functionalities", slice_file)
+    return {f.get("functionality_ref") for f in funcs if f.get("functionality_ref")}
 
 
 # --------------------------------------------------------------------------------------
@@ -652,6 +762,8 @@ def check_screens_record(screens_path, lens_path, errors, warnings):
         errors.append(f"wireframe record unreadable at {screens_path}: {exc} (C4/F4)")
         return counts
 
+    check_screens_record_shape(record, screens_path)
+
     rec_screens = [s for s in (record.get("screens") or []) if isinstance(s, dict)]
     counts["record_screens"] = len(rec_screens)
 
@@ -721,15 +833,24 @@ def main(argv=None):
 
     errors, warnings = [], []
     try:
-        man = (load(args.manifest).get("ux") or {})
+        raw_manifest = load(args.manifest)
     except (OSError, yaml.YAMLError) as exc:
         errors.append(f"manifest unreadable: {exc}")
-        man = {}
+        raw_manifest = {}
+    try:
+        man = check_manifest_shape(raw_manifest, args.manifest)
+    except ShapeError as exc:
+        sys.stderr.write(f"validate_ux.py: {exc}\n")
+        return 2
 
     decision_ids = manifest_decisions(man, errors) | live_decisions(args.product_base)
 
     grounded_funcs = check_grounding(man, decision_ids, errors)
-    to_cover = slice_functionalities(args.slice_file, errors)
+    try:
+        to_cover = slice_functionalities(args.slice_file, errors)
+    except ShapeError as exc:
+        sys.stderr.write(f"validate_ux.py: {exc}\n")
+        return 2
     for fid in sorted(f for f in to_cover if f):
         if fid not in grounded_funcs:
             errors.append(f"slice functionality {fid!r} is visualized by no screen (C6/F6)")
@@ -749,6 +870,12 @@ def main(argv=None):
         except (OSError, ValueError) as exc:
             errors.append(f"readiness JSON unreadable at {args.readiness}: {exc} (C14/F15)")
             readiness = None
+        if readiness is not None:
+            try:
+                _require_mapping(readiness, "readiness JSON", args.readiness)
+            except ShapeError as exc:
+                sys.stderr.write(f"validate_ux.py: {exc}\n")
+                return 2
         ready_counts = ({"resolved_personas": 0, "resolved_journeys": 0, "flows_grounded": 0}
                         if readiness is None else check_readiness(man, readiness, errors))
     else:
@@ -766,7 +893,11 @@ def main(argv=None):
         # else: --readiness was passed but unreadable — already recorded as an error above.
 
     if args.screens:
-        screens_counts = check_screens_record(args.screens, args.lens, errors, warnings)
+        try:
+            screens_counts = check_screens_record(args.screens, args.lens, errors, warnings)
+        except ShapeError as exc:
+            sys.stderr.write(f"validate_ux.py: {exc}\n")
+            return 2
     else:
         screens_counts = {"record_screens": 0, "record_screens_uncovered": 0}
         warnings.append("--screens was not passed: the C4/F4 wireframe-record grounding + "

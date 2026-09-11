@@ -52,6 +52,10 @@ MARKUP_RE = re.compile(r"\[\[(ok|warn|bad|dim|sel|pin):((?:(?!\]\]).)*)\]\]", re
 MOMENT_ID_RE = re.compile(r"^([A-Za-z0-9_-]+)\.m(\d+)$")
 
 
+class ShapeError(Exception):
+    """screens.yaml parsed fine but doesn't have the shape this script depends on (exit 2)."""
+
+
 # --------------------------------------------------------------------------------------
 # small helpers
 # --------------------------------------------------------------------------------------
@@ -59,6 +63,92 @@ MOMENT_ID_RE = re.compile(r"^([A-Za-z0-9_-]+)\.m(\d+)$")
 def load_yaml(path):
     with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}
+
+
+def _typename(value):
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "a boolean"
+    if isinstance(value, list):
+        return "a list"
+    if isinstance(value, dict):
+        return "a mapping"
+    if isinstance(value, str):
+        return "a string"
+    if isinstance(value, (int, float)):
+        return "a number"
+    return type(value).__name__
+
+
+def _require_mapping(value, what, source):
+    if not isinstance(value, dict):
+        raise ShapeError(f"{what} must be a mapping, got {_typename(value)} ({source})")
+    return value
+
+
+def _require_list(value, what, source):
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise ShapeError(f"{what} must be a list, got {_typename(value)} ({source})")
+    return value
+
+
+def _require_list_of_mappings(value, what, source):
+    items = _require_list(value, what, source)
+    for i, item in enumerate(items):
+        if not isinstance(item, dict):
+            raise ShapeError(f"{what}[{i}] must be a mapping, got {_typename(item)} ({source})")
+    return items
+
+
+def check_shape(record, source):
+    """Verify screens.yaml has the shape validate()/render_page() depend on, before either
+    walks it. A structural mismatch (a list where a mapping belongs, a string where a
+    list-of-mappings belongs) is a ShapeError -> exit 2; a semantic gap (a missing field, a
+    bad reference) is still a finding raised by validate(), never a ShapeError.
+    """
+    _require_mapping(record, "screens record", source)
+
+    spec = record.get("spec")
+    if spec is not None:
+        _require_mapping(spec, "screens record's spec", source)
+
+    for key in ("personas", "surfaces"):
+        _require_list_of_mappings(record.get(key), f"screens record's {key}", source)
+
+    screens = _require_list_of_mappings(record.get("screens"), "screens record's screens", source)
+    for s in screens:
+        sid = s.get("id", "<?>")
+        moments = _require_list_of_mappings(s.get("moments"), f"screen '{sid}' moments", source)
+        for mo in moments:
+            frame = mo.get("frame")
+            if frame is not None:
+                _require_mapping(frame, f"screen '{sid}' moment {mo.get('n', '<?>')} frame",
+                                  source)
+        _require_list_of_mappings(s.get("states"), f"screen '{sid}' states", source)
+
+    journeys = _require_list_of_mappings(record.get("journeys"), "screens record's journeys",
+                                          source)
+    for j in journeys:
+        jid = j.get("id", "<?>")
+        steps = _require_list_of_mappings(j.get("steps"), f"journey '{jid}' steps", source)
+        for step in steps:
+            covered_by = step.get("covered_by")
+            if covered_by is not None and not isinstance(covered_by, list):
+                raise ShapeError(f"journey '{jid}' step {step.get('n', '<?>')} covered_by must "
+                                  f"be a list, got {_typename(covered_by)} ({source})")
+
+    for key in ("vocabulary", "open_questions"):
+        _require_list_of_mappings(record.get(key), f"screens record's {key}", source)
+
+    color_rule = record.get("color_rule")
+    if color_rule is not None:
+        _require_mapping(color_rule, "screens record's color_rule", source)
+        roles = color_rule.get("roles")
+        if roles is not None:
+            _require_mapping(roles, "screens record's color_rule.roles", source)
 
 
 def esc(text):
@@ -690,6 +780,12 @@ def main(argv=None):
         record = load_yaml(args.screens)
     except yaml.YAMLError as exc:
         sys.stderr.write(f"render_wireframes.py: cannot parse {args.screens}: {exc}\n")
+        return 2
+
+    try:
+        check_shape(record, args.screens)
+    except ShapeError as exc:
+        sys.stderr.write(f"render_wireframes.py: {exc}\n")
         return 2
 
     required_top = ("spec", "personas", "surfaces", "journeys", "screens", "vocabulary",
