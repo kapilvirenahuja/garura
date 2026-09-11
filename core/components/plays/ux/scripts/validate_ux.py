@@ -24,8 +24,14 @@ enforce, plus the one cross-check the doc's own text carries:
              step names a screen that exists in `## Screens`; every screen in `## Screens` is
              named by at least one flow step (no unreachable screen); and every decision point
              says where each branch goes. Skipped with a warning when `--lens` is not passed.
-             (The C14 clause that a flow's persona traces to a hub persona/journey is NOT
-             mechanical here — it stays with the content eval.)
+  - C14/F15  flow RESOLUTION (`--readiness`, the JSON `check_ready_slice.py` emits): a flow
+             EXPANDS one of the slice's journey records, so every manifest flow must name the
+             journey id it expands AND the persona id that journey serves, and BOTH must appear
+             in the readiness JSON's `journeys` / `personas` lists — an id that resolves to
+             nothing is an error, never a warning, and the persona named must be the one the
+             journey record itself serves. The reverse also holds: every resolved journey of
+             the slice must be expanded by at least one flow, so none of the slice's real paths
+             is left undrawn. Skipped with a warning when `--readiness` is not passed.
 
 There is NO draft tree: the visual-core decision is carried in the manifest as `decision_delta`
 until the keyed persist (`persist_ux.py`) writes it in place. Reused decisions are resolved
@@ -35,7 +41,7 @@ Layer rule: reads files on disk only; no git/gh/network.
 
     python3 validate_ux.py --manifest <ux-manifest.yaml> \
             --slice-file <live slice record .yaml> [--product-base <product_base>] \
-            [--lens <live lens/ux.md>]
+            [--lens <live lens/ux.md>] [--readiness <check_ready_slice.py output .json>]
 
 Prints {ok, errors[], warnings[], counts} JSON. Exit 0 clean, 1 on violation, 2 usage.
 """
@@ -173,6 +179,86 @@ def check_grounding(man, decision_ids, errors):
         elif dec not in decision_ids:
             errors.append(f"visual core names decision '{dec}' with no resolvable record (C8/F8)")
     return grounded_funcs
+
+
+def flow_ids(flow):
+    """The journey id and the persona id a manifest flow names, or None for each.
+
+    Accepted either on the flow itself (`journey_ref` / `journey`, `persona_ref`) or on its
+    grounding entries (a `source_type` of journey/persona, reading `journey_ref`/`persona_ref`
+    and falling back to `source`). The flow's `persona` field is a display NAME ("Analyst"),
+    not an id, so it is never read as one.
+    """
+    jid = flow.get("journey_ref") or flow.get("journey")
+    pid = flow.get("persona_ref")
+    for g in (flow.get("grounds") or []):
+        if not isinstance(g, dict):
+            continue
+        st = (g.get("source_type") or "").strip().lower()
+        if st == "journey" and _blank(jid):
+            jid = g.get("journey_ref") or g.get("source")
+        elif st == "persona" and _blank(pid):
+            pid = g.get("persona_ref") or g.get("source")
+    jid = jid.strip() if isinstance(jid, str) else jid
+    pid = pid.strip() if isinstance(pid, str) else pid
+    return (jid or None), (pid or None)
+
+
+def check_readiness(man, readiness, errors):
+    """C14/F15 — the manifest half of flow resolution, against the readiness hand-over.
+
+    A flow EXPANDS a journey record of the slice: the journey supplies the persona and the
+    ordered steps, /ux adds the screens, the forks, the failure path and the exit. So every
+    flow must name a journey id and a persona id that the readiness check actually resolved to
+    records on disk, and every resolved journey must be expanded by some flow.
+    """
+    counts = {"resolved_personas": 0, "resolved_journeys": 0, "flows_grounded": 0}
+    persona_ids = {p.get("id") for p in (readiness.get("personas") or [])
+                   if isinstance(p, dict) and p.get("id")}
+    journeys = {j.get("id"): j for j in (readiness.get("journeys") or [])
+                if isinstance(j, dict) and j.get("id")}
+    counts["resolved_personas"] = len(persona_ids)
+    counts["resolved_journeys"] = len(journeys)
+
+    expanded = set()
+    for f in (man.get("flows") or []):
+        if not isinstance(f, dict):
+            continue
+        label = f"flow '{f.get('id') or f.get('persona') or '<flow>'}'"
+        jid, pid = flow_ids(f)
+        ok_flow = True
+        if jid is None:
+            errors.append(f"{label} names no journey id — a flow EXPANDS one of the slice's "
+                          f"journey records, it is never invented (C14/F15)")
+            ok_flow = False
+        elif jid not in journeys:
+            errors.append(f"{label} names journey '{jid}', which resolves to no journey record "
+                          f"the readiness check handed over (C14/F15)")
+            ok_flow = False
+        if pid is None:
+            errors.append(f"{label} names no persona id — name the persona the journey it "
+                          f"expands serves (C14/F15)")
+            ok_flow = False
+        elif pid not in persona_ids:
+            errors.append(f"{label} names persona '{pid}', which resolves to no persona record "
+                          f"the readiness check handed over (C14/F15)")
+            ok_flow = False
+        if ok_flow:
+            served = journeys[jid].get("persona_ref")
+            if served and served != pid:
+                errors.append(f"{label} names persona '{pid}', but journey '{jid}' serves "
+                              f"'{served}' — a flow carries the journey's own persona (C14/F15)")
+                ok_flow = False
+        if jid is not None:
+            expanded.add(jid)
+        if ok_flow:
+            counts["flows_grounded"] += 1
+
+    for jid in sorted(journeys):
+        if jid not in expanded:
+            errors.append(f"journey {jid!r} of the slice is expanded by no flow — every real "
+                          f"path through the slice's surfaces must be drawn (C14/F15)")
+    return counts
 
 
 def slice_functionalities(slice_file, errors):
@@ -430,6 +516,9 @@ def main(argv=None):
     ap.add_argument("--product-base", help="live model root — to resolve a reused decision")
     ap.add_argument("--lens", help="the written lens/ux.md — enables the C14/F15 flow "
                                    "cross-check (skipped with a warning when omitted)")
+    ap.add_argument("--readiness", help="the JSON check_ready_slice.py emitted for this slice — "
+                                       "enables the C14/F15 flow RESOLUTION check (skipped with "
+                                       "a warning when omitted)")
     args = ap.parse_args(argv)
 
     errors, warnings = [], []
@@ -454,10 +543,25 @@ def main(argv=None):
         warnings.append("--lens was not passed: the C14/F15 flow cross-check was skipped "
                         "(pass --lens <slice>/lens/ux.md to run it)")
 
+    if args.readiness:
+        try:
+            with open(args.readiness, encoding="utf-8") as fh:
+                readiness = json.load(fh) or {}
+        except (OSError, ValueError) as exc:
+            errors.append(f"readiness JSON unreadable at {args.readiness}: {exc} (C14/F15)")
+            readiness = None
+        ready_counts = ({"resolved_personas": 0, "resolved_journeys": 0, "flows_grounded": 0}
+                        if readiness is None else check_readiness(man, readiness, errors))
+    else:
+        ready_counts = {"resolved_personas": 0, "resolved_journeys": 0, "flows_grounded": 0}
+        warnings.append("--readiness was not passed: the C14/F15 flow resolution check was "
+                        "skipped (pass --readiness <check_ready_slice.py output .json> to run it)")
+
     counts = {"manifest_screens": len(man.get("screens") or []),
               "manifest_flows": len(man.get("flows") or []), "decisions": len(decision_ids),
               "to_cover": len(to_cover), "grounded_funcs": len(grounded_funcs)}
     counts.update(flow_counts)
+    counts.update(ready_counts)
     result = {"ok": not errors, "errors": errors, "warnings": warnings, "counts": counts}
     print(json.dumps(result, indent=2))
     return 0 if not errors else 1
